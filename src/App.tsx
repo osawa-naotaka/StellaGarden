@@ -1,11 +1,13 @@
 import { Application, extend, useApplication, useTick } from "@pixi/react";
 import { Assets, Container, Sprite, Texture } from "pixi.js";
 import React, { useEffect, useRef, useState } from "react";
+import { Viewport } from "pixi-viewport";
 
 // extend tells @pixi/react what Pixi.js components are available
 extend({
     Container,
     Sprite,
+    Viewport,
 });
 
 type Position = {
@@ -51,9 +53,11 @@ export default function App() {
         // We'll wrap our components with an <Application> component to provide
         // the Pixi.js Application context
         <Application background={"#1099bb"} resizeTo={window}>
-            <BunnySprite pos={{ x: 0, y: 0 }} />
-            <BunnySprite pos={{ x: 32, y: 0 }} />
-            <BunnySprite pos={{ x: 64, y: 0 }} />
+            <pixiViewport screenWidth={window.innerWidth} screenHeight={window.innerHeight} worldWidth={2000} worldHeight={2000} >
+                <BunnySprite pos={{ x: 0, y: 0 }} />
+                <BunnySprite pos={{ x: 32, y: 0 }} />
+                <BunnySprite pos={{ x: 64, y: 0 }} />
+            </pixiViewport>
         </Application>
     );
 }
