@@ -1,7 +1,6 @@
-import { Application, useApplication } from "@pixi/react";
-import { Assets, type Application as PixiApplication, Sprite } from "pixi.js";
-import { useEffect, useState } from "react";
-import { useViewport } from "./Viewport";
+import { Application, Assets, Sprite } from "pixi.js";
+import { Viewport } from "pixi-viewport";
+import { useEffect, useRef } from "react";
 
 type Position = {
     x: number;
@@ -14,36 +13,46 @@ const BUNNY_POSITIONS: Position[] = [
     { x: 200, y: 0 },
 ];
 
-function GameCanvas() {
-    const appContext = useApplication();
-    const [app, setApp] = useState<PixiApplication | null>(null);
+export default function App() {
+    const canvasRef = useRef<HTMLCanvasElement>(null);
 
-    // Applicationインスタンスを取得
     useEffect(() => {
-        const pixiApp = (appContext as any).app || appContext;
-        if (pixiApp && pixiApp.stage) {
-            setApp(pixiApp);
-        }
-    }, [appContext]);
+        if (!canvasRef.current) return;
 
-    // Viewportを作成
-    const viewport = useViewport(app, window.innerWidth, window.innerHeight, 2000, 2000);
+        // Pixi.jsのApplicationを作成
+        const app = new Application();
 
-    // スプライトの作成と管理
-    useEffect(() => {
-        if (!viewport) {
-            return;
-        }
+        async function init() {
+            if (!canvasRef.current) return;
 
-        const sprites: Sprite[] = [];
+            // Applicationを初期化
+            await app.init({
+                canvas: canvasRef.current,
+                background: "#1099bb",
+                resizeTo: window,
+            });
 
-        async function loadAndCreateSprites() {
-            if (!viewport) return;
+            // Viewportを作成
+            const viewport = new Viewport({
+                screenWidth: window.innerWidth,
+                screenHeight: window.innerHeight,
+                worldWidth: 2000,
+                worldHeight: 2000,
+                ticker: app.ticker,
+                events: app.renderer.events,
+            });
+
+            // Viewportをステージに追加
+            app.stage.addChild(viewport);
+
+            // ドラッグ、ピンチズーム、ホイールズームを有効化
+            viewport.drag().pinch().wheel().decelerate();
 
             // テクスチャをロード
             const texture = await Assets.load("/assets/bunny.png");
 
             // スプライトを作成してViewportに追加
+            const sprites: Sprite[] = [];
             for (const pos of BUNNY_POSITIONS) {
                 const sprite = new Sprite(texture);
                 sprite.anchor.set(0.5);
@@ -52,39 +61,22 @@ function GameCanvas() {
                 sprites.push(sprite);
                 viewport.addChild(sprite);
             }
+
+            // アニメーション
+            app.ticker.add(() => {
+                for (const sprite of sprites) {
+                    sprite.rotation += 0.1 * app.ticker.deltaTime;
+                }
+            });
         }
 
-        loadAndCreateSprites();
+        init();
 
-        // アニメーション
-        const ticker = app?.ticker;
-        const animate = () => {
-            for (const sprite of sprites) {
-                sprite.rotation += (0.1 * (ticker?.deltaMS || 16)) / 16;
-            }
-        };
-
-        ticker?.add(animate);
-
+        // クリーンアップ
         return () => {
-            // クリーンアップ
-            ticker?.remove(animate);
-            for (const sprite of sprites) {
-                if (viewport) {
-                    viewport.removeChild(sprite);
-                }
-                sprite.destroy();
-            }
+            app.destroy(true, { children: true });
         };
-    }, [viewport]);
+    }, []);
 
-    return null;
-}
-
-export default function App() {
-    return (
-        <Application background={"#1099bb"} resizeTo={window}>
-            <GameCanvas />
-        </Application>
-    );
+    return <canvas ref={canvasRef} />;
 }
