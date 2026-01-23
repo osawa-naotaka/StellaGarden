@@ -1,6 +1,6 @@
 import { Application, extend, useApplication, useTick } from "@pixi/react";
 import { Assets, Container, Sprite, Texture } from "pixi.js";
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 // extend tells @pixi/react what Pixi.js components are available
 extend({
@@ -8,7 +8,16 @@ extend({
     Sprite,
 });
 
-const BunnySprite = () => {
+type Position = {
+    x: number;
+    y: number;
+};
+
+type BunnySpriteProps = {
+    pos: Position;
+}
+
+function BunnySprite({ pos }: BunnySpriteProps): React.ReactElement {
     const { app } = useApplication();
 
     // The Pixi.js `Sprite`
@@ -17,12 +26,13 @@ const BunnySprite = () => {
 
     // Preload the sprite if it hasn't been loaded yet
     useEffect(() => {
-        if (texture === Texture.EMPTY) {
-            Assets.load("/assets/bunny.png").then((result) => {
-                setTexture(result);
-            });
+        async function loadTexture() {
+            const result = await Assets.load("/assets/bunny.png");
+            setTexture(result);
         }
-    }, [texture]);
+
+        loadTexture();
+    }, []);
 
     // Listen for animate update
     useTick((ticker) => {
@@ -33,7 +43,7 @@ const BunnySprite = () => {
         spriteRef.current.rotation += 0.1 * ticker.deltaTime;
     });
 
-    return <pixiSprite ref={spriteRef} texture={texture} anchor={0.5} x={app.screen.width / 2} y={app.screen.height / 2} />;
+    return <pixiSprite ref={spriteRef} texture={texture} anchor={0.5} x={app.screen.width / 2 + pos.x} y={app.screen.height / 2 + pos.y} />;
 };
 
 export default function App() {
@@ -41,7 +51,9 @@ export default function App() {
         // We'll wrap our components with an <Application> component to provide
         // the Pixi.js Application context
         <Application background={"#1099bb"} resizeTo={window}>
-            <BunnySprite />
+            <BunnySprite pos={{ x: 0, y: 0 }} />
+            <BunnySprite pos={{ x: 32, y: 0 }} />
+            <BunnySprite pos={{ x: 64, y: 0 }} />
         </Application>
     );
 }
