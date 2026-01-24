@@ -1,16 +1,28 @@
-import { Application, Assets, Sprite } from "pixi.js";
+import { Application, Assets, Sprite, Texture } from "pixi.js";
 import { Viewport } from "pixi-viewport";
 import { useEffect, useRef } from "react";
 
 type Position = {
+    name: string;
     x: number;
     y: number;
 };
 
+
 const BUNNY_POSITIONS: Position[] = [
-    { x: 0, y: 0 },
-    { x: 100, y: 0 },
-    { x: 200, y: 0 },
+    { name: "grass_normal_1", x: 0, y: 48 },
+    { name: "grass_normal_2", x: 16, y: 48 },
+    { name: "grass_normal_3", x: 32, y: 48 },
+    { name: "grass_normal_4", x: 0, y: 32 },
+    { name: "grass_normal_5", x: 16, y: 32 },
+    { name: "grass_normal_6", x: 32, y: 32 },
+    { name: "grass_normal_7", x: 0, y: 16 },
+    { name: "grass_normal_8", x: 16, y: 16 },
+    { name: "grass_normal_9", x: 32, y: 16 },
+    { name: "grass_normal_a", x: 0, y: 0 },
+    { name: "grass_normal_b", x: 16, y: 0 },
+    { name: "grass_normal_c", x: 32, y: 0 },
+    { name: "grass_normal_d", x: 48, y: 0 },
 ];
 
 export default function App() {
@@ -49,15 +61,17 @@ export default function App() {
             viewport.drag().pinch().wheel().decelerate();
 
             // テクスチャをロード
-            const texture = await Assets.load("/assets/bunny.png");
+            await Assets.load("/assets/tileset.spritesheet.json");
+            const texture = Texture.from("grass_normal_1");
+            // const texture = await Assets.load("/assets/bunny.png");
 
             // スプライトを作成してViewportに追加
             const sprites: Sprite[] = [];
             for (const pos of BUNNY_POSITIONS) {
-                const sprite = new Sprite(texture);
+                const sprite = new Sprite(Texture.from(pos.name));
                 sprite.anchor.set(0.5);
-                sprite.x = viewport.worldWidth / 2 + pos.x;
-                sprite.y = viewport.worldHeight / 2 + pos.y;
+                sprite.x = 100 + pos.x;
+                sprite.y = 100 + pos.y;
 
                 // スプライトをインタラクティブにする
                 sprite.eventMode = "static";
@@ -116,11 +130,11 @@ export default function App() {
             }
 
             // アニメーション
-            app.ticker.add(() => {
-                for (const sprite of sprites) {
-                    sprite.rotation += 0.1 * app.ticker.deltaTime;
-                }
-            });
+            // app.ticker.add(() => {
+            //     for (const sprite of sprites) {
+            //         sprite.rotation += 0.1 * app.ticker.deltaTime;
+            //     }
+            // });
         }
 
         init();

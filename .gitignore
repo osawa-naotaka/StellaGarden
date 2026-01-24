@@ -4,3 +4,4 @@ node_modules
 .dev.vars*
 dist
 wrangler.jsonc
+public/assets/non-redis/*
