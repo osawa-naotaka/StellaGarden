@@ -11,6 +11,22 @@ const tile = [
     [-1, 1, 2, 3, -1],
 ];
 
+
+const tile_1 = [
+    [ 7,  9, -1, -1, -1, -1],
+    [ 1,  3, -1, -1, -1, -1],
+    [ 7,  9,  7,  9, -1, -1],
+    [ 1,  3,  1,  3, -1, -1],
+];
+
+const tile_1_1 = [
+    [ 7,  9, -1, -1, -1, -1],
+    [ 4,  6, -1, -1, -1, -1],
+    [ 4, 11,  8,  9, -1, -1],
+    [ 1,  2,  2,  3, -1, -1],
+];
+
+
 export default function App() {
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -47,22 +63,22 @@ export default function App() {
             viewport.drag().pinch().wheel().decelerate();
 
             // テクスチャをロード
-            await Assets.load("/assets/tileset.spritesheet.json");
+            await Assets.load("/assets/isometric-tileset.spritesheet.json");
 
             // スプライトを作成してViewportに追加
             const sprites: Sprite[] = [];
-            let base_y = 0;
-            for (const pos_y of tile) {
+            let base_y = 10;
+            for (const pos_y of tile_1_1) {
                 let base_x = 0;
                 for (const tile_number of pos_y) {
                     if (tile_number === -1) {
                         base_x++;
                         continue;
                     }
-                    const sprite = new Sprite(Texture.from(`waterfront_grass_${tile_number}`));
+                    const sprite = new Sprite(Texture.from(`tile_${tile_number.toString().padStart(3, "0")}.png`));
                     sprite.anchor.set(0.5);
-                    sprite.x = 100 + base_x * 16;
-                    sprite.y = 100 + base_y * 16;
+                    sprite.x = 100 + base_x * 32;
+                    sprite.y = 100 + base_y * 8;
 
                     // スプライトをインタラクティブにする
                     sprite.eventMode = "static";
@@ -121,7 +137,7 @@ export default function App() {
 
                     base_x++;
                 }
-                base_y++;
+                base_y--;
             }
 
             // アニメーション

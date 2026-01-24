@@ -4,7 +4,7 @@ import alea from "alea";
 import { createNoise2D } from "simplex-noise";
 
 export function generateTerrain(width: number, height: number) {
-    const noise2D = createNoise2D(alea("seed"));
+    const noise2D = createNoise2D(alea("rand"));
     const terrain: number[][] = [];
     const scale = 0.1; // スケールを小さくすると大きな地形に
 
