@@ -1,7 +1,7 @@
 import { Application, Assets, Sprite, Texture } from "pixi.js";
 import { Viewport } from "pixi-viewport";
 import { useEffect, useRef } from "react";
-
+import { generateTerrain } from "./Terrain";
 
 const tile = [
     [-1, 7, 8, 9, -1],
@@ -48,7 +48,6 @@ export default function App() {
 
             // テクスチャをロード
             await Assets.load("/assets/tileset.spritesheet.json");
-            
 
             // スプライトを作成してViewportに追加
             const sprites: Sprite[] = [];
@@ -64,7 +63,6 @@ export default function App() {
                     sprite.anchor.set(0.5);
                     sprite.x = 100 + base_x * 16;
                     sprite.y = 100 + base_y * 16;
-
 
                     // スプライトをインタラクティブにする
                     sprite.eventMode = "static";
@@ -135,6 +133,9 @@ export default function App() {
         }
 
         init();
+
+        const te = generateTerrain(10, 10);
+        console.log(te);
 
         // クリーンアップ
         return () => {
