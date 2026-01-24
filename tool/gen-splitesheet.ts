@@ -7,7 +7,8 @@ const spriteDefSchema = v.object({
         image: v.string(),
         format: v.literal("RGBA8888"),
     }),
-    frames: v.record(v.string(), v.tuple([v.number(), v.number()])),
+    displacements: v.record(v.string(), v.record(v.string(), v.tuple([v.number(), v.number()]))),
+    frames: v.record(v.string(), v.tuple([v.number(), v.number(), v.optional(v.string())])),
 });
 
 const src = ["tileset"];
@@ -45,8 +46,16 @@ for (const name of src) {
 
     const frames: Record<string, Frame> = {};
 
-    for (const [key, [x, y]] of Object.entries(parsed.frames)) {
-        frames[key] = frameOf(x, y, 16);
+    for (const [key, [x, y, displacement]] of Object.entries(parsed.frames)) {
+        if (displacement) {
+            const disp = parsed.displacements[displacement];
+            for (const [dir, [dx, dy]] of Object.entries(disp)) {
+                const frameKey = `${key}${dir}`;
+                frames[frameKey] = frameOf(x + dx, y + dy, 16);
+            }
+        } else {
+            frames[key] = frameOf(x, y, 16);
+        }
     }
 
     const spritesheet = {

@@ -2,27 +2,13 @@ import { Application, Assets, Sprite, Texture } from "pixi.js";
 import { Viewport } from "pixi-viewport";
 import { useEffect, useRef } from "react";
 
-type Position = {
-    name: string;
-    x: number;
-    y: number;
-};
 
-
-const BUNNY_POSITIONS: Position[] = [
-    { name: "grass_normal_1", x: 0, y: 48 },
-    { name: "grass_normal_2", x: 16, y: 48 },
-    { name: "grass_normal_3", x: 32, y: 48 },
-    { name: "grass_normal_4", x: 0, y: 32 },
-    { name: "grass_normal_5", x: 16, y: 32 },
-    { name: "grass_normal_6", x: 32, y: 32 },
-    { name: "grass_normal_7", x: 0, y: 16 },
-    { name: "grass_normal_8", x: 16, y: 16 },
-    { name: "grass_normal_9", x: 32, y: 16 },
-    { name: "grass_normal_a", x: 0, y: 0 },
-    { name: "grass_normal_b", x: 16, y: 0 },
-    { name: "grass_normal_c", x: 32, y: 0 },
-    { name: "grass_normal_d", x: 48, y: 0 },
+const tile = [
+    [-1, 7, 8, 9, -1],
+    [7, 10, 5, 11, 9],
+    [4, 5, 5, 5, 6],
+    [1, 12, 5, 13, 3],
+    [-1, 1, 2, 3, -1],
 ];
 
 export default function App() {
@@ -62,71 +48,82 @@ export default function App() {
 
             // テクスチャをロード
             await Assets.load("/assets/tileset.spritesheet.json");
-            const texture = Texture.from("grass_normal_1");
-            // const texture = await Assets.load("/assets/bunny.png");
+            
 
             // スプライトを作成してViewportに追加
             const sprites: Sprite[] = [];
-            for (const pos of BUNNY_POSITIONS) {
-                const sprite = new Sprite(Texture.from(pos.name));
-                sprite.anchor.set(0.5);
-                sprite.x = 100 + pos.x;
-                sprite.y = 100 + pos.y;
+            let base_y = 0;
+            for (const pos_y of tile) {
+                let base_x = 0;
+                for (const tile_number of pos_y) {
+                    if (tile_number === -1) {
+                        base_x++;
+                        continue;
+                    }
+                    const sprite = new Sprite(Texture.from(`waterfront_grass_${tile_number}`));
+                    sprite.anchor.set(0.5);
+                    sprite.x = 100 + base_x * 16;
+                    sprite.y = 100 + base_y * 16;
 
-                // スプライトをインタラクティブにする
-                sprite.eventMode = "static";
-                sprite.cursor = "pointer";
 
-                // ドラッグ用の状態を保持
-                let dragData: { sprite: Sprite; offset: { x: number; y: number } } | null = null;
+                    // スプライトをインタラクティブにする
+                    sprite.eventMode = "static";
+                    sprite.cursor = "pointer";
 
-                // ポインターダウン（ドラッグ開始）
-                sprite.on("pointerdown", (event) => {
-                    // Viewportのドラッグを一時的に無効化
-                    viewport.pause = true;
+                    // ドラッグ用の状態を保持
+                    let dragData: { sprite: Sprite; offset: { x: number; y: number } } | null = null;
 
-                    // スプライトの位置とマウス位置の差分を保存
-                    const worldPos = viewport.toWorld(event.global);
-                    dragData = {
-                        sprite: sprite,
-                        offset: {
-                            x: sprite.x - worldPos.x,
-                            y: sprite.y - worldPos.y,
-                        },
+                    // ポインタームーブハンドラ（グローバル）
+                    const onPointerMove = (event: any) => {
+                        if (dragData) {
+                            // マウス位置をワールド座標に変換
+                            const worldPos = viewport.toWorld(event.global);
+                            dragData.sprite.x = worldPos.x + dragData.offset.x;
+                            dragData.sprite.y = worldPos.y + dragData.offset.y;
+                        }
                     };
 
-                    // グローバルイベントを登録
-                    viewport.on("pointermove", onPointerMove);
-                    viewport.on("pointerup", onPointerUp);
-                    viewport.on("pointerupoutside", onPointerUp);
-                });
+                    // ポインターアップハンドラ（グローバル）
+                    const onPointerUp = () => {
+                        if (dragData) {
+                            dragData = null;
+                            // Viewportのドラッグを再度有効化
+                            viewport.pause = false;
 
-                // ポインタームーブハンドラ（グローバル）
-                const onPointerMove = (event: any) => {
-                    if (dragData) {
-                        // マウス位置をワールド座標に変換
+                            // グローバルイベントを削除
+                            viewport.off("pointermove", onPointerMove);
+                            viewport.off("pointerup", onPointerUp);
+                            viewport.off("pointerupoutside", onPointerUp);
+                        }
+                    };
+
+                    // ポインターダウン（ドラッグ開始）
+                    sprite.on("pointerdown", (event) => {
+                        // Viewportのドラッグを一時的に無効化
+                        viewport.pause = true;
+
+                        // スプライトの位置とマウス位置の差分を保存
                         const worldPos = viewport.toWorld(event.global);
-                        dragData.sprite.x = worldPos.x + dragData.offset.x;
-                        dragData.sprite.y = worldPos.y + dragData.offset.y;
-                    }
-                };
+                        dragData = {
+                            sprite: sprite,
+                            offset: {
+                                x: sprite.x - worldPos.x,
+                                y: sprite.y - worldPos.y,
+                            },
+                        };
 
-                // ポインターアップハンドラ（グローバル）
-                const onPointerUp = () => {
-                    if (dragData) {
-                        dragData = null;
-                        // Viewportのドラッグを再度有効化
-                        viewport.pause = false;
+                        // グローバルイベントを登録
+                        viewport.on("pointermove", onPointerMove);
+                        viewport.on("pointerup", onPointerUp);
+                        viewport.on("pointerupoutside", onPointerUp);
+                    });
 
-                        // グローバルイベントを削除
-                        viewport.off("pointermove", onPointerMove);
-                        viewport.off("pointerup", onPointerUp);
-                        viewport.off("pointerupoutside", onPointerUp);
-                    }
-                };
+                    sprites.push(sprite);
+                    viewport.addChild(sprite);
 
-                sprites.push(sprite);
-                viewport.addChild(sprite);
+                    base_x++;
+                }
+                base_y++;
             }
 
             // アニメーション
