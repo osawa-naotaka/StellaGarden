@@ -49,7 +49,21 @@ export default function App() {
             for (let z = -3; z < 3; z++) {
                 for (const pos of zigzaggedTile) {
                     if (pos.z < z) continue;
-                    const sprite = new Sprite(Texture.from(z < -1 ? `tile_092.png` : z < 2 ? `tile_024.png` : `tile_024.png`));
+                    let sprite_name = "";
+                    if (pos.z < 0) {
+                        if (pos.z === z) {
+                            sprite_name = `tile_092.png`;
+                        } else {
+                            sprite_name = `tile_003.png`;
+                        }
+                    } else {
+                        if (pos.z === z) {
+                            sprite_name = `tile_024.png`;
+                        } else {
+                            sprite_name = `tile_004.png`;
+                        }
+                    }
+                    const sprite = new Sprite(Texture.from(sprite_name));
                     sprite.anchor.set(0.5);
                     sprite.x = 100 + pos.x * 16;
                     sprite.y = 100 + pos.y * 8 - (z - 1) * 8;
