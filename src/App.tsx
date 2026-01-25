@@ -65,8 +65,8 @@ export default function App() {
                     }
                     const sprite = new Sprite(Texture.from(sprite_name));
                     sprite.anchor.set(0.5);
-                    sprite.x = 100 + posproj.proj.x * 16;
-                    sprite.y = 100 + posproj.proj.y * 8 - posproj.pos.y * 8;
+                    sprite.x = 900 + posproj.proj.x * 16;
+                    sprite.y = 200 + posproj.proj.y * 8 - posproj.pos.y * 8;
 
                     sprites.push(sprite);
                     viewport.addChild(sprite);
@@ -75,8 +75,8 @@ export default function App() {
 
             const sprite = new AnimatedSprite(walk.animations["walk_left_down"]);
             sprite.anchor.set(0.5);
-            sprite.x = 100;
-            sprite.y = 100;
+            sprite.x = 900;
+            sprite.y = 200;
             sprite.animationSpeed = 0.1;
             sprite.play();
             viewport.addChild(sprite);
