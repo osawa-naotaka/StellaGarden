@@ -1,9 +1,13 @@
 import { AnimatedSprite, Application, Assets, Sprite, Texture } from "pixi.js";
 import { Viewport } from "pixi-viewport";
 import { useEffect, useRef } from "react";
-import { generateTerrain, zigzagTerrain } from "./Terrain";
+import { generateTerrain, zigzagPosition } from "./Terrain";
+import type { Cell } from "./Terrain";
+import { VoxelMap } from "./VoxelMap";
 
-const tile = generateTerrain(40, 40);
+const map = new VoxelMap<Cell>(40, 8, 40, 3);
+generateTerrain(map);
+const scan_pattern = zigzagPosition(map);
 
 export default function App() {
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -46,28 +50,23 @@ export default function App() {
 
             // スプライトを作成してViewportに追加
             const sprites: Sprite[] = [];
-            const zigzaggedTile = zigzagTerrain(tile);
-            for (let z = -3; z < 3; z++) {
-                for (const pos of zigzaggedTile) {
-                    if (pos.z < z) continue;
+            for (const posproj of scan_pattern) {
+                const cells = map.get(posproj.pos);
+                for (const cell of cells) {
                     let sprite_name = "";
-                    if (pos.z < 0) {
-                        if (pos.z === z) {
-                            sprite_name = `tile_092.png`;
-                        } else {
-                            sprite_name = `tile_003.png`;
-                        }
+                    if (cell.type === "soil") {
+                        sprite_name = "tile_003.png";
+                    } else if (cell.type === "grass") {
+                        sprite_name = "tile_024.png";
+                    } else if (cell.type === "water") {
+                        sprite_name = "tile_092.png";
                     } else {
-                        if (pos.z === z) {
-                            sprite_name = `tile_024.png`;
-                        } else {
-                            sprite_name = `tile_004.png`;
-                        }
+                        continue;
                     }
                     const sprite = new Sprite(Texture.from(sprite_name));
                     sprite.anchor.set(0.5);
-                    sprite.x = 100 + pos.x * 16;
-                    sprite.y = 100 + pos.y * 8 - (z - 1) * 8;
+                    sprite.x = 100 + posproj.proj.x * 16;
+                    sprite.y = 100 + posproj.proj.y * 8 - posproj.pos.y * 8;
 
                     sprites.push(sprite);
                     viewport.addChild(sprite);
