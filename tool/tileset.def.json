@@ -1,7 +1,9 @@
 {
   "meta": {
     "image": "non-redis/tileset.png",
-    "format": "RGBA8888"
+    "format": "RGBA8888",
+    "px": 16,
+    "py": 16
   },
   "displacements": {
     "ground": {
@@ -22,6 +24,7 @@
       "_15": [5,1]
     }
   },
+  "animations": { },
   "frames": {
     "grass_normal": [1,1, "ground"],
     "grass_darker": [8,1, "ground"],

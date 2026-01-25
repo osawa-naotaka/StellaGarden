@@ -6,12 +6,15 @@ const spriteDefSchema = v.object({
     meta: v.object({
         image: v.string(),
         format: v.literal("RGBA8888"),
+        px: v.number(),
+        py: v.number(),
     }),
     displacements: v.record(v.string(), v.record(v.string(), v.tuple([v.number(), v.number()]))),
+    animations: v.record(v.string(), v.string()),
     frames: v.record(v.string(), v.tuple([v.number(), v.number(), v.optional(v.string())])),
 });
 
-const src = ["tileset"];
+const src = ["tileset", "Idle"];
 
 type Frame = {
     frame: { x: number; y: number; w: number; h: number };
@@ -21,13 +24,15 @@ type Frame = {
     sourceSize: { w: number; h: number };
 }
 
-function frameOf(x: number, y: number, px: number): Frame {
+type Animation = Record<string, string[]>;
+
+function frameOf(x: number, y: number, px: number, py: number): Frame {
     return {
-        frame: { x: x * px, y: y * px, w: px, h: px },
+        frame: { x: x * px, y: y * px, w: px, h: py },
         rotated: false,
         trimmed: false,
-        spriteSourceSize: { x: 0, y: 0, w: px, h: px },
-        sourceSize: { w: px, h: px },
+        spriteSourceSize: { x: 0, y: 0, w: px, h: py },
+        sourceSize: { w: px, h: py },
     };
 }
 
@@ -51,10 +56,26 @@ for (const name of src) {
             const disp = parsed.displacements[displacement];
             for (const [dir, [dx, dy]] of Object.entries(disp)) {
                 const frameKey = `${key}${dir}`;
-                frames[frameKey] = frameOf(x + dx, y + dy, 16);
+                frames[frameKey] = frameOf(x + dx, y + dy, parsed.meta.px, parsed.meta.py);
             }
         } else {
-            frames[key] = frameOf(x, y, 16);
+            frames[key] = frameOf(x, y, parsed.meta.px, parsed.meta.py);
+        }
+    }
+
+    const animations: Animation = {};
+
+    for (const [animName, displacement] of Object.entries(parsed.animations)) {
+        const disp = parsed.displacements[displacement];
+        for (const postfix of Object.keys(disp)) {
+            const frameKey = `${animName}${postfix}`;
+            if (!frames[frameKey]) {
+                throw new Error(`Frame not found: ${frameKey}`);
+            }
+            if (!animations[animName]) {
+                animations[animName] = [];
+            }
+            animations[animName].push(frameKey);
         }
     }
 
@@ -70,6 +91,7 @@ for (const name of src) {
             },
             scale: "1",
         },
+        animations,
         frames
     };
     writeFileSync(output, JSON.stringify(spritesheet, null, 2));
