@@ -1,4 +1,4 @@
-import { Application, Assets, Sprite, Texture } from "pixi.js";
+import { AnimatedSprite, Application, Assets, Sprite, Spritesheet, Texture, TextureUvs } from "pixi.js";
 import { Viewport } from "pixi-viewport";
 import { useEffect, useRef } from "react";
 import { generateTerrain, zigzagTerrain } from "./Terrain";
@@ -42,6 +42,7 @@ export default function App() {
 
             // テクスチャをロード
             await Assets.load("/assets/isometric-tileset.spritesheet.json");
+            const down = await Assets.load("/assets/Idle.spritesheet.json");
 
             // スプライトを作成してViewportに追加
             const sprites: Sprite[] = [];
@@ -72,6 +73,14 @@ export default function App() {
                     viewport.addChild(sprite);
                 }
             }
+
+            const sprite = new AnimatedSprite(down.animations["down"]);
+            sprite.anchor.set(0.5);
+            sprite.x = 100;
+            sprite.y = 100;
+            sprite.animationSpeed = 0.1;
+            sprite.play();
+            viewport.addChild(sprite);
         }
 
         init();
