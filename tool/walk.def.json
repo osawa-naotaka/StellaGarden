@@ -1,0 +1,36 @@
+{
+  "meta": {
+    "image": "non-redis/walk.png",
+    "format": "RGBA8888",
+    "px": 48,
+    "py": 64
+  },
+  "displacements": {
+    "animation": {
+      "_0": [0,0],
+      "_1": [1,0],
+      "_2": [2,0],
+      "_3": [3,0],
+      "_4": [4,0],
+      "_5": [5,0],
+      "_6": [6,0],
+      "_7": [7,0]
+    }
+  },
+  "animations": {
+    "walk_down": "animation",
+    "walk_left_down": "animation",
+    "walk_left_up": "animation",
+    "walk_up": "animation",
+    "walk_right_up": "animation",
+    "walk_right_down": "animation"
+  },
+  "frames": {
+    "walk_down": [0,0, "animation"],
+    "walk_left_down": [0,1, "animation"],
+    "walk_left_up": [0,2, "animation"],
+    "walk_up": [0,3, "animation"],
+    "walk_right_up": [0,4, "animation"],
+    "walk_right_down": [0,5, "animation"]
+  }
+}

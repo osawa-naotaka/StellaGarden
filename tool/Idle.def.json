@@ -18,9 +18,19 @@
     }
   },
   "animations": {
-    "down": "animation"
+    "Idle_down": "animation",
+    "Idle_left_down": "animation",
+    "Idle_left_up": "animation",
+    "Idle_up": "animation",
+    "Idle_right_up": "animation",
+    "Idle_right_down": "animation"
   },
   "frames": {
-    "down": [0,0, "animation"]
+    "Idle_down": [0,0, "animation"],
+    "Idle_left_down": [0,1, "animation"],
+    "Idle_left_up": [0,2, "animation"],
+    "Idle_up": [0,3, "animation"],
+    "Idle_right_up": [0,4, "animation"],
+    "Idle_right_down": [0,5, "animation"]
   }
 }

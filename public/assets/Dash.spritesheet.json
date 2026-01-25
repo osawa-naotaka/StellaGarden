@@ -2,7 +2,7 @@
   "meta": {
     "app": "gen-splitesheet.ts",
     "version": "1.0.0",
-    "image": "non-redis/Idle.png",
+    "image": "non-redis/Dash.png",
     "format": "RGBA8888",
     "size": {
       "w": 384,
@@ -11,69 +11,69 @@
     "scale": "1"
   },
   "animations": {
-    "Idle_down": [
-      "Idle_down_0",
-      "Idle_down_1",
-      "Idle_down_2",
-      "Idle_down_3",
-      "Idle_down_4",
-      "Idle_down_5",
-      "Idle_down_6",
-      "Idle_down_7"
+    "Dash_down": [
+      "Dash_down_0",
+      "Dash_down_1",
+      "Dash_down_2",
+      "Dash_down_3",
+      "Dash_down_4",
+      "Dash_down_5",
+      "Dash_down_6",
+      "Dash_down_7"
     ],
-    "Idle_left_down": [
-      "Idle_left_down_0",
-      "Idle_left_down_1",
-      "Idle_left_down_2",
-      "Idle_left_down_3",
-      "Idle_left_down_4",
-      "Idle_left_down_5",
-      "Idle_left_down_6",
-      "Idle_left_down_7"
+    "Dash_left_down": [
+      "Dash_left_down_0",
+      "Dash_left_down_1",
+      "Dash_left_down_2",
+      "Dash_left_down_3",
+      "Dash_left_down_4",
+      "Dash_left_down_5",
+      "Dash_left_down_6",
+      "Dash_left_down_7"
     ],
-    "Idle_left_up": [
-      "Idle_left_up_0",
-      "Idle_left_up_1",
-      "Idle_left_up_2",
-      "Idle_left_up_3",
-      "Idle_left_up_4",
-      "Idle_left_up_5",
-      "Idle_left_up_6",
-      "Idle_left_up_7"
+    "Dash_left_up": [
+      "Dash_left_up_0",
+      "Dash_left_up_1",
+      "Dash_left_up_2",
+      "Dash_left_up_3",
+      "Dash_left_up_4",
+      "Dash_left_up_5",
+      "Dash_left_up_6",
+      "Dash_left_up_7"
     ],
-    "Idle_up": [
-      "Idle_up_0",
-      "Idle_up_1",
-      "Idle_up_2",
-      "Idle_up_3",
-      "Idle_up_4",
-      "Idle_up_5",
-      "Idle_up_6",
-      "Idle_up_7"
+    "Dash_up": [
+      "Dash_up_0",
+      "Dash_up_1",
+      "Dash_up_2",
+      "Dash_up_3",
+      "Dash_up_4",
+      "Dash_up_5",
+      "Dash_up_6",
+      "Dash_up_7"
     ],
-    "Idle_right_up": [
-      "Idle_right_up_0",
-      "Idle_right_up_1",
-      "Idle_right_up_2",
-      "Idle_right_up_3",
-      "Idle_right_up_4",
-      "Idle_right_up_5",
-      "Idle_right_up_6",
-      "Idle_right_up_7"
+    "Dash_right_up": [
+      "Dash_right_up_0",
+      "Dash_right_up_1",
+      "Dash_right_up_2",
+      "Dash_right_up_3",
+      "Dash_right_up_4",
+      "Dash_right_up_5",
+      "Dash_right_up_6",
+      "Dash_right_up_7"
     ],
-    "Idle_right_down": [
-      "Idle_right_down_0",
-      "Idle_right_down_1",
-      "Idle_right_down_2",
-      "Idle_right_down_3",
-      "Idle_right_down_4",
-      "Idle_right_down_5",
-      "Idle_right_down_6",
-      "Idle_right_down_7"
+    "Dash_right_down": [
+      "Dash_right_down_0",
+      "Dash_right_down_1",
+      "Dash_right_down_2",
+      "Dash_right_down_3",
+      "Dash_right_down_4",
+      "Dash_right_down_5",
+      "Dash_right_down_6",
+      "Dash_right_down_7"
     ]
   },
   "frames": {
-    "Idle_down_0": {
+    "Dash_down_0": {
       "frame": {
         "x": 0,
         "y": 0,
@@ -93,7 +93,7 @@
         "h": 64
       }
     },
-    "Idle_down_1": {
+    "Dash_down_1": {
       "frame": {
         "x": 48,
         "y": 0,
@@ -113,7 +113,7 @@
         "h": 64
       }
     },
-    "Idle_down_2": {
+    "Dash_down_2": {
       "frame": {
         "x": 96,
         "y": 0,
@@ -133,7 +133,7 @@
         "h": 64
       }
     },
-    "Idle_down_3": {
+    "Dash_down_3": {
       "frame": {
         "x": 144,
         "y": 0,
@@ -153,7 +153,7 @@
         "h": 64
       }
     },
-    "Idle_down_4": {
+    "Dash_down_4": {
       "frame": {
         "x": 192,
         "y": 0,
@@ -173,7 +173,7 @@
         "h": 64
       }
     },
-    "Idle_down_5": {
+    "Dash_down_5": {
       "frame": {
         "x": 240,
         "y": 0,
@@ -193,7 +193,7 @@
         "h": 64
       }
     },
-    "Idle_down_6": {
+    "Dash_down_6": {
       "frame": {
         "x": 288,
         "y": 0,
@@ -213,7 +213,7 @@
         "h": 64
       }
     },
-    "Idle_down_7": {
+    "Dash_down_7": {
       "frame": {
         "x": 336,
         "y": 0,
@@ -233,7 +233,7 @@
         "h": 64
       }
     },
-    "Idle_left_down_0": {
+    "Dash_left_down_0": {
       "frame": {
         "x": 0,
         "y": 48,
@@ -253,7 +253,7 @@
         "h": 64
       }
     },
-    "Idle_left_down_1": {
+    "Dash_left_down_1": {
       "frame": {
         "x": 48,
         "y": 48,
@@ -273,7 +273,7 @@
         "h": 64
       }
     },
-    "Idle_left_down_2": {
+    "Dash_left_down_2": {
       "frame": {
         "x": 96,
         "y": 48,
@@ -293,7 +293,7 @@
         "h": 64
       }
     },
-    "Idle_left_down_3": {
+    "Dash_left_down_3": {
       "frame": {
         "x": 144,
         "y": 48,
@@ -313,7 +313,7 @@
         "h": 64
       }
     },
-    "Idle_left_down_4": {
+    "Dash_left_down_4": {
       "frame": {
         "x": 192,
         "y": 48,
@@ -333,7 +333,7 @@
         "h": 64
       }
     },
-    "Idle_left_down_5": {
+    "Dash_left_down_5": {
       "frame": {
         "x": 240,
         "y": 48,
@@ -353,7 +353,7 @@
         "h": 64
       }
     },
-    "Idle_left_down_6": {
+    "Dash_left_down_6": {
       "frame": {
         "x": 288,
         "y": 48,
@@ -373,7 +373,7 @@
         "h": 64
       }
     },
-    "Idle_left_down_7": {
+    "Dash_left_down_7": {
       "frame": {
         "x": 336,
         "y": 48,
@@ -393,7 +393,7 @@
         "h": 64
       }
     },
-    "Idle_left_up_0": {
+    "Dash_left_up_0": {
       "frame": {
         "x": 0,
         "y": 96,
@@ -413,7 +413,7 @@
         "h": 64
       }
     },
-    "Idle_left_up_1": {
+    "Dash_left_up_1": {
       "frame": {
         "x": 48,
         "y": 96,
@@ -433,7 +433,7 @@
         "h": 64
       }
     },
-    "Idle_left_up_2": {
+    "Dash_left_up_2": {
       "frame": {
         "x": 96,
         "y": 96,
@@ -453,7 +453,7 @@
         "h": 64
       }
     },
-    "Idle_left_up_3": {
+    "Dash_left_up_3": {
       "frame": {
         "x": 144,
         "y": 96,
@@ -473,7 +473,7 @@
         "h": 64
       }
     },
-    "Idle_left_up_4": {
+    "Dash_left_up_4": {
       "frame": {
         "x": 192,
         "y": 96,
@@ -493,7 +493,7 @@
         "h": 64
       }
     },
-    "Idle_left_up_5": {
+    "Dash_left_up_5": {
       "frame": {
         "x": 240,
         "y": 96,
@@ -513,7 +513,7 @@
         "h": 64
       }
     },
-    "Idle_left_up_6": {
+    "Dash_left_up_6": {
       "frame": {
         "x": 288,
         "y": 96,
@@ -533,7 +533,7 @@
         "h": 64
       }
     },
-    "Idle_left_up_7": {
+    "Dash_left_up_7": {
       "frame": {
         "x": 336,
         "y": 96,
@@ -553,7 +553,7 @@
         "h": 64
       }
     },
-    "Idle_up_0": {
+    "Dash_up_0": {
       "frame": {
         "x": 0,
         "y": 144,
@@ -573,7 +573,7 @@
         "h": 64
       }
     },
-    "Idle_up_1": {
+    "Dash_up_1": {
       "frame": {
         "x": 48,
         "y": 144,
@@ -593,7 +593,7 @@
         "h": 64
       }
     },
-    "Idle_up_2": {
+    "Dash_up_2": {
       "frame": {
         "x": 96,
         "y": 144,
@@ -613,7 +613,7 @@
         "h": 64
       }
     },
-    "Idle_up_3": {
+    "Dash_up_3": {
       "frame": {
         "x": 144,
         "y": 144,
@@ -633,7 +633,7 @@
         "h": 64
       }
     },
-    "Idle_up_4": {
+    "Dash_up_4": {
       "frame": {
         "x": 192,
         "y": 144,
@@ -653,7 +653,7 @@
         "h": 64
       }
     },
-    "Idle_up_5": {
+    "Dash_up_5": {
       "frame": {
         "x": 240,
         "y": 144,
@@ -673,7 +673,7 @@
         "h": 64
       }
     },
-    "Idle_up_6": {
+    "Dash_up_6": {
       "frame": {
         "x": 288,
         "y": 144,
@@ -693,7 +693,7 @@
         "h": 64
       }
     },
-    "Idle_up_7": {
+    "Dash_up_7": {
       "frame": {
         "x": 336,
         "y": 144,
@@ -713,7 +713,7 @@
         "h": 64
       }
     },
-    "Idle_right_up_0": {
+    "Dash_right_up_0": {
       "frame": {
         "x": 0,
         "y": 192,
@@ -733,7 +733,7 @@
         "h": 64
       }
     },
-    "Idle_right_up_1": {
+    "Dash_right_up_1": {
       "frame": {
         "x": 48,
         "y": 192,
@@ -753,7 +753,7 @@
         "h": 64
       }
     },
-    "Idle_right_up_2": {
+    "Dash_right_up_2": {
       "frame": {
         "x": 96,
         "y": 192,
@@ -773,7 +773,7 @@
         "h": 64
       }
     },
-    "Idle_right_up_3": {
+    "Dash_right_up_3": {
       "frame": {
         "x": 144,
         "y": 192,
@@ -793,7 +793,7 @@
         "h": 64
       }
     },
-    "Idle_right_up_4": {
+    "Dash_right_up_4": {
       "frame": {
         "x": 192,
         "y": 192,
@@ -813,7 +813,7 @@
         "h": 64
       }
     },
-    "Idle_right_up_5": {
+    "Dash_right_up_5": {
       "frame": {
         "x": 240,
         "y": 192,
@@ -833,7 +833,7 @@
         "h": 64
       }
     },
-    "Idle_right_up_6": {
+    "Dash_right_up_6": {
       "frame": {
         "x": 288,
         "y": 192,
@@ -853,7 +853,7 @@
         "h": 64
       }
     },
-    "Idle_right_up_7": {
+    "Dash_right_up_7": {
       "frame": {
         "x": 336,
         "y": 192,
@@ -873,7 +873,7 @@
         "h": 64
       }
     },
-    "Idle_right_down_0": {
+    "Dash_right_down_0": {
       "frame": {
         "x": 0,
         "y": 240,
@@ -893,7 +893,7 @@
         "h": 64
       }
     },
-    "Idle_right_down_1": {
+    "Dash_right_down_1": {
       "frame": {
         "x": 48,
         "y": 240,
@@ -913,7 +913,7 @@
         "h": 64
       }
     },
-    "Idle_right_down_2": {
+    "Dash_right_down_2": {
       "frame": {
         "x": 96,
         "y": 240,
@@ -933,7 +933,7 @@
         "h": 64
       }
     },
-    "Idle_right_down_3": {
+    "Dash_right_down_3": {
       "frame": {
         "x": 144,
         "y": 240,
@@ -953,7 +953,7 @@
         "h": 64
       }
     },
-    "Idle_right_down_4": {
+    "Dash_right_down_4": {
       "frame": {
         "x": 192,
         "y": 240,
@@ -973,7 +973,7 @@
         "h": 64
       }
     },
-    "Idle_right_down_5": {
+    "Dash_right_down_5": {
       "frame": {
         "x": 240,
         "y": 240,
@@ -993,7 +993,7 @@
         "h": 64
       }
     },
-    "Idle_right_down_6": {
+    "Dash_right_down_6": {
       "frame": {
         "x": 288,
         "y": 240,
@@ -1013,7 +1013,7 @@
         "h": 64
       }
     },
-    "Idle_right_down_7": {
+    "Dash_right_down_7": {
       "frame": {
         "x": 336,
         "y": 240,
