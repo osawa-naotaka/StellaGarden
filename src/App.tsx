@@ -130,9 +130,11 @@ export default function App() {
 
                     // クリック時の処理
                     sprite.on("pointerdown", () => {
-                        console.log(`Clicked on cell at (${posproj.pos.x}, ${posproj.pos.y}, ${posproj.pos.z})`);
-                        hero.x = sprite.x;
-                        hero.y = sprite.y - 24;
+                        if (map.isSurface(cell.pos)) {
+                            // スプライトの上にheroを移動
+                            hero.x = sprite.x;
+                            hero.y = sprite.y - 24;
+                        }
                     });
 
                     sprites.push(sprite);

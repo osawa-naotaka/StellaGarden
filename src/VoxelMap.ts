@@ -52,6 +52,14 @@ export class VoxelMap<T extends ContainerType> {
         this.cells[index] = [];
     }
 
+    isSurface(pos: Pos3D): boolean {
+        if (pos.y >= this.height - 1) {
+            return true;
+        }
+        const aboveIndex = this.posToIndex({ x: pos.x, y: pos.y + 1, z: pos.z });
+        return this.cells[aboveIndex].length === 0;
+    }
+
     duplicate(): VoxelMap<T> {
         const newMap = new VoxelMap<T>(this.width, this.height, this.depth, this.horizonHeight);
         for (let i = 0; i < this.cells.length; i++) {
