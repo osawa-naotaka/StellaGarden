@@ -52,6 +52,23 @@ export class VoxelMap<T extends ContainerType> {
         this.cells[index] = [];
     }
 
+    getSurfaceCells(): T[] {
+        const surfaceCells: T[] = [];
+        for (let x = 0; x < this.width; x++) {
+            for (let z = 0; z < this.depth; z++) {
+                for (let y = this.height - 1; y >= 0; y--) {
+                    const pos: Pos3D = { x, y, z };
+                    const cells = this.get(pos);
+                    if (cells.length > 0) {
+                        surfaceCells.push(...cells);
+                        break; // 上から最初に見つかったセルでループを抜ける
+                    }
+                }
+            }
+        }
+        return surfaceCells;
+    }
+
     isSurface(pos: Pos3D): boolean {
         if (pos.y >= this.height - 1) {
             return true;

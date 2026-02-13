@@ -36,6 +36,7 @@
     "hill_ground": [1,11, "ground"],
     "hill_grass": [7,11, "ground"],
     "waterfront_ground": [1,17, "ground"],
-    "waterfront_grass": [7,17, "ground"]
+    "waterfront_grass": [7,17, "ground"],
+    "water": [5,17]
   }
 }

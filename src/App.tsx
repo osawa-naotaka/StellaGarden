@@ -1,13 +1,13 @@
-import { AnimatedSprite, Application, Assets, ColorMatrixFilter, Graphics, Polygon, Rectangle, Sprite, Texture } from "pixi.js";
+import { AnimatedSprite, Application, Assets, ColorMatrixFilter, Graphics, Rectangle, Sprite, Texture } from "pixi.js";
 import { Viewport } from "pixi-viewport";
 import { useEffect, useRef } from "react";
-import { generateTerrain, zigzagPosition } from "./Terrain";
+import { generateTerrain } from "./Terrain";
 import type { Cell } from "./Terrain";
 import { VoxelMap } from "./VoxelMap";
 
 const map = new VoxelMap<Cell>(40, 8, 40, 3);
 generateTerrain(map);
-const scan_pattern = zigzagPosition(map);
+const surfaceCells = map.getSurfaceCells();
 
 export default function App() {
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -45,7 +45,7 @@ export default function App() {
             viewport.drag().pinch().wheel().decelerate();
 
             // テクスチャをロード
-            await Assets.load("/assets/isometric-tileset.spritesheet.json");
+            await Assets.load("/assets/tileset.spritesheet.json");
             const walk = await Assets.load("/assets/walk.spritesheet.json");
 
             // heroスプライトを作成（まだ追加しない）
@@ -67,79 +67,67 @@ export default function App() {
 
             // スプライトを作成してViewportに追加
             const sprites: Sprite[] = [];
-            for (const posproj of scan_pattern) {
-                const cells = map.get(posproj.pos);
-                for (const cell of cells) {
-                    let sprite_name = "";
-                    if (cell.type === "soil") {
-                        sprite_name = "tile_003.png";
-                    } else if (cell.type === "grass") {
-                        sprite_name = "tile_024.png";
-                    } else if (cell.type === "water") {
-                        sprite_name = "tile_092.png";
+            for (const cell of surfaceCells) {
+                let sprite_name = "";
+                if (cell.type === "soil") {
+                    if (cell.pos.y < 6) {
+                        sprite_name = "ground_normal_5";
                     } else {
-                        continue;
+                        sprite_name = "ground_darker_5";
                     }
-                    const sprite = new Sprite(Texture.from(sprite_name));
-                    sprite.anchor.set(0.5);
-                    sprite.x = 900 + posproj.proj.x * 16;
-                    sprite.y = 200 + posproj.proj.y * 8 - posproj.pos.y * 8;
-
-                    // スプライトをインタラクティブに設定
-                    sprite.interactive = true;
-
-                    // 菱形の当たり判定を設定（透明部分を無視）
-                    // タイルサイズに合わせて菱形の頂点を定義
-                    const tileWidth = 32;
-                    const tileHeight = 16;
-                    const tileThickness = 8; // タイルの厚み（高さ方向のサイズ）
-                    sprite.hitArea = new Polygon([
-                        0, -tileHeight / 2,     // 上
-                        tileWidth / 2, 0,       // 右
-                        tileWidth / 2, tileThickness, // 右下（厚み分下げる）
-                        0, tileHeight / 2 + tileThickness,      // 下
-                        -tileWidth / 2, tileThickness, // 左下（厚み分下げる）
-                        -tileWidth / 2, 0       // 左
-                    ]);
-
-                    // 当たり判定を可視化（デバッグ用の青い線）
-                    const tileHitAreaDebug = new Graphics();
-                    tileHitAreaDebug.poly([
-                        0, -tileHeight / 2,     // 上
-                        tileWidth / 2, 0,       // 右
-                        tileWidth / 2, tileThickness, // 右下（厚み分下げる）
-                        0, tileHeight / 2 + tileThickness,      // 下
-                        -tileWidth / 2, tileThickness, // 左下（厚み分下げる）
-                        -tileWidth / 2, 0       // 左
-                    ]);
-                    tileHitAreaDebug.stroke({ width: 1, color: 0x0000ff }); // 青い枠線
-                    sprite.addChild(tileHitAreaDebug);
-
-                    // 明度を上げるフィルターを作成
-                    const brightnessFilter = new ColorMatrixFilter();
-                    brightnessFilter.brightness(1.5, false); // 明度を50%上げる
-
-                    // ホバー時のハイライト
-                    sprite.on("pointerover", () => {
-                        sprite.filters = [brightnessFilter];
-                    });
-
-                    sprite.on("pointerout", () => {
-                        sprite.filters = null; // フィルターを解除
-                    });
-
-                    // クリック時の処理
-                    sprite.on("pointerdown", () => {
-                        if (map.isSurface(cell.pos)) {
-                            // スプライトの上にheroを移動
-                            hero.x = sprite.x;
-                            hero.y = sprite.y - 24;
-                        }
-                    });
-
-                    sprites.push(sprite);
-                    viewport.addChild(sprite);
+                } else if (cell.type === "grass") {
+                    if (cell.pos.y < 6) {
+                        sprite_name = "grass_normal_5";
+                    } else {
+                        sprite_name = "grass_darker_5";
+                    }
+                } else if (cell.type === "water") {
+                    sprite_name = "water";
+                } else {
+                    continue;
                 }
+                const sprite = new Sprite(Texture.from(sprite_name));
+                sprite.anchor.set(0.5);
+                sprite.x = 900 + cell.pos.x * 16;
+                sprite.y = 200 + cell.pos.z * 16;
+
+                // スプライトをインタラクティブに設定
+                sprite.interactive = true;
+
+                // 菱形の当たり判定を設定（透明部分を無視）
+                // タイルサイズに合わせて菱形の頂点を定義
+                sprite.hitArea = new Rectangle(-8, -8, 16, 16);
+
+                // 当たり判定を可視化（デバッグ用の青い線）
+                const tileHitAreaDebug = new Graphics();
+                tileHitAreaDebug.rect(-8, -8, 16, 16);
+                tileHitAreaDebug.stroke({ width: 1, color: 0x0000ff }); // 青い枠線
+                sprite.addChild(tileHitAreaDebug);
+
+                // 明度を上げるフィルターを作成
+                const brightnessFilter = new ColorMatrixFilter();
+                brightnessFilter.brightness(1.5, false); // 明度を50%上げる
+
+                // ホバー時のハイライト
+                sprite.on("pointerover", () => {
+                    sprite.filters = [brightnessFilter];
+                });
+
+                sprite.on("pointerout", () => {
+                    sprite.filters = null; // フィルターを解除
+                });
+
+                // クリック時の処理
+                sprite.on("pointerdown", () => {
+                    if (map.isSurface(cell.pos)) {
+                        // スプライトの上にheroを移動
+                        hero.x = sprite.x;
+                        hero.y = sprite.y - 8;
+                    }
+                });
+
+                sprites.push(sprite);
+                viewport.addChild(sprite);
             }
 
             // heroスプライトを最後に追加（voxelスプライトの上に表示されるように）
