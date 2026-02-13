@@ -1,7 +1,7 @@
 import { AnimatedSprite, Application, Assets, ColorMatrixFilter, Graphics, Rectangle, Sprite, Texture } from "pixi.js";
 import { Viewport } from "pixi-viewport";
 import { useEffect, useRef } from "react";
-import { generateTerrain } from "./Terrain";
+import { generateTerrain, getTerrainCell } from "./Terrain";
 import type { Cell } from "./Terrain";
 import { VoxelMap } from "./VoxelMap";
 
@@ -14,6 +14,11 @@ export default function App() {
 
     useEffect(() => {
         if (!canvasRef.current) return;
+
+        // 右クリックメニューを無効化
+        const canvas = canvasRef.current;
+        const preventContextMenu = (e: MouseEvent) => e.preventDefault();
+        canvas.addEventListener("contextmenu", preventContextMenu);
 
         // Pixi.jsのApplicationを作成
         const app = new Application();
@@ -65,9 +70,11 @@ export default function App() {
             hero.addChild(hitAreaDebug);
 
 
-            // スプライトを作成してViewportに追加
-            const sprites: Sprite[] = [];
-            for (const cell of surfaceCells) {
+            // スプライトとセルの対応関係を管理するWeakMap
+            const spriteToCell = new WeakMap<Sprite, Cell>();
+
+            // セルからスプライトを作成する関数
+            const createSpriteFromCell = (cell: Cell): Sprite | null => {
                 let sprite_name = "";
                 if (cell.type === "soil") {
                     if (cell.pos.y < 6) {
@@ -84,12 +91,16 @@ export default function App() {
                 } else if (cell.type === "water") {
                     sprite_name = "water";
                 } else {
-                    continue;
+                    return null;
                 }
+
                 const sprite = new Sprite(Texture.from(sprite_name));
                 sprite.anchor.set(0.5);
                 sprite.x = 900 + cell.pos.x * 16;
                 sprite.y = 200 + cell.pos.z * 16;
+
+                // スプライトとセルの対応関係を保存
+                spriteToCell.set(sprite, cell);
 
                 // スプライトをインタラクティブに設定
                 sprite.interactive = true;
@@ -118,16 +129,51 @@ export default function App() {
                 });
 
                 // クリック時の処理
-                sprite.on("pointerdown", () => {
-                    if (map.isSurface(cell.pos)) {
-                        // スプライトの上にheroを移動
-                        hero.x = sprite.x;
-                        hero.y = sprite.y - 8;
+                sprite.on("pointerdown", (event) => {
+                    const cellData = spriteToCell.get(sprite);
+                    if (!cellData) return;
+
+                    if (event.button === 0) {
+                        // 左クリック: 移動
+                        if (map.isSurface(cellData.pos)) {
+                            hero.x = sprite.x;
+                            hero.y = sprite.y - 8;
+                        }
+                    } else if (event.button === 2) {
+                        // 右クリック: 地形を削る
+                        if (map.isSurface(cellData.pos)) {
+                            // VoxelMapからセルを削除
+                            map.remove(cellData);
+
+                            // スプライトを削除
+                            viewport.removeChild(sprite);
+                            sprite.destroy();
+
+                            // 削除したセルの下に新しい表面ができた場合、スプライトを追加
+                            const newSurfaceCells = map.getSurfaceCell(cellData.pos);
+                            const newTerrainCell = getTerrainCell(newSurfaceCells);
+                            if (newTerrainCell) {
+                                const newSprite = createSpriteFromCell(newTerrainCell);
+                                if (newSprite) {
+                                    viewport.addChild(newSprite);
+                                }
+                            }
+                        }
                     }
                 });
 
-                sprites.push(sprite);
-                viewport.addChild(sprite);
+                return sprite;
+            };
+
+            // スプライトを作成してViewportに追加
+            for (const cells of surfaceCells) {
+                const terrainCell = getTerrainCell(cells);
+                if (terrainCell) {
+                    const sprite = createSpriteFromCell(terrainCell);
+                    if (sprite) {
+                        viewport.addChild(sprite);
+                    }
+                }
             }
 
             // heroスプライトを最後に追加（voxelスプライトの上に表示されるように）
@@ -139,6 +185,7 @@ export default function App() {
 
         // クリーンアップ
         return () => {
+            canvas.removeEventListener("contextmenu", preventContextMenu);
             app.destroy(true, { children: true });
         };
     }, []);

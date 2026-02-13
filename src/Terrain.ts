@@ -28,6 +28,12 @@ export type Cell = {
     pos: Pos3D;
 };
 
+export function getTerrainCell(cells: Cell[]): Cell | null {
+    return cells.find(cell =>
+        cell.type === "soil" || cell.type === "grass" || cell.type === "water"
+    ) ?? null;
+}
+
 
 
 export function generateTerrain(map: VoxelMap<Cell>): void {
