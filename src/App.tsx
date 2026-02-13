@@ -198,7 +198,9 @@ export default function App() {
                         viewport.addChild(terrainSprite);
                     }
                 }
+            }
 
+            for (const cells of surfaceCells) {
                 // 樹木などのエンティティスプライトを作成
                 for (const cell of cells) {
                     if (cell.type === "tree") {
