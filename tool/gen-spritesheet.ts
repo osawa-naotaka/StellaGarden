@@ -14,7 +14,7 @@ const spriteDefSchema = v.object({
     frames: v.record(v.string(), v.tuple([v.number(), v.number(), v.optional(v.string())])),
 });
 
-const src = ["tileset", "Idle", "Dash", "Jump", "walk"];
+const src = ["tileset", "Idle", "Dash", "Jump", "walk", "icons-items"];
 
 type Frame = {
     frame: { x: number; y: number; w: number; h: number };

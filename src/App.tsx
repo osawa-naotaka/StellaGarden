@@ -1,4 +1,4 @@
-import { AnimatedSprite, Application, Assets, ColorMatrixFilter, Graphics, Rectangle, Sprite, Texture } from "pixi.js";
+import { AnimatedSprite, Application, Assets, ColorMatrixFilter, Container, Graphics, Rectangle, Sprite, Texture } from "pixi.js";
 import { Viewport } from "pixi-viewport";
 import { useEffect, useRef } from "react";
 import { generateTerrain, getTerrainCell } from "./Terrain";
@@ -8,6 +8,18 @@ import { VoxelMap } from "./VoxelMap";
 const map = new VoxelMap<Cell>(40, 8, 40, 3);
 generateTerrain(map);
 const surfaceCells = map.getSurfaceCells();
+
+const hotbarIcons = [
+    "watering_can",
+    "pickaxe",
+    "axe",
+    "sickle",
+    "shovel",
+    null,
+    null,
+    null,
+    null,    
+];
 
 export default function App() {
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -22,6 +34,9 @@ export default function App() {
 
         // Pixi.jsのApplicationを作成
         const app = new Application();
+
+        // ツールバー位置更新関数（クリーンアップで使用するため外で定義）
+        let updateToolbarPosition: (() => void) | null = null;
 
         async function init() {
             if (!canvasRef.current) return;
@@ -52,13 +67,14 @@ export default function App() {
             // テクスチャをロード
             await Assets.load("/assets/tileset.spritesheet.json");
             const walk = await Assets.load("/assets/walk.spritesheet.json");
+            await Assets.load("/assets/icons-items.spritesheet.json");
 
             // heroスプライトを作成（まだ追加しない）
             const hero = new AnimatedSprite(walk.animations["walk_left_down"]);
             hero.anchor.set(0.5);
             // heroの当たり判定を中心の8x8ピクセルの四角形に設定
             hero.hitArea = new Rectangle(-4, 12, 8, 8);
-            hero.x = 900;
+            hero.x = 200;
             hero.y = 200;
             hero.animationSpeed = 0.1;
             hero.play();
@@ -96,7 +112,7 @@ export default function App() {
 
                 const sprite = new Sprite(Texture.from(sprite_name));
                 sprite.anchor.set(0.5);
-                sprite.x = 900 + cell.pos.x * 16;
+                sprite.x = 200 + cell.pos.x * 16;
                 sprite.y = 200 + cell.pos.z * 16;
 
                 // スプライトとセルの対応関係を保存
@@ -137,7 +153,7 @@ export default function App() {
                         // 左クリック: 移動
                         if (map.isSurface(cellData.pos)) {
                             hero.x = sprite.x;
-                            hero.y = sprite.y - 8;
+                            hero.y = sprite.y - 24;
                         }
                     } else if (event.button === 2) {
                         // 右クリック: 地形を削る
@@ -179,6 +195,100 @@ export default function App() {
             // heroスプライトを最後に追加（voxelスプライトの上に表示されるように）
             viewport.addChild(hero);
 
+            // ホットバーの作成
+            const CELL_SIZE = 32;
+            const CELL_COUNT = 9;
+            const TOOLBAR_WIDTH = CELL_SIZE * CELL_COUNT;
+            const TOOLBAR_HEIGHT = CELL_SIZE;
+            const PADDING = 8;
+            const ICON_SIZE = 16;
+
+            const toolbar = new Container();
+            toolbar.x = (window.innerWidth - TOOLBAR_WIDTH) / 2;
+            toolbar.y = window.innerHeight - TOOLBAR_HEIGHT - 20; // 画面下部から20pxの余白
+
+            // 背景（半透明の黒）
+            const background = new Graphics();
+            background.rect(0, 0, TOOLBAR_WIDTH, TOOLBAR_HEIGHT);
+            background.fill({ color: 0x000000, alpha: 0.7 });
+            background.interactive = true; // 背景でイベントをキャッチ
+            background.on("pointerdown", (event) => {
+                event.stopPropagation(); // イベントの伝播を止める
+            });
+            toolbar.addChild(background);
+
+            // 選択状態を管理
+            let selectedSlot = 0;
+
+            // 各セルを作成
+            const slots: Graphics[] = [];
+            const drawFunctions: ((isSelected: boolean) => void)[] = [];
+
+            for (let i = 0; i < CELL_COUNT; i++) {
+                const slot = new Graphics();
+                slot.x = i * CELL_SIZE;
+                slot.y = 0;
+                slot.interactive = true;
+                slot.cursor = "pointer";
+
+                // 当たり判定を明示的に設定（セル全体をクリック可能に）
+                slot.hitArea = new Rectangle(0, 0, CELL_SIZE, CELL_SIZE);
+
+                // 枠線を描画する関数
+                const drawSlotBorder = (isSelected: boolean) => {
+                    slot.clear();
+                    slot.rect(0, 0, CELL_SIZE, CELL_SIZE);
+                    // 透明な塗りつぶしを追加（当たり判定のため）
+                    slot.fill({ color: 0x000000, alpha: 0.01 });
+                    slot.stroke({
+                        width: isSelected ? 4 : 2,
+                        color: 0xffffff
+                    });
+                };
+
+                // 描画関数を配列に保存
+                drawFunctions.push(drawSlotBorder);
+
+                // 初期描画
+                drawSlotBorder(i === selectedSlot);
+
+                // クリックイベント
+                slot.on("pointerdown", (event) => {
+                    event.stopPropagation(); // イベントの伝播を止める
+
+                    // 前の選択を解除
+                    drawFunctions[selectedSlot](false);
+
+                    // 新しい選択を設定
+                    selectedSlot = i;
+                    drawFunctions[i](true);
+                });
+
+                // アイコンの配置（コメントアウト）
+                const iconName = hotbarIcons[i];
+                if (iconName !== null) {
+                    const icon = new Sprite(Texture.from(iconName));
+                    icon.width = ICON_SIZE;
+                    icon.height = ICON_SIZE;
+                    icon.x = PADDING;
+                    icon.y = PADDING;
+                    slot.addChild(icon);
+                }
+
+                slots.push(slot);
+                toolbar.addChild(slot);
+            }
+
+            // ツールバーをステージに追加（Viewportではなく）
+            app.stage.addChild(toolbar);
+
+            // ウィンドウリサイズ時にツールバーの位置を更新
+            updateToolbarPosition = () => {
+                toolbar.x = (window.innerWidth - TOOLBAR_WIDTH) / 2;
+                toolbar.y = window.innerHeight - TOOLBAR_HEIGHT - 20;
+            };
+            window.addEventListener("resize", updateToolbarPosition);
+
         }
 
         init();
@@ -186,6 +296,9 @@ export default function App() {
         // クリーンアップ
         return () => {
             canvas.removeEventListener("contextmenu", preventContextMenu);
+            if (updateToolbarPosition) {
+                window.removeEventListener("resize", updateToolbarPosition);
+            }
             app.destroy(true, { children: true });
         };
     }, []);

@@ -1,0 +1,17 @@
+{
+  "meta": {
+    "image": "non-redis/icons-items.png",
+    "format": "RGBA8888",
+    "px": 16,
+    "py": 16
+  },
+  "displacements": { },
+  "animations": { },
+  "frames": {
+    "watering_can": [0,0],
+    "pickaxe": [1,0],
+    "axe": [3,0],
+    "sickle": [6,0],
+    "shovel": [7,0]
+  }
+}
