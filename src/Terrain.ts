@@ -40,14 +40,14 @@ export function getTerrainCell(cells: Cell[]): Cell | null {
 
 
 export function generateTerrain(map: VoxelMap<Cell>): void {
-    const terrainNoise = createNoise2D(alea("rand"));
+    const terrainNoise = createNoise2D(alea("terrain"));
     const scale = 0.02; // スケールを小さくすると大きな地形に
 
     // 地形生成
     for (let z = 0; z < map.depth; z++) {
         for (let x = 0; x < map.width; x++) {
             const noiseValue = terrainNoise(x * scale, z * scale);
-            const h = Math.floor((noiseValue + 1) * 0.5 * map.height);
+            const h = Math.min(map.height - 1, Math.floor((noiseValue + 1) * 0.5 * map.height));
             if (h < map.horizonHeight) {
                 for (let y = 0; y < h; y++) {
                     map.set({ type: "soil", pos: { x, y, z } });
@@ -56,10 +56,10 @@ export function generateTerrain(map: VoxelMap<Cell>): void {
                     map.set({ type: "water", pos: { x, y, z } });
                 }
             } else {
-                for (let y = 0; y < h - 1; y++) {
+                for (let y = 0; y < h; y++) {
                     map.set({ type: "soil", pos: { x, y, z } });
                 }
-                map.set({ type: "grass", pos: { x, y: h - 1, z } });
+                map.set({ type: "grass", pos: { x, y: h, z } });
             }
         }
     }

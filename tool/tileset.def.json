@@ -32,7 +32,7 @@
     "grass_lighter": [22,1, "ground"],
     "ground_normal": [1,6, "ground"],
     "ground_darker": [8,6, "ground"],
-    "ground_darkeest": [15,6, "ground"],
+    "ground_darkest": [15,6, "ground"],
     "hill_ground": [1,11, "ground"],
     "hill_grass": [7,11, "ground"],
     "waterfront_ground": [1,17, "ground"],

@@ -1812,7 +1812,7 @@
         "h": 16
       }
     },
-    "ground_darkeest_1": {
+    "ground_darkest_1": {
       "frame": {
         "x": 256,
         "y": 160,
@@ -1832,7 +1832,7 @@
         "h": 16
       }
     },
-    "ground_darkeest_2": {
+    "ground_darkest_2": {
       "frame": {
         "x": 272,
         "y": 160,
@@ -1852,7 +1852,7 @@
         "h": 16
       }
     },
-    "ground_darkeest_3": {
+    "ground_darkest_3": {
       "frame": {
         "x": 288,
         "y": 160,
@@ -1872,7 +1872,7 @@
         "h": 16
       }
     },
-    "ground_darkeest_4": {
+    "ground_darkest_4": {
       "frame": {
         "x": 240,
         "y": 128,
@@ -1892,7 +1892,7 @@
         "h": 16
       }
     },
-    "ground_darkeest_5": {
+    "ground_darkest_5": {
       "frame": {
         "x": 272,
         "y": 128,
@@ -1912,7 +1912,7 @@
         "h": 16
       }
     },
-    "ground_darkeest_6": {
+    "ground_darkest_6": {
       "frame": {
         "x": 304,
         "y": 128,
@@ -1932,7 +1932,7 @@
         "h": 16
       }
     },
-    "ground_darkeest_7": {
+    "ground_darkest_7": {
       "frame": {
         "x": 256,
         "y": 96,
@@ -1952,7 +1952,7 @@
         "h": 16
       }
     },
-    "ground_darkeest_8": {
+    "ground_darkest_8": {
       "frame": {
         "x": 272,
         "y": 96,
@@ -1972,7 +1972,7 @@
         "h": 16
       }
     },
-    "ground_darkeest_9": {
+    "ground_darkest_9": {
       "frame": {
         "x": 288,
         "y": 96,
@@ -1992,7 +1992,7 @@
         "h": 16
       }
     },
-    "ground_darkeest_10": {
+    "ground_darkest_10": {
       "frame": {
         "x": 256,
         "y": 112,
@@ -2012,7 +2012,7 @@
         "h": 16
       }
     },
-    "ground_darkeest_11": {
+    "ground_darkest_11": {
       "frame": {
         "x": 288,
         "y": 112,
@@ -2032,7 +2032,7 @@
         "h": 16
       }
     },
-    "ground_darkeest_12": {
+    "ground_darkest_12": {
       "frame": {
         "x": 256,
         "y": 144,
@@ -2052,7 +2052,7 @@
         "h": 16
       }
     },
-    "ground_darkeest_13": {
+    "ground_darkest_13": {
       "frame": {
         "x": 288,
         "y": 144,
@@ -2072,7 +2072,7 @@
         "h": 16
       }
     },
-    "ground_darkeest_14": {
+    "ground_darkest_14": {
       "frame": {
         "x": 304,
         "y": 112,
@@ -2092,7 +2092,7 @@
         "h": 16
       }
     },
-    "ground_darkeest_15": {
+    "ground_darkest_15": {
       "frame": {
         "x": 320,
         "y": 112,

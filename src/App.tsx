@@ -5,7 +5,7 @@ import { generateTerrain, getTerrainCell } from "./Terrain";
 import type { Cell } from "./Terrain";
 import { VoxelMap } from "./VoxelMap";
 
-const map = new VoxelMap<Cell>(40, 8, 40, 3);
+const map = new VoxelMap<Cell>(40, 5, 40, 2);
 generateTerrain(map);
 const surfaceCells = map.getSurfaceCells();
 
@@ -97,16 +97,20 @@ export default function App() {
                 let anchor_y = 0.5;
 
                 if (cell.type === "soil") {
-                    if (cell.pos.y < 6) {
-                        sprite_name = "ground_normal_5";
-                    } else {
+                    if (cell.pos.y === 4) {
+                        sprite_name = "ground_darkest_5";
+                    } else if (cell.pos.y === 3) {
                         sprite_name = "ground_darker_5";
+                    } else {
+                        sprite_name = "ground_normal_5";
                     }
                 } else if (cell.type === "grass") {
-                    if (cell.pos.y < 6) {
-                        sprite_name = "grass_normal_5";
-                    } else {
+                    if (cell.pos.y === 4) {
+                        sprite_name = "grass_darkest_5";
+                    } else if (cell.pos.y === 3) {
                         sprite_name = "grass_darker_5";
+                    } else {
+                        sprite_name = "grass_normal_5";
                     }
                 } else if (cell.type === "water") {
                     sprite_name = "water";
@@ -163,24 +167,39 @@ export default function App() {
                             hero.y = sprite.y - 24;
                         }
                     } else if (event.button === 2) {
-                        // 右クリック: 地形を削る
-                        if (map.isSurface(cellData.pos)) {
-                            // VoxelMapからセルを削除
-                            map.remove(cellData);
+                        // 右クリック: インタラクト
+                        switch (selectedSlot) {
+                            case 2: // 斧
+                                if (cellData.type === "tree") {
+                                    // VoxelMapからセルを削除
+                                    map.remove(cellData);
 
-                            // スプライトを削除
-                            viewport.removeChild(sprite);
-                            sprite.destroy();
-
-                            // 削除したセルの下に新しい表面ができた場合、スプライトを追加
-                            const newSurfaceCells = map.getSurfaceCell(cellData.pos);
-                            const newTerrainCell = getTerrainCell(newSurfaceCells);
-                            if (newTerrainCell) {
-                                const newSprite = createSpriteFromCell(newTerrainCell);
-                                if (newSprite) {
-                                    viewport.addChild(newSprite);
+                                    // スプライトを削除
+                                    viewport.removeChild(sprite);
+                                    sprite.destroy();
                                 }
-                            }
+                                break;
+                            case 4: // シャベル
+                                const terrainCells = map.get(cellData.pos);
+                                if (terrainCells.length === 1 && terrainCells[0].pos.y !== 0) {
+                                    map.remove(terrainCells[0]);
+                                    // スプライトを削除
+                                    viewport.removeChild(sprite);
+                                    sprite.destroy();
+
+                                    // 削除したセルの下に新しい表面ができた場合、スプライトを追加
+                                    const newSurfaceCells = map.getSurfaceCell(cellData.pos);
+                                    const newTerrainCell = getTerrainCell(newSurfaceCells);
+                                    if (newTerrainCell) {
+                                        const newSprite = createSpriteFromCell(newTerrainCell);
+                                        if (newSprite) {
+                                            viewport.addChild(newSprite);
+                                        }
+                                    }                                    
+                                }
+                                break;
+                            default:
+                                break;
                         }
                     }
                 });
