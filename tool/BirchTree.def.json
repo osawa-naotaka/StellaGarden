@@ -1,0 +1,16 @@
+{
+  "meta": {
+    "image": "non-redis/BirchTree.png",
+    "format": "RGBA8888",
+    "px": 32,
+    "py": 48
+  },
+  "displacements": { },
+  "animations": { },
+  "frames": {
+    "birch_tree_seed": [0,0],
+    "birch_tree_bud": [1,0],
+    "birch_tree_sapling": [2,0],
+    "birch_tree": [3,0]
+  }
+}

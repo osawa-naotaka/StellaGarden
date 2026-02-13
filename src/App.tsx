@@ -68,6 +68,7 @@ export default function App() {
             await Assets.load("/assets/tileset.spritesheet.json");
             const walk = await Assets.load("/assets/walk.spritesheet.json");
             await Assets.load("/assets/icons-items.spritesheet.json");
+            await Assets.load("/assets/BirchTree.spritesheet.json");
 
             // heroスプライトを作成（まだ追加しない）
             const hero = new AnimatedSprite(walk.animations["walk_left_down"]);
@@ -92,6 +93,9 @@ export default function App() {
             // セルからスプライトを作成する関数
             const createSpriteFromCell = (cell: Cell): Sprite | null => {
                 let sprite_name = "";
+                let anchor_x = 0.5;
+                let anchor_y = 0.5;
+
                 if (cell.type === "soil") {
                     if (cell.pos.y < 6) {
                         sprite_name = "ground_normal_5";
@@ -106,12 +110,15 @@ export default function App() {
                     }
                 } else if (cell.type === "water") {
                     sprite_name = "water";
+                } else if (cell.type === "tree") {
+                    sprite_name = "birch_tree_sapling";
+                    anchor_y = 0.8; // 樹木は下中央を基準点に
                 } else {
                     return null;
                 }
 
                 const sprite = new Sprite(Texture.from(sprite_name));
-                sprite.anchor.set(0.5);
+                sprite.anchor.set(anchor_x, anchor_y);
                 sprite.x = 200 + cell.pos.x * 16;
                 sprite.y = 200 + cell.pos.z * 16;
 
@@ -183,11 +190,22 @@ export default function App() {
 
             // スプライトを作成してViewportに追加
             for (const cells of surfaceCells) {
+                // 地形スプライトを作成
                 const terrainCell = getTerrainCell(cells);
                 if (terrainCell) {
-                    const sprite = createSpriteFromCell(terrainCell);
-                    if (sprite) {
-                        viewport.addChild(sprite);
+                    const terrainSprite = createSpriteFromCell(terrainCell);
+                    if (terrainSprite) {
+                        viewport.addChild(terrainSprite);
+                    }
+                }
+
+                // 樹木などのエンティティスプライトを作成
+                for (const cell of cells) {
+                    if (cell.type === "tree") {
+                        const entitySprite = createSpriteFromCell(cell);
+                        if (entitySprite) {
+                            viewport.addChild(entitySprite);
+                        }
                     }
                 }
             }
