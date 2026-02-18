@@ -2,10 +2,10 @@ import { AnimatedSprite, Application, Assets, ColorMatrixFilter, Container, Grap
 import { Viewport } from "pixi-viewport";
 import { useEffect, useRef } from "react";
 import { generateTerrain, getTerrainCell } from "./Map/Terrain";
-import type { Cell } from "./Map/Terrain";
 import { VoxelMap } from "./Map/VoxelMap";
+import type { Entity } from "./Map/Entity";
 
-const map = new VoxelMap<Cell>(100, 5, 100, 2);
+const map = new VoxelMap<Entity>(100, 5, 100, 2);
 generateTerrain(map);
 const surfaceCells = map.getSurfaceCells();
 
@@ -88,10 +88,10 @@ export default function App() {
 
 
             // スプライトとセルの対応関係を管理するWeakMap
-            const spriteToCell = new WeakMap<Sprite, Cell>();
+            const spriteToCell = new WeakMap<Sprite, Entity>();
 
             // セルからスプライトを作成する関数
-            const createSpriteFromCell = (cell: Cell): Sprite | null => {
+            const createSpriteFromCell = (cell: Entity): Sprite | null => {
                 let sprite_name = "";
                 let anchor_x = 0.5;
                 let anchor_y = 0.5;

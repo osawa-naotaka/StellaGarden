@@ -2,44 +2,16 @@ import alea from "alea";
 import { createNoise2D } from "simplex-noise";
 import { VoxelMap } from "./VoxelMap";
 import type { Pos2D, Pos3D } from "./VoxelMap";
+import type { Entity } from "./Entity";
 
-export type TerrainType = "water" | "soil" | "grass" | "rock" | "air";
-export type StaticEntityType = "tree" | "stone" | "bush";
-export type DynamicEntityType = "player";
-export type Direction = "left_up" | "right_up" | "left_down" | "right_down";
-export type State = "Idle" | "walk" | "Dash";
 
-export type DynamicEntity = {
-    type: DynamicEntityType;
-    pos: Pos3D;
-    direction: Direction;
-    state: State;
-};
-
-export type StaticEntity = {
-    type: StaticEntityType;
-    pos: Pos3D;
-};
-
-export type Entity = DynamicEntity | StaticEntity;
-
-export type Terrain = {
-    type: TerrainType;
-    pos: Pos3D;
-};
-
-export type CellType = TerrainType | StaticEntityType | DynamicEntityType;
-export type Cell = Terrain | StaticEntity | DynamicEntity;
-
-export function getTerrainCell(cells: Cell[]): Cell | null {
+export function getTerrainCell(cells: Entity[]): Entity | null {
     return cells.find(cell =>
         cell.type === "soil" || cell.type === "grass" || cell.type === "water"
     ) ?? null;
 }
 
-
-
-export function generateTerrain(map: VoxelMap<Cell>): void {
+export function generateTerrain(map: VoxelMap<Entity>): void {
     const terrainNoise = createNoise2D(alea("terrain"));
     const scale = 0.02; // スケールを小さくすると大きな地形に
 
@@ -101,7 +73,7 @@ export type ZigzagPositionReturnValue = {
     proj: Pos2D;
 }[];
 
-export function zigzagPosition(map: VoxelMap<Cell>): ZigzagPositionReturnValue {
+export function zigzagPosition(map: VoxelMap<Entity>): ZigzagPositionReturnValue {
     const posproj: ZigzagPositionReturnValue = [];
     // const pos: Pos3D[] = [];
     // const proj: Pos2D[] = [];
