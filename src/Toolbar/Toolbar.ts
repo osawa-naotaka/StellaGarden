@@ -7,7 +7,7 @@ const slotEntry = [
     "axe",
     "sickle",
     "shovel",
-    null,
+    "potato_icon",
     null,
     null,
     null,    
