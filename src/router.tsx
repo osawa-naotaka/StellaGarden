@@ -2,8 +2,8 @@ import ReactDOM from "react-dom/client";
 import { createBrowserRouter } from "react-router";
 import { RouterProvider } from "react-router/dom";
 import App from "./App";
-import { BaseLayout } from "./BaseLayout";
-import { GameLayout } from "./GameLayout";
+import { BaseLayout } from "./RootLayout/BaseLayout";
+import { GameLayout } from "./RootLayout/GameLayout";
 
 const router = createBrowserRouter([
     {

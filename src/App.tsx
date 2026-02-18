@@ -1,11 +1,11 @@
 import { AnimatedSprite, Application, Assets, ColorMatrixFilter, Container, Graphics, Rectangle, Sprite, Texture } from "pixi.js";
 import { Viewport } from "pixi-viewport";
 import { useEffect, useRef } from "react";
-import { generateTerrain, getTerrainCell } from "./Terrain";
-import type { Cell } from "./Terrain";
-import { VoxelMap } from "./VoxelMap";
+import { generateTerrain, getTerrainCell } from "./Map/Terrain";
+import type { Cell } from "./Map/Terrain";
+import { VoxelMap } from "./Map/VoxelMap";
 
-const map = new VoxelMap<Cell>(40, 5, 40, 2);
+const map = new VoxelMap<Cell>(100, 5, 100, 2);
 generateTerrain(map);
 const surfaceCells = map.getSurfaceCells();
 
@@ -52,8 +52,8 @@ export default function App() {
             const viewport = new Viewport({
                 screenWidth: window.innerWidth,
                 screenHeight: window.innerHeight,
-                worldWidth: 2000,
-                worldHeight: 2000,
+                worldWidth: 1600,
+                worldHeight: 1600,
                 ticker: app.ticker,
                 events: app.renderer.events,
             });
@@ -62,7 +62,7 @@ export default function App() {
             app.stage.addChild(viewport);
 
             // ドラッグ、ピンチズーム、ホイールズームを有効化
-            viewport.drag().pinch().wheel().decelerate();
+            viewport.drag().pinch().wheel().decelerate().clamp({ left: 0, right: 1600, top: 0, bottom: 1600 }).clampZoom({ minWidth: 400, minHeight: 400, maxWidth: 1600, maxHeight: 1600 });
 
             // テクスチャをロード
             await Assets.load("/assets/tileset.spritesheet.json");
@@ -123,8 +123,8 @@ export default function App() {
 
                 const sprite = new Sprite(Texture.from(sprite_name));
                 sprite.anchor.set(anchor_x, anchor_y);
-                sprite.x = 200 + cell.pos.x * 16;
-                sprite.y = 200 + cell.pos.z * 16;
+                sprite.x = cell.pos.x * 16;
+                sprite.y = cell.pos.z * 16;
 
                 // スプライトとセルの対応関係を保存
                 spriteToCell.set(sprite, cell);
