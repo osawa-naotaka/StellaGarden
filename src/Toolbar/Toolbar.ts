@@ -1,10 +1,21 @@
-import { Container, Graphics, Rectangle } from "pixi.js";
+import { Container, Graphics, Rectangle, Sprite, Texture } from "pixi.js";
+import type { GameState } from "../State/GameState";
+
+const toolbarIcons = [
+    "watering_can",
+    "pickaxe",
+    "axe",
+    "sickle",
+    "shovel",
+    null,
+    null,
+    null,
+    null,    
+];
 
 const CELL_SIZE = 32;
-const CELL_COUNT = 9;
-const TOOLBAR_WIDTH = CELL_SIZE * CELL_COUNT;
+const TOOLBAR_WIDTH = CELL_SIZE * toolbarIcons.length;
 const TOOLBAR_HEIGHT = CELL_SIZE;
-const PADDING = 8;
 const ICON_SIZE = 16;
 
 export type Toolbar = {
@@ -12,6 +23,7 @@ export type Toolbar = {
     toolbar: Container;
     slots: Container[];
     selectedSlot: number;
+    drawFunctions: ((isSelected: boolean) => void)[];
     updateToolbarPositionFn: () => void;
 };
 
@@ -37,7 +49,7 @@ export function createToolbar(parent: Container): Toolbar {
     const slots: Graphics[] = [];
     const drawFunctions: ((isSelected: boolean) => void)[] = [];
 
-    for (let i = 0; i < CELL_COUNT; i++) {
+    for (let i = 0; i < toolbarIcons.length; i++) {
         const slot = new Graphics();
         slot.x = i * CELL_SIZE;
         slot.y = 0;
@@ -65,19 +77,20 @@ export function createToolbar(parent: Container): Toolbar {
         // 初期描画
         drawSlotBorder(i === selectedSlot);
 
-        // クリックイベント
-        slot.on("pointerdown", (event) => {
-            event.stopPropagation(); // イベントの伝播を止める
-
-            // 前の選択を解除
-            drawFunctions[selectedSlot](false);
-
-            // 新しい選択を設定
-            selectedSlot = i;
-            drawFunctions[i](true);
-        });
+        const iconName = toolbarIcons[i];
+        if (iconName) {
+            const icon = new Container();
+            const sprite = new Sprite(Texture.from(iconName));
+            sprite.width = ICON_SIZE;
+            sprite.height = ICON_SIZE;
+            sprite.x = (CELL_SIZE - ICON_SIZE) / 2;
+            sprite.y = (CELL_SIZE - ICON_SIZE) / 2;
+            icon.addChild(sprite);
+            slot.addChild(icon);
+        }
 
         toolbar.addChild(slot);
+        slots.push(slot);
     }
 
     const updateToolbarPositionFn = () => {
@@ -85,11 +98,30 @@ export function createToolbar(parent: Container): Toolbar {
         toolbar.y = window.innerHeight - TOOLBAR_HEIGHT - 20;
     };
 
+    parent.addChild(toolbar);
+
     return {
         parent,
         toolbar,
         slots,
         selectedSlot,
+        drawFunctions,
         updateToolbarPositionFn
     };
+}
+
+export function registerToolbarEventHandlers(gameState: GameState) {
+    for (let i = 0; i < gameState.toolbar.slots.length; i++) {
+        const slot = gameState.toolbar.slots[i];
+        slot.on("pointerdown", (event) => {
+            event.stopPropagation(); // イベントの伝播を止める
+
+            // 前の選択を解除
+            gameState.toolbar.drawFunctions[gameState.toolbar.selectedSlot](false);
+
+            // 新しい選択を設定
+            gameState.toolbar.selectedSlot = i;
+            gameState.toolbar.drawFunctions[i](true);
+        });
+    }
 }

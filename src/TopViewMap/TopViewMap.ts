@@ -1,21 +1,22 @@
-import { Container } from "pixi.js";
+import { Container, Sprite } from "pixi.js";
 import type { Entity } from "../Map/Entity";
 import { VoxelMap } from "../lib/VoxelMap";
 import { generateTerrain, getTerrainEntity } from "../Map/Terrain";
-import { createSpriteFromEntity, registerEventHandlers } from "../lib/Sprite";
+import { createSpriteFromEntity, registerEntityEventHandler } from "../lib/Sprite";
+import type { GameState } from "../State/GameState";
 
 export type TopViewMap = {
     voxelMap: VoxelMap<Entity>;
     parent: Container;
     terrainPlane: Container;
     entityPlane: Container;
-    entityToSprite: WeakMap<Entity, Container>;
-    spriteToEntity: WeakMap<Container, Entity>;
+    entityToSprite: Map<Entity, Sprite>;
+    spriteToEntity: Map<Sprite, Entity>;
 };
 
 export function createTopViewMap(parent: Container): TopViewMap {
-    const entityToSprite = new  WeakMap<Entity, Container>();
-    const spriteToEntity = new WeakMap<Container, Entity>();
+    const entityToSprite = new Map<Entity, Sprite>();
+    const spriteToEntity = new Map<Sprite, Entity>();
 
     // 地形とエンティティを描画するためのコンテナを作成
     const terrainPlane = new Container();
@@ -32,7 +33,6 @@ export function createTopViewMap(parent: Container): TopViewMap {
         if(se) {
             const sprite = createSpriteFromEntity(se);
             if(sprite) {
-                registerEventHandlers(sprite, se);
                 terrainPlane.addChild(sprite);
                 entityToSprite.set(se, sprite);
                 spriteToEntity.set(sprite, se);
@@ -46,7 +46,6 @@ export function createTopViewMap(parent: Container): TopViewMap {
             if(e.type === "tree") {
                 const sprite = createSpriteFromEntity(e);
                 if(sprite) {
-                    registerEventHandlers(sprite, e);
                     entityPlane.addChild(sprite);
                     entityToSprite.set(e, sprite);
                     spriteToEntity.set(sprite, e);
@@ -69,3 +68,8 @@ export function createTopViewMap(parent: Container): TopViewMap {
     }
 }
 
+export function registerEntityEventHandlers(gameState: GameState) {
+    for (const [entity, sprite] of gameState.topViewMap.entityToSprite.entries()) {
+        registerEntityEventHandler(sprite, entity);
+    }
+}

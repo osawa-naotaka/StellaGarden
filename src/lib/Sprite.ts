@@ -46,8 +46,6 @@ export function createSpriteFromEntity(entity: Entity): Sprite | null {
     // スプライトをインタラクティブに設定
     sprite.interactive = true;
 
-    // 菱形の当たり判定を設定（透明部分を無視）
-    // タイルサイズに合わせて菱形の頂点を定義
     sprite.hitArea = new Rectangle(-8, -8, 16, 16);
 
     // 当たり判定を可視化（デバッグ用の青い線）
@@ -56,36 +54,21 @@ export function createSpriteFromEntity(entity: Entity): Sprite | null {
     tileHitAreaDebug.stroke({ width: 1, color: 0x0000ff }); // 青い枠線
     sprite.addChild(tileHitAreaDebug);
 
-    // 明度を上げるフィルターを作成
-    const brightnessFilter = new ColorMatrixFilter();
-    brightnessFilter.brightness(1.5, false); // 明度を50%上げる
-
-    // ホバー時のハイライト
-    sprite.on("pointerover", () => {
-        sprite.filters = [brightnessFilter];
-    });
-
-    sprite.on("pointerout", () => {
-        sprite.filters = null; // フィルターを解除
-    });
-
     return sprite;
 }
 
-export function registerEventHandlers(sprite: Sprite, entity: Entity) {
+export function registerEntityEventHandler(sprite: Sprite, entity: Entity) {
     // 明度を上げるフィルターを作成
     const brightnessFilter = new ColorMatrixFilter();
     brightnessFilter.brightness(1.5, false); // 明度を50%上げる
 
     // common handler
     sprite.on("pointerover", () => {
-        console.log(`Hovered over ${entity.type} at (${entity.pos.x}, ${entity.pos.y}, ${entity.pos.z})`);
         sprite.filters = [brightnessFilter];
     });
 
     sprite.on("pointerout", () => {
-        console.log(`Pointer out from ${entity.type} at (${entity.pos.x}, ${entity.pos.y}, ${entity.pos.z})`);
-        sprite.filters = null; // フィルターを解除
+        sprite.filters = null;
     });
 
 
