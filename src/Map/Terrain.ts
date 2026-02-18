@@ -1,14 +1,12 @@
 import alea from "alea";
 import { createNoise2D } from "simplex-noise";
-import { VoxelMap } from "./VoxelMap";
-import type { Pos2D, Pos3D } from "./VoxelMap";
+import { VoxelMap } from "../lib/VoxelMap";
+import type { Pos2D, Pos3D } from "../lib/VoxelMap";
 import type { Entity } from "./Entity";
 
 
-export function getTerrainCell(cells: Entity[]): Entity | null {
-    return cells.find(cell =>
-        cell.type === "soil" || cell.type === "grass" || cell.type === "water"
-    ) ?? null;
+export function getTerrainEntity(e: Entity[]): Entity | null {
+    return e.find((x) => x.type === "soil" || x.type === "grass" || x.type === "water") ?? null;
 }
 
 export function generateTerrain(map: VoxelMap<Entity>): void {
@@ -55,8 +53,8 @@ export function generateTerrain(map: VoxelMap<Entity>): void {
 
             if (shouldPlaceTree) {
                 // 表面セルを取得
-                const surfaceCells = map.getSurfaceCell({ x, y: 0, z });
-                const terrain = getTerrainCell(surfaceCells);
+                const surfaceCells = map.getSurfaceVoxel({ x, y: 0, z });
+                const terrain = getTerrainEntity(surfaceCells);
 
                 // grass または soil の上にのみ配置
                 if (terrain && (terrain.type === "grass" || terrain.type === "soil")) {

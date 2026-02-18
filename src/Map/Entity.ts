@@ -1,4 +1,4 @@
-import type { Pos3D } from "./VoxelMap";
+import type { Pos3D } from "../lib/VoxelMap";
 
 export type TerrainType = "water" | "soil" | "grass" | "rock" | "air";
 export type StaticEntityType = "tree" | "stone" | "bush";
