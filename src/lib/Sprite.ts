@@ -1,5 +1,7 @@
 import { Assets, ColorMatrixFilter, Graphics, Rectangle, Sprite, Texture } from "pixi.js";
 import type { Entity } from "../Map/Entity";
+import type { GameState } from "../State/GameState";
+import { createNewSurfaceSpriteFromVoxel, removeEntityFromVoxel, removeVoxelFromMap } from "../TopViewMap/TopViewMap";
 
 export async function loadSprite() {
     await Assets.load("/assets/tileset.spritesheet.json");
@@ -8,7 +10,7 @@ export async function loadSprite() {
     await Assets.load("/assets/BirchTree.spritesheet.json");
 }
 
-export function createSpriteFromEntity(entity: Entity): Sprite | null {
+export function createSpriteFromEntity(entity: Entity): Sprite {
     let sprite_name = "";
     let anchor_x = 0.5;
     let anchor_y = 0.5;
@@ -35,7 +37,7 @@ export function createSpriteFromEntity(entity: Entity): Sprite | null {
         sprite_name = "birch_tree_sapling";
         anchor_y = 0.8; // 樹木は下中央を基準点に
     } else {
-        return null;
+        throw new Error(`Unknown entity type: ${entity.type}`);
     }
 
     const sprite = new Sprite(Texture.from(sprite_name));
@@ -57,7 +59,7 @@ export function createSpriteFromEntity(entity: Entity): Sprite | null {
     return sprite;
 }
 
-export function registerEntityEventHandler(sprite: Sprite, entity: Entity) {
+export function registerEntityEventHandler(gameState: GameState, sprite: Sprite, entity: Entity) {
     // 明度を上げるフィルターを作成
     const brightnessFilter = new ColorMatrixFilter();
     brightnessFilter.brightness(1.5, false); // 明度を50%上げる
@@ -75,13 +77,25 @@ export function registerEntityEventHandler(sprite: Sprite, entity: Entity) {
     switch (entity.type) {
         case "soil":
         case "grass":
-            sprite.on("pointerdown", () => {
-                console.log(`Clicked on ${entity.type} at (${entity.pos.x}, ${entity.pos.y}, ${entity.pos.z})`);
+            sprite.on("pointerdown", (ev) => {
+                if (ev.button === 2) { // 左クリック
+                    if (gameState.toolbar.slotEntry[gameState.toolbar.selectedSlot] === "shovel") { // シャベルが選択されている場合
+                        if (entity.pos.y > 0) { // 底ではない場合
+                            removeVoxelFromMap(gameState, sprite);
+                            const [newSprite, newEntity] = createNewSurfaceSpriteFromVoxel(gameState, entity);
+                            registerEntityEventHandler(gameState, newSprite, newEntity);
+                        }
+                    }
+                }
             });
             break;
         case "tree":
-            sprite.on("pointerdown", () => {
-                console.log(`Clicked on ${entity.type} at (${entity.pos.x}, ${entity.pos.y}, ${entity.pos.z})`);
+            sprite.on("pointerdown", (ev) => {
+                if (ev.button === 2) { // 左クリック
+                    if (gameState.toolbar.slotEntry[gameState.toolbar.selectedSlot] === "axe") { // 斧が選択されている場合
+                        removeEntityFromVoxel(gameState, sprite);
+                    }
+                }
             });
             break;
         default:

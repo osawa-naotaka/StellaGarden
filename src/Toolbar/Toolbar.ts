@@ -1,7 +1,7 @@
 import { Container, Graphics, Rectangle, Sprite, Texture } from "pixi.js";
 import type { GameState } from "../State/GameState";
 
-const toolbarIcons = [
+const slotEntry = [
     "watering_can",
     "pickaxe",
     "axe",
@@ -14,7 +14,7 @@ const toolbarIcons = [
 ];
 
 const CELL_SIZE = 32;
-const TOOLBAR_WIDTH = CELL_SIZE * toolbarIcons.length;
+const TOOLBAR_WIDTH = CELL_SIZE * slotEntry.length;
 const TOOLBAR_HEIGHT = CELL_SIZE;
 const ICON_SIZE = 16;
 
@@ -22,6 +22,7 @@ export type Toolbar = {
     parent: Container;
     toolbar: Container;
     slots: Container[];
+    slotEntry: (string | null)[];
     selectedSlot: number;
     drawFunctions: ((isSelected: boolean) => void)[];
     updateToolbarPositionFn: () => void;
@@ -49,7 +50,7 @@ export function createToolbar(parent: Container): Toolbar {
     const slots: Graphics[] = [];
     const drawFunctions: ((isSelected: boolean) => void)[] = [];
 
-    for (let i = 0; i < toolbarIcons.length; i++) {
+    for (let i = 0; i < slotEntry.length; i++) {
         const slot = new Graphics();
         slot.x = i * CELL_SIZE;
         slot.y = 0;
@@ -77,7 +78,7 @@ export function createToolbar(parent: Container): Toolbar {
         // 初期描画
         drawSlotBorder(i === selectedSlot);
 
-        const iconName = toolbarIcons[i];
+        const iconName = slotEntry[i];
         if (iconName) {
             const icon = new Container();
             const sprite = new Sprite(Texture.from(iconName));
@@ -104,6 +105,7 @@ export function createToolbar(parent: Container): Toolbar {
         parent,
         toolbar,
         slots,
+        slotEntry,
         selectedSlot,
         drawFunctions,
         updateToolbarPositionFn

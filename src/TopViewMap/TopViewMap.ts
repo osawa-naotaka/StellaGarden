@@ -32,11 +32,9 @@ export function createTopViewMap(parent: Container): TopViewMap {
         const se = getTerrainEntity(v);
         if(se) {
             const sprite = createSpriteFromEntity(se);
-            if(sprite) {
-                terrainPlane.addChild(sprite);
-                entityToSprite.set(se, sprite);
-                spriteToEntity.set(sprite, se);
-            }
+            terrainPlane.addChild(sprite);
+            entityToSprite.set(se, sprite);
+            spriteToEntity.set(sprite, se);
         }
     }
 
@@ -45,11 +43,9 @@ export function createTopViewMap(parent: Container): TopViewMap {
         for(const e of v) {
             if(e.type === "tree") {
                 const sprite = createSpriteFromEntity(e);
-                if(sprite) {
-                    entityPlane.addChild(sprite);
-                    entityToSprite.set(e, sprite);
-                    spriteToEntity.set(sprite, e);
-                }
+                entityPlane.addChild(sprite);
+                entityToSprite.set(e, sprite);
+                spriteToEntity.set(sprite, e);
             }
         }
     }
@@ -70,6 +66,43 @@ export function createTopViewMap(parent: Container): TopViewMap {
 
 export function registerEntityEventHandlers(gameState: GameState) {
     for (const [entity, sprite] of gameState.topViewMap.entityToSprite.entries()) {
-        registerEntityEventHandler(sprite, entity);
+        registerEntityEventHandler(gameState, sprite, entity);
     }
+}
+
+export function removeVoxelFromMap(gameState: GameState, sprite: Sprite) {
+    const entity = gameState.topViewMap.spriteToEntity.get(sprite);
+    if(entity) {
+        gameState.topViewMap.voxelMap.remove(entity);
+        sprite.parent?.removeChild(sprite);
+        gameState.topViewMap.entityToSprite.delete(entity);
+        gameState.topViewMap.spriteToEntity.delete(sprite);
+    }
+}
+
+export function createNewSurfaceSpriteFromVoxel(gameState: GameState, removed: Entity): [Sprite, Entity] {
+    const v = gameState.topViewMap.voxelMap.getSurfaceVoxel(removed.pos);
+    if(!v) throw new Error("No surface voxel found");
+
+    const entity = getTerrainEntity(v);
+    if(!entity) throw new Error("No terrain entity found");
+
+    const sprite = createSpriteFromEntity(entity);
+    if(!sprite) throw new Error("Failed to create sprite from entity");
+
+    gameState.topViewMap.terrainPlane.addChild(sprite);
+    gameState.topViewMap.entityToSprite.set(entity, sprite);
+    gameState.topViewMap.spriteToEntity.set(sprite, entity);
+    
+    return [sprite, entity];
+}
+
+export function removeEntityFromVoxel(gameState: GameState, sprite: Sprite) {
+    const entity = gameState.topViewMap.spriteToEntity.get(sprite);
+    if(!entity) throw new Error("Entity not found for sprite");
+    
+    gameState.topViewMap.voxelMap.remove(entity);
+    sprite.parent?.removeChild(sprite);
+    gameState.topViewMap.entityToSprite.delete(entity);
+    gameState.topViewMap.spriteToEntity.delete(sprite);
 }
