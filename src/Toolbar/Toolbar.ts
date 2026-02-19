@@ -83,7 +83,8 @@ export class Toolbar {
         }
 
         this.updateToolbarPositionFn = () => {
-            this.updateToolbarPosition();
+            this.toolbar.x = (window.innerWidth - TOOLBAR_WIDTH) / 2;
+            this.toolbar.y = window.innerHeight - TOOLBAR_HEIGHT - 20;
         };
 
         parent.addChild(this.toolbar);
