@@ -1,7 +1,7 @@
 import { Assets, ColorMatrixFilter, Graphics, Rectangle, Sprite, Texture } from "pixi.js";
 import type { Entity } from "../Map/Entity";
 import type { GameState } from "../State/GameState";
-import { createNewSurfaceSpriteFromVoxel, removeEntityFromVoxel, removeVoxelFromMap } from "../TopViewMap/TopViewMap";
+import { createNewSurfaceSpriteFromVoxel, removeEntityFromVoxel, removeTerrainFromMap } from "../TopViewMap/TopViewMap";
 
 export async function loadSprite() {
     await Assets.load("/assets/tileset.spritesheet.json");
@@ -82,7 +82,7 @@ export function registerEntityEventHandler(gameState: GameState, sprite: Sprite,
                 if (ev.button === 2) { // 左クリック
                     if (gameState.toolbar.slotEntry[gameState.toolbar.selectedSlot] === "shovel") { // シャベルが選択されている場合
                         if (entity.pos.y > 0) { // 底ではない場合
-                            removeVoxelFromMap(gameState, sprite);
+                            removeTerrainFromMap(gameState, sprite);
                             const [newSprite, newEntity] = createNewSurfaceSpriteFromVoxel(gameState, entity);
                             registerEntityEventHandler(gameState, newSprite, newEntity);
                         }

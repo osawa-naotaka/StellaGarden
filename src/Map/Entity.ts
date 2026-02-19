@@ -13,16 +13,40 @@ export type DynamicEntity = {
     state: State;
 };
 
-export type StaticEntity = {
-    type: StaticEntityType;
-    pos: Pos3D;
-};
-
-export type Terrain = {
-    type: TerrainType;
-    pos: Pos3D;
-};
-
 export type EentityType = TerrainType | StaticEntityType | DynamicEntityType;
-export type Entity = DynamicEntity | StaticEntity | Terrain;
 
+export class Entity {
+    private readonly entityKind: EentityType;
+    private entityPos: Pos3D;
+
+    constructor({ type, pos }: { type: EentityType; pos: Pos3D }) {
+        this.entityKind = type;
+        this.entityPos = pos;
+    }
+
+    get type() { return this.entityKind }
+    get pos() { return this.entityPos }
+}
+
+export class Terrain extends Entity {
+    private entitiesOnTop: StaticEntity[] = [];
+    constructor({ type, pos }: { type: TerrainType; pos: Pos3D }) {
+        super({ type, pos });
+    }
+
+    get entities() { return this.entitiesOnTop };
+
+    addEntity(entity: StaticEntity) {
+        this.entitiesOnTop.push(entity);
+    }
+    
+    remomveEntity(entity: StaticEntity) {
+        this.entitiesOnTop = this.entitiesOnTop.filter(e => e !== entity);
+    }
+}
+
+export class StaticEntity extends Entity {
+    constructor({ type, pos }: { type: StaticEntityType; pos: Pos3D }) {
+        super({ type, pos });
+    }
+}

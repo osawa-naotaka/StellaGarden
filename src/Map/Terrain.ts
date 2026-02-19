@@ -2,14 +2,10 @@ import alea from "alea";
 import { createNoise2D } from "simplex-noise";
 import { VoxelMap } from "../lib/VoxelMap";
 import type { Pos2D, Pos3D } from "../lib/VoxelMap";
-import type { Entity } from "./Entity";
+import { StaticEntity, Terrain, type Entity } from "./Entity";
 
 
-export function getTerrainEntity(e: Entity[]): Entity | null {
-    return e.find((x) => x.type === "soil" || x.type === "grass" || x.type === "water") ?? null;
-}
-
-export function generateTerrain(map: VoxelMap<Entity>): void {
+export function generateTerrain(map: VoxelMap<Terrain>): void {
     const terrainNoise = createNoise2D(alea("terrain"));
     const scale = 0.02; // スケールを小さくすると大きな地形に
 
@@ -20,16 +16,16 @@ export function generateTerrain(map: VoxelMap<Entity>): void {
             const h = Math.min(map.height - 1, Math.floor((noiseValue + 1) * 0.5 * map.height));
             if (h < map.horizonHeight) {
                 for (let y = 0; y < h; y++) {
-                    map.set({ type: "soil", pos: { x, y, z } });
+                    map.set(new Terrain({ type: "soil", pos: { x, y, z } }));
                 }
                 for (let y = h; y < map.horizonHeight; y++) {
-                    map.set({ type: "water", pos: { x, y, z } });
+                    map.set(new Terrain({ type: "water", pos: { x, y, z } }));
                 }
             } else {
                 for (let y = 0; y < h; y++) {
-                    map.set({ type: "soil", pos: { x, y, z } });
+                    map.set(new Terrain({ type: "soil", pos: { x, y, z } }));
                 }
-                map.set({ type: "grass", pos: { x, y: h, z } });
+                map.set(new Terrain({ type: "grass", pos: { x, y: h, z } }));
             }
         }
     }
@@ -53,13 +49,12 @@ export function generateTerrain(map: VoxelMap<Entity>): void {
 
             if (shouldPlaceTree) {
                 // 表面セルを取得
-                const surfaceCells = map.getSurfaceVoxel({ x, y: 0, z });
-                const terrain = getTerrainEntity(surfaceCells);
+                const terrain = map.getSurfaceVoxel({ x, y: 0, z });
 
                 // grass または soil の上にのみ配置
                 if (terrain && (terrain.type === "grass" || terrain.type === "soil")) {
                     // 表面セルと同じ位置に樹木を配置
-                    map.set({ type: "tree", pos: terrain.pos });
+                    terrain.addEntity(new StaticEntity({ type: "tree", pos: terrain.pos }));
                 }
             }
         }
