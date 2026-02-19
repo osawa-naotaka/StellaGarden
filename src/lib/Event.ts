@@ -1,5 +1,5 @@
 import type { Container } from "pixi.js";
-import type { Entity } from "../Map/Entity";
+import type { Entity } from "../Entity/Entity";
 import type { GameState } from "../State/GameState";
 
 // -----------------------------------------------------------------------------

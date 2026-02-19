@@ -1,7 +1,7 @@
 import { ColorMatrixFilter, Container, Graphics, Rectangle, Sprite, Texture } from "pixi.js";
+import { type Entity, Terrain } from "../Entity/Entity";
+import { generateTerrain } from "../Entity/Terrain";
 import { VoxelMap } from "../lib/VoxelMap";
-import { type Entity, Terrain } from "../Map/Entity";
-import { generateTerrain } from "../Map/Terrain";
 import type { GameState } from "../State/GameState";
 
 export class TopViewMap {
@@ -50,29 +50,33 @@ export class TopViewMap {
 
     initializeEvents(gameState: GameState) {
         for (const [entity, sprite] of this.entityToSprite.entries()) {
-            // 明度を上げるフィルターを作成
-            const brightnessFilter = new ColorMatrixFilter();
-            brightnessFilter.brightness(1.5, false); // 明度を50%上げる
-
-            // common handler
-            sprite.on("pointerover", () => {
-                sprite.filters = [brightnessFilter];
-            });
-
-            sprite.on("pointerout", () => {
-                sprite.filters = null;
-            });
-
-            sprite.on("pointerdown", (event) => {
-                if (event.button === 2) {
-                    // 右クリック
-                    entity.interact(gameState);
-                }
-            });
+            this.setEventHandlers(sprite, entity, gameState);
         }
     }
 
-    removeVoxel(voxel: Terrain) {
+    setEventHandlers(sprite: Sprite, entity: Entity, gameState: GameState) {
+        // 明度を上げるフィルターを作成
+        const brightnessFilter = new ColorMatrixFilter();
+        brightnessFilter.brightness(1.5, false); // 明度を50%上げる
+
+        // common handler
+        sprite.on("pointerover", () => {
+            sprite.filters = [brightnessFilter];
+        });
+
+        sprite.on("pointerout", () => {
+            sprite.filters = null;
+        });
+
+        sprite.on("pointerdown", (event) => {
+            if (event.button === 2) {
+                // 右クリック
+                entity.interact(gameState);
+            }
+        });
+    }
+
+    removeVoxel(gameState: GameState, voxel: Terrain) {
         // 地形セル上のエンティティとスプライトを削除
         for (const e of voxel.entities) {
             this.removeEntity(e);
@@ -90,15 +94,17 @@ export class TopViewMap {
         this.voxelMap.remove(voxel);
 
         // 新しい地形セルのスプライトを作成
-        this.createNewSurfaceSprite(voxel);
+        const { sprite: newSprite, entity: newEntity } = this.createNewSurfaceSprite(voxel);
+        this.setEventHandlers(newSprite, newEntity, gameState);
     }
 
-    private createNewSurfaceSprite(oldVoxel: Terrain): void {
+    private createNewSurfaceSprite(oldVoxel: Terrain): { sprite: Sprite; entity: Terrain } {
         const newSurface = this.voxelMap.getSurfaceVoxel(oldVoxel.pos);
         if (!newSurface) throw new Error("No surface voxel found");
 
         const sprite = this.createSprite(newSurface);
         this.terrainPlane.addChild(sprite);
+        return { sprite, entity: newSurface };
     }
 
     removeEntity(entity: Entity): void {
