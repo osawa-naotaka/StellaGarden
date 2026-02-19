@@ -1,4 +1,6 @@
 import { useEffect, useRef } from "react";
+import { generateTerrain } from "./Entity/Terrain";
+import { loadSprite } from "./lib/Sprite";
 import type { GameState } from "./State/GameState";
 import { createGameState } from "./State/GameState";
 
@@ -13,13 +15,14 @@ export default function App() {
         const preventContextMenu = (e: MouseEvent) => e.preventDefault();
         canvas.addEventListener("contextmenu", preventContextMenu);
 
-        // Pixi.jsのApplicationを作成
         let gameState: GameState | null = null;
 
         async function init() {
-            if (!canvasRef.current) return;
-
-            gameState = await createGameState(canvasRef.current);
+            gameState = await createGameState(canvas);
+            generateTerrain(gameState.topViewMap.VoxelMap);
+            await loadSprite();
+            gameState.topViewMap.initializeSprites();
+            gameState.toolbar.initializeSprites();
             gameState.topViewMap.initializeEvents(gameState);
 
             // ウィンドウリサイズ時にツールバーの位置を更新

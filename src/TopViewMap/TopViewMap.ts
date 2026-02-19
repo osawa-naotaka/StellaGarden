@@ -76,7 +76,7 @@ export class TopViewMap {
         });
     }
 
-    removeVoxel(gameState: GameState, voxel: Terrain) {
+    removeVoxel(voxel: Terrain, gameState: GameState) {
         // 地形セル上のエンティティとスプライトを削除
         for (const e of voxel.entities) {
             this.removeEntity(e);
@@ -88,6 +88,7 @@ export class TopViewMap {
             sprite.parent?.removeChild(sprite);
             this.entityToSprite.delete(voxel);
             this.spriteToEntity.delete(sprite);
+            sprite.destroy();
         }
 
         // ボクセルマップからボクセルを削除
@@ -113,6 +114,7 @@ export class TopViewMap {
             sprite.parent?.removeChild(sprite);
             this.entityToSprite.delete(entity);
             this.spriteToEntity.delete(sprite);
+            sprite.destroy();
         }
         const voxel = this.voxelMap.get(entity.pos);
         if (voxel instanceof Terrain) {

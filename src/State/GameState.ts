@@ -1,15 +1,46 @@
 import { Application } from "pixi.js";
 import { Viewport } from "pixi-viewport";
-import { loadSprite } from "../lib/Sprite";
+import type { Terrain } from "../Entity/Entity";
+import { VoxelMap } from "../lib/VoxelMap";
 import { Toolbar } from "../Toolbar/Toolbar";
-import { createTopViewMap, type TopViewMap } from "../TopViewMap/TopViewMap";
+import { TopViewMap } from "../TopViewMap/TopViewMap";
+import { createEventBroker, type EventBroker, type EvTopicPacketMap } from "../lib/Event";
 
-export type GameState = {
-    pixiApp: Application;
-    viewport: Viewport;
-    topViewMap: TopViewMap;
-    toolbar: Toolbar;
-};
+export class GameState {
+    private readonly m_pixiApp: Application;
+    private readonly m_viewport: Viewport;
+    private m_topViewMap: TopViewMap;
+    private m_toolbar: Toolbar;
+    private m_broker: EventBroker<EvTopicPacketMap>;
+
+    constructor({ pixiApp, viewport, topViewMap, toolbar }: { pixiApp: Application; viewport: Viewport; topViewMap: TopViewMap; toolbar: Toolbar }) {
+        this.m_pixiApp = pixiApp;
+        this.m_viewport = viewport;
+        this.m_topViewMap = topViewMap;
+        this.m_toolbar = toolbar;
+        this.m_broker = createEventBroker<EvTopicPacketMap>(this);
+    }
+
+    get pixiApp() {
+        return this.m_pixiApp;
+    }
+
+    get viewport() {
+        return this.m_viewport;
+    }
+
+    get topViewMap() {
+        return this.m_topViewMap;
+    }
+
+    get toolbar() {
+        return this.m_toolbar;
+    }
+
+    get eventBroker() {
+        return this.m_broker;
+    }
+}
 
 export async function createGameState(canvas: HTMLCanvasElement): Promise<GameState> {
     const pixiApp = new Application();
@@ -39,15 +70,9 @@ export async function createGameState(canvas: HTMLCanvasElement): Promise<GameSt
 
     pixiApp.stage.addChild(viewport);
 
-    await loadSprite();
-
-    const topViewMap = createTopViewMap(viewport);
+    const voxelMap = new VoxelMap<Terrain>(100, 5, 100, 2);
+    const topViewMap = new TopViewMap(voxelMap, viewport);
     const toolbar = new Toolbar(pixiApp.stage);
 
-    return {
-        pixiApp,
-        viewport,
-        topViewMap,
-        toolbar,
-    };
+    return new GameState({ pixiApp, viewport, topViewMap, toolbar });
 }

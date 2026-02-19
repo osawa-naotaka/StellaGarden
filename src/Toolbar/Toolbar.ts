@@ -66,18 +66,6 @@ export class Toolbar {
             // 初期描画
             drawSlotBorder(i === this.selectedSlot);
 
-            const iconName = this.slotEntry[i];
-            if (iconName) {
-                const icon = new Container();
-                const sprite = new Sprite(Texture.from(iconName));
-                sprite.width = ICON_SIZE;
-                sprite.height = ICON_SIZE;
-                sprite.x = (CELL_SIZE - ICON_SIZE) / 2;
-                sprite.y = (CELL_SIZE - ICON_SIZE) / 2;
-                icon.addChild(sprite);
-                slot.addChild(icon);
-            }
-
             this.toolbar.addChild(slot);
             this.slots.push(slot);
         }
@@ -89,6 +77,23 @@ export class Toolbar {
 
         parent.addChild(this.toolbar);
         this.registerEventHandlers();
+    }
+
+    initializeSprites() {
+        for (let i = 0; i < this.slotEntry.length; i++) {
+            const iconName = this.slotEntry[i];
+            if (iconName) {
+                const slot = this.slots[i];
+                const icon = new Container();
+                const sprite = new Sprite(Texture.from(iconName));
+                sprite.width = ICON_SIZE;
+                sprite.height = ICON_SIZE;
+                sprite.x = (CELL_SIZE - ICON_SIZE) / 2;
+                sprite.y = (CELL_SIZE - ICON_SIZE) / 2;
+                icon.addChild(sprite);
+                slot.addChild(icon);
+            }
+        }
     }
 
     get updateToolbarPosition() {

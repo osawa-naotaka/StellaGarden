@@ -1,4 +1,3 @@
-import type { Container } from "pixi.js";
 import type { Entity } from "../Entity/Entity";
 import type { GameState } from "../State/GameState";
 
@@ -11,7 +10,7 @@ export type EvTopicLabel = keyof EvTopicPacketMap;
 export type EvNoArgPacket = Record<string, never>;
 
 export type EvTopicPacketMap = {
-    interact: { container: Container; entity: Entity };
+    interact: { entity: Entity };
     select_slot: { slotIndex: number };
 };
 
@@ -27,7 +26,6 @@ export type SubscribeEvent<E> = <T extends keyof E>(topic: T, listener: OnEventL
 export type EventBroker<E> = {
     publish: PublishEvent<E>;
     subscribe: SubscribeEvent<E>;
-    getCurrentState: () => GameState;
 };
 
 export function createEventBroker<E>(gameState: GameState): EventBroker<E> {
@@ -53,5 +51,5 @@ export function createEventBroker<E>(gameState: GameState): EventBroker<E> {
         }
     }
 
-    return { publish, subscribe, getCurrentState: () => gameState };
+    return { publish, subscribe };
 }
