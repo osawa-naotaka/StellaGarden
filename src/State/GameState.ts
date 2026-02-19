@@ -1,7 +1,7 @@
 import { Viewport } from "pixi-viewport";
 import { Application } from "pixi.js";
 import { createToolbar, type Toolbar } from "../Toolbar/Toolbar";
-import { createTopViewMap, type TopViewMap } from "../TopViewMap/TopViewMap";
+import { createTopViewMap, TopViewMap } from "../TopViewMap/TopViewMap";
 import { loadSprite } from "../lib/Sprite";
 
 export type GameState = {

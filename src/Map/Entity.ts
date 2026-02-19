@@ -1,4 +1,5 @@
 import type { Pos3D } from "../lib/VoxelMap";
+import type { GameState } from "../State/GameState";
 
 export type TerrainType = "water" | "soil" | "grass" | "rock" | "air";
 export type StaticEntityType = "tree" | "stone" | "bush";
@@ -15,7 +16,7 @@ export type DynamicEntity = {
 
 export type EentityType = TerrainType | StaticEntityType | DynamicEntityType;
 
-export class Entity {
+export abstract class Entity {
     private readonly entityKind: EentityType;
     private entityPos: Pos3D;
 
@@ -26,9 +27,12 @@ export class Entity {
 
     get type() { return this.entityKind }
     get pos() { return this.entityPos }
+    abstract get sprite(): string;
+    abstract get spriteProps(): { w: number; h: number; anchorX: number; anchorY: number };
+    interact(_gameState: GameState): void { }
 }
 
-export class Terrain extends Entity {
+export abstract class Terrain extends Entity {
     private entitiesOnTop: StaticEntity[] = [];
     constructor({ type, pos }: { type: TerrainType; pos: Pos3D }) {
         super({ type, pos });
@@ -40,12 +44,12 @@ export class Terrain extends Entity {
         this.entitiesOnTop.push(entity);
     }
     
-    remomveEntity(entity: StaticEntity) {
+    removeEntity(entity: StaticEntity) {
         this.entitiesOnTop = this.entitiesOnTop.filter(e => e !== entity);
     }
 }
 
-export class StaticEntity extends Entity {
+export abstract class StaticEntity extends Entity {
     constructor({ type, pos }: { type: StaticEntityType; pos: Pos3D }) {
         super({ type, pos });
     }

@@ -2,8 +2,105 @@ import alea from "alea";
 import { createNoise2D } from "simplex-noise";
 import { VoxelMap } from "../lib/VoxelMap";
 import type { Pos2D, Pos3D } from "../lib/VoxelMap";
-import { StaticEntity, Terrain, type Entity } from "./Entity";
+import { StaticEntity, Terrain, type Entity, type TerrainType } from "./Entity";
+import type { GameState } from "../State/GameState";
 
+abstract class Ground extends Terrain {
+    constructor({ type, pos }: { type: TerrainType; pos: Pos3D }) {
+        super({ type, pos });
+    }
+
+    get spriteProps(): { w: number; h: number; anchorX: number; anchorY: number; } {
+        return { w: 16, h: 16, anchorX: 0.5, anchorY: 0.5 };
+    }
+
+    interact(gameState: GameState): void {
+        const selectedTool = gameState.toolbar.slotEntry[gameState.toolbar.selectedSlot];
+        if (selectedTool === "shovel") {
+            if (this.pos.y > 0) {
+                gameState.topViewMap.removeVoxel(this);
+            }
+        }
+    }
+}
+
+class Soil extends Ground {
+    constructor(pos: Pos3D) {
+        super({ type: "soil", pos });
+    }
+
+    get sprite() {
+        switch (this.pos.y) {
+            case 0:
+            case 1:
+            case 2:
+                return "ground_normal_5";
+            case 3:
+                return "ground_darker_5";
+            case 4:
+                return "ground_darkest_5"
+            default:
+                throw new Error(`Invalid y position for soil: ${this.pos.y}`);
+        }
+    }
+}
+
+class Grass extends Ground {
+    constructor(pos: Pos3D) {
+        super({ type: "grass", pos });
+    }
+
+    get sprite() {
+        switch (this.pos.y) {
+            case 0:
+            case 1:
+            case 2:
+                return "grass_normal_5";
+            case 3:
+                return "grass_darker_5";
+            case 4:
+                return "grass_darkest_5"
+            default:
+                throw new Error(`Invalid y position for grass: ${this.pos.y}`);
+        }
+    }
+}
+
+class Water extends Terrain {
+    constructor(pos: Pos3D) {
+        super({ type: "water", pos });
+    }
+
+    get sprite() {
+        return "water";
+    }
+
+    get spriteProps(): { w: number; h: number; anchorX: number; anchorY: number; } {
+        return { w: 16, h: 16, anchorX: 0.5, anchorY: 0.5 };
+    }
+}
+
+class Tree extends StaticEntity {
+    constructor(pos: Pos3D) {
+        super({ type: "tree", pos });
+    }
+
+    get sprite() {
+        return "birch_tree_sapling";
+    }
+
+    get spriteProps(): { w: number; h: number; anchorX: number; anchorY: number; } {
+        return { w: 16, h: 16, anchorX: 0.5, anchorY: 0.8 };
+    }
+
+
+    interact(gameState: GameState): void {
+        const selectedTool = gameState.toolbar.slotEntry[gameState.toolbar.selectedSlot];
+        if (selectedTool === "axe") {
+            gameState.topViewMap.removeEntity(this);
+        }
+    }
+}
 
 export function generateTerrain(map: VoxelMap<Terrain>): void {
     const terrainNoise = createNoise2D(alea("terrain"));
@@ -16,16 +113,16 @@ export function generateTerrain(map: VoxelMap<Terrain>): void {
             const h = Math.min(map.height - 1, Math.floor((noiseValue + 1) * 0.5 * map.height));
             if (h < map.horizonHeight) {
                 for (let y = 0; y < h; y++) {
-                    map.set(new Terrain({ type: "soil", pos: { x, y, z } }));
+                    map.set(new Soil({ x, y, z }));
                 }
                 for (let y = h; y < map.horizonHeight; y++) {
-                    map.set(new Terrain({ type: "water", pos: { x, y, z } }));
+                    map.set(new Water({ x, y, z }));
                 }
             } else {
                 for (let y = 0; y < h; y++) {
-                    map.set(new Terrain({ type: "soil", pos: { x, y, z } }));
+                    map.set(new Soil({ x, y, z }));
                 }
-                map.set(new Terrain({ type: "grass", pos: { x, y: h, z } }));
+                map.set(new Grass({ x, y: h, z }));
             }
         }
     }
@@ -54,7 +151,7 @@ export function generateTerrain(map: VoxelMap<Terrain>): void {
                 // grass または soil の上にのみ配置
                 if (terrain && (terrain.type === "grass" || terrain.type === "soil")) {
                     // 表面セルと同じ位置に樹木を配置
-                    terrain.addEntity(new StaticEntity({ type: "tree", pos: terrain.pos }));
+                    terrain.addEntity(new Tree(terrain.pos));
                 }
             }
         }

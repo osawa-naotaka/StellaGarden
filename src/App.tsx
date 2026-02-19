@@ -1,7 +1,6 @@
 import { useEffect, useRef } from "react";
 import { createGameState } from "./State/GameState";
 import type { GameState } from "./State/GameState";
-import { registerEntityEventHandlers } from "./TopViewMap/TopViewMap";
 import { registerToolbarEventHandlers } from "./Toolbar/Toolbar";
 
 export default function App() {
@@ -22,7 +21,7 @@ export default function App() {
             if (!canvasRef.current) return;
 
             gameState = await createGameState(canvasRef.current);
-            registerEntityEventHandlers(gameState);
+            gameState.topViewMap.initializeEvents(gameState);
             registerToolbarEventHandlers(gameState);
         }
 
