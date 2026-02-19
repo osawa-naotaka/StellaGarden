@@ -3,7 +3,6 @@ export type Pos2D = {
     y: number;
 };
 
-
 export type Pos3D = {
     x: number;
     y: number;

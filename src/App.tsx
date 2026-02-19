@@ -1,7 +1,6 @@
 import { useEffect, useRef } from "react";
-import { createGameState } from "./State/GameState";
 import type { GameState } from "./State/GameState";
-import { registerToolbarEventHandlers } from "./Toolbar/Toolbar";
+import { createGameState } from "./State/GameState";
 
 export default function App() {
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -22,7 +21,9 @@ export default function App() {
 
             gameState = await createGameState(canvasRef.current);
             gameState.topViewMap.initializeEvents(gameState);
-            registerToolbarEventHandlers(gameState);
+
+            // ウィンドウリサイズ時にツールバーの位置を更新
+            window.addEventListener("resize", gameState?.toolbar.updateToolbarPosition);
         }
 
         init();
@@ -31,7 +32,7 @@ export default function App() {
         return () => {
             canvas.removeEventListener("contextmenu", preventContextMenu);
             if (gameState) {
-                window.removeEventListener("resize", gameState.toolbar.updateToolbarPositionFn);
+                window.removeEventListener("resize", gameState.toolbar.updateToolbarPosition);
                 gameState.pixiApp.destroy(true, { children: true });
             }
         };

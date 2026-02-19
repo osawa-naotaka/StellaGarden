@@ -1,6 +1,6 @@
 import { ColorMatrixFilter, Container, Graphics, Rectangle, Sprite, Texture } from "pixi.js";
-import { Terrain, Entity } from "../Map/Entity";
 import { VoxelMap } from "../lib/VoxelMap";
+import { type Entity, Terrain } from "../Map/Entity";
 import { generateTerrain } from "../Map/Terrain";
 import type { GameState } from "../State/GameState";
 
@@ -32,15 +32,15 @@ export class TopViewMap {
     initializeSprites() {
         // 地形セルのスプライトを生成
         const surface = this.voxelMap.getSurfaceVoxels();
-        for(const v of surface) {
+        for (const v of surface) {
             const sprite = this.createSprite(v);
             this.terrainPlane.addChild(sprite);
         }
 
         // StaticEntityやDynamicEntityのスプライトも同様に生成
-        for(const v of surface) {
-            for(const e of v.entities) {
-                if(e.type === "tree") {
+        for (const v of surface) {
+            for (const e of v.entities) {
+                if (e.type === "tree") {
                     const sprite = this.createSprite(e);
                     this.entityPlane.addChild(sprite);
                 }
@@ -49,7 +49,7 @@ export class TopViewMap {
     }
 
     initializeEvents(gameState: GameState) {
-        for(const [entity, sprite] of this.entityToSprite.entries()) {
+        for (const [entity, sprite] of this.entityToSprite.entries()) {
             // 明度を上げるフィルターを作成
             const brightnessFilter = new ColorMatrixFilter();
             brightnessFilter.brightness(1.5, false); // 明度を50%上げる
@@ -64,7 +64,8 @@ export class TopViewMap {
             });
 
             sprite.on("pointerdown", (event) => {
-                if(event.button === 2) { // 右クリック
+                if (event.button === 2) {
+                    // 右クリック
                     entity.interact(gameState);
                 }
             });
@@ -73,13 +74,13 @@ export class TopViewMap {
 
     removeVoxel(voxel: Terrain) {
         // 地形セル上のエンティティとスプライトを削除
-        for(const e of voxel.entities) {
+        for (const e of voxel.entities) {
             this.removeEntity(e);
         }
 
         // ボクセルのスプライトを削除
         const sprite = this.entityToSprite.get(voxel);
-        if(sprite) {
+        if (sprite) {
             sprite.parent?.removeChild(sprite);
             this.entityToSprite.delete(voxel);
             this.spriteToEntity.delete(sprite);
@@ -94,7 +95,7 @@ export class TopViewMap {
 
     private createNewSurfaceSprite(oldVoxel: Terrain): void {
         const newSurface = this.voxelMap.getSurfaceVoxel(oldVoxel.pos);
-        if(!newSurface) throw new Error("No surface voxel found");
+        if (!newSurface) throw new Error("No surface voxel found");
 
         const sprite = this.createSprite(newSurface);
         this.terrainPlane.addChild(sprite);
@@ -102,13 +103,13 @@ export class TopViewMap {
 
     removeEntity(entity: Entity): void {
         const sprite = this.entityToSprite.get(entity);
-        if(sprite) {
+        if (sprite) {
             sprite.parent?.removeChild(sprite);
             this.entityToSprite.delete(entity);
             this.spriteToEntity.delete(sprite);
         }
         const voxel = this.voxelMap.get(entity.pos);
-        if(voxel instanceof Terrain) {
+        if (voxel instanceof Terrain) {
             voxel.removeEntity(entity);
         }
     }
@@ -131,14 +132,14 @@ export class TopViewMap {
         const tileHitAreaDebug = new Graphics();
         tileHitAreaDebug.rect(-w / 2, -h / 2, w, h);
         tileHitAreaDebug.stroke({ width: 1, color: 0x0000ff }); // 青い枠線
-        sprite.addChild(tileHitAreaDebug);        
+        sprite.addChild(tileHitAreaDebug);
 
         // スプライトとエンティティの対応を保存
         this.entityToSprite.set(entity, sprite);
         this.spriteToEntity.set(sprite, entity);
         return sprite;
     }
-};
+}
 
 export function createTopViewMap(parent: Container): TopViewMap {
     // ボクセルマップを作成して地形を生成

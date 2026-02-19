@@ -25,11 +25,15 @@ export abstract class Entity {
         this.entityPos = pos;
     }
 
-    get type() { return this.entityKind }
-    get pos() { return this.entityPos }
+    get type() {
+        return this.entityKind;
+    }
+    get pos() {
+        return this.entityPos;
+    }
     abstract get sprite(): string;
     abstract get spriteProps(): { w: number; h: number; anchorX: number; anchorY: number };
-    interact(_gameState: GameState): void { }
+    interact(_gameState: GameState): void {}
 }
 
 export abstract class Terrain extends Entity {
@@ -38,14 +42,16 @@ export abstract class Terrain extends Entity {
         super({ type, pos });
     }
 
-    get entities() { return this.entitiesOnTop };
+    get entities() {
+        return this.entitiesOnTop;
+    }
 
     addEntity(entity: StaticEntity) {
         this.entitiesOnTop.push(entity);
     }
-    
+
     removeEntity(entity: StaticEntity) {
-        this.entitiesOnTop = this.entitiesOnTop.filter(e => e !== entity);
+        this.entitiesOnTop = this.entitiesOnTop.filter((e) => e !== entity);
     }
 }
 

@@ -1,129 +1,116 @@
 import { Container, Graphics, Rectangle, Sprite, Texture } from "pixi.js";
-import type { GameState } from "../State/GameState";
 
-const slotEntry = [
-    "watering_can",
-    "pickaxe",
-    "axe",
-    "sickle",
-    "shovel",
-    "potato_icon",
-    null,
-    null,
-    null,    
-];
+const slotEntry = ["watering_can", "pickaxe", "axe", "sickle", "shovel", "potato_icon", null, null, null];
 
 const CELL_SIZE = 32;
 const TOOLBAR_WIDTH = CELL_SIZE * slotEntry.length;
 const TOOLBAR_HEIGHT = CELL_SIZE;
 const ICON_SIZE = 16;
 
-export type Toolbar = {
-    parent: Container;
-    toolbar: Container;
-    slots: Container[];
-    slotEntry: (string | null)[];
-    selectedSlot: number;
-    drawFunctions: ((isSelected: boolean) => void)[];
-    updateToolbarPositionFn: () => void;
-};
+export class Toolbar {
+    private toolbar: Container;
+    private slots: Container[];
+    private slotEntry: (string | null)[];
+    private selectedSlot: number;
+    private drawFunctions: ((isSelected: boolean) => void)[];
+    private updateToolbarPositionFn: () => void;
 
-export function createToolbar(parent: Container): Toolbar {
-    const toolbar = new Container();
-    toolbar.x = (window.innerWidth - TOOLBAR_WIDTH) / 2;
-    toolbar.y = window.innerHeight - TOOLBAR_HEIGHT - 20; // 画面下部から20pxの余白
+    constructor(parent: Container) {
+        this.toolbar = new Container();
+        this.slotEntry = slotEntry;
+        this.toolbar.x = (window.innerWidth - TOOLBAR_WIDTH) / 2;
+        this.toolbar.y = window.innerHeight - TOOLBAR_HEIGHT - 20; // 画面下部から20pxの余白
 
-    // 背景（半透明の黒）
-    const background = new Graphics();
-    background.rect(0, 0, TOOLBAR_WIDTH, TOOLBAR_HEIGHT);
-    background.fill({ color: 0x000000, alpha: 0.7 });
-    background.interactive = true; // 背景でイベントをキャッチ
-    background.on("pointerdown", (event) => {
-        event.stopPropagation(); // イベントの伝播を止める
-    });
-    toolbar.addChild(background);
+        // 背景（半透明の黒）
+        const background = new Graphics();
+        background.rect(0, 0, TOOLBAR_WIDTH, TOOLBAR_HEIGHT);
+        background.fill({ color: 0x000000, alpha: 0.7 });
+        background.interactive = true; // 背景でイベントをキャッチ
+        background.on("pointerdown", (event) => {
+            event.stopPropagation(); // イベントの伝播を止める
+        });
+        this.toolbar.addChild(background);
 
-    // 選択状態を管理
-    let selectedSlot = 0;
+        // 選択状態を管理
+        this.selectedSlot = 0;
 
-    // 各セルを作成
-    const slots: Graphics[] = [];
-    const drawFunctions: ((isSelected: boolean) => void)[] = [];
+        // 各セルを作成
+        this.slots = [];
+        this.drawFunctions = [];
 
-    for (let i = 0; i < slotEntry.length; i++) {
-        const slot = new Graphics();
-        slot.x = i * CELL_SIZE;
-        slot.y = 0;
-        slot.interactive = true;
-        slot.cursor = "pointer";
+        for (let i = 0; i < this.slotEntry.length; i++) {
+            const slot = new Graphics();
+            slot.x = i * CELL_SIZE;
+            slot.y = 0;
+            slot.interactive = true;
+            slot.cursor = "pointer";
 
-        // 当たり判定を明示的に設定（セル全体をクリック可能に）
-        slot.hitArea = new Rectangle(0, 0, CELL_SIZE, CELL_SIZE);
+            // 当たり判定を明示的に設定（セル全体をクリック可能に）
+            slot.hitArea = new Rectangle(0, 0, CELL_SIZE, CELL_SIZE);
 
-        // 枠線を描画する関数
-        const drawSlotBorder = (isSelected: boolean) => {
-            slot.clear();
-            slot.rect(0, 0, CELL_SIZE, CELL_SIZE);
-            // 透明な塗りつぶしを追加（当たり判定のため）
-            slot.fill({ color: 0x000000, alpha: 0.01 });
-            slot.stroke({
-                width: isSelected ? 4 : 2,
-                color: 0xffffff
-            });
-        };
+            // 枠線を描画する関数
+            const drawSlotBorder = (isSelected: boolean) => {
+                slot.clear();
+                slot.rect(0, 0, CELL_SIZE, CELL_SIZE);
+                // 透明な塗りつぶしを追加（当たり判定のため）
+                slot.fill({ color: 0x000000, alpha: 0.01 });
+                slot.stroke({
+                    width: isSelected ? 4 : 2,
+                    color: 0xffffff,
+                });
+            };
 
-        // 描画関数を配列に保存
-        drawFunctions.push(drawSlotBorder);
+            // 描画関数を配列に保存
+            this.drawFunctions.push(drawSlotBorder);
 
-        // 初期描画
-        drawSlotBorder(i === selectedSlot);
+            // 初期描画
+            drawSlotBorder(i === this.selectedSlot);
 
-        const iconName = slotEntry[i];
-        if (iconName) {
-            const icon = new Container();
-            const sprite = new Sprite(Texture.from(iconName));
-            sprite.width = ICON_SIZE;
-            sprite.height = ICON_SIZE;
-            sprite.x = (CELL_SIZE - ICON_SIZE) / 2;
-            sprite.y = (CELL_SIZE - ICON_SIZE) / 2;
-            icon.addChild(sprite);
-            slot.addChild(icon);
+            const iconName = this.slotEntry[i];
+            if (iconName) {
+                const icon = new Container();
+                const sprite = new Sprite(Texture.from(iconName));
+                sprite.width = ICON_SIZE;
+                sprite.height = ICON_SIZE;
+                sprite.x = (CELL_SIZE - ICON_SIZE) / 2;
+                sprite.y = (CELL_SIZE - ICON_SIZE) / 2;
+                icon.addChild(sprite);
+                slot.addChild(icon);
+            }
+
+            this.toolbar.addChild(slot);
+            this.slots.push(slot);
         }
 
-        toolbar.addChild(slot);
-        slots.push(slot);
+        this.updateToolbarPositionFn = () => {
+            this.updateToolbarPosition();
+        };
+
+        parent.addChild(this.toolbar);
+        this.registerEventHandlers();
     }
 
-    const updateToolbarPositionFn = () => {
-        toolbar.x = (window.innerWidth - TOOLBAR_WIDTH) / 2;
-        toolbar.y = window.innerHeight - TOOLBAR_HEIGHT - 20;
-    };
+    get updateToolbarPosition() {
+        return this.updateToolbarPositionFn;
+    }
 
-    parent.addChild(toolbar);
+    get selectedTool() {
+        return this.slotEntry[this.selectedSlot];
+    }
 
-    return {
-        parent,
-        toolbar,
-        slots,
-        slotEntry,
-        selectedSlot,
-        drawFunctions,
-        updateToolbarPositionFn
-    };
-}
+    private registerEventHandlers() {
+        for (let i = 0; i < this.slots.length; i++) {
+            const slot = this.slots[i];
+            slot.on("pointerdown", (event) => {
+                event.stopPropagation(); // イベントの伝播を止める
 
-export function registerToolbarEventHandlers(gameState: GameState) {
-    for (let i = 0; i < gameState.toolbar.slots.length; i++) {
-        const slot = gameState.toolbar.slots[i];
-        slot.on("pointerdown", (event) => {
-            event.stopPropagation(); // イベントの伝播を止める
+                // 前の選択を解除
+                this.drawFunctions[this.selectedSlot](false);
 
-            // 前の選択を解除
-            gameState.toolbar.drawFunctions[gameState.toolbar.selectedSlot](false);
-
-            // 新しい選択を設定
-            gameState.toolbar.selectedSlot = i;
-            gameState.toolbar.drawFunctions[i](true);
-        });
+                // 新しい選択を設定
+                this.selectedSlot = i;
+                this.drawFunctions[i](true);
+            });
+        }
     }
 }

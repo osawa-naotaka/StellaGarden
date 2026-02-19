@@ -1,22 +1,20 @@
 import alea from "alea";
 import { createNoise2D } from "simplex-noise";
-import { VoxelMap } from "../lib/VoxelMap";
-import type { Pos2D, Pos3D } from "../lib/VoxelMap";
-import { StaticEntity, Terrain, type Entity, type TerrainType } from "./Entity";
+import type { Pos2D, Pos3D, VoxelMap } from "../lib/VoxelMap";
 import type { GameState } from "../State/GameState";
+import { type Entity, StaticEntity, Terrain, type TerrainType } from "./Entity";
 
 abstract class Ground extends Terrain {
     constructor({ type, pos }: { type: TerrainType; pos: Pos3D }) {
         super({ type, pos });
     }
 
-    get spriteProps(): { w: number; h: number; anchorX: number; anchorY: number; } {
+    get spriteProps(): { w: number; h: number; anchorX: number; anchorY: number } {
         return { w: 16, h: 16, anchorX: 0.5, anchorY: 0.5 };
     }
 
     interact(gameState: GameState): void {
-        const selectedTool = gameState.toolbar.slotEntry[gameState.toolbar.selectedSlot];
-        if (selectedTool === "shovel") {
+        if (gameState.toolbar.selectedTool === "shovel") {
             if (this.pos.y > 0) {
                 gameState.topViewMap.removeVoxel(this);
             }
@@ -38,7 +36,7 @@ class Soil extends Ground {
             case 3:
                 return "ground_darker_5";
             case 4:
-                return "ground_darkest_5"
+                return "ground_darkest_5";
             default:
                 throw new Error(`Invalid y position for soil: ${this.pos.y}`);
         }
@@ -59,7 +57,7 @@ class Grass extends Ground {
             case 3:
                 return "grass_darker_5";
             case 4:
-                return "grass_darkest_5"
+                return "grass_darkest_5";
             default:
                 throw new Error(`Invalid y position for grass: ${this.pos.y}`);
         }
@@ -75,7 +73,7 @@ class Water extends Terrain {
         return "water";
     }
 
-    get spriteProps(): { w: number; h: number; anchorX: number; anchorY: number; } {
+    get spriteProps(): { w: number; h: number; anchorX: number; anchorY: number } {
         return { w: 16, h: 16, anchorX: 0.5, anchorY: 0.5 };
     }
 }
@@ -89,14 +87,12 @@ class Tree extends StaticEntity {
         return "birch_tree_sapling";
     }
 
-    get spriteProps(): { w: number; h: number; anchorX: number; anchorY: number; } {
+    get spriteProps(): { w: number; h: number; anchorX: number; anchorY: number } {
         return { w: 16, h: 16, anchorX: 0.5, anchorY: 0.8 };
     }
 
-
     interact(gameState: GameState): void {
-        const selectedTool = gameState.toolbar.slotEntry[gameState.toolbar.selectedSlot];
-        if (selectedTool === "axe") {
+        if (gameState.toolbar.selectedTool === "axe") {
             gameState.topViewMap.removeEntity(this);
         }
     }
@@ -130,8 +126,8 @@ export function generateTerrain(map: VoxelMap<Terrain>): void {
     // 樹木生成
     const forestNoise = createNoise2D(alea("forest"));
     const treeNoise = createNoise2D(alea("tree"));
-    const forestScale = 0.05;  // 森のバイオーム（低周波）
-    const treeScale = 0.3;     // 個別の木の配置（高周波）
+    const forestScale = 0.05; // 森のバイオーム（低周波）
+    const treeScale = 0.3; // 個別の木の配置（高周波）
 
     for (let z = 0; z < map.depth; z++) {
         for (let x = 0; x < map.width; x++) {
@@ -172,14 +168,14 @@ export function zigzagPosition(map: VoxelMap<Entity>): ZigzagPositionReturnValue
         for (let summed = 0; summed <= map.width - 1; summed++) {
             for (let x = 0; x <= summed; x++) {
                 const z = summed - x;
-                posproj.push({ pos : { x, y, z }, proj : { x: x - z, y: x + z } });
+                posproj.push({ pos: { x, y, z }, proj: { x: x - z, y: x + z } });
             }
         }
 
         for (let summed = map.width; summed <= map.width + map.depth - 2; summed++) {
             for (let x = summed - (map.depth - 1); x <= map.width - 1; x++) {
                 const z = summed - x;
-                posproj.push({ pos : { x, y, z }, proj : { x: x - z, y: x + z } });
+                posproj.push({ pos: { x, y, z }, proj: { x: x - z, y: x + z } });
             }
         }
     }
