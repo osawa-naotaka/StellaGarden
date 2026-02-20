@@ -10,12 +10,12 @@ abstract class Ground extends Terrain {
     }
 
     get spriteProps(): { w: number; h: number; anchorX: number; anchorY: number } {
-        return { w: 16, h: 16, anchorX: 0.5, anchorY: 0.5 };
+        return { w: 16, h: 16, anchorX: 0, anchorY: 0 };
     }
 
     interact(gameState: GameState): void {
         if (gameState.toolbar.selectedTool === "shovel") {
-            if (this.pos.y > 0) {
+            if (this.pos.y > 2) {
                 gameState.topViewMap.removeVoxel(this, gameState);
             }
         }
@@ -31,6 +31,7 @@ class Soil extends Ground {
         switch (this.pos.y) {
             case 0:
             case 1:
+                throw new Error(`Invalid y position for soil: ${this.pos.y}`);
             case 2:
                 return "ground_normal_5";
             case 3:
@@ -74,7 +75,7 @@ class Water extends Terrain {
     }
 
     get spriteProps(): { w: number; h: number; anchorX: number; anchorY: number } {
-        return { w: 16, h: 16, anchorX: 0.5, anchorY: 0.5 };
+        return { w: 16, h: 16, anchorX: 0, anchorY: 0 };
     }
 }
 
@@ -88,7 +89,7 @@ class Tree extends StaticEntity {
     }
 
     get spriteProps(): { w: number; h: number; anchorX: number; anchorY: number } {
-        return { w: 16, h: 16, anchorX: 0.5, anchorY: 0.8 };
+        return { w: 32, h: 48, anchorX: 0.25, anchorY: 0.333 };
     }
 
     interact(gameState: GameState): void {

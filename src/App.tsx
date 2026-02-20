@@ -26,7 +26,7 @@ export default function App() {
             gameState.topViewMap.initializeEvents(gameState);
 
             // ウィンドウリサイズ時にツールバーの位置を更新
-            window.addEventListener("resize", gameState?.toolbar.updateToolbarPosition);
+            window.addEventListener("resize", gameState.toolbar.updateToolbarPosition);
         }
 
         init();

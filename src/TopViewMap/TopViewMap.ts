@@ -30,20 +30,14 @@ export class TopViewMap {
     }
 
     initializeSprites() {
-        // 地形セルのスプライトを生成
         const surface = this.voxelMap.getSurfaceVoxels();
         for (const v of surface) {
             const sprite = this.createSprite(v);
             this.terrainPlane.addChild(sprite);
-        }
 
-        // StaticEntityやDynamicEntityのスプライトも同様に生成
-        for (const v of surface) {
             for (const e of v.entities) {
-                if (e.type === "tree") {
-                    const sprite = this.createSprite(e);
-                    this.entityPlane.addChild(sprite);
-                }
+                const sprite = this.createSprite(e);
+                this.entityPlane.addChild(sprite);
             }
         }
     }
@@ -134,11 +128,11 @@ export class TopViewMap {
         sprite.interactive = true;
 
         // 当たり判定を設定（セル全体をクリック可能に）
-        sprite.hitArea = new Rectangle(-w / 2, -h / 2, w, h);
+        sprite.hitArea = new Rectangle(-w * anchorX, -h * anchorY, w, h);
 
         // 当たり判定を可視化（デバッグ用の青い線）
         const tileHitAreaDebug = new Graphics();
-        tileHitAreaDebug.rect(-w / 2, -h / 2, w, h);
+        tileHitAreaDebug.rect(-w * anchorX, -h * anchorY, w, h);
         tileHitAreaDebug.stroke({ width: 1, color: 0x0000ff }); // 青い枠線
         sprite.addChild(tileHitAreaDebug);
 
