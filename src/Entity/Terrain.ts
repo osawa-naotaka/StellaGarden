@@ -53,6 +53,7 @@ class Grass extends Ground {
         switch (this.pos.y) {
             case 0:
             case 1:
+                throw new Error(`Invalid y position for grass: ${this.pos.y}`);
             case 2:
                 return "grass_normal_5";
             case 3:
