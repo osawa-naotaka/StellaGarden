@@ -16,7 +16,7 @@ abstract class Ground extends Terrain {
     interact(gameState: GameState): void {
         if (gameState.toolbar.selectedTool === "shovel") {
             if (this.pos.y > 2) {
-                gameState.topViewMap.removeVoxel(this, gameState);
+                gameState.topViewMap.removeVoxel(this);
             }
         }
     }

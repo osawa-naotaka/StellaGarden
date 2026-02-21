@@ -1,23 +1,37 @@
-import { Application } from "pixi.js";
-import { Viewport } from "pixi-viewport";
+import { Application, Container } from "pixi.js";
 import type { Terrain } from "../Entity/Entity";
 import { VoxelMap } from "../lib/VoxelMap";
 import { Toolbar } from "../Toolbar/Toolbar";
 import { TopViewMap } from "../TopViewMap/TopViewMap";
 import { createEventBroker, type EventBroker, type EvTopicPacketMap } from "../lib/Event";
+import { Player } from "../Player/Player";
 
 export class GameState {
     private readonly m_pixiApp: Application;
-    private readonly m_viewport: Viewport;
+    private readonly m_worldContainer: Container;
     private m_topViewMap: TopViewMap;
     private m_toolbar: Toolbar;
     private m_broker: EventBroker<EvTopicPacketMap>;
+    private m_player: Player;
 
-    constructor({ pixiApp, viewport, topViewMap, toolbar }: { pixiApp: Application; viewport: Viewport; topViewMap: TopViewMap; toolbar: Toolbar }) {
+    constructor({
+        pixiApp,
+        worldContainer,
+        topViewMap,
+        toolbar,
+        player,
+    }: {
+        pixiApp: Application;
+        worldContainer: Container;
+        topViewMap: TopViewMap;
+        toolbar: Toolbar;
+        player: Player;
+    }) {
         this.m_pixiApp = pixiApp;
-        this.m_viewport = viewport;
+        this.m_worldContainer = worldContainer;
         this.m_topViewMap = topViewMap;
         this.m_toolbar = toolbar;
+        this.m_player = player;
         this.m_broker = createEventBroker<EvTopicPacketMap>(this);
     }
 
@@ -25,8 +39,8 @@ export class GameState {
         return this.m_pixiApp;
     }
 
-    get viewport() {
-        return this.m_viewport;
+    get worldContainer() {
+        return this.m_worldContainer;
     }
 
     get topViewMap() {
@@ -40,6 +54,10 @@ export class GameState {
     get eventBroker() {
         return this.m_broker;
     }
+
+    get player() {
+        return this.m_player;
+    }
 }
 
 export async function createGameState(canvas: HTMLCanvasElement): Promise<GameState> {
@@ -50,29 +68,16 @@ export async function createGameState(canvas: HTMLCanvasElement): Promise<GameSt
         resizeTo: window,
     });
 
-    const viewport = new Viewport({
-        screenWidth: window.innerWidth,
-        screenHeight: window.innerHeight,
-        worldWidth: 1600,
-        worldHeight: 1600,
-        ticker: pixiApp.ticker,
-        events: pixiApp.renderer.events,
-    });
-
-    // ドラッグ、ピンチズーム、ホイールズームを有効化
-    viewport
-        .drag()
-        .pinch()
-        .wheel()
-        .decelerate()
-        .clamp({ left: 0, right: 1600, top: 0, bottom: 1600 })
-        .clampZoom({ minWidth: 400, minHeight: 400, maxWidth: 1600, maxHeight: 1600 });
-
-    pixiApp.stage.addChild(viewport);
+    // ワールドコンテナ: 毎フレーム位置を更新してカメラ移動を実現する
+    const worldContainer = new Container();
+    pixiApp.stage.addChild(worldContainer);
 
     const voxelMap = new VoxelMap<Terrain>(100, 5, 100, 2);
-    const topViewMap = new TopViewMap(voxelMap, viewport);
+    const topViewMap = new TopViewMap(voxelMap, worldContainer);
     const toolbar = new Toolbar(pixiApp.stage);
 
-    return new GameState({ pixiApp, viewport, topViewMap, toolbar });
+    // マップ中央からスタート
+    const player = new Player(50, 50);
+
+    return new GameState({ pixiApp, worldContainer, topViewMap, toolbar, player });
 }
