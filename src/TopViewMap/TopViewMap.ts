@@ -1,12 +1,12 @@
-import { Application, Container, Graphics, Rectangle, RenderTexture, Sprite, Texture } from "pixi.js";
-import { VoxelMap, type Pos3D } from "../lib/VoxelMap";
+import { type Application, Container, Graphics, Rectangle, RenderTexture, Sprite, Texture } from "pixi.js";
 import { getSpriteNameFromVoxel } from "../Entity/Terrain";
+import type { Pos3D, VoxelMap } from "../lib/VoxelMap";
 
 const TILE_SIZE = 16;
 const VIEWPORT_SIZE = 64; // 画面に表示するタイル数
-const BUFFER = 5;          // 各辺の余白タイル数
+const BUFFER = 5; // 各辺の余白タイル数
 export const POOL_SIZE = VIEWPORT_SIZE + 2 * BUFFER; // 74
-const CHUNK_SIZE = 16;         // チャンクのタイル数
+const CHUNK_SIZE = 16; // チャンクのタイル数
 
 export class TopViewMap {
     private app: Application;
@@ -59,7 +59,7 @@ export class TopViewMap {
                 this.chunkTexturePool.push(renderTexture);
             }
         }
-        
+
         this.updateViewport(centerX, centerZ);
     }
 
@@ -112,9 +112,9 @@ export class TopViewMap {
                 const worldZ = this.viewOriginZ + col * CHUNK_SIZE;
                 const sprite = this.chunkSpritePool[col * 4 + row];
 
-                    const texture = this.renderChunk(row, col, worldX, worldZ);
-                    sprite.texture = texture;                    
-                    sprite.visible = true;
+                const texture = this.renderChunk(row, col, worldX, worldZ);
+                sprite.texture = texture;
+                sprite.visible = true;
             }
         }
     }
@@ -195,5 +195,4 @@ export class TopViewMap {
             sprite.visible = true;
         }
     }
-
 }

@@ -1,11 +1,10 @@
+import { Assets, BitmapText } from "pixi.js";
 import { useEffect, useRef } from "react";
 import { generateTerrain } from "./Entity/Terrain";
 import { loadSprite } from "./lib/Sprite";
 import type { GameState } from "./State/GameState";
 import { createGameState } from "./State/GameState";
-import { Assets, BitmapText } from "pixi.js";
 
-const TILE_SIZE = 16;
 const MIN_ZOOM = 0.5;
 const MAX_ZOOM = 4.0;
 const ZOOM_STEP = 0.1;
@@ -87,25 +86,12 @@ export default function App() {
                         dx *= norm;
                         dz *= norm;
                     }
-                    gs.player.move(
-                        dx,
-                        dz,
-                        ticker.deltaMS,
-                        gs.topViewMap.VoxelMap.width,
-                        gs.topViewMap.VoxelMap.depth,
-                    );
+                    gs.player.move(dx, dz, ticker.deltaMS, gs.topViewMap.VoxelMap.width, gs.topViewMap.VoxelMap.depth);
                 }
 
                 // タイル位置が変わった場合のみスプライトを更新
                 gs.topViewMap.updateViewport(gs.player.worldX, gs.player.worldZ);
-
-                // worldContainerの位置・スケールを毎フレーム更新（スムーズスクロール＋ズーム）
-                // 常に画面中央がプレイヤー位置に固定されるよう計算
-                const screenW = gs.pixiApp.screen.width;
-                const screenH = gs.pixiApp.screen.height;
                 gs.worldContainer.scale.set(zoomLevel);
-                // gs.worldContainer.x = screenW / 2 - gs.player.worldX * TILE_SIZE * zoomLevel;
-                // gs.worldContainer.y = screenH / 2 - gs.player.worldZ * TILE_SIZE * zoomLevel;
 
                 // デバッグテキスト更新
                 debugText.text = `X: ${gs.player.worldX.toFixed(1)}, Z: ${gs.player.worldZ.toFixed(1)}`;

@@ -4,10 +4,8 @@ import { Outlet } from "react-router";
 
 export function GameLayout(): React.ReactElement {
     return (
-        <>
-            <Box sx={{ display: "flex" }}>
-                <Outlet />
-            </Box>
-        </>
+        <Box sx={{ display: "flex" }}>
+            <Outlet />
+        </Box>
     );
 }

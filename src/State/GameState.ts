@@ -1,9 +1,9 @@
 import { Application, Container } from "pixi.js";
+import { createEventBroker, type EventBroker, type EvTopicPacketMap } from "../lib/Event";
 import { VoxelMap } from "../lib/VoxelMap";
+import { Player } from "../Player/Player";
 import { Toolbar } from "../Toolbar/Toolbar";
 import { TopViewMap } from "../TopViewMap/TopViewMap";
-import { createEventBroker, type EventBroker, type EvTopicPacketMap } from "../lib/Event";
-import { Player } from "../Player/Player";
 
 export class GameState {
     private readonly m_pixiApp: Application;

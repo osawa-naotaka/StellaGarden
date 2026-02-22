@@ -2,7 +2,6 @@ import alea from "alea";
 import { createNoise2D } from "simplex-noise";
 import type { Pos3D, VoxelMap } from "../lib/VoxelMap";
 
-
 export function getSpriteNameFromVoxel(voxel: number, pos: Pos3D): string {
     const type = voxel & 0x000000ff;
     switch (type) {
@@ -82,7 +81,7 @@ export function generateTerrain(map: VoxelMap): void {
             if (shouldPlaceTree) {
                 // 表面セルを取得
                 const pos = map.getSurfacePosition({ x, y: 0, z });
-                if(pos === null) throw new Error(`Failed to get surface position for tree at (${x}, ${z})`);
+                if (pos === null) throw new Error(`Failed to get surface position for tree at (${x}, ${z})`);
 
                 const terrain = map.get(pos);
                 if (terrain === null) throw new Error(`Failed to get terrain for tree at (${x}, ${z})`);
