@@ -55,7 +55,11 @@ export class VoxelMap {
         return surfacePositions;
     }
 
-    getSurfacePosition(pos: Pos3D): Pos3D | null {
+    getSurfacePosition(pos: Pos3D): Pos3D {
+        if (pos.x < 0 || pos.x >= this.width || pos.z < 0 || pos.z >= this.depth) {
+            throw new Error(`Position out of bounds: (${pos.x}, ${pos.y}, ${pos.z})`);
+        }
+
         // xとzのみを使用し、yは無視して上から探索
         for (let y = this.height - 1; y >= 0; y--) {
             const pos3d: Pos3D = { x: pos.x, y, z: pos.z };
@@ -64,10 +68,14 @@ export class VoxelMap {
                 return pos3d; // 上から最初に見つかったセルの位置を返す
             }
         }
-        return null; // 表面セルが見つからない場合はnullを返す
+        
+        throw new Error(`No surface found at (${pos.x}, ${pos.z})`);
     }
 
     private posToIndex(pos: Pos3D): number {
+        if (pos.x < 0 || pos.x >= this.width || pos.y < 0 || pos.y >= this.height || pos.z < 0 || pos.z >= this.depth) {
+            throw new Error(`Position out of bounds: (${pos.x}, ${pos.y}, ${pos.z})`);
+        }
         return pos.x + pos.y * this.width * this.depth + pos.z * this.width;
     }
 }
