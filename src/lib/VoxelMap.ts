@@ -24,10 +24,10 @@ export class VoxelMap {
         this.voxels = new Uint32Array(width * height * depth).fill(0);
     }
 
-    get(pos: Pos3D): number | null {
+    get(pos: Pos3D): number {
         const index = this.posToIndex(pos);
         if (index < 0 || index >= this.voxels.length) {
-            return null;
+            throw new Error(`Position out of bounds: (${pos.x}, ${pos.y}, ${pos.z})`);
         }
         return this.voxels[index];
     }

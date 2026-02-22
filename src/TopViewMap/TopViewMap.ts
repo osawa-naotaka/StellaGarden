@@ -100,13 +100,10 @@ export class TopViewMap {
                 const z = Math.floor(worldZ) + col;
 
                 const position = this.voxelMap.getSurfacePosition({ x, y: 0, z });
-                if (position === null) throw new Error(`Failed to get surface position for chunk (${chunkX}, ${chunkZ}) at world (${x}, ${z})`);
                 const voxel = this.voxelMap.get(position);
-                if (voxel === null) throw new Error(`Failed to get voxel for chunk (${chunkX}, ${chunkZ}) at world (${x}, ${z})`);
 
                 const spriteName = getSpriteNameFromVoxel(voxel, position);
                 const sprite = this.tileSpritePool[(col + 1) * (TILE_PER_CHUNK + 2) + (row + 1)];
-                if (!sprite) throw new Error(`Failed to get sprite from pool for chunk (${chunkX}, ${chunkZ}) at world (${x}, ${z})`);
                 sprite.texture = Texture.from(spriteName);
 
                 const container = this.tileContainerPool[(col + 1) * (TILE_PER_CHUNK + 2) + (row + 1)];
