@@ -10,16 +10,23 @@ const MAX_ZOOM = 4.0;
 const ZOOM_STEP = 0.1;
 
 export default function App() {
-    const canvasRef = useRef<HTMLCanvasElement>(null);
+    // PixiJSのcanvasはPixiJS自身が生成・管理する。
+    // ReactはdivコンテナのみをDOMで管理し、PixiJSのcanvasには触れない。
+    // これによりHMR時にdestroy(true)でcanvasを安全に破棄できる。
+    const containerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        if (!canvasRef.current) return;
+        if (!containerRef.current) return;
 
-        const canvas = canvasRef.current;
+        const container = containerRef.current;
 
-        // 右クリックメニューを無効化
+        // HMR時のレースコンディション防止フラグ
+        // init()完了前にクリーンアップが走った場合、init完了後に即破棄する
+        let cancelled = false;
+
+        // 右クリックメニューを無効化（コンテナに登録）
         const preventContextMenu = (e: MouseEvent) => e.preventDefault();
-        canvas.addEventListener("contextmenu", preventContextMenu);
+        container.addEventListener("contextmenu", preventContextMenu);
 
         // WASD キー状態
         const keyState: Record<string, boolean> = {};
@@ -39,21 +46,38 @@ export default function App() {
             const delta = e.deltaY < 0 ? ZOOM_STEP : -ZOOM_STEP;
             zoomLevel = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, zoomLevel + delta));
         };
-        canvas.addEventListener("wheel", onWheel, { passive: false });
+        container.addEventListener("wheel", onWheel, { passive: false });
 
         let gameState: GameState | null = null;
 
         async function init() {
-            const gs = await createGameState(canvas);
+            const gs = await createGameState(container);
+
+            // createGameState完了前にクリーンアップが実行されていた場合:
+            // gameStateがまだnullなのでクリーンアップは何もしていない → ここで手動破棄。
+            // destroy(true) = PixiJS自身のcanvasをDOMから削除（安全）
+            if (cancelled) {
+                gs.pixiApp.destroy(true, { children: true });
+                return;
+            }
+
             gameState = gs; // クリーンアップ用に保持
 
             generateTerrain(gs.topViewMap.VoxelMap);
             await loadSprite();
+
+            // gameState=gs設定後にcleanupが走った場合、cleanupがpixiAppを破棄してgameState=nullにする。
+            // ここでは再破棄せず、単純にreturnするだけでよい。
+            if (!gameState) return;
+
             gs.topViewMap.initializeSprites(gs.player.worldX, gs.player.worldZ);
             gs.toolbar.initializeSprites();
 
             // デバッグテキスト（左上に主人公のXZ座標を表示）
             await Assets.load("assets/RobotoBold.fnt");
+
+            if (!gameState) return;
+
             const debugText = new BitmapText({
                 text: `X: ${gs.player.worldX.toFixed(1)}, Z: ${gs.player.worldZ.toFixed(1)}`,
                 style: {
@@ -102,16 +126,25 @@ export default function App() {
 
         // クリーンアップ
         return () => {
-            canvas.removeEventListener("contextmenu", preventContextMenu);
-            canvas.removeEventListener("wheel", onWheel);
+            cancelled = true;
+            container.removeEventListener("contextmenu", preventContextMenu);
+            container.removeEventListener("wheel", onWheel);
             window.removeEventListener("keydown", onKeyDown);
             window.removeEventListener("keyup", onKeyUp);
             if (gameState) {
                 window.removeEventListener("resize", gameState.toolbar.updateToolbarPosition);
+                // destroy(true) = PixiJSが自分で生成したcanvasをDOMから削除する（安全）。
+                // Reactのcanvasではないため、destroyしても問題ない。
                 gameState.pixiApp.destroy(true, { children: true });
+                gameState = null;
             }
         };
     }, []);
 
-    return <canvas ref={canvasRef} />;
+    return (
+        <div
+            ref={containerRef}
+            style={{ position: "fixed", inset: 0 }}
+        />
+    );
 }

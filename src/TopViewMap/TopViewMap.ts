@@ -86,6 +86,7 @@ export class TopViewMap {
         }
 
         this.app.renderer.render({ container: chunkContainer, target: renderTexture, clear: true });
+        chunkContainer.destroy({ children: true });
 
         return renderTexture;
     }
