@@ -1,5 +1,4 @@
 import { Application, Container } from "pixi.js";
-import type { Terrain } from "../Entity/Entity";
 import { VoxelMap } from "../lib/VoxelMap";
 import { Toolbar } from "../Toolbar/Toolbar";
 import { TopViewMap } from "../TopViewMap/TopViewMap";
@@ -72,7 +71,7 @@ export async function createGameState(canvas: HTMLCanvasElement): Promise<GameSt
     const worldContainer = new Container();
     pixiApp.stage.addChild(worldContainer);
 
-    const voxelMap = new VoxelMap<Terrain>(100, 5, 100, 2);
+    const voxelMap = new VoxelMap(100, 4, 100, 1);
     const topViewMap = new TopViewMap(voxelMap, worldContainer);
     const toolbar = new Toolbar(pixiApp.stage);
 

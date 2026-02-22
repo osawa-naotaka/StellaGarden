@@ -1,7 +1,6 @@
-import { ColorMatrixFilter, Container, Graphics, Rectangle, Sprite, Texture } from "pixi.js";
-import { type Entity, StaticEntity, Terrain } from "../Entity/Entity";
-import { VoxelMap } from "../lib/VoxelMap";
-import type { GameState } from "../State/GameState";
+import { Container, Graphics, Rectangle, Sprite, Texture } from "pixi.js";
+import { VoxelMap, type Pos3D } from "../lib/VoxelMap";
+import { getSpriteNameFromVoxel } from "../Entity/Terrain";
 
 const TILE_SIZE = 16;
 const VIEWPORT_SIZE = 65; // 画面に表示するタイル数
@@ -9,7 +8,7 @@ const BUFFER = 5;          // 各辺の余白タイル数
 export const POOL_SIZE = VIEWPORT_SIZE + 2 * BUFFER; // 75
 
 export class TopViewMap {
-    private voxelMap: VoxelMap<Terrain>;
+    private voxelMap: VoxelMap;
     private worldContainer: Container;
     private terrainPlane: Container;
     private entityPlane: Container;
@@ -20,27 +19,24 @@ export class TopViewMap {
     private entitySpriteList: Sprite[];
 
     // イベント用動的参照（terrainスプライトは viewport 更新時に更新）
-    private spriteToEntity: Map<Sprite, Entity>;
+    private spriteToEntityPos: Map<Sprite, Pos3D>;
     // entity スプライト専用の逆引き（removeEntityで使用）
-    private entityToSprite: Map<Entity, Sprite>;
+    private entityPosToSprite: Map<Pos3D, Sprite>;
 
     // 現在のビューポート起点（ワールド座標）
     private viewOriginX = 0;
     private viewOriginZ = 0;
     private viewportInitialized = false;
 
-    // initializeEvents 後に保存（entity sprite 作成時のイベント登録に使用）
-    private gameState: GameState | null = null;
-
-    constructor(voxelMap: VoxelMap<Terrain>, worldContainer: Container) {
+    constructor(voxelMap: VoxelMap, worldContainer: Container) {
         this.voxelMap = voxelMap;
         this.worldContainer = worldContainer;
         this.terrainPlane = new Container();
         this.entityPlane = new Container();
         this.terrainSpritePool = [];
         this.entitySpriteList = [];
-        this.spriteToEntity = new Map();
-        this.entityToSprite = new Map();
+        this.spriteToEntityPos = new Map();
+        this.entityPosToSprite = new Map();
 
         this.worldContainer.addChild(this.terrainPlane);
         this.worldContainer.addChild(this.entityPlane);
@@ -60,17 +56,6 @@ export class TopViewMap {
         this.updateViewport(centerX, centerZ);
     }
 
-    // gameStateを保存し、全スプライトにイベントハンドラを設定する
-    initializeEvents(gameState: GameState) {
-        this.gameState = gameState;
-        for (const sprite of this.terrainSpritePool) {
-            this.setEventHandlers(sprite, gameState);
-        }
-        for (const sprite of this.entitySpriteList) {
-            this.setEventHandlers(sprite, gameState);
-        }
-    }
-
     // プレイヤー位置を受け取り、タイル位置が変わった場合のみスプライトを更新する
     updateViewport(playerX: number, playerZ: number) {
         const newOriginX = Math.round(playerX) - Math.floor(POOL_SIZE / 2);
@@ -88,10 +73,10 @@ export class TopViewMap {
     private refreshSprites() {
         // entity spritesをクリア
         for (const sprite of this.entitySpriteList) {
-            const entity = this.spriteToEntity.get(sprite);
-            if (entity) {
-                this.entityToSprite.delete(entity);
-                this.spriteToEntity.delete(sprite);
+            const pos = this.spriteToEntityPos.get(sprite);
+            if (pos) {
+                this.entityPosToSprite.delete(pos);
+                this.spriteToEntityPos.delete(sprite);
             }
             sprite.parent?.removeChild(sprite);
             sprite.destroy();
@@ -110,23 +95,17 @@ export class TopViewMap {
                     worldZ >= 0 && worldZ < this.voxelMap.depth;
 
                 if (inBounds) {
-                    const voxel = this.voxelMap.getSurfaceVoxel({ x: worldX, y: 0, z: worldZ });
-                    if (voxel) {
-                        sprite.texture = Texture.from(voxel.sprite);
-                        sprite.x = worldX * TILE_SIZE;
-                        sprite.y = worldZ * TILE_SIZE;
-                        sprite.visible = true;
-                        this.spriteToEntity.set(sprite, voxel);
+                    const position = this.voxelMap.getSurfacePosition({ x: worldX, y: 0, z: worldZ });
+                    if (position === null) throw new Error(`Failed to get surface position for terrain at (${worldX}, ${worldZ})`);
+                    const voxel = this.voxelMap.get(position);
+                    if (voxel === null) throw new Error(`Failed to get voxel for terrain at (${worldX}, ${worldZ})`);
+                    sprite.texture = Texture.from(getSpriteNameFromVoxel(voxel, position));
+                    sprite.x = worldX * TILE_SIZE;
+                    sprite.y = worldZ * TILE_SIZE;
+                    sprite.visible = true;
+                    this.spriteToEntityPos.set(sprite, position);
 
-                        // このタイル上のエンティティスプライトを作成
-                        for (const entity of voxel.entities) {
-                            const entitySprite = this.createEntitySprite(entity);
-                            this.entitySpriteList.push(entitySprite);
-                            this.entityPlane.addChild(entitySprite);
-                        }
-                    } else {
-                        sprite.visible = false;
-                    }
+                    // TODO:このセルのエンティティスプライトを追加
                 } else {
                     sprite.visible = false;
                 }
@@ -150,104 +129,51 @@ export class TopViewMap {
     }
 
     // エンティティ（木など）用スプライトを生成
-    private createEntitySprite(entity: Entity): Sprite {
-        const sprite = new Sprite(Texture.from(entity.sprite));
-        const { w, h, anchorX, anchorY } = entity.spriteProps;
+    private createEntitySprite(entity: number, pos: Pos3D): Sprite {
+        const sprite = new Sprite(Texture.from(getSpriteNameFromVoxel(entity & 0x0000FF00, pos)));
 
-        sprite.anchor.set(anchorX, anchorY);
-        sprite.x = entity.pos.x * TILE_SIZE;
-        sprite.y = entity.pos.z * TILE_SIZE;
+        sprite.anchor.set(0.5, 0.8);
+        sprite.x = pos.x * TILE_SIZE;
+        sprite.y = pos.z * TILE_SIZE;
         sprite.interactive = true;
-        sprite.hitArea = new Rectangle(-w * anchorX, -h * anchorY, w, h);
+        sprite.hitArea = new Rectangle(-32 * 0.5, -48 * 0.8, 32, 48);
 
         const hitAreaDebug = new Graphics();
-        hitAreaDebug.rect(-w * anchorX, -h * anchorY, w, h);
+        hitAreaDebug.rect(-32 * 0.5, -48 * 0.8, 32, 48);
         hitAreaDebug.stroke({ width: 1, color: 0x0000ff });
         sprite.addChild(hitAreaDebug);
 
-        this.entityToSprite.set(entity, sprite);
-        this.spriteToEntity.set(sprite, entity);
-
-        if (this.gameState) {
-            this.setEventHandlers(sprite, this.gameState);
-        }
+        this.entityPosToSprite.set(pos, sprite);
+        this.spriteToEntityPos.set(sprite, pos);
 
         return sprite;
     }
 
-    // イベントハンドラを設定する
-    // terrain spriteはspriteToEntityを動的に参照するため、プール再利用時も正しく動作する
-    setEventHandlers(sprite: Sprite, gameState: GameState) {
-        const brightnessFilter = new ColorMatrixFilter();
-        brightnessFilter.brightness(1.5, false);
-
-        sprite.on("pointerover", () => {
-            sprite.filters = [brightnessFilter];
-        });
-        sprite.on("pointerout", () => {
-            sprite.filters = null;
-        });
-        sprite.on("pointerdown", (event) => {
-            if (event.button === 2) {
-                const entity = this.spriteToEntity.get(sprite);
-                if (entity) entity.interact(gameState);
-            }
-        });
-    }
-
     // ボクセルを削除し、プール内のスプライトを新しい表面ボクセルで更新する
-    removeVoxel(voxel: Terrain) {
-        // このボクセル上のエンティティスプライトを削除
-        for (const e of voxel.entities) {
-            this.removeEntityFromSprite(e);
-        }
+    removeVoxel(pos: Pos3D): void {
+        const voxel = this.voxelMap.get(pos);
+        if (!voxel) return;
 
         // ボクセルをマップから削除
-        this.voxelMap.remove(voxel);
+        this.voxelMap.remove(pos);
 
         // プール内の対応スプライトを特定して更新
-        const col = voxel.pos.x - this.viewOriginX;
-        const row = voxel.pos.z - this.viewOriginZ;
+        const col = pos.x - this.viewOriginX;
+        const row = pos.z - this.viewOriginZ;
 
         if (col >= 0 && col < POOL_SIZE && row >= 0 && row < POOL_SIZE) {
             const sprite = this.terrainSpritePool[row * POOL_SIZE + col];
-            const newSurface = this.voxelMap.getSurfaceVoxel(voxel.pos);
 
-            if (newSurface) {
-                sprite.texture = Texture.from(newSurface.sprite);
-                this.spriteToEntity.set(sprite, newSurface);
+            const newSurfacePos = this.voxelMap.getSurfacePosition(pos);
+            if (newSurfacePos === null) throw new Error(`Failed to get new surface position after removing voxel at (${pos.x}, ${pos.z})`);
 
-                // 新しい表面のエンティティスプライトを追加
-                for (const entity of newSurface.entities) {
-                    const entitySprite = this.createEntitySprite(entity);
-                    this.entitySpriteList.push(entitySprite);
-                    this.entityPlane.addChild(entitySprite);
-                }
-            } else {
-                sprite.visible = false;
-            }
+            const newSurfaceVoxel = this.voxelMap.get(newSurfacePos);
+            if (newSurfaceVoxel === null) throw new Error(`Failed to get new surface voxel after removing voxel at (${pos.x}, ${pos.z})`);
+
+            sprite.texture = Texture.from(getSpriteNameFromVoxel(newSurfaceVoxel, newSurfacePos));
+            sprite.visible = true;
+            this.spriteToEntityPos.set(sprite, newSurfacePos);
         }
     }
 
-    // エンティティを削除する（ボクセルのエンティティリストからも除去）
-    removeEntity(entity: Entity): void {
-        this.removeEntityFromSprite(entity);
-        const voxel = this.voxelMap.get(entity.pos);
-        if (voxel instanceof Terrain) {
-            voxel.removeEntity(entity as StaticEntity);
-        }
-    }
-
-    // エンティティのスプライトのみを削除する（内部処理用）
-    private removeEntityFromSprite(entity: Entity): void {
-        const sprite = this.entityToSprite.get(entity);
-        if (sprite) {
-            sprite.parent?.removeChild(sprite);
-            this.entityToSprite.delete(entity);
-            this.spriteToEntity.delete(sprite);
-            const idx = this.entitySpriteList.indexOf(sprite);
-            if (idx >= 0) this.entitySpriteList.splice(idx, 1);
-            sprite.destroy();
-        }
-    }
 }
