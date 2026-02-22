@@ -1,6 +1,6 @@
 import { type Application, Container, Graphics, Rectangle, RenderTexture, Sprite, Texture } from "pixi.js";
 import { getSpriteNameFromVoxel } from "../Entity/Terrain";
-import type { Pos3D, VoxelMap } from "../lib/VoxelMap";
+import type { VoxelMap } from "../lib/VoxelMap";
 
 const TILE_SIZE = 16;
 const VIEWPORT_SIZE = 64; // 画面に表示するタイル数
@@ -11,29 +11,33 @@ const CHUNK_SIZE = 16; // チャンクのタイル数
 export class TopViewMap {
     private app: Application;
     private voxelMap: VoxelMap;
-    private worldContainer: Container;
+    private parent: Container;
     private terrainPlane: Container;
 
     // terrain用: POOL_SIZE×POOL_SIZE のスプライトプール（row*POOL_SIZE+col でインデックス）
     private tileSpritePool: Sprite[];
+    private tileContainerPool: Container[];
     private chunkTexturePool: Texture[]; // チャンクごとのテクスチャリスト
     private chunkSpritePool: Sprite[]; // チャンクごとのスプライトリスト
+    private chunkContainer: Container;
 
     // 現在のビューポート起点（ワールド座標）
     private viewOriginX = 0;
     private viewOriginZ = 0;
     private viewportInitialized = false;
 
-    constructor(voxelMap: VoxelMap, worldContainer: Container, app: Application) {
+    constructor(voxelMap: VoxelMap, parent: Container, app: Application) {
         this.app = app;
         this.voxelMap = voxelMap;
-        this.worldContainer = worldContainer;
+        this.parent = parent;
         this.terrainPlane = new Container();
         this.tileSpritePool = [];
+        this.tileContainerPool = [];
         this.chunkTexturePool = [];
         this.chunkSpritePool = [];
+        this.chunkContainer = new Container();
 
-        this.worldContainer.addChild(this.terrainPlane);
+        this.parent.addChild(this.terrainPlane);
     }
 
     get VoxelMap() {
@@ -42,13 +46,31 @@ export class TopViewMap {
 
     // スプライトプールを作成し、初期ビューポートを設定する
     initializeSprites(centerX: number, centerZ: number) {
-        for (let i = 0; i < CHUNK_SIZE * CHUNK_SIZE; i++) {
-            const sprite = this.createPoolSprite();
+        for (let i = 0; i < (CHUNK_SIZE + 2) * (CHUNK_SIZE + 2); i++) {
+            const sprite = new Sprite(Texture.EMPTY);
+            sprite.interactive = true;
+            sprite.hitArea = new Rectangle(0, 0, TILE_SIZE, TILE_SIZE);
+            
             this.tileSpritePool.push(sprite);
+            const container = new Container();
+            container.addChild(sprite);
+
+            // デバッグ用ヒット範囲の可視化
+            const hitAreaDebug = new Graphics();
+            hitAreaDebug.rect(0, 0, TILE_SIZE, TILE_SIZE);
+            hitAreaDebug.stroke({ width: 1, color: 0x0000ff });
+
+            container.addChild(hitAreaDebug);
+            this.tileContainerPool.push(container);
+
+            this.chunkContainer.addChild(container);
         }
+
         for (let y = 0; y < 4; y++) {
             for (let x = 0; x < 4; x++) {
-                const chunkSprite = this.createChunkSprite(x, y);
+                const chunkSprite = new Sprite(Texture.EMPTY);
+                chunkSprite.x = x * CHUNK_SIZE * TILE_SIZE;
+                chunkSprite.y = y * CHUNK_SIZE * TILE_SIZE;
                 this.chunkSpritePool.push(chunkSprite);
                 this.terrainPlane.addChild(chunkSprite);
 
@@ -66,7 +88,6 @@ export class TopViewMap {
     renderChunk(chunkX: number, chunkZ: number, worldX: number, worldZ: number): Texture {
         const chunkIndex = (chunkZ % 4) * 4 + (chunkX % 4);
         const renderTexture = this.chunkTexturePool[chunkIndex];
-        const chunkContainer = new Container();
 
         for (let col = -1; col < CHUNK_SIZE + 1; col++) {
             for (let row = -1; row < CHUNK_SIZE + 1; row++) {
@@ -78,15 +99,20 @@ export class TopViewMap {
                 const voxel = this.voxelMap.get(position);
                 if (voxel === null) throw new Error(`Failed to get voxel for chunk (${chunkX}, ${chunkZ}) at world (${x}, ${z})`);
 
-                const sprite = new Sprite(Texture.from(getSpriteNameFromVoxel(voxel, position)));
-                sprite.x = row * TILE_SIZE - (worldX - Math.floor(worldX)) * TILE_SIZE;
-                sprite.y = col * TILE_SIZE - (worldZ - Math.floor(worldZ)) * TILE_SIZE;
-                chunkContainer.addChild(sprite);
+                const spriteName = getSpriteNameFromVoxel(voxel, position);
+                const sprite = this.tileSpritePool[(col + 1) * (CHUNK_SIZE + 2) + (row + 1)];
+                if (!sprite) throw new Error(`Failed to get sprite from pool for chunk (${chunkX}, ${chunkZ}) at world (${x}, ${z})`);
+                sprite.texture = Texture.from(spriteName);
+
+                const container = this.tileContainerPool[(col + 1) * (CHUNK_SIZE + 2) + (row + 1)];
+                container.x = row * TILE_SIZE - (worldX - Math.floor(worldX)) * TILE_SIZE;
+                container.y = col * TILE_SIZE - (worldZ - Math.floor(worldZ)) * TILE_SIZE;
+
+                this.chunkContainer.addChild(container);
             }
         }
 
-        this.app.renderer.render({ container: chunkContainer, target: renderTexture, clear: true });
-        chunkContainer.destroy({ children: true });
+        this.app.renderer.render({ container: this.chunkContainer, target: renderTexture, clear: true });
 
         return renderTexture;
     }
@@ -117,83 +143,6 @@ export class TopViewMap {
                 sprite.texture = texture;
                 sprite.visible = true;
             }
-        }
-    }
-
-    // terrain用プールスプライトを生成（テクスチャは後で設定）
-    private createPoolSprite(): Sprite {
-        const sprite = new Sprite(Texture.EMPTY);
-        sprite.interactive = true;
-        sprite.hitArea = new Rectangle(0, 0, TILE_SIZE, TILE_SIZE);
-
-        // デバッグ用ヒット範囲の可視化
-        const hitAreaDebug = new Graphics();
-        hitAreaDebug.rect(0, 0, TILE_SIZE, TILE_SIZE);
-        hitAreaDebug.stroke({ width: 1, color: 0x0000ff });
-        sprite.addChild(hitAreaDebug);
-
-        return sprite;
-    }
-
-    private createChunkSprite(chunkX: number, chunkZ: number): Sprite {
-        const sprite = new Sprite(Texture.EMPTY);
-        sprite.x = chunkX * CHUNK_SIZE * TILE_SIZE;
-        sprite.y = chunkZ * CHUNK_SIZE * TILE_SIZE;
-        return sprite;
-    }
-
-    /*
-    private updateChunkSprite(sprite: Sprite, chunkX: number, chunkZ: number) {
-
-        const chunkIndex = (chunkZ % 4) * 4 + (chunkX % 4);
-        const texture = this.chunkTexturePool[chunkIndex];
-        return new Sprite(texture);
-    }
-        */
-
-    /*
-    // エンティティ（木など）用スプライトを生成
-    private createEntitySprite(entity: number, pos: Pos3D): Sprite {
-        const sprite = new Sprite(Texture.from(getSpriteNameFromVoxel(entity & 0x0000FF00, pos)));
-
-        sprite.anchor.set(0.5, 0.8);
-        sprite.x = pos.x * TILE_SIZE;
-        sprite.y = pos.z * TILE_SIZE;
-        sprite.interactive = true;
-        sprite.hitArea = new Rectangle(-32 * 0.5, -48 * 0.8, 32, 48);
-
-        const hitAreaDebug = new Graphics();
-        hitAreaDebug.rect(-32 * 0.5, -48 * 0.8, 32, 48);
-        hitAreaDebug.stroke({ width: 1, color: 0x0000ff });
-        sprite.addChild(hitAreaDebug);
-
-        return sprite;
-    }
-        */
-
-    // ボクセルを削除し、プール内のスプライトを新しい表面ボクセルで更新する
-    removeVoxel(pos: Pos3D): void {
-        const voxel = this.voxelMap.get(pos);
-        if (!voxel) return;
-
-        // ボクセルをマップから削除
-        this.voxelMap.remove(pos);
-
-        // プール内の対応スプライトを特定して更新
-        const col = pos.x - this.viewOriginX;
-        const row = pos.z - this.viewOriginZ;
-
-        if (col >= 0 && col < POOL_SIZE && row >= 0 && row < POOL_SIZE) {
-            const sprite = this.tileSpritePool[row * POOL_SIZE + col];
-
-            const newSurfacePos = this.voxelMap.getSurfacePosition(pos);
-            if (newSurfacePos === null) throw new Error(`Failed to get new surface position after removing voxel at (${pos.x}, ${pos.z})`);
-
-            const newSurfaceVoxel = this.voxelMap.get(newSurfacePos);
-            if (newSurfaceVoxel === null) throw new Error(`Failed to get new surface voxel after removing voxel at (${pos.x}, ${pos.z})`);
-
-            sprite.texture = Texture.from(getSpriteNameFromVoxel(newSurfaceVoxel, newSurfacePos));
-            sprite.visible = true;
         }
     }
 }

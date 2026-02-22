@@ -53,7 +53,7 @@ export default function App() {
             await loadSprite();
 
             gameState.topViewMap.initializeSprites(gameState.player.worldX, gameState.player.worldZ);
-            gameState.toolbar.initializeSprites();
+            // gameState.toolbar.initializeSprites();
 
             // デバッグテキスト（左上に主人公のXZ座標を表示）
             await Assets.load("assets/RobotoBold.fnt");
