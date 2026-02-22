@@ -1,45 +1,39 @@
-import { Container, Graphics, Rectangle, Sprite, Texture } from "pixi.js";
+import { Application, Container, Graphics, Rectangle, RenderTexture, Sprite, Texture } from "pixi.js";
 import { VoxelMap, type Pos3D } from "../lib/VoxelMap";
 import { getSpriteNameFromVoxel } from "../Entity/Terrain";
 
 const TILE_SIZE = 16;
-const VIEWPORT_SIZE = 65; // 画面に表示するタイル数
+const VIEWPORT_SIZE = 64; // 画面に表示するタイル数
 const BUFFER = 5;          // 各辺の余白タイル数
-export const POOL_SIZE = VIEWPORT_SIZE + 2 * BUFFER; // 75
+export const POOL_SIZE = VIEWPORT_SIZE + 2 * BUFFER; // 74
+const CHUNK_SIZE = 16;         // チャンクのタイル数
 
 export class TopViewMap {
+    private app: Application;
     private voxelMap: VoxelMap;
     private worldContainer: Container;
     private terrainPlane: Container;
-    private entityPlane: Container;
 
     // terrain用: POOL_SIZE×POOL_SIZE のスプライトプール（row*POOL_SIZE+col でインデックス）
-    private terrainSpritePool: Sprite[];
-    // entity用: 現在ビューポート内のエンティティスプライト一覧
-    private entitySpriteList: Sprite[];
-
-    // イベント用動的参照（terrainスプライトは viewport 更新時に更新）
-    private spriteToEntityPos: Map<Sprite, Pos3D>;
-    // entity スプライト専用の逆引き（removeEntityで使用）
-    private entityPosToSprite: Map<Pos3D, Sprite>;
+    private tileSpritePool: Sprite[];
+    private chunkTexturePool: Texture[]; // チャンクごとのテクスチャリスト
+    private chunkSpritePool: Sprite[]; // チャンクごとのスプライトリスト
 
     // 現在のビューポート起点（ワールド座標）
     private viewOriginX = 0;
     private viewOriginZ = 0;
     private viewportInitialized = false;
 
-    constructor(voxelMap: VoxelMap, worldContainer: Container) {
+    constructor(voxelMap: VoxelMap, worldContainer: Container, app: Application) {
+        this.app = app;
         this.voxelMap = voxelMap;
         this.worldContainer = worldContainer;
         this.terrainPlane = new Container();
-        this.entityPlane = new Container();
-        this.terrainSpritePool = [];
-        this.entitySpriteList = [];
-        this.spriteToEntityPos = new Map();
-        this.entityPosToSprite = new Map();
+        this.tileSpritePool = [];
+        this.chunkTexturePool = [];
+        this.chunkSpritePool = [];
 
         this.worldContainer.addChild(this.terrainPlane);
-        this.worldContainer.addChild(this.entityPlane);
     }
 
     get VoxelMap() {
@@ -48,18 +42,58 @@ export class TopViewMap {
 
     // スプライトプールを作成し、初期ビューポートを設定する
     initializeSprites(centerX: number, centerZ: number) {
-        for (let i = 0; i < POOL_SIZE * POOL_SIZE; i++) {
+        for (let i = 0; i < CHUNK_SIZE * CHUNK_SIZE; i++) {
             const sprite = this.createPoolSprite();
-            this.terrainSpritePool.push(sprite);
-            this.terrainPlane.addChild(sprite);
+            this.tileSpritePool.push(sprite);
         }
+        for (let y = 0; y < 4; y++) {
+            for (let x = 0; x < 4; x++) {
+                const chunkSprite = this.createChunkSprite(x, y);
+                this.chunkSpritePool.push(chunkSprite);
+                this.terrainPlane.addChild(chunkSprite);
+
+                const renderTexture = RenderTexture.create({
+                    width: CHUNK_SIZE * TILE_SIZE,
+                    height: CHUNK_SIZE * TILE_SIZE,
+                });
+                this.chunkTexturePool.push(renderTexture);
+            }
+        }
+        
         this.updateViewport(centerX, centerZ);
+    }
+
+    renderChunk(chunkX: number, chunkZ: number, worldX: number, worldZ: number): Texture {
+        const chunkIndex = (chunkZ % 4) * 4 + (chunkX % 4);
+        const renderTexture = this.chunkTexturePool[chunkIndex];
+        const chunkContainer = new Container();
+
+        for (let col = -1; col < CHUNK_SIZE + 1; col++) {
+            for (let row = -1; row < CHUNK_SIZE + 1; row++) {
+                const x = Math.floor(worldX) + row;
+                const z = Math.floor(worldZ) + col;
+
+                const position = this.voxelMap.getSurfacePosition({ x, y: 0, z });
+                if (position === null) throw new Error(`Failed to get surface position for chunk (${chunkX}, ${chunkZ}) at world (${x}, ${z})`);
+                const voxel = this.voxelMap.get(position);
+                if (voxel === null) throw new Error(`Failed to get voxel for chunk (${chunkX}, ${chunkZ}) at world (${x}, ${z})`);
+
+                const sprite = new Sprite(Texture.from(getSpriteNameFromVoxel(voxel, position)));
+                sprite.x = row * TILE_SIZE - (worldX - Math.floor(worldX)) * TILE_SIZE;
+                sprite.y = col * TILE_SIZE - (worldZ - Math.floor(worldZ)) * TILE_SIZE;
+                chunkContainer.addChild(sprite);
+            }
+        }
+
+        this.app.renderer.render({ container: chunkContainer, target: renderTexture, clear: true });
+
+        return renderTexture;
     }
 
     // プレイヤー位置を受け取り、タイル位置が変わった場合のみスプライトを更新する
     updateViewport(playerX: number, playerZ: number) {
-        const newOriginX = Math.round(playerX) - Math.floor(POOL_SIZE / 2);
-        const newOriginZ = Math.round(playerZ) - Math.floor(POOL_SIZE / 2);
+        const newOriginX = playerX - Math.floor(POOL_SIZE / 2);
+        const newOriginZ = playerZ - Math.floor(POOL_SIZE / 2);
 
         if (!this.viewportInitialized || newOriginX !== this.viewOriginX || newOriginZ !== this.viewOriginZ) {
             this.viewOriginX = newOriginX;
@@ -71,44 +105,16 @@ export class TopViewMap {
 
     // entity spriteを全破棄し、terrain spriteのテクスチャを現在のビューポートに合わせて更新する
     private refreshSprites() {
-        // entity spritesをクリア
-        for (const sprite of this.entitySpriteList) {
-            const pos = this.spriteToEntityPos.get(sprite);
-            if (pos) {
-                this.entityPosToSprite.delete(pos);
-                this.spriteToEntityPos.delete(sprite);
-            }
-            sprite.parent?.removeChild(sprite);
-            sprite.destroy();
-        }
-        this.entitySpriteList = [];
-
         // terrain pool spriteを更新
-        for (let row = 0; row < POOL_SIZE; row++) {
-            for (let col = 0; col < POOL_SIZE; col++) {
-                const worldX = this.viewOriginX + col;
-                const worldZ = this.viewOriginZ + row;
-                const sprite = this.terrainSpritePool[row * POOL_SIZE + col];
+        for (let col = 0; col < 4; col++) {
+            for (let row = 0; row < 4; row++) {
+                const worldX = this.viewOriginX + row * CHUNK_SIZE;
+                const worldZ = this.viewOriginZ + col * CHUNK_SIZE;
+                const sprite = this.chunkSpritePool[col * 4 + row];
 
-                const inBounds =
-                    worldX >= 0 && worldX < this.voxelMap.width &&
-                    worldZ >= 0 && worldZ < this.voxelMap.depth;
-
-                if (inBounds) {
-                    const position = this.voxelMap.getSurfacePosition({ x: worldX, y: 0, z: worldZ });
-                    if (position === null) throw new Error(`Failed to get surface position for terrain at (${worldX}, ${worldZ})`);
-                    const voxel = this.voxelMap.get(position);
-                    if (voxel === null) throw new Error(`Failed to get voxel for terrain at (${worldX}, ${worldZ})`);
-                    sprite.texture = Texture.from(getSpriteNameFromVoxel(voxel, position));
-                    sprite.x = worldX * TILE_SIZE;
-                    sprite.y = worldZ * TILE_SIZE;
+                    const texture = this.renderChunk(row, col, worldX, worldZ);
+                    sprite.texture = texture;                    
                     sprite.visible = true;
-                    this.spriteToEntityPos.set(sprite, position);
-
-                    // TODO:このセルのエンティティスプライトを追加
-                } else {
-                    sprite.visible = false;
-                }
             }
         }
     }
@@ -128,6 +134,23 @@ export class TopViewMap {
         return sprite;
     }
 
+    private createChunkSprite(chunkX: number, chunkZ: number): Sprite {
+        const sprite = new Sprite(Texture.EMPTY);
+        sprite.x = chunkX * CHUNK_SIZE * TILE_SIZE;
+        sprite.y = chunkZ * CHUNK_SIZE * TILE_SIZE;
+        return sprite;
+    }
+
+    /*
+    private updateChunkSprite(sprite: Sprite, chunkX: number, chunkZ: number) {
+
+        const chunkIndex = (chunkZ % 4) * 4 + (chunkX % 4);
+        const texture = this.chunkTexturePool[chunkIndex];
+        return new Sprite(texture);
+    }
+        */
+
+    /*
     // エンティティ（木など）用スプライトを生成
     private createEntitySprite(entity: number, pos: Pos3D): Sprite {
         const sprite = new Sprite(Texture.from(getSpriteNameFromVoxel(entity & 0x0000FF00, pos)));
@@ -143,11 +166,9 @@ export class TopViewMap {
         hitAreaDebug.stroke({ width: 1, color: 0x0000ff });
         sprite.addChild(hitAreaDebug);
 
-        this.entityPosToSprite.set(pos, sprite);
-        this.spriteToEntityPos.set(sprite, pos);
-
         return sprite;
     }
+        */
 
     // ボクセルを削除し、プール内のスプライトを新しい表面ボクセルで更新する
     removeVoxel(pos: Pos3D): void {
@@ -162,7 +183,7 @@ export class TopViewMap {
         const row = pos.z - this.viewOriginZ;
 
         if (col >= 0 && col < POOL_SIZE && row >= 0 && row < POOL_SIZE) {
-            const sprite = this.terrainSpritePool[row * POOL_SIZE + col];
+            const sprite = this.tileSpritePool[row * POOL_SIZE + col];
 
             const newSurfacePos = this.voxelMap.getSurfacePosition(pos);
             if (newSurfacePos === null) throw new Error(`Failed to get new surface position after removing voxel at (${pos.x}, ${pos.z})`);
@@ -172,7 +193,6 @@ export class TopViewMap {
 
             sprite.texture = Texture.from(getSpriteNameFromVoxel(newSurfaceVoxel, newSurfacePos));
             sprite.visible = true;
-            this.spriteToEntityPos.set(sprite, newSurfacePos);
         }
     }
 

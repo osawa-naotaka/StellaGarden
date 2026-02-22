@@ -71,8 +71,8 @@ export async function createGameState(canvas: HTMLCanvasElement): Promise<GameSt
     const worldContainer = new Container();
     pixiApp.stage.addChild(worldContainer);
 
-    const voxelMap = new VoxelMap(100, 4, 100, 1);
-    const topViewMap = new TopViewMap(voxelMap, worldContainer);
+    const voxelMap = new VoxelMap(400, 4, 400, 1);
+    const topViewMap = new TopViewMap(voxelMap, worldContainer, pixiApp);
     const toolbar = new Toolbar(pixiApp.stage);
 
     // マップ中央からスタート

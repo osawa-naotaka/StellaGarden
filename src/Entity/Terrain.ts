@@ -28,7 +28,7 @@ export function getSpriteNameFromVoxel(voxel: number, pos: Pos3D): string {
                 case 3:
                     return "grass_darkest_5";
                 default:
-                    throw new Error(`Invalid y position for grass: ${pos.y}`);
+                    throw new Error(`Invalid y position for grass: ${pos.x}, ${pos.y}, ${pos.z}`);
             }
         case 0x00000100: // tree flag
             return "birch_tree_sapling";

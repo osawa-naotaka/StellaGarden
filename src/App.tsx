@@ -75,10 +75,10 @@ export default function App() {
                 // WASD移動
                 let dx = 0;
                 let dz = 0;
-                if (keyState["a"] || keyState["arrowleft"]) dx -= 1;
-                if (keyState["d"] || keyState["arrowright"]) dx += 1;
-                if (keyState["w"] || keyState["arrowup"]) dz -= 1;
-                if (keyState["s"] || keyState["arrowdown"]) dz += 1;
+                if (keyState["a"] || keyState["arrowleft"]) dx -= 2;
+                if (keyState["d"] || keyState["arrowright"]) dx += 2;
+                if (keyState["w"] || keyState["arrowup"]) dz -= 2;
+                if (keyState["s"] || keyState["arrowdown"]) dz += 2;
 
                 if (dx !== 0 || dz !== 0) {
                     // 斜め移動を正規化
@@ -104,8 +104,8 @@ export default function App() {
                 const screenW = gs.pixiApp.screen.width;
                 const screenH = gs.pixiApp.screen.height;
                 gs.worldContainer.scale.set(zoomLevel);
-                gs.worldContainer.x = screenW / 2 - gs.player.worldX * TILE_SIZE * zoomLevel;
-                gs.worldContainer.y = screenH / 2 - gs.player.worldZ * TILE_SIZE * zoomLevel;
+                // gs.worldContainer.x = screenW / 2 - gs.player.worldX * TILE_SIZE * zoomLevel;
+                // gs.worldContainer.y = screenH / 2 - gs.player.worldZ * TILE_SIZE * zoomLevel;
 
                 // デバッグテキスト更新
                 debugText.text = `X: ${gs.player.worldX.toFixed(1)}, Z: ${gs.player.worldZ.toFixed(1)}`;
