@@ -68,7 +68,7 @@ export async function createGameState(container: HTMLElement): Promise<GameState
     // PixiJSが自分で生成したcanvasをコンテナに追加する。
     // React管理のcanvasを渡さないことで、HMR時にdestroy(true)でcanvasを
     // 安全にDOMから削除できる。
-    container.appendChild(pixiApp.canvas as HTMLCanvasElement);
+    container.appendChild(pixiApp.canvas);
 
     // ワールドコンテナ: 毎フレーム位置を更新してカメラ移動を実現する
     const worldContainer = new Container();

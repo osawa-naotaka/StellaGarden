@@ -20,10 +20,6 @@ export default function App() {
 
         const container = containerRef.current;
 
-        // HMR時のレースコンディション防止フラグ
-        // init()完了前にクリーンアップが走った場合、init完了後に即破棄する
-        let cancelled = false;
-
         // 右クリックメニューを無効化（コンテナに登録）
         const preventContextMenu = (e: MouseEvent) => e.preventDefault();
         container.addEventListener("contextmenu", preventContextMenu);
@@ -51,35 +47,19 @@ export default function App() {
         let gameState: GameState | null = null;
 
         async function init() {
-            const gs = await createGameState(container);
+            gameState = await createGameState(container);
 
-            // createGameState完了前にクリーンアップが実行されていた場合:
-            // gameStateがまだnullなのでクリーンアップは何もしていない → ここで手動破棄。
-            // destroy(true) = PixiJS自身のcanvasをDOMから削除（安全）
-            if (cancelled) {
-                gs.pixiApp.destroy(true, { children: true });
-                return;
-            }
-
-            gameState = gs; // クリーンアップ用に保持
-
-            generateTerrain(gs.topViewMap.VoxelMap);
+            generateTerrain(gameState.topViewMap.VoxelMap);
             await loadSprite();
 
-            // gameState=gs設定後にcleanupが走った場合、cleanupがpixiAppを破棄してgameState=nullにする。
-            // ここでは再破棄せず、単純にreturnするだけでよい。
-            if (!gameState) return;
-
-            gs.topViewMap.initializeSprites(gs.player.worldX, gs.player.worldZ);
-            gs.toolbar.initializeSprites();
+            gameState.topViewMap.initializeSprites(gameState.player.worldX, gameState.player.worldZ);
+            gameState.toolbar.initializeSprites();
 
             // デバッグテキスト（左上に主人公のXZ座標を表示）
             await Assets.load("assets/RobotoBold.fnt");
 
-            if (!gameState) return;
-
             const debugText = new BitmapText({
-                text: `X: ${gs.player.worldX.toFixed(1)}, Z: ${gs.player.worldZ.toFixed(1)}`,
+                text: `X: ${gameState.player.worldX.toFixed(1)}, Z: ${gameState.player.worldZ.toFixed(1)}`,
                 style: {
                     fontFamily: "RobotoBold",
                     fontSize: 16,
@@ -88,13 +68,15 @@ export default function App() {
             });
             debugText.x = 10;
             debugText.y = 10;
-            gs.pixiApp.stage.addChild(debugText);
+            gameState.pixiApp.stage.addChild(debugText);
 
             // ウィンドウリサイズ時にツールバーの位置を更新
-            window.addEventListener("resize", gs.toolbar.updateToolbarPosition);
+            window.addEventListener("resize", gameState.toolbar.updateToolbarPosition);
 
             // ゲームループ
-            gs.pixiApp.ticker.add((ticker) => {
+            gameState.pixiApp.ticker.add((ticker) => {
+                if (!gameState) return;
+
                 // WASD移動
                 let dx = 0;
                 let dz = 0;
@@ -110,15 +92,15 @@ export default function App() {
                         dx *= norm;
                         dz *= norm;
                     }
-                    gs.player.move(dx, dz, ticker.deltaMS, gs.topViewMap.VoxelMap.width, gs.topViewMap.VoxelMap.depth);
+                    gameState.player.move(dx, dz, ticker.deltaMS, gameState.topViewMap.VoxelMap.width, gameState.topViewMap.VoxelMap.depth);
                 }
 
                 // タイル位置が変わった場合のみスプライトを更新
-                gs.topViewMap.updateViewport(gs.player.worldX, gs.player.worldZ);
-                gs.worldContainer.scale.set(zoomLevel);
+                gameState.topViewMap.updateViewport(gameState.player.worldX, gameState.player.worldZ);
+                gameState.worldContainer.scale.set(zoomLevel);
 
                 // デバッグテキスト更新
-                debugText.text = `X: ${gs.player.worldX.toFixed(1)}, Z: ${gs.player.worldZ.toFixed(1)}`;
+                debugText.text = `X: ${gameState.player.worldX.toFixed(1)}, Z: ${gameState.player.worldZ.toFixed(1)}`;
             });
         }
 
@@ -126,25 +108,17 @@ export default function App() {
 
         // クリーンアップ
         return () => {
-            cancelled = true;
             container.removeEventListener("contextmenu", preventContextMenu);
             container.removeEventListener("wheel", onWheel);
             window.removeEventListener("keydown", onKeyDown);
             window.removeEventListener("keyup", onKeyUp);
             if (gameState) {
                 window.removeEventListener("resize", gameState.toolbar.updateToolbarPosition);
-                // destroy(true) = PixiJSが自分で生成したcanvasをDOMから削除する（安全）。
-                // Reactのcanvasではないため、destroyしても問題ない。
                 gameState.pixiApp.destroy(true, { children: true });
                 gameState = null;
             }
         };
     }, []);
 
-    return (
-        <div
-            ref={containerRef}
-            style={{ position: "fixed", inset: 0 }}
-        />
-    );
+    return <div ref={containerRef} style={{ position: "fixed", inset: 0 }} />;
 }
