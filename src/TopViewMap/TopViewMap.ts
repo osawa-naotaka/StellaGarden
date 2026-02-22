@@ -124,7 +124,7 @@ export class TopViewMap {
 
     // プレイヤー位置を受け取り、ボクセルマップ中のどの領域がビューポートに入るかを計算する
     calcViewCorners(playerX: number, playerZ: number): { left: number; right: number; top: number; bottom: number } {
-        const halfViewportSize = Math.floor(CHUNK_PER_VIEWPORT * TILE_PER_CHUNK / 2);
+        const halfViewportSize = Math.floor((CHUNK_PER_VIEWPORT * TILE_PER_CHUNK) / 2);
         const left = playerX - halfViewportSize;
         const right = playerX + halfViewportSize;
         const top = playerZ - halfViewportSize;
@@ -136,8 +136,6 @@ export class TopViewMap {
     // プレイヤー位置を受け取り、タイル位置が変わった場合のみスプライトを更新する
     updateViewport(playerX: number, playerZ: number) {
         const { left, top } = this.calcViewCorners(playerX, playerZ);
-        // const newOriginX = playerX - Math.floor(CHUNK_PER_VIEWPORT * TILE_PER_CHUNK / 2);
-        // const newOriginZ = playerZ - Math.floor(CHUNK_PER_VIEWPORT * TILE_PER_CHUNK / 2);
 
         if (!this.viewportInitialized || left !== this.viewOriginX || top !== this.viewOriginZ) {
             this.viewOriginX = left;

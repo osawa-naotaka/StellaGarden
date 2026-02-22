@@ -68,7 +68,7 @@ export class VoxelMap {
                 return pos3d; // 上から最初に見つかったセルの位置を返す
             }
         }
-        
+
         throw new Error(`No surface found at (${pos.x}, ${pos.z})`);
     }
 

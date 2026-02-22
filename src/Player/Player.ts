@@ -20,6 +20,8 @@ export class Player {
 
     move(dx: number, dz: number, deltaMS: number, mapWidth: number, mapDepth: number) {
         const dt = deltaMS / 1000;
+        // 移動後の位置を計算。マップの端で止まるようにする。
+        // チャンクを描画する際に、チャンクサイズより1タイルだけ外側を参照する。そのため、+-1の余裕を持たせる。
         this.m_worldX = Math.max(TILE_PER_VIEWPORT / 2 + 1, Math.min(mapWidth - 1 - TILE_PER_VIEWPORT / 2, this.m_worldX + dx * this.speed * dt));
         this.m_worldZ = Math.max(TILE_PER_VIEWPORT / 2 + 1, Math.min(mapDepth - 1 - TILE_PER_VIEWPORT / 2, this.m_worldZ + dz * this.speed * dt));
     }
