@@ -88,8 +88,8 @@ export class TopViewMap {
     }
 
     updatePointerPosition() {
-        this.pointer.x = this.viewOrigin.x + this.globalPos.x / this.app.stage.scale.x / PIXEL_PER_TILE;
-        this.pointer.z = this.viewOrigin.z + this.globalPos.z / this.app.stage.scale.y / PIXEL_PER_TILE;
+        this.pointer.x = this.viewOrigin.x + this.globalPos.x / this.parent.scale.x / PIXEL_PER_TILE;
+        this.pointer.z = this.viewOrigin.z + this.globalPos.z / this.parent.scale.y / PIXEL_PER_TILE;
     }
 
     get pointerPositionInWorld() {
