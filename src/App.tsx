@@ -32,6 +32,7 @@ export default function App() {
             // gameState.toolbar.initializeSprites();
 
             gameState.player.setKeyboardListeners();
+            gameState.topViewMap.setMouseListeners();
 
             // デバッグテキスト（左上に主人公のXZ座標を表示）
             const debugText = new DebugText(gameState);
@@ -45,6 +46,7 @@ export default function App() {
                 if (!gameState) return;
 
                 gameState.player.move(ticker.deltaMS);
+                gameState.topViewMap.updatePointerPosition();
 
                 // タイル位置が変わった場合のみスプライトを更新
                 gameState.topViewMap.updateViewport(gameState.player.positionInWorld);

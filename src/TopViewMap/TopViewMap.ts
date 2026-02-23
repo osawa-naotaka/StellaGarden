@@ -24,6 +24,9 @@ export class TopViewMap {
     private viewOrigin: Pos2D;
     private viewportInitialized = false;
 
+    private globalPos: Pos2D = { x: 0, z: 0 }; // 最後のMouseMoveイベントのワールド座標
+    private pointer: Pos2D = { x: 0, z: 0 };
+
     constructor(voxelMap: VoxelMap, parent: Container, app: Application) {
         this.app = app;
         this.voxelMap = voxelMap;
@@ -41,23 +44,6 @@ export class TopViewMap {
 
     get VoxelMap() {
         return this.voxelMap;
-    }
-
-    private createEmptyTile(): { top: Container; sprite: Sprite } {
-        const top = new Container();
-
-        const sprite = new Sprite(Texture.EMPTY);
-        top.addChild(sprite);
-
-        // デバッグ用ヒット範囲の可視化
-        const hitAreaDebug = new Graphics();
-        hitAreaDebug.rect(0, 0, PIXEL_PER_TILE, PIXEL_PER_TILE);
-        hitAreaDebug.stroke({ width: 1, color: 0x0000ff });
-
-        top.addChild(hitAreaDebug);
-
-        this.chunkContainer.addChild(top);
-        return { top, sprite };
     }
 
     // スプライトプールを作成し、初期ビューポートを設定する
@@ -88,6 +74,41 @@ export class TopViewMap {
         }
 
         this.updateViewport(center);
+    }
+
+    setMouseListeners() {
+        this.terrainPlane.interactive = true;
+        this.terrainPlane.on("pointermove", (e) => {
+            this.globalPos.x = e.global.x;
+            this.globalPos.z = e.global.y;
+            this.updatePointerPosition();
+        });
+    }
+
+    updatePointerPosition() {
+        this.pointer.x = this.viewOrigin.x + this.globalPos.x / this.app.stage.scale.x / PIXEL_PER_TILE;
+        this.pointer.z = this.viewOrigin.z + this.globalPos.z / this.app.stage.scale.y / PIXEL_PER_TILE;
+    }
+
+    get pointerPosition() {
+        return this.pointer;
+    }
+
+    private createEmptyTile(): { top: Container; sprite: Sprite } {
+        const top = new Container();
+
+        const sprite = new Sprite(Texture.EMPTY);
+        top.addChild(sprite);
+
+        // デバッグ用ヒット範囲の可視化
+        const hitAreaDebug = new Graphics();
+        hitAreaDebug.rect(0, 0, PIXEL_PER_TILE, PIXEL_PER_TILE);
+        hitAreaDebug.stroke({ width: 1, color: 0x0000ff });
+
+        top.addChild(hitAreaDebug);
+
+        this.chunkContainer.addChild(top);
+        return { top, sprite };
     }
 
     /**

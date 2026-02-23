@@ -28,6 +28,6 @@ export class DebugText {
     }
 
     private getText() {
-        return `X: ${this.gameState.player.positionInWorld.x.toFixed(1)}, Z: ${this.gameState.player.positionInWorld.z.toFixed(1)}`;
+        return `X: ${this.gameState.player.positionInWorld.x.toFixed(1)}, Z: ${this.gameState.player.positionInWorld.z.toFixed(1)}\nZoom: ${this.gameState.player.zoomLevel.toFixed(2)}\nPointer: (${this.gameState.topViewMap.pointerPosition.x.toFixed(1)}, ${this.gameState.topViewMap.pointerPosition.z.toFixed(1)})`;
     }
 }
