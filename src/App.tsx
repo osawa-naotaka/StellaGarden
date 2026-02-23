@@ -28,7 +28,7 @@ export default function App() {
             generateTerrain(gameState.topViewMap.VoxelMap);
             await loadSprite();
 
-            gameState.topViewMap.initializeSprites(gameState.player);
+            gameState.topViewMap.initializeSprites();
             // gameState.toolbar.initializeSprites();
 
             gameState.player.setListeners();
@@ -48,7 +48,7 @@ export default function App() {
                 // gameState.topViewMap.updatePointerPosition();
 
                 // タイル位置が変わった場合のみスプライトを更新
-                gameState.topViewMap.updateViewport(gameState.player);
+                gameState.topViewMap.updateViewport(gameState.player.positionInWorld);
                 gameState.worldContainer.scale.set(gameState.player.zoomLevel);
 
                 // デバッグテキスト更新
