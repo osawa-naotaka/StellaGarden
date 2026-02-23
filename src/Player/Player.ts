@@ -76,24 +76,12 @@ export class Player {
                 dx *= norm;
                 dz *= norm;
             }
-            this.move1(dx, dz, deltaMS, this.viewSize.x, this.viewSize.z);
-        }
-    }
 
-    /**
-     * プレイヤーを移動させる
-     *
-     * @param dx
-     * @param dz
-     * @param deltaMS
-     * @param mapWidth
-     * @param mapDepth
-     */
-    move1(dx: number, dz: number, deltaMS: number, mapWidth: number, mapDepth: number) {
-        const dt = deltaMS / 1000;
-        // 移動後の位置を計算。マップの端で止まるようにする。
-        // チャンクを描画する際に、チャンクサイズより1タイルだけ外側を参照する。そのため、+-1の余裕を持たせる。
-        this.world.x = Math.max(TILE_PER_VIEWPORT / 2 + 1, Math.min(mapWidth - 1 - TILE_PER_VIEWPORT / 2, this.world.x + dx * this.speed * dt));
-        this.world.z = Math.max(TILE_PER_VIEWPORT / 2 + 1, Math.min(mapDepth - 1 - TILE_PER_VIEWPORT / 2, this.world.z + dz * this.speed * dt));
+            const dt = deltaMS / 1000;
+            // 移動後の位置を計算。マップの端で止まるようにする。
+            // チャンクを描画する際に、チャンクサイズより1タイルだけ外側を参照する。そのため、+-1の余裕を持たせる。
+            this.world.x = Math.max(TILE_PER_VIEWPORT / 2 + 1, Math.min(this.viewSize.x - 1 - TILE_PER_VIEWPORT / 2, this.world.x + dx * this.speed * dt));
+            this.world.z = Math.max(TILE_PER_VIEWPORT / 2 + 1, Math.min(this.viewSize.z - 1 - TILE_PER_VIEWPORT / 2, this.world.z + dz * this.speed * dt));
+        }
     }
 }
