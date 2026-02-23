@@ -1,4 +1,4 @@
-import { type Application, Container, Graphics, RenderTexture, Sprite, Texture } from "pixi.js";
+import { type Application, ColorMatrixFilter, Container, Graphics, RenderTexture, Sprite, Texture } from "pixi.js";
 import { getSpriteNameFromVoxel } from "../Entity/Terrain";
 import type { Pos2D, VoxelMap } from "../lib/VoxelMap";
 
@@ -26,6 +26,7 @@ export class TopViewMap {
 
     private globalPos: Pos2D = { x: 0, z: 0 }; // 最後のMouseMoveイベントのワールド座標
     private pointer: Pos2D = { x: 0, z: 0 };
+    private pointerMoved = false;
 
     constructor(voxelMap: VoxelMap, parent: Container, app: Application) {
         this.app = app;
@@ -81,6 +82,7 @@ export class TopViewMap {
         this.terrainPlane.on("pointermove", (e) => {
             this.globalPos.x = e.global.x;
             this.globalPos.z = e.global.y;
+            this.pointerMoved = true;
             this.updatePointerPosition();
         });
     }
@@ -90,7 +92,7 @@ export class TopViewMap {
         this.pointer.z = this.viewOrigin.z + this.globalPos.z / this.app.stage.scale.y / PIXEL_PER_TILE;
     }
 
-    get pointerPosition() {
+    get pointerPositionInWorld() {
         return this.pointer;
     }
 
@@ -135,6 +137,14 @@ export class TopViewMap {
                 const sprite = this.tileSpritePool[this.tilePositionToIndex(row, col)];
                 sprite.texture = Texture.from(spriteName);
 
+                if (this.isMouseOverTile(x, z)) {
+                    const filter = new ColorMatrixFilter();
+                    filter.brightness(1.5, false);
+                    sprite.filters = [filter];
+                } else {
+                    sprite.filters = [];
+                }
+
                 const container = this.tileContainerPool[this.tilePositionToIndex(row, col)];
                 container.x = row * PIXEL_PER_TILE - (world.x % 1) * PIXEL_PER_TILE;
                 container.y = col * PIXEL_PER_TILE - (world.z % 1) * PIXEL_PER_TILE;
@@ -146,6 +156,12 @@ export class TopViewMap {
         this.app.renderer.render({ container: this.chunkContainer, target: renderTexture, clear: true });
 
         return renderTexture;
+    }
+
+    private isMouseOverTile(x: number, z: number): boolean {
+        const tileX = Math.floor(this.pointer.x);
+        const tileZ = Math.floor(this.pointer.z);
+        return x === tileX && z === tileZ;
     }
 
     private tilePositionToIndex(row: number, col: number): number {
@@ -168,10 +184,11 @@ export class TopViewMap {
     updateViewport(center: Pos2D) {
         const { left, top } = this.calcViewCorners(center);
 
-        if (!this.viewportInitialized || left !== this.viewOrigin.x || top !== this.viewOrigin.z) {
+        if (!this.viewportInitialized || left !== this.viewOrigin.x || top !== this.viewOrigin.z || this.pointerMoved) {
             this.viewOrigin.x = left;
             this.viewOrigin.z = top;
             this.viewportInitialized = true;
+            this.pointerMoved = false;
             this.refreshSprites();
         }
     }
