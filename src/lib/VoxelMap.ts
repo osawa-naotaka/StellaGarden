@@ -1,6 +1,6 @@
 export type Pos2D = {
     x: number;
-    y: number;
+    z: number;
 };
 
 export type Pos3D = {

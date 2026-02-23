@@ -79,7 +79,7 @@ export async function createGameState(container: HTMLElement): Promise<GameState
     const toolbar = new Toolbar(pixiApp.stage);
 
     // マップ中央からスタート
-    const player = new Player(50, 50);
+    const player = new Player({ start: { x: 50, z: 50 }, viewSize: { x: topViewMap.VoxelMap.width, z: topViewMap.VoxelMap.depth } });
 
     return new GameState({ pixiApp, worldContainer, topViewMap, toolbar, player });
 }

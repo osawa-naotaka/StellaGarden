@@ -1,6 +1,6 @@
 import { type Application, Container, Graphics, RenderTexture, Sprite, Texture } from "pixi.js";
 import { getSpriteNameFromVoxel } from "../Entity/Terrain";
-import type { VoxelMap } from "../lib/VoxelMap";
+import type { Pos2D, VoxelMap } from "../lib/VoxelMap";
 
 export const PIXEL_PER_TILE = 16; // タイル1枚のサイズ（ピクセル）。スプライトのサイズと一致させる必要がある。
 export const TILE_PER_CHUNK = 16; // チャンクのタイル数
@@ -21,8 +21,7 @@ export class TopViewMap {
     private chunkContainer: Container;
 
     // 現在のビューポート起点（ワールド座標）
-    private viewOriginX = 0;
-    private viewOriginZ = 0;
+    private viewOrigin: Pos2D;
     private viewportInitialized = false;
 
     constructor(voxelMap: VoxelMap, parent: Container, app: Application) {
@@ -35,6 +34,7 @@ export class TopViewMap {
         this.chunkTexturePool = [];
         this.chunkSpritePool = [];
         this.chunkContainer = new Container();
+        this.viewOrigin = { x: 0, z: 0 };
 
         this.parent.addChild(this.terrainPlane);
     }
@@ -61,7 +61,7 @@ export class TopViewMap {
     }
 
     // スプライトプールを作成し、初期ビューポートを設定する
-    initializeSprites(centerX: number, centerZ: number) {
+    initializeSprites(center: Pos2D) {
         for (let i = 0; i < (TILE_PER_CHUNK + 2) * (TILE_PER_CHUNK + 2); i++) {
             const { top, sprite } = this.createEmptyTile();
 
@@ -87,28 +87,36 @@ export class TopViewMap {
             }
         }
 
-        this.updateViewport(centerX, centerZ);
+        this.updateViewport(center);
     }
 
-    renderChunk(chunkX: number, chunkZ: number, worldX: number, worldZ: number): Texture {
-        const chunkIndex = (chunkZ % CHUNK_PER_VIEWPORT) * CHUNK_PER_VIEWPORT + (chunkX % CHUNK_PER_VIEWPORT);
+    /**
+     * チャンクをレンダリングし、テクスチャとして返す
+     *
+     * @param chunk チャンク座標（ビューポート内で0からCHUNK_PER_VIEWPORT-1の範囲）
+     * @param world ワールド座標（チャンクの左上のワールド座標）
+     * @returns チャンクを焼き付けたテクスチャ
+     */
+    private renderChunk(chunk: Pos2D, world: Pos2D): Texture {
+        const chunkIndex = (chunk.z % CHUNK_PER_VIEWPORT) * CHUNK_PER_VIEWPORT + (chunk.x % CHUNK_PER_VIEWPORT);
         const renderTexture = this.chunkTexturePool[chunkIndex];
 
+        // チャンク内のタイルは、1タイル分の余白を持たせて描画する（ビューポート端のタイルが一部分だけ見えるケースに対応するため）
         for (let col = -1; col < TILE_PER_CHUNK + 1; col++) {
             for (let row = -1; row < TILE_PER_CHUNK + 1; row++) {
-                const x = Math.floor(worldX) + row;
-                const z = Math.floor(worldZ) + col;
+                const x = Math.floor(world.x) + row;
+                const z = Math.floor(world.z) + col;
 
                 const position = this.voxelMap.getSurfacePosition({ x, y: 0, z });
                 const voxel = this.voxelMap.get(position);
 
                 const spriteName = getSpriteNameFromVoxel(voxel, position);
-                const sprite = this.tileSpritePool[(col + 1) * (TILE_PER_CHUNK + 2) + (row + 1)];
+                const sprite = this.tileSpritePool[this.tilePositionToIndex(row, col)];
                 sprite.texture = Texture.from(spriteName);
 
-                const container = this.tileContainerPool[(col + 1) * (TILE_PER_CHUNK + 2) + (row + 1)];
-                container.x = row * PIXEL_PER_TILE - (worldX - Math.floor(worldX)) * PIXEL_PER_TILE;
-                container.y = col * PIXEL_PER_TILE - (worldZ - Math.floor(worldZ)) * PIXEL_PER_TILE;
+                const container = this.tileContainerPool[this.tilePositionToIndex(row, col)];
+                container.x = row * PIXEL_PER_TILE - (world.x % 1) * PIXEL_PER_TILE;
+                container.y = col * PIXEL_PER_TILE - (world.z % 1) * PIXEL_PER_TILE;
 
                 this.chunkContainer.addChild(container);
             }
@@ -119,24 +127,29 @@ export class TopViewMap {
         return renderTexture;
     }
 
-    // プレイヤー位置を受け取り、ボクセルマップ中のどの領域がビューポートに入るかを計算する
-    calcViewCorners(playerX: number, playerZ: number): { left: number; right: number; top: number; bottom: number } {
+    private tilePositionToIndex(row: number, col: number): number {
+        // rowとcolは-1からTILE_PER_CHUNKまでの範囲を取るため、インデックスに変換する際に+1して0から始まるようにする
+        return (col + 1) * (TILE_PER_CHUNK + 2) + (row + 1);
+    }
+
+    // ビューポートの中心位置を受け取り、ボクセルマップ中のどの領域がビューポートに入るかを計算する
+    calcViewCorners(center: Pos2D): { left: number; right: number; top: number; bottom: number } {
         const halfViewportSize = Math.floor((CHUNK_PER_VIEWPORT * TILE_PER_CHUNK) / 2);
-        const left = playerX - halfViewportSize;
-        const right = playerX + halfViewportSize;
-        const top = playerZ - halfViewportSize;
-        const bottom = playerZ + halfViewportSize;
+        const left = center.x - halfViewportSize;
+        const right = center.x + halfViewportSize;
+        const top = center.z - halfViewportSize;
+        const bottom = center.z + halfViewportSize;
 
         return { left, right, top, bottom };
     }
 
     // プレイヤー位置を受け取り、タイル位置が変わった場合のみスプライトを更新する
-    updateViewport(playerX: number, playerZ: number) {
-        const { left, top } = this.calcViewCorners(playerX, playerZ);
+    updateViewport(center: Pos2D) {
+        const { left, top } = this.calcViewCorners(center);
 
-        if (!this.viewportInitialized || left !== this.viewOriginX || top !== this.viewOriginZ) {
-            this.viewOriginX = left;
-            this.viewOriginZ = top;
+        if (!this.viewportInitialized || left !== this.viewOrigin.x || top !== this.viewOrigin.z) {
+            this.viewOrigin.x = left;
+            this.viewOrigin.z = top;
             this.viewportInitialized = true;
             this.refreshSprites();
         }
@@ -147,11 +160,11 @@ export class TopViewMap {
         // terrain pool spriteを更新
         for (let col = 0; col < CHUNK_PER_VIEWPORT; col++) {
             for (let row = 0; row < CHUNK_PER_VIEWPORT; row++) {
-                const worldX = this.viewOriginX + row * TILE_PER_CHUNK;
-                const worldZ = this.viewOriginZ + col * TILE_PER_CHUNK;
-                const sprite = this.chunkSpritePool[col * 4 + row];
+                const worldX = this.viewOrigin.x + row * TILE_PER_CHUNK;
+                const worldZ = this.viewOrigin.z + col * TILE_PER_CHUNK;
+                const sprite = this.chunkSpritePool[col * CHUNK_PER_VIEWPORT + row];
 
-                const texture = this.renderChunk(row, col, worldX, worldZ);
+                const texture = this.renderChunk({ x: row, z: col }, { x: worldX, z: worldZ });
                 sprite.texture = texture;
                 sprite.visible = true;
             }
