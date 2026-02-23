@@ -2,12 +2,32 @@ import alea from "alea";
 import { createNoise2D } from "simplex-noise";
 import type { Pos3D, VoxelMap } from "../lib/VoxelMap";
 
-export function getSpriteNameFromVoxel(voxel: number, pos: Pos3D): string {
-    const type = voxel & 0x000000ff;
+const TERRAIN_TYPES = {
+    "empty": 0,
+    "water": 1,
+    "soil": 2,
+    "grass": 3,
+};
+
+const ENTITY_TYPES = {
+    "none": 0,
+    "tree": 1,
+};
+
+export function getTerrainTypeFromVoxel(voxel: number): number {
+    return voxel & 0x000000ff;
+}
+
+export function getEntityTypeFromVoxel(voxel: number): number {
+    return (voxel >> 8) & 0x000000ff;
+}
+
+export function getTerrainSpriteNameFromVoxel(voxel: number, pos: Pos3D): string {
+    const type = getTerrainTypeFromVoxel(voxel);
     switch (type) {
-        case 1: // water
+        case TERRAIN_TYPES.water:
             return "water";
-        case 2: // soil
+        case TERRAIN_TYPES.soil:
             switch (pos.y) {
                 case 1:
                     return "ground_normal_5";
@@ -18,7 +38,7 @@ export function getSpriteNameFromVoxel(voxel: number, pos: Pos3D): string {
                 default:
                     throw new Error(`Invalid y position for soil: ${pos.y}`);
             }
-        case 3: // grass
+        case TERRAIN_TYPES.grass:
             switch (pos.y) {
                 case 1:
                     return "grass_normal_5";
@@ -29,7 +49,17 @@ export function getSpriteNameFromVoxel(voxel: number, pos: Pos3D): string {
                 default:
                     throw new Error(`Invalid y position for grass: ${pos.x}, ${pos.y}, ${pos.z}`);
             }
-        case 0x00000100: // tree flag
+        default:
+            throw new Error(`Unknown voxel type: ${type}`);
+    }
+}
+
+export function getEntitySpriteNameFromVoxel(voxel: number): string | null {
+    const type = getEntityTypeFromVoxel(voxel);
+    switch (type) {
+        case ENTITY_TYPES.none:
+            return null;
+        case ENTITY_TYPES.tree:
             return "birch_tree_sapling";
         default:
             throw new Error(`Unknown voxel type: ${type}`);
@@ -38,7 +68,7 @@ export function getSpriteNameFromVoxel(voxel: number, pos: Pos3D): string {
 
 export function generateTerrain(map: VoxelMap): void {
     const terrainNoise = createNoise2D(alea("terrain"));
-    const scale = 0.02; // スケールを小さくすると大きな地形に
+    const scale = 0.01; // スケールを小さくすると大きな地形に
 
     // 地形生成
     for (let z = 0; z < map.depth; z++) {
@@ -47,16 +77,16 @@ export function generateTerrain(map: VoxelMap): void {
             const h = Math.min(map.height - 1, Math.floor((noiseValue + 1) * 0.5 * map.height));
             if (h < map.horizonHeight) {
                 for (let y = 0; y < h; y++) {
-                    map.set(2, { x, y, z }); // soil
+                    map.set(TERRAIN_TYPES.soil, { x, y, z }); // soil
                 }
                 for (let y = h; y < map.horizonHeight; y++) {
-                    map.set(1, { x, y, z }); // water
+                    map.set(TERRAIN_TYPES.water, { x, y, z }); // water
                 }
             } else {
                 for (let y = 0; y < h; y++) {
-                    map.set(2, { x, y, z }); // soil
+                    map.set(TERRAIN_TYPES.soil, { x, y, z }); // soil
                 }
-                map.set(3, { x, y: h, z }); // grass
+                map.set(TERRAIN_TYPES.grass, { x, y: h, z }); // grass
             }
         }
     }
@@ -64,8 +94,8 @@ export function generateTerrain(map: VoxelMap): void {
     // 樹木生成
     const forestNoise = createNoise2D(alea("forest"));
     const treeNoise = createNoise2D(alea("tree"));
-    const forestScale = 0.05; // 森のバイオーム（低周波）
-    const treeScale = 0.3; // 個別の木の配置（高周波）
+    const forestScale = 0.025; // 森のバイオーム（低周波）
+    const treeScale = 0.15; // 個別の木の配置（高周波）
 
     for (let z = 0; z < map.depth; z++) {
         for (let x = 0; x < map.width; x++) {
@@ -81,13 +111,9 @@ export function generateTerrain(map: VoxelMap): void {
             if (shouldPlaceTree) {
                 // 表面セルを取得
                 const pos = map.getSurfacePosition({ x, y: 0, z });
-                if (pos === null) throw new Error(`Failed to get surface position for tree at (${x}, ${z})`);
-
                 const terrain = map.get(pos);
-                if (terrain === null) throw new Error(`Failed to get terrain for tree at (${x}, ${z})`);
-
                 // grass または soil の上にのみ配置
-                if (terrain && (terrain === 2 || terrain === 3)) {
+                if (terrain === TERRAIN_TYPES.soil || terrain === TERRAIN_TYPES.grass) {
                     // 表面セルと同じ位置に樹木を配置
                     const newTerrain = terrain | 0x00000100;
                     map.set(newTerrain, pos);

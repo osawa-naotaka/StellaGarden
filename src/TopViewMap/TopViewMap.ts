@@ -1,5 +1,5 @@
 import { type Application, ColorMatrixFilter, Container, Graphics, RenderTexture, Sprite, Texture } from "pixi.js";
-import { getSpriteNameFromVoxel } from "../Entity/Terrain";
+import { getTerrainSpriteNameFromVoxel } from "../Entity/Terrain";
 import type { Pos2D, VoxelMap } from "../lib/VoxelMap";
 
 export const PIXEL_PER_TILE = 16; // タイル1枚のサイズ（ピクセル）。スプライトのサイズと一致させる必要がある。
@@ -133,7 +133,7 @@ export class TopViewMap {
                 const position = this.voxelMap.getSurfacePosition({ x, y: 0, z });
                 const voxel = this.voxelMap.get(position);
 
-                const spriteName = getSpriteNameFromVoxel(voxel, position);
+                const spriteName = getTerrainSpriteNameFromVoxel(voxel, position);
                 const sprite = this.tileSpritePool[this.tilePositionToIndex(row, col)];
                 sprite.texture = Texture.from(spriteName);
 
