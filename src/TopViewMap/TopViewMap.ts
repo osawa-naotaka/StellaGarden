@@ -1,8 +1,9 @@
-import { type Application, Container, Sprite, Texture } from "pixi.js";
+import { Application, Container, Sprite, Texture } from "pixi.js";
 import { getTerrainSpriteNameFromVoxel } from "../Entity/Terrain";
 import { ChunkRenderer } from "../lib/ChunkRenderer";
 import type { Tile } from "../lib/Tile";
 import type { Pos2D, Pos3D, VoxelMap } from "../lib/VoxelMap";
+import type { Player } from "../Player/Player";
 
 export const PIXEL_PER_TILE = 16; // タイル1枚のサイズ（ピクセル）。スプライトのサイズと一致させる必要がある。
 export const TILE_PER_CHUNK = 16; // チャンクのタイル数
@@ -46,7 +47,7 @@ export class TopViewMap {
     }
 
     // スプライトプールを作成し、初期ビューポートを設定する
-    initializeSprites(center: Pos2D) {
+    initializeSprites(player: Player) {
         for (let y = 0; y < CHUNK_PER_VIEWPORT; y++) {
             for (let x = 0; x < CHUNK_PER_VIEWPORT; x++) {
                 const chunkSprite = new Sprite(Texture.EMPTY);
@@ -57,42 +58,8 @@ export class TopViewMap {
             }
         }
 
-        this.updateViewport(center);
+        this.updateViewport(player);
     }
-
-    /*
-    setMouseListeners() {
-        this.terrainPlane.interactive = true;
-        this.terrainPlane.on("pointermove", (e) => {
-            this.globalPos.x = e.global.x;
-            this.globalPos.z = e.global.y;
-            this.pointerMoved = true;
-            this.updatePointerPosition();
-        });
-    }
-
-    updatePointerPosition() {
-        this.pointer.x = this.viewOrigin.x + this.globalPos.x / this.parent.scale.x / PIXEL_PER_TILE;
-        this.pointer.z = this.viewOrigin.z + this.globalPos.z / this.parent.scale.y / PIXEL_PER_TILE;
-    }
-
-    get pointerPositionInWorld() {
-        return this.pointer;
-    }
-    */
-
-    /*
-    private isMouseOverTile(x: number, z: number): boolean {
-        const tileX = Math.floor(this.pointer.x);
-        const tileZ = Math.floor(this.pointer.z);
-        return x === tileX && z === tileZ;
-    }
-
-    private tilePositionToIndex(row: number, col: number): number {
-        // rowとcolは-1からTILE_PER_CHUNKまでの範囲を取るため、インデックスに変換する際に+1して0から始まるようにする
-        return (col + 1) * (TILE_PER_CHUNK + 2) + (row + 1);
-    }
-    */
 
     // ビューポートの中心位置を受け取り、ボクセルマップ中のどの領域がビューポートに入るかを計算する
     calcViewCorners(center: Pos2D): { left: number; right: number; top: number; bottom: number } {
@@ -106,8 +73,8 @@ export class TopViewMap {
     }
 
     // プレイヤー位置を受け取り、タイル位置が変わった場合のみスプライトを更新する
-    updateViewport(center: Pos2D) {
-        const { left, top } = this.calcViewCorners(center);
+    updateViewport(player: Player) {
+        const { left, top } = this.calcViewCorners(player.positionInWorld);
 
         if (!this.viewportInitialized || left !== this.viewOrigin.x || top !== this.viewOrigin.z) {
             this.viewOrigin.x = left;

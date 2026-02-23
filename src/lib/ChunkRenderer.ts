@@ -1,4 +1,4 @@
-import { type Application, ColorMatrixFilter, Container, RenderTexture, type Texture } from "pixi.js";
+import { Application, Container, RenderTexture, Texture } from "pixi.js";
 import { Tile } from "./Tile";
 import type { Pos2D, Pos3D, VoxelMap } from "./VoxelMap";
 
@@ -58,21 +58,6 @@ export class ChunkRenderer {
                 tile.top.y = col * this.pixelPerTile - (world.z % 1) * this.pixelPerTile;
 
                 setupSpriteFn(tile, voxel, position);
-                /*
-                const spriteName = getTerrainSpriteNameFromVoxel(voxel, position);
-                const sprite = this.tileSpritePool[this.tilePositionToIndex(row, col)];
-                sprite.texture = Texture.from(spriteName);
-                sprite.visible = true;
-
-                if (this.isMouseOverTile(x, z)) {
-                    const filter = new ColorMatrixFilter();
-                    filter.brightness(1.5, false);
-                    sprite.filters = [filter];
-                } else {
-                    sprite.filters = [];
-                }
-                    */
-
                 this.chunkContainer.addChild(tile.top);
             }
         }

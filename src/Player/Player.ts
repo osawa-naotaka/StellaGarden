@@ -91,7 +91,7 @@ export class Player {
         }
     }
 
-    move(deltaMS: number) {
+    tick(deltaMS: number) {
         let dx = 0;
         let dz = 0;
         if (this.state.a || this.state.arrowleft) dx -= 2;

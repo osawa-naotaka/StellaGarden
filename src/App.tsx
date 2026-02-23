@@ -28,11 +28,10 @@ export default function App() {
             generateTerrain(gameState.topViewMap.VoxelMap);
             await loadSprite();
 
-            gameState.topViewMap.initializeSprites(gameState.player.positionInWorld);
+            gameState.topViewMap.initializeSprites(gameState.player);
             // gameState.toolbar.initializeSprites();
 
             gameState.player.setListeners();
-            // gameState.topViewMap.setMouseListeners();
 
             // デバッグテキスト（左上に主人公のXZ座標を表示）
             const debugText = new DebugText(gameState);
@@ -45,11 +44,11 @@ export default function App() {
             gameState.pixiApp.ticker.add((ticker) => {
                 if (!gameState) return;
 
-                gameState.player.move(ticker.deltaMS);
+                gameState.player.tick(ticker.deltaMS);
                 // gameState.topViewMap.updatePointerPosition();
 
                 // タイル位置が変わった場合のみスプライトを更新
-                gameState.topViewMap.updateViewport(gameState.player.positionInWorld);
+                gameState.topViewMap.updateViewport(gameState.player);
                 gameState.worldContainer.scale.set(gameState.player.zoomLevel);
 
                 // デバッグテキスト更新
