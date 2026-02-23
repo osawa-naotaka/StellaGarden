@@ -1,6 +1,6 @@
-import { Sprite, Application, Container, Texture, ColorMatrixFilter, RenderTexture, Graphics } from "pixi.js";
+import { type Application, ColorMatrixFilter, Container, RenderTexture, type Texture } from "pixi.js";
+import { Tile } from "./Tile";
 import type { Pos2D, Pos3D, VoxelMap } from "./VoxelMap";
-
 
 export class ChunkRenderer {
     private app: Application;
@@ -9,11 +9,10 @@ export class ChunkRenderer {
     private numRenderTextures: number;
 
     private renderTexturePool: RenderTexture[] = [];
-    private tileSpritePool: Sprite[] = [];
-    private tileContainerPool: Container[] = [];
+    private tilePool: Tile[] = [];
     private chunkContainer: Container;
 
-    constructor(app: Application, opt: { pixelPerTile?: number, tilePerChunk?: number, numRenderTextures?: number }) {
+    constructor(app: Application, opt: { pixelPerTile?: number; tilePerChunk?: number; numRenderTextures?: number }) {
         this.app = app;
         this.pixelPerTile = opt.pixelPerTile || 16;
         this.tilePerChunk = opt.tilePerChunk || 16;
@@ -25,17 +24,9 @@ export class ChunkRenderer {
 
     private initializePool() {
         for (let i = 0; i < (this.tilePerChunk + 2) * (this.tilePerChunk + 2); i++) {
-            const sprite = new Sprite(Texture.EMPTY);
-            const container = new Container();
-            container.addChild(sprite);
-
-            const hitAreaDebug = new Graphics();
-            hitAreaDebug.rect(0, 0, this.pixelPerTile, this.pixelPerTile);
-            hitAreaDebug.stroke({ width: 1, color: 0x0000ff });
-            container.addChild(hitAreaDebug);
-
-            this.tileSpritePool.push(sprite);
-            this.tileContainerPool.push(container);
+            const tile = new Tile();
+            tile.setDebugFrame(this.pixelPerTile);
+            this.tilePool.push(tile);
         }
 
         for (let i = 0; i < this.numRenderTextures; i++) {
@@ -47,10 +38,10 @@ export class ChunkRenderer {
         }
     }
 
-    renderChunk(voxelMap: VoxelMap, world: Pos2D, renderTextureIndex: number, setupSpriteFn: (sprite: Sprite, container: Container, voxel: number, position: Pos3D) => void): Texture {
+    renderChunk(voxelMap: VoxelMap, world: Pos2D, renderTextureIndex: number, setupSpriteFn: (tile: Tile, voxel: number, position: Pos3D) => void): Texture {
         this.resetTilePoolVisibility();
         const renderTexture = this.renderTexturePool[renderTextureIndex];
-        
+
         // チャンク内のタイルは、1タイル分の余白を持たせて描画する（ビューポート端のタイルが一部分だけ見えるケースに対応するため）
         for (let col = -1; col < this.tilePerChunk + 1; col++) {
             for (let row = -1; row < this.tilePerChunk + 1; row++) {
@@ -60,14 +51,13 @@ export class ChunkRenderer {
                 const position = voxelMap.getSurfacePosition({ x, y: 0, z });
                 const voxel = voxelMap.get(position);
 
-                const sprite = this.tileSpritePool[this.tilePositionToIndex(row, col)];
-                sprite.visible = true;
+                const tile = this.tilePool[this.tilePositionToIndex(row, col)];
+                tile.sprite.visible = true;
 
-                const container = this.tileContainerPool[this.tilePositionToIndex(row, col)];
-                container.x = row * this.pixelPerTile - (world.x % 1) * this.pixelPerTile;
-                container.y = col * this.pixelPerTile - (world.z % 1) * this.pixelPerTile;
+                tile.top.x = row * this.pixelPerTile - (world.x % 1) * this.pixelPerTile;
+                tile.top.y = col * this.pixelPerTile - (world.z % 1) * this.pixelPerTile;
 
-                setupSpriteFn(sprite, container, voxel, position);
+                setupSpriteFn(tile, voxel, position);
                 /*
                 const spriteName = getTerrainSpriteNameFromVoxel(voxel, position);
                 const sprite = this.tileSpritePool[this.tilePositionToIndex(row, col)];
@@ -83,8 +73,7 @@ export class ChunkRenderer {
                 }
                     */
 
-
-                this.chunkContainer.addChild(container);
+                this.chunkContainer.addChild(tile.top);
             }
         }
 
@@ -93,13 +82,13 @@ export class ChunkRenderer {
     }
 
     private resetTilePoolVisibility() {
-        for (const sprite of this.tileSpritePool) {
-            sprite.visible = false;
+        for (const tile of this.tilePool) {
+            tile.sprite.visible = false;
         }
     }
 
     private tilePositionToIndex(row: number, col: number): number {
         // rowとcolは-1からTILE_PER_CHUNKまでの範囲を取るため、インデックスに変換する際に+1して0から始まるようにする
         return (col + 1) * (this.tilePerChunk + 2) + (row + 1);
-    }    
+    }
 }

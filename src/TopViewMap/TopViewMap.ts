@@ -1,7 +1,8 @@
-import { Application, Container, Sprite, Texture } from "pixi.js";
+import { type Application, Container, Sprite, Texture } from "pixi.js";
 import { getTerrainSpriteNameFromVoxel } from "../Entity/Terrain";
-import type { Pos2D, Pos3D, VoxelMap } from "../lib/VoxelMap";
 import { ChunkRenderer } from "../lib/ChunkRenderer";
+import type { Tile } from "../lib/Tile";
+import type { Pos2D, Pos3D, VoxelMap } from "../lib/VoxelMap";
 
 export const PIXEL_PER_TILE = 16; // タイル1枚のサイズ（ピクセル）。スプライトのサイズと一致させる必要がある。
 export const TILE_PER_CHUNK = 16; // チャンクのタイル数
@@ -21,16 +22,16 @@ export class TopViewMap {
     private viewOrigin: Pos2D;
     private viewportInitialized = false;
 
-    private globalPos: Pos2D = { x: 0, z: 0 }; // 最後のMouseMoveイベントのワールド座標
-    private pointer: Pos2D = { x: 0, z: 0 };
-    private pointerMoved = false;
-
     constructor(voxelMap: VoxelMap, parent: Container, app: Application) {
         this.voxelMap = voxelMap;
         this.parent = parent;
         this.terrainPlane = new Container();
         this.chunkSpritePool = [];
-        this.chunkRenderer = new ChunkRenderer(app, { pixelPerTile: PIXEL_PER_TILE, tilePerChunk: TILE_PER_CHUNK, numRenderTextures: CHUNK_PER_VIEWPORT * CHUNK_PER_VIEWPORT });
+        this.chunkRenderer = new ChunkRenderer(app, {
+            pixelPerTile: PIXEL_PER_TILE,
+            tilePerChunk: TILE_PER_CHUNK,
+            numRenderTextures: CHUNK_PER_VIEWPORT * CHUNK_PER_VIEWPORT,
+        });
         this.viewOrigin = { x: 0, z: 0 };
 
         this.parent.addChild(this.terrainPlane);
@@ -38,6 +39,10 @@ export class TopViewMap {
 
     get VoxelMap() {
         return this.voxelMap;
+    }
+
+    get top() {
+        return this.terrainPlane;
     }
 
     // スプライトプールを作成し、初期ビューポートを設定する
@@ -55,6 +60,7 @@ export class TopViewMap {
         this.updateViewport(center);
     }
 
+    /*
     setMouseListeners() {
         this.terrainPlane.interactive = true;
         this.terrainPlane.on("pointermove", (e) => {
@@ -73,6 +79,7 @@ export class TopViewMap {
     get pointerPositionInWorld() {
         return this.pointer;
     }
+    */
 
     /*
     private isMouseOverTile(x: number, z: number): boolean {
@@ -102,11 +109,10 @@ export class TopViewMap {
     updateViewport(center: Pos2D) {
         const { left, top } = this.calcViewCorners(center);
 
-        if (!this.viewportInitialized || left !== this.viewOrigin.x || top !== this.viewOrigin.z || this.pointerMoved) {
+        if (!this.viewportInitialized || left !== this.viewOrigin.x || top !== this.viewOrigin.z) {
             this.viewOrigin.x = left;
             this.viewOrigin.z = top;
             this.viewportInitialized = true;
-            this.pointerMoved = false;
             this.refreshSprites();
         }
     }
@@ -120,7 +126,6 @@ export class TopViewMap {
                 const worldZ = this.viewOrigin.z + col * TILE_PER_CHUNK;
                 const sprite = this.chunkSpritePool[col * CHUNK_PER_VIEWPORT + row];
 
-                // const texture = this.renderTerrainChunk({ x: row, z: col }, { x: worldX, z: worldZ });
                 const texture = this.chunkRenderer.renderChunk(this.voxelMap, { x: worldX, z: worldZ }, col * CHUNK_PER_VIEWPORT + row, setupSpriteFromVoxel);
                 sprite.texture = texture;
                 sprite.visible = true;
@@ -129,8 +134,8 @@ export class TopViewMap {
     }
 }
 
-function setupSpriteFromVoxel(sprite: Sprite, container: Container, voxel: number, position: Pos3D) {
+function setupSpriteFromVoxel(tile: Tile, voxel: number, position: Pos3D) {
     const spriteName = getTerrainSpriteNameFromVoxel(voxel, position);
-    sprite.texture = Texture.from(spriteName);
-    sprite.visible = true;
+    tile.sprite.texture = Texture.from(spriteName);
+    tile.sprite.visible = true;
 }

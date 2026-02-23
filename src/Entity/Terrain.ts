@@ -3,15 +3,15 @@ import { createNoise2D } from "simplex-noise";
 import type { Pos3D, VoxelMap } from "../lib/VoxelMap";
 
 const TERRAIN_TYPES = {
-    "empty": 0,
-    "water": 1,
-    "soil": 2,
-    "grass": 3,
+    empty: 0,
+    water: 1,
+    soil: 2,
+    grass: 3,
 };
 
 const ENTITY_TYPES = {
-    "none": 0,
-    "tree": 1,
+    none: 0,
+    tree: 1,
 };
 
 export function getTerrainTypeFromVoxel(voxel: number): number {

@@ -31,8 +31,8 @@ export default function App() {
             gameState.topViewMap.initializeSprites(gameState.player.positionInWorld);
             // gameState.toolbar.initializeSprites();
 
-            gameState.player.setKeyboardListeners();
-            gameState.topViewMap.setMouseListeners();
+            gameState.player.setListeners();
+            // gameState.topViewMap.setMouseListeners();
 
             // デバッグテキスト（左上に主人公のXZ座標を表示）
             const debugText = new DebugText(gameState);
@@ -46,7 +46,7 @@ export default function App() {
                 if (!gameState) return;
 
                 gameState.player.move(ticker.deltaMS);
-                gameState.topViewMap.updatePointerPosition();
+                // gameState.topViewMap.updatePointerPosition();
 
                 // タイル位置が変わった場合のみスプライトを更新
                 gameState.topViewMap.updateViewport(gameState.player.positionInWorld);
@@ -64,7 +64,7 @@ export default function App() {
             container.removeEventListener("contextmenu", preventContextMenu);
             if (gameState) {
                 window.removeEventListener("resize", gameState.toolbar.updateToolbarPosition);
-                gameState.player.removeKeyboardListeners();
+                gameState.player.removeListeners();
                 gameState.pixiApp.destroy(true, { children: true });
                 gameState = null;
             }
