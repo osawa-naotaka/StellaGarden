@@ -1,5 +1,6 @@
 import type { Container, FederatedPointerEvent } from "pixi.js";
 import type { Pos2D } from "../lib/VoxelMap";
+import { CHUNK_RENDER_MARGIN } from "../lib/ChunkRenderer";
 
 const MIN_ZOOM = 0.5;
 const MAX_ZOOM = 4.0;
@@ -110,14 +111,14 @@ export class Player {
 
             const dt = deltaMS / 1000;
             // 移動後の位置を計算。マップの端で止まるようにする。
-            // チャンクを描画する際に、チャンクサイズより1タイルだけ外側を参照する。そのため、+-1の余裕を持たせる。
+            // チャンクを描画する際に、チャンクサイズよりCHUNK_RENDER_MARGINタイルだけ外側を参照する。そのため、+-CHUNK_RENDER_MARGINの余裕を持たせる。
             this.posInWorld.x = Math.max(
-                this.tilePerViewport.x / 2 + 1,
-                Math.min(this.worldSize.x - 1 - this.tilePerViewport.x / 2, this.posInWorld.x + dx * this.speed * dt),
+                this.tilePerViewport.x / 2 + CHUNK_RENDER_MARGIN,
+                Math.min(this.worldSize.x - 1 - this.tilePerViewport.x / 2 - CHUNK_RENDER_MARGIN, this.posInWorld.x + dx * this.speed * dt),
             );
             this.posInWorld.z = Math.max(
-                this.tilePerViewport.z / 2 + 1,
-                Math.min(this.worldSize.z - 1 - this.tilePerViewport.z / 2, this.posInWorld.z + dz * this.speed * dt),
+                this.tilePerViewport.z / 2 + CHUNK_RENDER_MARGIN,
+                Math.min(this.worldSize.z - 1 - this.tilePerViewport.z / 2 - CHUNK_RENDER_MARGIN, this.posInWorld.z + dz * this.speed * dt),
             );
         }
         this.updatePointerPositionInWorld();

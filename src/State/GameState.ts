@@ -82,9 +82,9 @@ export async function createGameState(worldSize: Pos2D, chunkPerViewport: Pos2D)
     worldContainer.addChild(topViewMap.top);
     const toolbar = new Toolbar(pixiApp.stage);
 
-    // 50x50スタート（タイル換算）
+    // 100x100スタート（タイル換算）
     const player = new Player(topViewMap.top, {
-        start: { x: 50, z: 50 },
+        start: { x: 100, z: 100 },
         worldSize,
         tilePerViewport: { x: chunkPerViewport.x * TILE_PER_CHUNK, z: chunkPerViewport.z * TILE_PER_CHUNK },
     });
