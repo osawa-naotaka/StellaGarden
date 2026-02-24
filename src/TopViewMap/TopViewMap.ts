@@ -121,7 +121,7 @@ function setupTerrainSpriteFromVoxel(gameState: GameState, tile: Tile, voxel: nu
     tile.sprite.anchor.set(0, 0);
 
     const pointerPosition = gameState.player.pointerPositionInWorld;
-    const isPointerOnTile = pointerPosition && Math.floor(pointerPosition.x) === position.x && Math.floor(pointerPosition.z) === position.z;
+    const isPointerOnTile = Math.floor(pointerPosition.x) === position.x && Math.floor(pointerPosition.z) === position.z;
     if (isPointerOnTile) {
         const filter = new ColorMatrixFilter();
         filter.brightness(1.5, false);
@@ -139,7 +139,7 @@ function setupEntitySpriteFromVoxel(gameState: GameState, tile: Tile, voxel: num
         tile.sprite.anchor.set(0.25, 0.75);
 
         const pointerPosition = gameState.player.pointerPositionInWorld;
-        const isPointerOnTile = pointerPosition && Math.floor(pointerPosition.x) === position.x && Math.floor(pointerPosition.z) === position.z;
+        const isPointerOnTile = Math.floor(pointerPosition.x) === position.x && Math.floor(pointerPosition.z) === position.z;
         if (isPointerOnTile) {
             const filter = new ColorMatrixFilter();
             filter.brightness(1.5, false);
