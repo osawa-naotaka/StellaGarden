@@ -10,10 +10,10 @@ export class Tile {
         this.m_top.addChild(this.m_sprite);
     }
 
-    setDebugFrame(pixelPerTile: number) {
+    setDebugFrame(pixelPerTile: number, color: number = 0x00ff00) {
         const hitAreaDebug = new Graphics();
         hitAreaDebug.rect(0, 0, pixelPerTile, pixelPerTile);
-        hitAreaDebug.stroke({ width: 1, color: 0x0000ff });
+        hitAreaDebug.stroke({ width: 1, color });
         this.m_top.addChild(hitAreaDebug);
     }
 

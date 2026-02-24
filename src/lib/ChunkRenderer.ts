@@ -26,7 +26,7 @@ export class ChunkRenderer {
     private initializePool() {
         for (let i = 0; i < (this.tilePerChunk + 2 * CHUNK_RENDER_MARGIN) * (this.tilePerChunk + 2 * CHUNK_RENDER_MARGIN); i++) {
             const tile = new Tile();
-            tile.setDebugFrame(this.pixelPerTile);
+            tile.setDebugFrame(this.pixelPerTile, 0x0000ff);
             this.chunkContainer.addChild(tile.top);
             this.tilePool.push(tile);
         }

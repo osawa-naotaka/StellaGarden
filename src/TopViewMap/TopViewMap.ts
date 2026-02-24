@@ -117,6 +117,7 @@ function setupTerrainSpriteFromVoxel(tile: Tile, voxel: number, position: Pos3D)
     const spriteName = getTerrainSpriteNameFromVoxel(voxel, position);
     tile.sprite.texture = Texture.from(spriteName);
     tile.sprite.visible = true;
+    tile.sprite.anchor.set(0, 0);
 }
 
 function setupEntitySpriteFromVoxel(tile: Tile, voxel: number, _position: Pos3D) {
@@ -124,7 +125,7 @@ function setupEntitySpriteFromVoxel(tile: Tile, voxel: number, _position: Pos3D)
     if (spriteName) {
         tile.sprite.texture = Texture.from(spriteName);
         tile.sprite.visible = true;
-        tile.sprite.anchor.set(0, 0);
+        tile.sprite.anchor.set(0.25, 0.75);
     } else {
         tile.sprite.visible = false;
     }
