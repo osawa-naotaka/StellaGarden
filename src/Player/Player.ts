@@ -12,7 +12,7 @@ export class Player {
     private pointerInGlobal: Pos2D = { x: 0, z: 0 };
     private speed = 10; // タイル/秒
     private zoom_level = 1.0;
-    private state: Record<string, boolean> = {};
+    private keyPressState: Record<string, boolean> = {};
     private onkeydownListener: ((e: KeyboardEvent) => void) | null = null;
     private onkeyupListener: ((e: KeyboardEvent) => void) | null = null;
     private onWheel: ((e: WheelEvent) => void) | null = null;
@@ -27,7 +27,7 @@ export class Player {
         this.tilePerViewport = { x: opt.tilePerViewport.x, z: opt.tilePerViewport.z };
     }
 
-    get positionInWorld() {
+    get playerPositionInWorld() {
         return this.posInWorld;
     }
 
@@ -35,18 +35,18 @@ export class Player {
         return this.zoom_level;
     }
 
-    get pointerInWorld() {
+    get pointerPositionInWorld() {
         return this.pointerWorldPos;
     }
 
     setListeners() {
         this.onkeydownListener = (e) => {
-            this.state[e.key.toLowerCase()] = true;
+            this.keyPressState[e.key.toLowerCase()] = true;
         };
         window.addEventListener("keydown", this.onkeydownListener);
 
         this.onkeyupListener = (e) => {
-            this.state[e.key.toLowerCase()] = false;
+            this.keyPressState[e.key.toLowerCase()] = false;
         };
         window.addEventListener("keyup", this.onkeyupListener);
 
@@ -60,13 +60,13 @@ export class Player {
         this.onPointerMove = (e) => {
             this.pointerInGlobal.x = e.global.x;
             this.pointerInGlobal.z = e.global.y;
-            this.updatePointerWorldPosition();
+            this.updatePointerPositionInWorld();
         };
         this.target.interactive = true;
         this.target.on("pointermove", this.onPointerMove);
     }
 
-    updatePointerWorldPosition() {
+    updatePointerPositionInWorld() {
         this.pointerWorldPos.x =
             this.posInWorld.x - this.tilePerViewport.x / 2 + (this.pointerInGlobal.x / (this.target.width * this.zoom_level)) * this.tilePerViewport.x;
         this.pointerWorldPos.z =
@@ -95,10 +95,10 @@ export class Player {
     tick(deltaMS: number) {
         let dx = 0;
         let dz = 0;
-        if (this.state.a || this.state.arrowleft) dx -= 2;
-        if (this.state.d || this.state.arrowright) dx += 2;
-        if (this.state.w || this.state.arrowup) dz -= 2;
-        if (this.state.s || this.state.arrowdown) dz += 2;
+        if (this.keyPressState.a || this.keyPressState.arrowleft) dx -= 2;
+        if (this.keyPressState.d || this.keyPressState.arrowright) dx += 2;
+        if (this.keyPressState.w || this.keyPressState.arrowup) dz -= 2;
+        if (this.keyPressState.s || this.keyPressState.arrowdown) dz += 2;
 
         if (dx !== 0 || dz !== 0) {
             // 斜め移動を正規化
@@ -120,6 +120,6 @@ export class Player {
                 Math.min(this.worldSize.z - 1 - this.tilePerViewport.z / 2, this.posInWorld.z + dz * this.speed * dt),
             );
         }
-        this.updatePointerWorldPosition();
+        this.updatePointerPositionInWorld();
     }
 }

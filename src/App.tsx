@@ -1,5 +1,4 @@
 import { useEffect, useRef } from "react";
-import { generateTerrain } from "./Entity/Terrain";
 import { DebugText } from "./lib/DebugText";
 import { loadSprite } from "./lib/Sprite";
 import type { GameState } from "./State/GameState";
@@ -26,7 +25,6 @@ export default function App() {
             gameState = await createGameState({ x: 400, z: 400 }, { x: 6, z: 4 });
             container.appendChild(gameState.pixiApp.canvas);
 
-            generateTerrain(gameState.topViewMap.VoxelMap);
             await loadSprite();
 
             gameState.topViewMap.initializeSprites();
@@ -46,10 +44,9 @@ export default function App() {
                 if (!gameState) return;
 
                 gameState.player.tick(ticker.deltaMS);
-                // gameState.topViewMap.updatePointerPosition();
 
                 // タイル位置が変わった場合のみスプライトを更新
-                gameState.topViewMap.updateViewport(gameState.player.positionInWorld);
+                gameState.topViewMap.updateViewport(gameState.player.playerPositionInWorld);
                 gameState.worldContainer.scale.set(gameState.player.zoomLevel);
 
                 // デバッグテキスト更新

@@ -4,11 +4,6 @@ import { ChunkRenderer } from "../lib/ChunkRenderer";
 import type { Tile } from "../lib/Tile";
 import type { Pos2D, Pos3D, VoxelMap } from "../lib/VoxelMap";
 
-// export const PIXEL_PER_TILE = 16; // タイル1枚のサイズ（ピクセル）。スプライトのサイズと一致させる必要がある。
-// export const TILE_PER_CHUNK = 16; // チャンクのタイル数
-// export const CHUNK_PER_VIEWPORT = 4;
-// export const TILE_PER_VIEWPORT = TILE_PER_CHUNK * CHUNK_PER_VIEWPORT; // ビューポートのタイル数（横・縦）
-
 export class TopViewMap {
     private voxelMap: VoxelMap;
     private terrainPlane: Container;
@@ -31,10 +26,6 @@ export class TopViewMap {
             tilePerChunk: opt.tilePerChunk,
             numRenderTextures: opt.chunkPerViewport.x * opt.chunkPerViewport.z,
         });
-    }
-
-    get VoxelMap() {
-        return this.voxelMap;
     }
 
     get top() {

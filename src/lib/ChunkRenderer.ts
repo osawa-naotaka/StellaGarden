@@ -26,6 +26,7 @@ export class ChunkRenderer {
         for (let i = 0; i < (this.tilePerChunk + 2) * (this.tilePerChunk + 2); i++) {
             const tile = new Tile();
             tile.setDebugFrame(this.pixelPerTile);
+            this.chunkContainer.addChild(tile.top);
             this.tilePool.push(tile);
         }
 
@@ -58,7 +59,6 @@ export class ChunkRenderer {
                 tile.top.y = col * this.pixelPerTile - (world.z % 1) * this.pixelPerTile;
 
                 setupSpriteFn(tile, voxel, position);
-                this.chunkContainer.addChild(tile.top);
             }
         }
 
