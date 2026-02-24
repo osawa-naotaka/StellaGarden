@@ -23,7 +23,8 @@ export default function App() {
         let gameState: GameState | null = null;
 
         async function init() {
-            gameState = await createGameState(container);
+            gameState = await createGameState({ x: 400, z: 400 }, { x: 6, z: 4 });
+            container.appendChild(gameState.pixiApp.canvas);
 
             generateTerrain(gameState.topViewMap.VoxelMap);
             await loadSprite();

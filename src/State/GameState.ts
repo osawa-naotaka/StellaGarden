@@ -1,9 +1,12 @@
 import { Application, Container } from "pixi.js";
 import { createEventBroker, type EventBroker, type EvTopicPacketMap } from "../lib/Event";
-import { VoxelMap } from "../lib/VoxelMap";
+import { type Pos2D, VoxelMap } from "../lib/VoxelMap";
 import { Player } from "../Player/Player";
 import { Toolbar } from "../Toolbar/Toolbar";
 import { TopViewMap } from "../TopViewMap/TopViewMap";
+
+const PIXEL_PER_TILE = 16; // タイル1枚のサイズ（ピクセル）。スプライトのサイズと一致させる必要がある。
+const TILE_PER_CHUNK = 16; // チャンクのタイル数
 
 export class GameState {
     private readonly m_pixiApp: Application;
@@ -59,7 +62,7 @@ export class GameState {
     }
 }
 
-export async function createGameState(container: HTMLElement): Promise<GameState> {
+export async function createGameState(worldSize: Pos2D, chunkPerViewport: Pos2D): Promise<GameState> {
     const pixiApp = new Application();
     await pixiApp.init({
         background: "#1099bb",
@@ -68,18 +71,23 @@ export async function createGameState(container: HTMLElement): Promise<GameState
     // PixiJSが自分で生成したcanvasをコンテナに追加する。
     // React管理のcanvasを渡さないことで、HMR時にdestroy(true)でcanvasを
     // 安全にDOMから削除できる。
-    container.appendChild(pixiApp.canvas);
+    // container.appendChild(pixiApp.canvas);
 
     // ワールドコンテナ: 毎フレーム位置を更新してカメラ移動を実現する
     const worldContainer = new Container();
     pixiApp.stage.addChild(worldContainer);
 
-    const voxelMap = new VoxelMap(400, 4, 400, 1);
-    const topViewMap = new TopViewMap(voxelMap, worldContainer, pixiApp);
+    const voxelMap = new VoxelMap(worldSize.x, 4, worldSize.z, 1);
+    const topViewMap = new TopViewMap(voxelMap, pixiApp, { pixelPerTile: PIXEL_PER_TILE, tilePerChunk: TILE_PER_CHUNK, chunkPerViewport });
+    worldContainer.addChild(topViewMap.top);
     const toolbar = new Toolbar(pixiApp.stage);
 
     // マップ中央からスタート
-    const player = new Player(topViewMap.top, { start: { x: 50, z: 50 }, viewSize: { x: topViewMap.VoxelMap.width, z: topViewMap.VoxelMap.depth } });
+    const player = new Player(topViewMap.top, {
+        start: { x: 50, z: 50 },
+        worldSize,
+        tilePerViewport: { x: chunkPerViewport.x * TILE_PER_CHUNK, z: chunkPerViewport.z * TILE_PER_CHUNK },
+    });
 
     return new GameState({ pixiApp, worldContainer, topViewMap, toolbar, player });
 }

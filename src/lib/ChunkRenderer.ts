@@ -1,4 +1,4 @@
-import { Application, Container, RenderTexture, Texture } from "pixi.js";
+import { type Application, Container, RenderTexture, type Texture } from "pixi.js";
 import { Tile } from "./Tile";
 import type { Pos2D, Pos3D, VoxelMap } from "./VoxelMap";
 

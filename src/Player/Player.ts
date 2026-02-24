@@ -1,6 +1,5 @@
 import type { Container, FederatedPointerEvent } from "pixi.js";
 import type { Pos2D } from "../lib/VoxelMap";
-import { TILE_PER_VIEWPORT } from "../TopViewMap/TopViewMap";
 
 const MIN_ZOOM = 0.5;
 const MAX_ZOOM = 4.0;
@@ -9,7 +8,7 @@ const ZOOM_STEP = 0.1;
 export class Player {
     private readonly target: Container;
     private posInWorld: Pos2D;
-    private viewSize: Pos2D;
+    private worldSize: Pos2D;
     private pointerInGlobal: Pos2D = { x: 0, z: 0 };
     private speed = 10; // タイル/秒
     private zoom_level = 1.0;
@@ -19,11 +18,13 @@ export class Player {
     private onWheel: ((e: WheelEvent) => void) | null = null;
     private onPointerMove: ((e: FederatedPointerEvent) => void) | null = null;
     private pointerWorldPos: Pos2D = { x: 0, z: 0 };
+    private tilePerViewport: Pos2D;
 
-    constructor(target: Container, opt: { start: Pos2D; viewSize: Pos2D }) {
+    constructor(target: Container, opt: { start: Pos2D; worldSize: Pos2D; tilePerViewport: Pos2D }) {
         this.target = target;
         this.posInWorld = { x: opt.start.x, z: opt.start.z };
-        this.viewSize = { x: opt.viewSize.x, z: opt.viewSize.z };
+        this.worldSize = { x: opt.worldSize.x, z: opt.worldSize.z };
+        this.tilePerViewport = { x: opt.tilePerViewport.x, z: opt.tilePerViewport.z };
     }
 
     get positionInWorld() {
@@ -67,9 +68,9 @@ export class Player {
 
     updatePointerWorldPosition() {
         this.pointerWorldPos.x =
-            this.posInWorld.x - TILE_PER_VIEWPORT / 2 + (this.pointerInGlobal.x / (this.target.width * this.zoom_level)) * TILE_PER_VIEWPORT;
+            this.posInWorld.x - this.tilePerViewport.x / 2 + (this.pointerInGlobal.x / (this.target.width * this.zoom_level)) * this.tilePerViewport.x;
         this.pointerWorldPos.z =
-            this.posInWorld.z - TILE_PER_VIEWPORT / 2 + (this.pointerInGlobal.z / (this.target.height * this.zoom_level)) * TILE_PER_VIEWPORT;
+            this.posInWorld.z - this.tilePerViewport.z / 2 + (this.pointerInGlobal.z / (this.target.height * this.zoom_level)) * this.tilePerViewport.z;
     }
 
     removeListeners() {
@@ -111,12 +112,12 @@ export class Player {
             // 移動後の位置を計算。マップの端で止まるようにする。
             // チャンクを描画する際に、チャンクサイズより1タイルだけ外側を参照する。そのため、+-1の余裕を持たせる。
             this.posInWorld.x = Math.max(
-                TILE_PER_VIEWPORT / 2 + 1,
-                Math.min(this.viewSize.x - 1 - TILE_PER_VIEWPORT / 2, this.posInWorld.x + dx * this.speed * dt),
+                this.tilePerViewport.x / 2 + 1,
+                Math.min(this.worldSize.x - 1 - this.tilePerViewport.x / 2, this.posInWorld.x + dx * this.speed * dt),
             );
             this.posInWorld.z = Math.max(
-                TILE_PER_VIEWPORT / 2 + 1,
-                Math.min(this.viewSize.z - 1 - TILE_PER_VIEWPORT / 2, this.posInWorld.z + dz * this.speed * dt),
+                this.tilePerViewport.z / 2 + 1,
+                Math.min(this.worldSize.z - 1 - this.tilePerViewport.z / 2, this.posInWorld.z + dz * this.speed * dt),
             );
         }
         this.updatePointerWorldPosition();
