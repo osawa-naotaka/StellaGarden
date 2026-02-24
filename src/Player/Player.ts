@@ -1,6 +1,6 @@
 import type { Container, FederatedPointerEvent } from "pixi.js";
-import type { Pos2D } from "../lib/VoxelMap";
 import { CHUNK_RENDER_MARGIN } from "../lib/ChunkRenderer";
+import type { Pos2D } from "../lib/VoxelMap";
 
 const MIN_ZOOM = 0.5;
 const MAX_ZOOM = 4.0;

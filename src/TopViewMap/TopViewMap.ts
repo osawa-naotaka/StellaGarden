@@ -1,8 +1,9 @@
-import { type Application, Container, Sprite, Texture } from "pixi.js";
+import { type Application, ColorMatrixFilter, Container, Sprite, Texture } from "pixi.js";
 import { getEntitySpriteNameFromVoxel, getTerrainSpriteNameFromVoxel } from "../Entity/Terrain";
 import { ChunkRenderer } from "../lib/ChunkRenderer";
 import type { Tile } from "../lib/Tile";
 import type { Pos2D, Pos3D, VoxelMap } from "../lib/VoxelMap";
+import type { GameState } from "../State/GameState";
 
 export class TopViewMap {
     private voxelMap: VoxelMap;
@@ -61,9 +62,9 @@ export class TopViewMap {
     }
 
     // プレイヤー位置を受け取り、タイル位置が変わった場合のみスプライトを更新する
-    updateViewport(positionInWorld: Pos2D) {
+    updateViewport(gameState: GameState, positionInWorld: Pos2D) {
         const { left, top } = this.calcViewCorners(positionInWorld);
-        this.refreshSprites({ x: left, z: top });
+        this.refreshSprites(gameState, { x: left, z: top });
     }
 
     // ビューポートの中心位置を受け取り、ボクセルマップ中のどの領域がビューポートに入るかを計算する
@@ -79,30 +80,30 @@ export class TopViewMap {
     }
 
     // terrain spriteのテクスチャを現在のビューポートに合わせて更新する
-    private refreshSprites(viewportOrigin: Pos2D) {
+    private refreshSprites(gameState: GameState, viewportOrigin: Pos2D) {
         // terrain pool spriteを更新
         for (let col = 0; col < this.chunkPerViewport.z; col++) {
             for (let row = 0; row < this.chunkPerViewport.x; row++) {
                 const worldX = viewportOrigin.x + row * this.tilePerChunk;
                 const worldZ = viewportOrigin.z + col * this.tilePerChunk;
-                this.processTerrainChunk({ x: worldX, z: worldZ }, col, row);
-                this.processEntityChunk({ x: worldX, z: worldZ }, col, row);
+                this.processTerrainChunk(gameState, { x: worldX, z: worldZ }, col, row);
+                this.processEntityChunk(gameState, { x: worldX, z: worldZ }, col, row);
             }
         }
     }
 
-    private processTerrainChunk(world: Pos2D, col: number, row: number) {
+    private processTerrainChunk(gameState: GameState, world: Pos2D, col: number, row: number) {
         const sprite = this.chunkSpritePool[this.colRowToChunkIndex(col, row, true)];
 
-        const texture = this.chunkRenderer.renderChunk(this.voxelMap, world, this.colRowToChunkIndex(col, row, true), setupTerrainSpriteFromVoxel);
+        const texture = this.chunkRenderer.renderChunk(gameState, this.voxelMap, world, this.colRowToChunkIndex(col, row, true), setupTerrainSpriteFromVoxel);
         sprite.texture = texture;
         sprite.visible = true;
     }
 
-    private processEntityChunk(world: Pos2D, col: number, row: number) {
+    private processEntityChunk(gameState: GameState, world: Pos2D, col: number, row: number) {
         const sprite = this.chunkSpritePool[this.colRowToChunkIndex(col, row, false)];
 
-        const texture = this.chunkRenderer.renderChunk(this.voxelMap, world, this.colRowToChunkIndex(col, row, false), setupEntitySpriteFromVoxel);
+        const texture = this.chunkRenderer.renderChunk(gameState, this.voxelMap, world, this.colRowToChunkIndex(col, row, false), setupEntitySpriteFromVoxel);
         sprite.texture = texture;
         sprite.visible = true;
     }
@@ -113,19 +114,39 @@ export class TopViewMap {
     }
 }
 
-function setupTerrainSpriteFromVoxel(tile: Tile, voxel: number, position: Pos3D) {
+function setupTerrainSpriteFromVoxel(gameState: GameState, tile: Tile, voxel: number, position: Pos3D) {
     const spriteName = getTerrainSpriteNameFromVoxel(voxel, position);
     tile.sprite.texture = Texture.from(spriteName);
     tile.sprite.visible = true;
     tile.sprite.anchor.set(0, 0);
+
+    const pointerPosition = gameState.player.pointerPositionInWorld;
+    const isPointerOnTile = pointerPosition && Math.floor(pointerPosition.x) === position.x && Math.floor(pointerPosition.z) === position.z;
+    if (isPointerOnTile) {
+        const filter = new ColorMatrixFilter();
+        filter.brightness(1.5, false);
+        tile.sprite.filters = [filter];
+    } else {
+        tile.sprite.filters = [];
+    }
 }
 
-function setupEntitySpriteFromVoxel(tile: Tile, voxel: number, _position: Pos3D) {
+function setupEntitySpriteFromVoxel(gameState: GameState, tile: Tile, voxel: number, position: Pos3D) {
     const spriteName = getEntitySpriteNameFromVoxel(voxel);
     if (spriteName) {
         tile.sprite.texture = Texture.from(spriteName);
         tile.sprite.visible = true;
         tile.sprite.anchor.set(0.25, 0.75);
+
+        const pointerPosition = gameState.player.pointerPositionInWorld;
+        const isPointerOnTile = pointerPosition && Math.floor(pointerPosition.x) === position.x && Math.floor(pointerPosition.z) === position.z;
+        if (isPointerOnTile) {
+            const filter = new ColorMatrixFilter();
+            filter.brightness(1.5, false);
+            tile.sprite.filters = [filter];
+        } else {
+            tile.sprite.filters = [];
+        }
     } else {
         tile.sprite.visible = false;
     }

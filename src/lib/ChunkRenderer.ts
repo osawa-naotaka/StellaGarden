@@ -1,4 +1,5 @@
 import { type Application, Container, Graphics, RenderTexture, type Texture } from "pixi.js";
+import type { GameState } from "../State/GameState";
 import { Tile } from "./Tile";
 import type { Pos2D, Pos3D, VoxelMap } from "./VoxelMap";
 
@@ -43,10 +44,16 @@ export class ChunkRenderer {
         const chunkFrameDebug = new Graphics();
         chunkFrameDebug.rect(0, 0, this.pixelPerTile * this.tilePerChunk, this.pixelPerTile * this.tilePerChunk);
         chunkFrameDebug.stroke({ width: 2, color: 0xff0000 });
-        this.chunkContainer.addChild(chunkFrameDebug);        
+        this.chunkContainer.addChild(chunkFrameDebug);
     }
 
-    renderChunk(voxelMap: VoxelMap, world: Pos2D, renderTextureIndex: number, setupSpriteFn: (tile: Tile, voxel: number, position: Pos3D) => void): Texture {
+    renderChunk(
+        gameState: GameState,
+        voxelMap: VoxelMap,
+        world: Pos2D,
+        renderTextureIndex: number,
+        setupSpriteFn: (gameState: GameState, tile: Tile, voxel: number, position: Pos3D) => void,
+    ): Texture {
         this.resetTilePoolVisibility();
         const renderTexture = this.renderTexturePool[renderTextureIndex];
 
@@ -65,7 +72,7 @@ export class ChunkRenderer {
                 tile.top.x = row * this.pixelPerTile - (world.x % 1) * this.pixelPerTile;
                 tile.top.y = col * this.pixelPerTile - (world.z % 1) * this.pixelPerTile;
 
-                setupSpriteFn(tile, voxel, position);
+                setupSpriteFn(gameState, tile, voxel, position);
             }
         }
 

@@ -46,7 +46,7 @@ export default function App() {
                 gameState.player.tick(ticker.deltaMS);
 
                 // タイル位置が変わった場合のみスプライトを更新
-                gameState.topViewMap.updateViewport(gameState.player.playerPositionInWorld);
+                gameState.topViewMap.updateViewport(gameState, gameState.player.playerPositionInWorld);
                 gameState.worldContainer.scale.set(gameState.player.zoomLevel);
 
                 // デバッグテキスト更新
