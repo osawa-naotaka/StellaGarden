@@ -1,4 +1,4 @@
-import { type Application, Container, RenderTexture, type Texture } from "pixi.js";
+import { type Application, Container, Graphics, RenderTexture, type Texture } from "pixi.js";
 import { Tile } from "./Tile";
 import type { Pos2D, Pos3D, VoxelMap } from "./VoxelMap";
 
@@ -18,7 +18,6 @@ export class ChunkRenderer {
         this.tilePerChunk = opt.tilePerChunk || 16;
         this.numRenderTextures = opt.numRenderTextures || 16;
         this.chunkContainer = new Container();
-
         this.initializePool();
     }
 
@@ -37,6 +36,12 @@ export class ChunkRenderer {
             });
             this.renderTexturePool.push(renderTexture);
         }
+
+        // debug frame for chunk boundary
+        const chunkFrameDebug = new Graphics();
+        chunkFrameDebug.rect(0, 0, this.pixelPerTile * this.tilePerChunk, this.pixelPerTile * this.tilePerChunk);
+        chunkFrameDebug.stroke({ width: 2, color: 0xff0000 });
+        this.chunkContainer.addChild(chunkFrameDebug);        
     }
 
     renderChunk(voxelMap: VoxelMap, world: Pos2D, renderTextureIndex: number, setupSpriteFn: (tile: Tile, voxel: number, position: Pos3D) => void): Texture {
