@@ -26,7 +26,7 @@ export function getTerrainSpriteNameFromVoxel(voxel: number, pos: Pos3D): string
     const type = getTerrainTypeFromVoxel(voxel);
     switch (type) {
         case TERRAIN_TYPES.water:
-            return "water";
+            return "water_grass_normal_0_5_9";
         case TERRAIN_TYPES.soil:
             switch (pos.y) {
                 case 1:
@@ -41,9 +41,9 @@ export function getTerrainSpriteNameFromVoxel(voxel: number, pos: Pos3D): string
         case TERRAIN_TYPES.grass:
             switch (pos.y) {
                 case 1:
-                    return "grass_normal_5";
+                    return "grass_water_normal_0_5_9";
                 case 2:
-                    return "grass_darker_5";
+                    return "grass_water_dark_0_5_9";
                 case 3:
                     return "grass_darkest_5";
                 default:

@@ -1,10 +1,10 @@
 import { Application, Container } from "pixi.js";
-import { generateTerrain } from "./Terrain";
 import { createEventBroker, type EventBroker, type EvTopicPacketMap } from "../lib/Event";
 import { type Pos2D, VoxelMap } from "../lib/VoxelMap";
-import { Player } from "./Player";
 import { Toolbar } from "../view/Toolbar";
 import { TopView } from "../view/TopView";
+import { Player } from "./Player";
+import { generateTerrain } from "./Terrain";
 
 const PIXEL_PER_TILE = 16; // タイル1枚のサイズ（ピクセル）。スプライトのサイズと一致させる必要がある。
 const TILE_PER_CHUNK = 16; // チャンクのタイル数

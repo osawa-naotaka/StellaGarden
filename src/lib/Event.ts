@@ -1,5 +1,5 @@
-import type { Entity } from "../model/Entity";
 import type { GameState } from "../model/GameState";
+import type { Pos3D } from "./VoxelMap";
 
 // -----------------------------------------------------------------------------
 // イベント型
@@ -10,7 +10,7 @@ export type EvTopicLabel = keyof EvTopicPacketMap;
 export type EvNoArgPacket = Record<string, never>;
 
 export type EvTopicPacketMap = {
-    interact: { entity: Entity };
+    interact: { pos: Pos3D; entity: number };
     select_slot: { slotIndex: number };
 };
 
