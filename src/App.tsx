@@ -27,7 +27,7 @@ export default function App() {
 
             await loadSprite();
 
-            gameState.topViewMap.initializeSprites();
+            gameState.topView.initializeSprites();
             // gameState.toolbar.initializeSprites();
 
             gameState.player.setListeners();
@@ -46,7 +46,7 @@ export default function App() {
                 gameState.player.tick(ticker.deltaMS);
 
                 // タイル位置が変わった場合のみスプライトを更新
-                gameState.topViewMap.updateViewport(gameState, gameState.player.playerPositionInWorld);
+                gameState.topView.updateViewport(gameState, gameState.player.playerPositionInWorld);
                 gameState.worldContainer.scale.set(gameState.player.zoomLevel);
 
                 // デバッグテキスト更新

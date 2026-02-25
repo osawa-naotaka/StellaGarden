@@ -5,7 +5,7 @@ import type { Tile } from "./Tile";
 import type { Pos2D, Pos3D, VoxelMap } from "../lib/VoxelMap";
 import type { GameState } from "../model/GameState";
 
-export class TopViewMap {
+export class TopView {
     private voxelMap: VoxelMap;
     private topPlane: Container;
     private terrainPlane: Container;

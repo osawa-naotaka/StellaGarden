@@ -4,7 +4,7 @@ import { createEventBroker, type EventBroker, type EvTopicPacketMap } from "../l
 import { type Pos2D, VoxelMap } from "../lib/VoxelMap";
 import { Player } from "./Player";
 import { Toolbar } from "../view/Toolbar";
-import { TopViewMap } from "../view/TopViewMap";
+import { TopView } from "../view/TopView";
 
 const PIXEL_PER_TILE = 16; // タイル1枚のサイズ（ピクセル）。スプライトのサイズと一致させる必要がある。
 const TILE_PER_CHUNK = 16; // チャンクのタイル数
@@ -13,7 +13,7 @@ export type GameStateOpt = {
     pixiApp: Application;
     voxelMap: VoxelMap;
     worldContainer: Container;
-    topViewMap: TopViewMap;
+    topView: TopView;
     toolbar: Toolbar;
     player: Player;
 };
@@ -22,7 +22,7 @@ export class GameState {
     private readonly m_pixiApp: Application;
     private readonly m_worldContainer: Container;
     private m_voxelMap: VoxelMap;
-    private m_topViewMap: TopViewMap;
+    private m_topView: TopView;
     private m_toolbar: Toolbar;
     private m_broker: EventBroker<EvTopicPacketMap>;
     private m_player: Player;
@@ -31,7 +31,7 @@ export class GameState {
         this.m_pixiApp = opt.pixiApp;
         this.m_voxelMap = opt.voxelMap;
         this.m_worldContainer = opt.worldContainer;
-        this.m_topViewMap = opt.topViewMap;
+        this.m_topView = opt.topView;
         this.m_toolbar = opt.toolbar;
         this.m_player = opt.player;
         this.m_broker = createEventBroker<EvTopicPacketMap>(this);
@@ -45,8 +45,8 @@ export class GameState {
         return this.m_worldContainer;
     }
 
-    get topViewMap() {
-        return this.m_topViewMap;
+    get topView() {
+        return this.m_topView;
     }
 
     get toolbar() {
@@ -78,16 +78,16 @@ export async function createGameState(worldSize: Pos2D, chunkPerViewport: Pos2D)
 
     const voxelMap = new VoxelMap(worldSize.x, 4, worldSize.z, 1);
     generateTerrain(voxelMap);
-    const topViewMap = new TopViewMap(voxelMap, pixiApp, { pixelPerTile: PIXEL_PER_TILE, tilePerChunk: TILE_PER_CHUNK, chunkPerViewport });
-    worldContainer.addChild(topViewMap.top);
+    const topView = new TopView(voxelMap, pixiApp, { pixelPerTile: PIXEL_PER_TILE, tilePerChunk: TILE_PER_CHUNK, chunkPerViewport });
+    worldContainer.addChild(topView.top);
     const toolbar = new Toolbar(pixiApp.stage);
 
     // 100x100スタート（タイル換算）
-    const player = new Player(topViewMap.top, {
+    const player = new Player(topView.top, {
         start: { x: 100, z: 100 },
         worldSize,
         tilePerViewport: { x: chunkPerViewport.x * TILE_PER_CHUNK, z: chunkPerViewport.z * TILE_PER_CHUNK },
     });
 
-    return new GameState({ pixiApp, voxelMap, worldContainer, topViewMap, toolbar, player });
+    return new GameState({ pixiApp, voxelMap, worldContainer, topView, toolbar, player });
 }
