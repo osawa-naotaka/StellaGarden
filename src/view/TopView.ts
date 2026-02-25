@@ -114,14 +114,14 @@ export class TopView {
     }
 }
 
-function setupTerrainSpriteFromVoxel(gameState: GameState, tile: Tile, voxel: number, position: Pos3D) {
+function setupTerrainSpriteFromVoxel(gameState: GameState, tile: Tile, voxel: number[], position: Pos3D[]) {
     const spriteName = getTerrainSpriteNameFromVoxel(voxel, position);
     tile.sprite.texture = Texture.from(spriteName);
     tile.sprite.visible = true;
     tile.sprite.anchor.set(0, 0);
 
     const pointerPosition = gameState.player.pointerPositionInWorld;
-    const isPointerOnTile = Math.floor(pointerPosition.x) === position.x && Math.floor(pointerPosition.z) === position.z;
+    const isPointerOnTile = Math.floor(pointerPosition.x) === position[4].x && Math.floor(pointerPosition.z) === position[4].z;
     if (isPointerOnTile) {
         const filter = new ColorMatrixFilter();
         filter.brightness(1.5, false);
@@ -131,15 +131,15 @@ function setupTerrainSpriteFromVoxel(gameState: GameState, tile: Tile, voxel: nu
     }
 }
 
-function setupEntitySpriteFromVoxel(gameState: GameState, tile: Tile, voxel: number, position: Pos3D) {
-    const spriteName = getEntitySpriteNameFromVoxel(voxel);
+function setupEntitySpriteFromVoxel(gameState: GameState, tile: Tile, voxel: number[], position: Pos3D[]) {
+    const spriteName = getEntitySpriteNameFromVoxel(voxel[4]);
     if (spriteName) {
         tile.sprite.texture = Texture.from(spriteName);
         tile.sprite.visible = true;
         tile.sprite.anchor.set(0.25, 0.75);
 
         const pointerPosition = gameState.player.pointerPositionInWorld;
-        const isPointerOnTile = Math.floor(pointerPosition.x) === position.x && Math.floor(pointerPosition.z) === position.z;
+        const isPointerOnTile = Math.floor(pointerPosition.x) === position[4].x && Math.floor(pointerPosition.z) === position[4].z;
         if (isPointerOnTile) {
             const filter = new ColorMatrixFilter();
             filter.brightness(1.5, false);

@@ -84,7 +84,7 @@ export async function createGameState(worldSize: Pos2D, chunkPerViewport: Pos2D)
 
     // 100x100スタート（タイル換算）
     const player = new Player(topView.top, {
-        start: { x: 100, z: 100 },
+        start: { x: 200, z: 200 },
         worldSize,
         tilePerViewport: { x: chunkPerViewport.x * TILE_PER_CHUNK, z: chunkPerViewport.z * TILE_PER_CHUNK },
     });

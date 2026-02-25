@@ -22,13 +22,17 @@ export function getEntityTypeFromVoxel(voxel: number): number {
     return (voxel >> 8) & 0x000000ff;
 }
 
-export function getTerrainSpriteNameFromVoxel(voxel: number, pos: Pos3D): string {
-    const type = getTerrainTypeFromVoxel(voxel);
+export function getTerrainSpriteNameFromVoxel(voxel: number[], pos: Pos3D[]): string {
+    const type = getTerrainTypeFromVoxel(voxel[4]);
+    const hights = pos.reduce((prev, cur) => (prev << 2) | cur.y, 0);
     switch (type) {
-        case TERRAIN_TYPES.water:
-            return "water_grass_normal_0_5_9";
+        case TERRAIN_TYPES.water:            
+            switch (hights) {
+                default:
+                    return "water_grass_normal_0_5_9";
+            }
         case TERRAIN_TYPES.soil:
-            switch (pos.y) {
+            switch (pos[4].y) {
                 case 1:
                     return "ground_normal_5";
                 case 2:
@@ -36,18 +40,115 @@ export function getTerrainSpriteNameFromVoxel(voxel: number, pos: Pos3D): string
                 case 3:
                     return "ground_darkest_5";
                 default:
-                    throw new Error(`Invalid y position for soil: ${pos.y}`);
+                    throw new Error(`Invalid y position for soil: ${pos[4].x}, ${pos[4].y}, ${pos[4].z}`);
             }
         case TERRAIN_TYPES.grass:
-            switch (pos.y) {
-                case 1:
+           switch (hights) {
+                case [0,0,0,0,1,0,0,0,0].reduce((prev, cur) => (prev << 2) | cur, 0):
+                    return "grass_water_normal_0_0_0";
+                case [0,1,0,0,1,0,0,0,0].reduce((prev, cur) => (prev << 2) | cur, 0):
+                    return "grass_water_normal_0_1_0";
+                case [0,1,0,0,1,0,0,1,0].reduce((prev, cur) => (prev << 2) | cur, 0):
+                    return "grass_water_normal_0_1_1";
+                case [0,0,0,0,1,0,0,1,0].reduce((prev, cur) => (prev << 2) | cur, 0):
+                    return "grass_water_normal_0_1_2";
+                case [0,0,0,0,1,1,0,0,0].reduce((prev, cur) => (prev << 2) | cur, 0):
+                    return "grass_water_normal_0_2_0";
+                case [0,0,0,1,1,1,0,0,0].reduce((prev, cur) => (prev << 2) | cur, 0):
+                    return "grass_water_normal_0_2_1";
+                case [0,0,0,1,1,0,0,0,0].reduce((prev, cur) => (prev << 2) | cur, 0):
+                    return "grass_water_normal_0_2_2";
+                case [0,0,0,0,1,1,0,1,0].reduce((prev, cur) => (prev << 2) | cur, 0):
+                    return "grass_water_normal_0_3_0";
+                case [0,0,0,1,1,1,0,1,0].reduce((prev, cur) => (prev << 2) | cur, 0):
+                    return "grass_water_normal_0_3_1";
+                case [0,0,0,1,1,0,0,1,0].reduce((prev, cur) => (prev << 2) | cur, 0):
+                    return "grass_water_normal_0_3_2";
+                case [0,1,0,0,1,1,0,1,0].reduce((prev, cur) => (prev << 2) | cur, 0):
+                    return "grass_water_normal_0_3_3";
+                case [0,1,0,1,1,1,0,1,0].reduce((prev, cur) => (prev << 2) | cur, 0):
+                    return "grass_water_normal_0_3_4";
+                case [0,1,0,1,1,0,0,1,0].reduce((prev, cur) => (prev << 2) | cur, 0):
+                    return "grass_water_normal_0_3_5";
+                case [0,1,0,0,1,1,0,0,0].reduce((prev, cur) => (prev << 2) | cur, 0):
+                    return "grass_water_normal_0_3_6";
+                case [0,1,0,1,1,1,0,0,0].reduce((prev, cur) => (prev << 2) | cur, 0):
+                    return "grass_water_normal_0_3_7";
+                case [0,1,0,1,1,0,0,0,0].reduce((prev, cur) => (prev << 2) | cur, 0):
+                    return "grass_water_normal_0_3_8";
+                case [1,1,0,1,1,1,0,1,0].reduce((prev, cur) => (prev << 2) | cur, 0):
+                    return "grass_water_normal_0_4_0";
+                case [0,0,0,1,1,1,0,1,0].reduce((prev, cur) => (prev << 2) | cur, 0):
+                    return "grass_water_normal_0_4_1";
+                case [0,0,0,1,1,1,1,1,0].reduce((prev, cur) => (prev << 2) | cur, 0):
+                    return "grass_water_normal_0_4_2";
+                case [0,1,1,1,1,1,0,1,0].reduce((prev, cur) => (prev << 2) | cur, 0):
+                    return "grass_water_normal_0_4_3";
+                case [0,1,0,0,1,1,0,1,1].reduce((prev, cur) => (prev << 2) | cur, 0):
+                    return "grass_water_normal_0_4_4";
+                case [0,1,1,1,1,1,1,1,1].reduce((prev, cur) => (prev << 2) | cur, 0):
+                    return "grass_water_normal_0_4_5";
+                case [1,1,0,1,1,1,1,1,1].reduce((prev, cur) => (prev << 2) | cur, 0):
+                    return "grass_water_normal_0_4_6";
+                case [0,1,0,1,1,0,1,1,0].reduce((prev, cur) => (prev << 2) | cur, 0):
+                    return "grass_water_normal_0_4_7";
+                case [0,1,1,0,1,1,0,1,0].reduce((prev, cur) => (prev << 2) | cur, 0):
+                    return "grass_water_normal_0_4_8";
+                case [1,1,1,1,1,1,0,1,1].reduce((prev, cur) => (prev << 2) | cur, 0):
+                    return "grass_water_normal_0_4_9";
+                case [1,1,1,1,1,1,1,1,0].reduce((prev, cur) => (prev << 2) | cur, 0):
+                    return "grass_water_normal_0_4_10";
+                case [1,1,0,1,1,0,0,1,0].reduce((prev, cur) => (prev << 2) | cur, 0):
+                    return "grass_water_normal_0_4_11";
+                case [0,1,0,1,1,1,1,1,0].reduce((prev, cur) => (prev << 2) | cur, 0):
+                    return "grass_water_normal_0_4_12";
+                case [0,1,1,1,1,1,0,0,0].reduce((prev, cur) => (prev << 2) | cur, 0):
+                    return "grass_water_normal_0_4_13";
+                case [1,1,0,1,1,1,0,0,0].reduce((prev, cur) => (prev << 2) | cur, 0):
+                    return "grass_water_normal_0_4_14";
+                case [0,1,0,1,1,1,0,1,1].reduce((prev, cur) => (prev << 2) | cur, 0):
+                    return "grass_water_normal_0_4_15";
+                case [0,0,0,0,1,1,0,1,1].reduce((prev, cur) => (prev << 2) | cur, 0):
+                    return "grass_water_normal_0_5_0";
+                case [0,1,0,1,1,1,1,1,1].reduce((prev, cur) => (prev << 2) | cur, 0):
+                    return "grass_water_normal_0_5_1";
+                case [0,0,0,1,1,1,1,1,1].reduce((prev, cur) => (prev << 2) | cur, 0):
+                    return "grass_water_normal_0_5_2";
+                case [0,0,0,1,1,0,1,1,0].reduce((prev, cur) => (prev << 2) | cur, 0):
+                    return "grass_water_normal_0_5_3";
+                case [0,1,1,0,1,1,0,1,1].reduce((prev, cur) => (prev << 2) | cur, 0):
+                    return "grass_water_normal_0_5_4";
+                case [0,1,1,1,1,1,1,1,0].reduce((prev, cur) => (prev << 2) | cur, 0):
+                    return "grass_water_normal_0_5_5";
+                case [1,1,0,1,1,1,1,1,0].reduce((prev, cur) => (prev << 2) | cur, 0):
+                    return "grass_water_normal_0_5_7";
+                case [0,1,1,1,1,1,0,1,1].reduce((prev, cur) => (prev << 2) | cur, 0):
+                    return "grass_water_normal_0_5_8";
+                case [1,1,1,1,1,1,1,1,1].reduce((prev, cur) => (prev << 2) | cur, 0):
                     return "grass_water_normal_0_5_9";
-                case 2:
-                    return "grass_water_dark_0_5_9";
-                case 3:
-                    return "grass_darkest_5";
+                case [1,1,0,1,1,1,0,1,1].reduce((prev, cur) => (prev << 2) | cur, 0):
+                    return "grass_water_normal_0_5_10";
+                case [1,1,0,1,1,0,1,1,0].reduce((prev, cur) => (prev << 2) | cur, 0):
+                    return "grass_water_normal_0_5_11";
+                case [0,1,1,0,1,1,0,0,0].reduce((prev, cur) => (prev << 2) | cur, 0):
+                case [1,1,1,0,1,1,0,0,0].reduce((prev, cur) => (prev << 2) | cur, 0):
+                case [0,1,1,0,1,1,0,0,1].reduce((prev, cur) => (prev << 2) | cur, 0):
+                case [1,1,1,0,1,1,0,0,1].reduce((prev, cur) => (prev << 2) | cur, 0):
+                    return "grass_water_normal_0_5_12";
+                case [1,1,1,1,1,1,0,0,0].reduce((prev, cur) => (prev << 2) | cur, 0):
+                case [1,1,1,1,1,1,1,0,0].reduce((prev, cur) => (prev << 2) | cur, 0):
+                case [1,1,1,1,1,1,0,0,1].reduce((prev, cur) => (prev << 2) | cur, 0):
+                case [1,1,1,1,1,1,1,0,1].reduce((prev, cur) => (prev << 2) | cur, 0):
+                    return "grass_water_normal_0_5_13";
+                case [1,1,1,1,1,1,0,1,0].reduce((prev, cur) => (prev << 2) | cur, 0):
+                    return "grass_water_normal_0_5_14";
+                case [1,1,0,1,1,0,0,0,0].reduce((prev, cur) => (prev << 2) | cur, 0):
+                case [1,1,0,1,1,0,1,0,0].reduce((prev, cur) => (prev << 2) | cur, 0):
+                case [1,1,1,1,1,0,0,0,0].reduce((prev, cur) => (prev << 2) | cur, 0):
+                case [1,1,1,1,1,0,1,0,0].reduce((prev, cur) => (prev << 2) | cur, 0):
+                    return "grass_water_normal_0_5_15";
                 default:
-                    throw new Error(`Invalid y position for grass: ${pos.x}, ${pos.y}, ${pos.z}`);
+                    return "grass_water_normal_0_5_9";
             }
         default:
             throw new Error(`Unknown voxel type: ${type}`);
