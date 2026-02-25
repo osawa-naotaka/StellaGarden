@@ -1,4 +1,4 @@
-import type { Entity } from "../Entity/Entity";
+import type { Entity } from "../model/Entity";
 import type { GameState } from "../model/GameState";
 
 // -----------------------------------------------------------------------------

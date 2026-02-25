@@ -1,5 +1,5 @@
 import { Application, Container } from "pixi.js";
-import { generateTerrain } from "../Entity/Terrain";
+import { generateTerrain } from "./Terrain";
 import { createEventBroker, type EventBroker, type EvTopicPacketMap } from "../lib/Event";
 import { type Pos2D, VoxelMap } from "../lib/VoxelMap";
 import { Player } from "./Player";

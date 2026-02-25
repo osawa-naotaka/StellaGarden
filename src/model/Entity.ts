@@ -1,5 +1,5 @@
 import type { Pos3D } from "../lib/VoxelMap";
-import type { GameState } from "../model/GameState";
+import type { GameState } from "./GameState";
 
 export type TerrainType = "water" | "soil" | "grass" | "rock" | "air";
 export type StaticEntityType = "tree" | "stone" | "bush";
