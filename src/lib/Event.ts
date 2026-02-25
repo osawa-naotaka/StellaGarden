@@ -1,5 +1,5 @@
 import type { Entity } from "../Entity/Entity";
-import type { GameState } from "../State/GameState";
+import type { GameState } from "../model/GameState";
 
 // -----------------------------------------------------------------------------
 // イベント型

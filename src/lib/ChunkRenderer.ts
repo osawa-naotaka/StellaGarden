@@ -1,6 +1,6 @@
 import { type Application, Container, Graphics, RenderTexture, type Texture } from "pixi.js";
-import type { GameState } from "../State/GameState";
-import { Tile } from "./Tile";
+import type { GameState } from "../model/GameState";
+import { Tile } from "../view/Tile";
 import type { Pos2D, Pos3D, VoxelMap } from "./VoxelMap";
 
 export const CHUNK_RENDER_MARGIN = 2; // チャンクのタイル数に対して、ビューポート端で部分的に見えるタイルを考慮して余分に描画するタイル数

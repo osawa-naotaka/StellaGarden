@@ -1,5 +1,5 @@
 import { BitmapText } from "pixi.js";
-import type { GameState } from "../State/GameState";
+import type { GameState } from "../model/GameState";
 
 export class DebugText {
     private textObject: BitmapText;

@@ -1,9 +1,9 @@
 import { type Application, ColorMatrixFilter, Container, Sprite, Texture } from "pixi.js";
 import { getEntitySpriteNameFromVoxel, getTerrainSpriteNameFromVoxel } from "../Entity/Terrain";
 import { ChunkRenderer } from "../lib/ChunkRenderer";
-import type { Tile } from "../lib/Tile";
+import type { Tile } from "./Tile";
 import type { Pos2D, Pos3D, VoxelMap } from "../lib/VoxelMap";
-import type { GameState } from "../State/GameState";
+import type { GameState } from "../model/GameState";
 
 export class TopViewMap {
     private voxelMap: VoxelMap;

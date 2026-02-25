@@ -1,8 +1,8 @@
 import { useEffect, useRef } from "react";
-import { DebugText } from "./lib/DebugText";
-import { loadSprite } from "./lib/Sprite";
-import type { GameState } from "./State/GameState";
-import { createGameState } from "./State/GameState";
+import { DebugText } from "./view/DebugText";
+import { loadSprite } from "./view/Sprite";
+import type { GameState } from "./model/GameState";
+import { createGameState } from "./model/GameState";
 
 export default function App() {
     // PixiJSのcanvasはPixiJS自身が生成・管理する。
