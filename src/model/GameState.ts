@@ -1,4 +1,4 @@
-import { Application, Container } from "pixi.js";
+import { Application, Container, TextureSource } from "pixi.js";
 import { createEventBroker, type EventBroker, type EvTopicPacketMap } from "../lib/Event";
 import { type Pos2D, VoxelMap } from "../lib/VoxelMap";
 import { Toolbar } from "../view/Toolbar";
@@ -67,6 +67,9 @@ export class GameState {
 }
 
 export async function createGameState(worldSize: Pos2D, chunkPerViewport: Pos2D): Promise<GameState> {
+    TextureSource.defaultOptions.scaleMode = "nearest";
+    TextureSource.defaultOptions.wrapMode = "clamp-to-edge";
+
     const pixiApp = new Application();
     await pixiApp.init({
         background: "#1099bb",
