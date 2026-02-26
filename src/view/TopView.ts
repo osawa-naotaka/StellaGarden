@@ -117,20 +117,21 @@ export class TopView {
 function setupTerrainSpriteFromVoxel(gameState: GameState, tile: Tile, voxel: number[], position: Pos3D[]) {
     const spriteNames = getTerrainSpriteNamesFromVoxel(voxel, position);
     tile.useNSprites(spriteNames.length);
+
+    const pointerPosition = gameState.player.pointerPositionInWorld;
+    const isPointerOnTile = Math.floor(pointerPosition.x) === position[4].x && Math.floor(pointerPosition.z) === position[4].z;
+
     for (let i = 0; i < spriteNames.length; i++) {
         tile.sprites[i].texture = Texture.from(spriteNames[i]);
         tile.sprites[i].visible = true;
         tile.sprites[i].anchor.set(0, 0);
-    }
-
-    const pointerPosition = gameState.player.pointerPositionInWorld;
-    const isPointerOnTile = Math.floor(pointerPosition.x) === position[4].x && Math.floor(pointerPosition.z) === position[4].z;
-    if (isPointerOnTile) {
-        const filter = new ColorMatrixFilter();
-        filter.brightness(1.5, false);
-        tile.sprites[0].filters = [filter];
-    } else {
-        tile.sprites[0].filters = [];
+        if (isPointerOnTile) {
+            const filter = new ColorMatrixFilter();
+            filter.brightness(1.5, false);
+            tile.sprites[i].filters = [filter];
+        } else {
+            tile.sprites[i].filters = [];
+        }
     }
 }
 

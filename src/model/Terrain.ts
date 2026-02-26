@@ -5,8 +5,9 @@ import type { Pos3D, VoxelMap } from "../lib/VoxelMap";
 const TERRAIN_TYPES = {
     empty: 0,
     water: 1,
-    soil: 2,
-    grass: 3,
+    grass: 2,
+    soil: 3,
+    wetSoil: 4,
 };
 
 const ENTITY_TYPES = {
@@ -70,13 +71,13 @@ export function grassSpritesName(pos: Pos3D[], centerHight: number): string[] {
         case calcId9FromHights([1,1,1,1,1,1,1,1,0]):
             return ["water_grass_normal_0_5_9", "grass_water_normal_0_4_10"];
         case calcId9FromHights([1,2,2,2,2,2,2,2,2]):
-            return ["grass_water_normal_0_5_9", "grass_cliff_dark_0_4_5"];
+            return ["grass_water_normal_0_5_9", "grass_hill_dark_0_4_5"];
         case calcId9FromHights([2,2,1,2,2,2,2,2,2]):
-            return ["grass_water_normal_0_5_9", "grass_cliff_dark_0_4_6"];
+            return ["grass_water_normal_0_5_9", "grass_hill_dark_0_4_6"];
         case calcId9FromHights([2,2,2,2,2,2,1,2,2]):
-            return ["grass_water_normal_0_5_9", "grass_cliff_dark_0_4_9"];
+            return ["grass_water_normal_0_5_9", "grass_hill_dark_0_4_9"];
         case calcId9FromHights([2,2,2,2,2,2,2,2,1]):
-            return ["grass_water_normal_0_5_9", "grass_cliff_dark_0_4_10"];
+            return ["grass_water_normal_0_5_9", "grass_hill_dark_0_4_10"];
         default:
             break;
     }
@@ -102,23 +103,23 @@ export function grassSpritesName(pos: Pos3D[], centerHight: number): string[] {
             return ["water_grass_normal_0_5_9", "grass_water_normal_0_5_15"];
 
         case calcId5FromHights([1,1,1,1,2,2,1,2,2]):
-            return ["grass_water_normal_0_5_9", "grass_cliff_dark_0_5_0"];
+            return ["grass_water_normal_0_5_9", "grass_hill_dark_0_5_0"];
         case calcId5FromHights([1,1,1,2,2,2,2,2,2]):
-            return ["grass_water_normal_0_5_9", "grass_cliff_dark_0_5_2"];
+            return ["grass_water_normal_0_5_9", "grass_hill_dark_0_5_2"];
         case calcId5FromHights([1,1,1,2,2,1,2,2,1]):
-            return ["grass_water_normal_0_5_9", "grass_cliff_dark_0_5_3"];
+            return ["grass_water_normal_0_5_9", "grass_hill_dark_0_5_3"];
         case calcId5FromHights([1,2,2,1,2,2,1,2,2]):
-            return ["grass_water_normal_0_5_9", "grass_cliff_dark_0_5_4"];
+            return ["grass_water_normal_0_5_9", "grass_hill_dark_0_5_4"];
         case calcId5FromHights([2,2,2,2,2,2,2,2,2]):
-            return ["grass_cliff_dark_0_5_9"];
+            return ["grass_hill_dark_0_5_9"];
         case calcId5FromHights([2,2,1,2,2,1,2,2,1]):
-            return ["grass_water_normal_0_5_9", "grass_cliff_dark_0_5_11"];
+            return ["grass_water_normal_0_5_9", "grass_hill_dark_0_5_11"];
         case calcId5FromHights([1,2,2,1,2,2,1,1,1]):
-            return ["grass_water_normal_0_5_9", "grass_cliff_dark_0_5_12"];
+            return ["grass_water_normal_0_5_9", "grass_hill_dark_0_5_12"];
         case calcId5FromHights([2,2,2,2,2,2,1,1,1]):
-            return ["grass_water_normal_0_5_9", "grass_cliff_dark_0_5_13"];
+            return ["grass_water_normal_0_5_9", "grass_hill_dark_0_5_13"];
         case calcId5FromHights([2,2,1,2,2,1,1,1,1]):
-            return ["grass_water_normal_0_5_9", "grass_cliff_dark_0_5_15"];
+            return ["grass_water_normal_0_5_9", "grass_hill_dark_0_5_15"];
         default:
             if (centerHight === 1) {
                 return ["grass_water_normal_0_5_9"];
