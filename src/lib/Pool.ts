@@ -1,5 +1,3 @@
-
-
 export class Pool<T> {
     private pool: T[] = [];
     private ptr = 0;

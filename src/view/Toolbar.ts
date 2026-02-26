@@ -21,7 +21,7 @@ export class Toolbar {
 
         this.selectedBorder = new Graphics();
         this.selectedBorder.rect(0, 0, CELL_SIZE, CELL_SIZE);
-        this.selectedBorder.visible = true;        
+        this.selectedBorder.visible = true;
         this.selectedBorder.stroke({
             width: 4,
             color: 0xffffff,

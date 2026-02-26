@@ -84,7 +84,9 @@ export class Player {
         this.pointerPosInWorld.x =
             this.playerPosInWorld.x - this.tilePerViewport.x / 2 + (this.pointerPosInGlobal.x / (this.target.width * this.zoom_level)) * this.tilePerViewport.x;
         this.pointerPosInWorld.z =
-            this.playerPosInWorld.z - this.tilePerViewport.z / 2 + (this.pointerPosInGlobal.z / (this.target.height * this.zoom_level)) * this.tilePerViewport.z;
+            this.playerPosInWorld.z -
+            this.tilePerViewport.z / 2 +
+            (this.pointerPosInGlobal.z / (this.target.height * this.zoom_level)) * this.tilePerViewport.z;
     }
 
     removeListeners() {

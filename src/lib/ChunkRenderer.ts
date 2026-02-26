@@ -65,8 +65,8 @@ export class ChunkRenderer {
         const renderTexture = this.renderTexturePool[renderTextureIndex];
 
         // チャンク内のタイルは、CHUNK_RENDER_MARGINタイル分の余白を持たせて描画する（ビューポート端のタイルが一部分だけ見えるケースに対応するため）
-        for (let col = -CHUNK_RENDER_MARGIN-1; col < this.tilePerChunk + CHUNK_RENDER_MARGIN+1; col++) {
-            for (let row = -CHUNK_RENDER_MARGIN-1; row < this.tilePerChunk + CHUNK_RENDER_MARGIN+1; row++) {
+        for (let col = -CHUNK_RENDER_MARGIN - 1; col < this.tilePerChunk + CHUNK_RENDER_MARGIN + 1; col++) {
+            for (let row = -CHUNK_RENDER_MARGIN - 1; row < this.tilePerChunk + CHUNK_RENDER_MARGIN + 1; row++) {
                 const x = Math.floor(world.x) + row;
                 const z = Math.floor(world.z) + col;
 
