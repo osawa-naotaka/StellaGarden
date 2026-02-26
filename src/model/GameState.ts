@@ -83,7 +83,6 @@ export async function createGameState(worldSize: Pos2D, chunkPerViewport: Pos2D)
     generateTerrain(voxelMap);
     const topView = new TopView(voxelMap, pixiApp, { pixelPerTile: PIXEL_PER_TILE, tilePerChunk: TILE_PER_CHUNK, chunkPerViewport });
     worldContainer.addChild(topView.top);
-    const toolbar = new Toolbar(pixiApp.stage);
 
     // 100x100スタート（タイル換算）
     const player = new Player(topView.top, {
@@ -91,6 +90,9 @@ export async function createGameState(worldSize: Pos2D, chunkPerViewport: Pos2D)
         worldSize,
         tilePerViewport: { x: chunkPerViewport.x * TILE_PER_CHUNK, z: chunkPerViewport.z * TILE_PER_CHUNK },
     });
+
+    const toolbar = new Toolbar(player);
+    pixiApp.stage.addChild(toolbar.top);
 
     return new GameState({ pixiApp, voxelMap, worldContainer, topView, toolbar, player });
 }

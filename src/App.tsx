@@ -28,7 +28,7 @@ export default function App() {
             await loadSprite();
 
             gameState.topView.initializeSprites();
-            // gameState.toolbar.initializeSprites();
+            gameState.toolbar.initializeSprites();
 
             gameState.player.setListeners();
 

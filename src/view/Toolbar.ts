@@ -1,4 +1,5 @@
 import { Container, Graphics, Rectangle, Sprite, Texture } from "pixi.js";
+import type { Player } from "../model/Player";
 
 const slotEntry = ["watering_can", "pickaxe", "axe", "sickle", "shovel", "potato_icon", null, null, null];
 
@@ -8,16 +9,15 @@ const TOOLBAR_HEIGHT = CELL_SIZE;
 const ICON_SIZE = 16;
 
 export class Toolbar {
+    private player: Player;
     private toolbar: Container;
     private slots: Container[];
-    private slotEntry: (string | null)[];
-    private selectedSlot: number;
     private drawFunctions: ((isSelected: boolean) => void)[];
     private updateToolbarPositionFn: () => void;
 
-    constructor(parent: Container) {
+    constructor(player: Player) {
+        this.player = player;
         this.toolbar = new Container();
-        this.slotEntry = slotEntry;
         this.toolbar.x = (window.innerWidth - TOOLBAR_WIDTH) / 2;
         this.toolbar.y = window.innerHeight - TOOLBAR_HEIGHT - 20; // 画面下部から20pxの余白
 
@@ -31,14 +31,11 @@ export class Toolbar {
         });
         this.toolbar.addChild(background);
 
-        // 選択状態を管理
-        this.selectedSlot = 0;
-
         // 各セルを作成
         this.slots = [];
         this.drawFunctions = [];
 
-        for (let i = 0; i < this.slotEntry.length; i++) {
+        for (let i = 0; i < this.player.toolbar.length; i++) {
             const slot = new Graphics();
             slot.x = i * CELL_SIZE;
             slot.y = 0;
@@ -64,7 +61,7 @@ export class Toolbar {
             this.drawFunctions.push(drawSlotBorder);
 
             // 初期描画
-            drawSlotBorder(i === this.selectedSlot);
+            drawSlotBorder(i === this.player.slotSelected);
 
             this.toolbar.addChild(slot);
             this.slots.push(slot);
@@ -75,13 +72,16 @@ export class Toolbar {
             this.toolbar.y = window.innerHeight - TOOLBAR_HEIGHT - 20;
         };
 
-        parent.addChild(this.toolbar);
         this.registerEventHandlers();
     }
 
+    get top() {
+        return this.toolbar;
+    }
+
     initializeSprites() {
-        for (let i = 0; i < this.slotEntry.length; i++) {
-            const iconName = this.slotEntry[i];
+        for (let i = 0; i < this.player.toolbar.length; i++) {
+            const iconName = this.player.toolbar[i];
             if (iconName) {
                 const slot = this.slots[i];
                 const icon = new Container();
@@ -100,10 +100,6 @@ export class Toolbar {
         return this.updateToolbarPositionFn;
     }
 
-    get selectedTool() {
-        return this.slotEntry[this.selectedSlot];
-    }
-
     private registerEventHandlers() {
         for (let i = 0; i < this.slots.length; i++) {
             const slot = this.slots[i];
@@ -111,11 +107,11 @@ export class Toolbar {
                 event.stopPropagation(); // イベントの伝播を止める
 
                 // 前の選択を解除
-                this.drawFunctions[this.selectedSlot](false);
+                this.drawFunctions[this.player.slotSelected](false);
 
                 // 新しい選択を設定
-                this.selectedSlot = i;
-                this.drawFunctions[i](true);
+                this.player.selectToolbarSlot(i);
+                this.drawFunctions[this.player.slotSelected](true);
             });
         }
     }
