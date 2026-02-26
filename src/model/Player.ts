@@ -113,12 +113,12 @@ export class Player {
             // 移動後の位置を計算。マップの端で止まるようにする。
             // チャンクを描画する際に、チャンクサイズよりCHUNK_RENDER_MARGINタイルだけ外側を参照する。そのため、+-CHUNK_RENDER_MARGINの余裕を持たせる。
             this.posInWorld.x = Math.max(
-                this.tilePerViewport.x / 2 + CHUNK_RENDER_MARGIN,
-                Math.min(this.worldSize.x - 1 - this.tilePerViewport.x / 2 - CHUNK_RENDER_MARGIN, this.posInWorld.x + dx * this.speed * dt),
+                this.tilePerViewport.x / 2 + CHUNK_RENDER_MARGIN + 1,
+                Math.min(this.worldSize.x - 1 - this.tilePerViewport.x / 2 - CHUNK_RENDER_MARGIN - 1, this.posInWorld.x + dx * this.speed * dt),
             );
             this.posInWorld.z = Math.max(
-                this.tilePerViewport.z / 2 + CHUNK_RENDER_MARGIN,
-                Math.min(this.worldSize.z - 1 - this.tilePerViewport.z / 2 - CHUNK_RENDER_MARGIN, this.posInWorld.z + dz * this.speed * dt),
+                this.tilePerViewport.z / 2 + CHUNK_RENDER_MARGIN + 1,
+                Math.min(this.worldSize.z - 1 - this.tilePerViewport.z / 2 - CHUNK_RENDER_MARGIN - 1, this.posInWorld.z + dz * this.speed * dt),
             );
         }
         this.updatePointerPositionInWorld();

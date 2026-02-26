@@ -76,7 +76,7 @@ export async function createGameState(worldSize: Pos2D, chunkPerViewport: Pos2D)
     const worldContainer = new Container();
     pixiApp.stage.addChild(worldContainer);
 
-    const voxelMap = new VoxelMap(worldSize.x, 4, worldSize.z, 1);
+    const voxelMap = new VoxelMap(worldSize.x, 3, worldSize.z, 1);
     generateTerrain(voxelMap);
     const topView = new TopView(voxelMap, pixiApp, { pixelPerTile: PIXEL_PER_TILE, tilePerChunk: TILE_PER_CHUNK, chunkPerViewport });
     worldContainer.addChild(topView.top);

@@ -32,7 +32,7 @@ export class ChunkRenderer {
         const edgeLen = this.tilePerChunk + 2 * (CHUNK_RENDER_MARGIN + 1); // チャンク内のタイル数 + ビューポート端で部分的に見えるタイル数 + 1(タイルを描画するために、そのタイルを中心として3x3のタイルを参照するため)
         for (let i = 0; i < edgeLen * edgeLen; i++) {
             const tile = new Tile();
-            tile.setDebugFrame(this.pixelPerTile, 0x0000ff);
+            // tile.setDebugFrame(this.pixelPerTile, 0x0000ff);
             this.chunkContainer.addChild(tile.top);
             this.tilePool.push(tile);
         }
