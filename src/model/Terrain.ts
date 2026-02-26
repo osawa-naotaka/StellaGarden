@@ -295,7 +295,7 @@ export function generateTerrain(map: VoxelMap): void {
                 }
             } else {
                 for (let y = 0; y < h; y++) {
-                    map.set(TERRAIN_TYPES.soil, { x, y, z }); // soil
+                    map.set(TERRAIN_TYPES.grass, { x, y, z }); // grass
                 }
                 map.set(TERRAIN_TYPES.grass, { x, y: h, z }); // grass
             }
