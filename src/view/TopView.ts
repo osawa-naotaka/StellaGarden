@@ -2,7 +2,7 @@ import { type Application, ColorMatrixFilter, Container, Sprite, Texture } from 
 import { ChunkRenderer } from "../lib/ChunkRenderer";
 import type { Pos2D, Pos3D, VoxelMap } from "../lib/VoxelMap";
 import type { GameState } from "../model/GameState";
-import { getEntitySpriteNameFromVoxel, getTerrainSpriteNameFromVoxel } from "../model/Terrain";
+import { getEntitySpriteNameFromVoxel, getTerrainSpriteNamesFromVoxel } from "../model/Terrain";
 import type { Tile } from "./Tile";
 
 export class TopView {
@@ -115,39 +115,42 @@ export class TopView {
 }
 
 function setupTerrainSpriteFromVoxel(gameState: GameState, tile: Tile, voxel: number[], position: Pos3D[]) {
-    const spriteName = getTerrainSpriteNameFromVoxel(voxel, position);
-    tile.sprite.texture = Texture.from(spriteName);
-    tile.sprite.visible = true;
-    tile.sprite.anchor.set(0, 0);
+    const spriteNames = getTerrainSpriteNamesFromVoxel(voxel, position);
+    tile.useNSprites(spriteNames.length);
+    for (let i = 0; i < spriteNames.length; i++) {
+        tile.sprites[i].texture = Texture.from(spriteNames[i]);
+        tile.sprites[i].visible = true;
+        tile.sprites[i].anchor.set(0, 0);
+    }
 
     const pointerPosition = gameState.player.pointerPositionInWorld;
     const isPointerOnTile = Math.floor(pointerPosition.x) === position[4].x && Math.floor(pointerPosition.z) === position[4].z;
     if (isPointerOnTile) {
         const filter = new ColorMatrixFilter();
         filter.brightness(1.5, false);
-        tile.sprite.filters = [filter];
+        tile.sprites[0].filters = [filter];
     } else {
-        tile.sprite.filters = [];
+        tile.sprites[0].filters = [];
     }
 }
 
 function setupEntitySpriteFromVoxel(gameState: GameState, tile: Tile, voxel: number[], position: Pos3D[]) {
     const spriteName = getEntitySpriteNameFromVoxel(voxel[4]);
     if (spriteName) {
-        tile.sprite.texture = Texture.from(spriteName);
-        tile.sprite.visible = true;
-        tile.sprite.anchor.set(0.25, 0.75);
+        tile.sprites[0].texture = Texture.from(spriteName);
+        tile.sprites[0].visible = true;
+        tile.sprites[0].anchor.set(0.25, 0.75);
 
         const pointerPosition = gameState.player.pointerPositionInWorld;
         const isPointerOnTile = Math.floor(pointerPosition.x) === position[4].x && Math.floor(pointerPosition.z) === position[4].z;
         if (isPointerOnTile) {
             const filter = new ColorMatrixFilter();
             filter.brightness(1.5, false);
-            tile.sprite.filters = [filter];
+            tile.sprites[0].filters = [filter];
         } else {
-            tile.sprite.filters = [];
+            tile.sprites[0].filters = [];
         }
     } else {
-        tile.sprite.visible = false;
+        tile.sprites[0].visible = false;
     }
 }

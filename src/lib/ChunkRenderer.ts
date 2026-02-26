@@ -14,8 +14,6 @@ export class ChunkRenderer {
     private renderTexturePool: RenderTexture[] = [];
     private voxelPool: number[] = [];
     private surfacePosPool: Pos3D[] = [];
-    private voxelBuf: number[] = [];
-    private surfacePosBuf: Pos3D[] = [];
     private tilePool: Tile[] = [];
     private chunkContainer: Container;
 
@@ -40,9 +38,6 @@ export class ChunkRenderer {
         const voxelPoolSize = (edgeLen + 2) * (edgeLen + 2); // タイル数 + チャンク描画時に参照する周囲のタイル数
         this.voxelPool = new Array(voxelPoolSize).fill(0);
         this.surfacePosPool = new Array(voxelPoolSize).fill({ x: 0, y: 0, z: 0 });
-
-        this.voxelBuf = new Array(3 * 3).fill(0);
-        this.surfacePosBuf = new Array(3 * 3).fill({ x: 0, y: 0, z: 0 });
 
         for (let i = 0; i < this.numRenderTextures; i++) {
             const renderTexture = RenderTexture.create({
@@ -81,11 +76,14 @@ export class ChunkRenderer {
                 this.surfacePosPool[this.voxelPoolPositionToIndex(row, col)] = position;
             }
         }
-        
+
+        const voxelBuf = new Array(3 * 3);
+        const surfacePosBuf = new Array(3 * 3);
+
         for (let col = -CHUNK_RENDER_MARGIN; col < this.tilePerChunk + CHUNK_RENDER_MARGIN; col++) {
             for (let row = -CHUNK_RENDER_MARGIN; row < this.tilePerChunk + CHUNK_RENDER_MARGIN; row++) {
                 const tile = this.tilePool[this.tilePositionToIndex(row, col)];
-                tile.sprite.visible = true;
+                tile.sprites[0].visible = true;
                 tile.top.x = row * this.pixelPerTile - (world.x % 1) * this.pixelPerTile;
                 tile.top.y = col * this.pixelPerTile - (world.z % 1) * this.pixelPerTile;
 
@@ -93,11 +91,11 @@ export class ChunkRenderer {
                     for (let x = -1; x <= 1; x++) {
                         const checkX = row + x;
                         const checkZ = col + y;
-                        this.surfacePosBuf[(y + 1) * 3 + (x + 1)] = this.surfacePosPool[this.voxelPoolPositionToIndex(checkX, checkZ)];
-                        this.voxelBuf[(y + 1) * 3 + (x + 1)] = this.voxelPool[this.voxelPoolPositionToIndex(checkX, checkZ)];
+                        surfacePosBuf[(y + 1) * 3 + (x + 1)] = this.surfacePosPool[this.voxelPoolPositionToIndex(checkX, checkZ)];
+                        voxelBuf[(y + 1) * 3 + (x + 1)] = this.voxelPool[this.voxelPoolPositionToIndex(checkX, checkZ)];
                     }
                 }
-                setupSpriteFn(gameState, tile, this.voxelBuf, this.surfacePosBuf);
+                setupSpriteFn(gameState, tile, voxelBuf, surfacePosBuf);
             }
         }
 
@@ -107,7 +105,7 @@ export class ChunkRenderer {
 
     private resetTilePoolVisibility() {
         for (const tile of this.tilePool) {
-            tile.sprite.visible = false;
+            tile.init();
         }
     }
 
