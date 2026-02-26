@@ -2,7 +2,7 @@ import alea from "alea";
 import { createNoise2D } from "simplex-noise";
 import type { Pos3D, VoxelMap } from "../lib/VoxelMap";
 
-const TERRAIN_TYPES = {
+export const TERRAIN_TYPES = {
     empty: 0,
     water: 1,
     grass: 2,
@@ -10,7 +10,7 @@ const TERRAIN_TYPES = {
     wetSoil: 4,
 };
 
-const ENTITY_TYPES = {
+export const ENTITY_TYPES = {
     none: 0,
     tree: 1,
 };

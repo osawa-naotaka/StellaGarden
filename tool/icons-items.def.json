@@ -12,6 +12,7 @@
     "pickaxe": [1,0],
     "axe": [3,0],
     "sickle": [6,0],
-    "shovel": [7,0]
+    "shovel": [7,0],
+    "hoes": [8,0]
   }
 }

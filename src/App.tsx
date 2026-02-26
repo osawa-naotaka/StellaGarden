@@ -3,6 +3,7 @@ import type { GameState } from "./model/GameState";
 import { createGameState } from "./model/GameState";
 import { DebugText } from "./view/DebugText";
 import { loadSprite } from "./view/Sprite";
+import { ENTITY_TYPES, getEntityTypeFromVoxel, getTerrainTypeFromVoxel, TERRAIN_TYPES } from "./model/Terrain";
 
 export default function App() {
     // PixiJSのcanvasはPixiJS自身が生成・管理する。
@@ -30,7 +31,37 @@ export default function App() {
             gameState.topView.initializeSprites();
             gameState.toolbar.initializeSprites();
 
-            gameState.player.setListeners();
+            gameState.player.setListeners((pos) => {
+                if (!gameState) return;
+                const surfacePos = gameState.voxelMap.getSurfacePosition({ x: pos.x, y: 0, z: pos.z });
+                const voxel = gameState.voxelMap.get(surfacePos);
+
+                switch (gameState.player.toolbar[gameState.player.slotSelected]) {
+                    case "watering_can":
+                        if (getTerrainTypeFromVoxel(voxel) === TERRAIN_TYPES.soil) {
+                            gameState.voxelMap.set(TERRAIN_TYPES.wetSoil, surfacePos); // 水をまくと湿った土になる
+                        }
+                        break;
+                    case "shovel":
+                        if (getTerrainTypeFromVoxel(voxel) === TERRAIN_TYPES.grass && getEntityTypeFromVoxel(voxel) === ENTITY_TYPES.none) {
+                            if (surfacePos.y > 1) {
+                                gameState.voxelMap.remove(surfacePos); // 草地を掘ると空になる
+                            }
+                        }
+                        break;
+                    case "axe":
+                        if (getEntityTypeFromVoxel(voxel) === ENTITY_TYPES.tree) {
+                            gameState.voxelMap.set(voxel & 0x000000ff, surfacePos); // 木を斧で切ると空になる
+                        }
+                        break;
+                    case "hoes":
+                        if (getTerrainTypeFromVoxel(voxel) === TERRAIN_TYPES.grass && getEntityTypeFromVoxel(voxel) === ENTITY_TYPES.none) {
+                            gameState.voxelMap.set(TERRAIN_TYPES.soil, surfacePos); // クワで草地を耕すと土になる
+                        }
+                        break;
+                }
+
+            });
 
             // デバッグテキスト（左上に主人公のXZ座標を表示）
             const debugText = new DebugText(gameState);

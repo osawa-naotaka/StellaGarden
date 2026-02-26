@@ -12,7 +12,7 @@ export class Player {
     private pointerPosInWorld: Pos2D = { x: 0, z: 0 };
     private pointerPosInGlobal: Pos2D = { x: 0, z: 0 };
 
-    private toolbarSlot = ["watering_can", "pickaxe", "axe", "sickle", "shovel", "potato_icon", null, null, null];
+    private toolbarSlot = ["watering_can", "pickaxe", "axe", "sickle", "shovel", "hoes", "potato_icon", null, null] as const;
     private selectedSlot = 0;
 
     private worldSize: Pos2D;
@@ -53,7 +53,7 @@ export class Player {
         return this.selectedSlot;
     }
 
-    setListeners() {
+    setListeners(interactWithTileCallback: (pos: Pos2D) => void) {
         this.onkeydownListener = (e) => {
             this.keyPressState[e.key.toLowerCase()] = true;
         };
@@ -78,8 +78,20 @@ export class Player {
         };
         this.target.interactive = true;
         this.target.on("pointermove", this.onPointerMove);
-    }
 
+        this.target.on("pointerdown", (e) => {
+            if (e.button === 2) { // 右クリック
+                this.pointerPosInGlobal.x = e.global.x;
+                this.pointerPosInGlobal.z = e.global.y;
+                this.updatePointerPositionInWorld();
+
+                const x = Math.floor(this.pointerPosInWorld.x);
+                const z = Math.floor(this.pointerPosInWorld.z);
+                interactWithTileCallback({ x, z });
+            }
+        });
+    }
+  
     updatePointerPositionInWorld() {
         this.pointerPosInWorld.x =
             this.playerPosInWorld.x - this.tilePerViewport.x / 2 + (this.pointerPosInGlobal.x / (this.target.width * this.zoom_level)) * this.tilePerViewport.x;
