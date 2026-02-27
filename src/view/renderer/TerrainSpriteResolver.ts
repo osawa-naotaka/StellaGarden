@@ -55,19 +55,90 @@ export function soilSpriteName(pos: Pos3D[], centerHight: number, voxel: number[
     const soilId9 = calcId9FromVoxel(voxelIsSoil);
 
     switch (soilId9) {
+        case calcId9FromHights([0, 0, 0, 0, 1, 1, 0, 1, 0]):
+            return [...baseSprites, "soil_normal_0_3_0"];
+        case calcId9FromHights([0, 0, 0, 1, 1, 1, 0, 1, 0]):
+            return [...baseSprites, "soil_normal_0_3_1"];
+        case calcId9FromHights([0, 0, 0, 1, 1, 0, 0, 1, 0]):
+            return [...baseSprites, "soil_normal_0_3_2"];
+        case calcId9FromHights([0, 1, 0, 0, 1, 1, 0, 1, 0]):
+            return [...baseSprites, "soil_normal_0_3_3"];
+        case calcId9FromHights([0, 1, 0, 1, 1, 1, 0, 1, 0]):
+            return [...baseSprites, "soil_normal_0_3_4"];
+        case calcId9FromHights([0, 1, 0, 1, 1, 0, 0, 1, 0]):
+            return [...baseSprites, "soil_normal_0_3_5"];
+        case calcId9FromHights([0, 1, 0, 0, 1, 1, 0, 0, 0]):
+            return [...baseSprites, "soil_normal_0_3_6"];
+        case calcId9FromHights([0, 1, 0, 1, 1, 1, 0, 0, 0]):
+            return [...baseSprites, "soil_normal_0_3_7"];
+        case calcId9FromHights([0, 1, 0, 1, 1, 0, 0, 0, 0]):
+            return [...baseSprites, "soil_normal_0_3_8"];
+        case calcId9FromHights([1, 1, 0, 1, 1, 1, 0, 1, 0]):
+            return [...baseSprites, "soil_normal_0_4_0"];
+        case calcId9FromHights([0, 0, 0, 1, 1, 1, 0, 1, 0]):
+            return [...baseSprites, "soil_normal_0_4_1"];
+        case calcId9FromHights([0, 0, 0, 1, 1, 1, 1, 1, 0]):
+            return [...baseSprites, "soil_normal_0_4_2"];
+        case calcId9FromHights([0, 1, 1, 1, 1, 1, 0, 1, 0]):
+            return [...baseSprites, "soil_normal_0_4_3"];
+        case calcId9FromHights([0, 1, 0, 0, 1, 1, 0, 1, 1]):
+            return [...baseSprites, "soil_normal_0_4_4"];
         case calcId9FromHights([0, 1, 1, 1, 1, 1, 1, 1, 1]):
             return [...baseSprites, "soil_normal_0_4_5"];
         case calcId9FromHights([1, 1, 0, 1, 1, 1, 1, 1, 1]):
             return [...baseSprites, "soil_normal_0_4_6"];
+        case calcId9FromHights([0, 1, 0, 1, 1, 0, 1, 1, 0]):
+            return [...baseSprites, "soil_normal_0_4_7"];
+        case calcId9FromHights([0, 1, 1, 0, 1, 1, 0, 1, 0]):
+            return [...baseSprites, "soil_normal_0_4_8"];
         case calcId9FromHights([1, 1, 1, 1, 1, 1, 0, 1, 1]):
             return [...baseSprites, "soil_normal_0_4_9"];
         case calcId9FromHights([1, 1, 1, 1, 1, 1, 1, 1, 0]):
             return [...baseSprites, "soil_normal_0_4_10"];
+        case calcId9FromHights([1, 1, 0, 1, 1, 0, 0, 1, 0]):
+            return [...baseSprites, "soil_normal_0_4_11"];
+        case calcId9FromHights([0, 1, 0, 1, 1, 1, 1, 1, 0]):
+            return [...baseSprites, "soil_normal_0_4_12"];
+        case calcId9FromHights([0, 1, 1, 1, 1, 1, 0, 0, 0]):
+            return [...baseSprites, "soil_normal_0_4_13"];
+        case calcId9FromHights([1, 1, 0, 1, 1, 1, 0, 0, 0]):
+            return [...baseSprites, "soil_normal_0_4_14"];
+        case calcId9FromHights([0, 1, 0, 1, 1, 1, 0, 1, 1]):
+            return [...baseSprites, "soil_normal_0_4_15"];
+        case calcId9FromHights([0, 1, 0, 1, 1, 1, 1, 1, 1]):
+            return [...baseSprites, "soil_normal_0_5_1"];
+        case calcId9FromHights([0, 1, 1, 1, 1, 1, 1, 1, 0]):
+            return [...baseSprites, "soil_normal_0_5_5"];
+        case calcId9FromHights([1, 1, 0, 1, 1, 1, 1, 1, 0]):
+            return [...baseSprites, "soil_normal_0_5_7"];
+        case calcId9FromHights([0, 1, 1, 1, 1, 1, 0, 1, 1]):
+            return [...baseSprites, "soil_normal_0_5_9"];
+        case calcId9FromHights([1, 1, 0, 1, 1, 1, 0, 1, 1]):
+            return [...baseSprites, "soil_normal_0_5_10"];
+        case calcId9FromHights([1, 1, 1, 1, 1, 1, 0, 1, 0]):
+            return [...baseSprites, "soil_normal_0_5_14"];
+
+
         default:
             break;
     }
 
     switch (soilId5) {
+        case calcId5FromHights([0, 0, 0, 0, 1, 0, 0, 0, 0]):
+            return [...baseSprites, "soil_normal_0_0_0"];
+        case calcId5FromHights([0, 1, 0, 0, 1, 0, 0, 0, 0]):
+            return [...baseSprites, "soil_normal_0_1_0"];
+        case calcId5FromHights([0, 1, 0, 0, 1, 0, 0, 1, 0]):
+            return [...baseSprites, "soil_normal_0_1_1"];
+        case calcId5FromHights([0, 0, 0, 0, 1, 0, 0, 1, 0]):
+            return [...baseSprites, "soil_normal_0_1_2"];
+        case calcId5FromHights([0, 0, 0, 0, 1, 1, 0, 0, 0]):
+            return [...baseSprites, "soil_normal_0_2_0"];
+        case calcId5FromHights([0, 0, 0, 1, 1, 1, 0, 0, 0]):
+            return [...baseSprites, "soil_normal_0_2_1"];
+        case calcId5FromHights([0, 0, 0, 1, 1, 0, 0, 0, 0]):
+            return [...baseSprites, "soil_normal_0_2_2"];
+
         case calcId5FromHights([0, 0, 0, 0, 1, 1, 0, 1, 1]):
             return [...baseSprites, "soil_normal_0_5_0"];
         case calcId5FromHights([0, 0, 0, 1, 1, 1, 1, 1, 1]):
@@ -100,6 +171,7 @@ function wetSoilSpriteName(pos: Pos3D[], centerHight: number, voxel: number[]): 
     const soilId9 = calcId9FromVoxel(voxelIsWetSoil);
 
     switch (soilId9) {
+        /*
         case calcId9FromHights([0, 1, 1, 1, 1, 1, 1, 1, 1]):
             return [...baseSprites, "soil_wet_0_4_5"];
         case calcId9FromHights([1, 1, 0, 1, 1, 1, 1, 1, 1]):
@@ -108,11 +180,90 @@ function wetSoilSpriteName(pos: Pos3D[], centerHight: number, voxel: number[]): 
             return [...baseSprites, "soil_wet_0_4_9"];
         case calcId9FromHights([1, 1, 1, 1, 1, 1, 1, 1, 0]):
             return [...baseSprites, "soil_wet_0_4_10"];
+        */
+        case calcId9FromHights([0, 0, 0, 0, 1, 1, 0, 1, 0]):
+            return [...baseSprites, "soil_wet_0_3_0"];
+        case calcId9FromHights([0, 0, 0, 1, 1, 1, 0, 1, 0]):
+            return [...baseSprites, "soil_wet_0_3_1"];
+        case calcId9FromHights([0, 0, 0, 1, 1, 0, 0, 1, 0]):
+            return [...baseSprites, "soil_wet_0_3_2"];
+        case calcId9FromHights([0, 1, 0, 0, 1, 1, 0, 1, 0]):
+            return [...baseSprites, "soil_wet_0_3_3"];
+        case calcId9FromHights([0, 1, 0, 1, 1, 1, 0, 1, 0]):
+            return [...baseSprites, "soil_wet_0_3_4"];
+        case calcId9FromHights([0, 1, 0, 1, 1, 0, 0, 1, 0]):
+            return [...baseSprites, "soil_wet_0_3_5"];
+        case calcId9FromHights([0, 1, 0, 0, 1, 1, 0, 0, 0]):
+            return [...baseSprites, "soil_wet_0_3_6"];
+        case calcId9FromHights([0, 1, 0, 1, 1, 1, 0, 0, 0]):
+            return [...baseSprites, "soil_wet_0_3_7"];
+        case calcId9FromHights([0, 1, 0, 1, 1, 0, 0, 0, 0]):
+            return [...baseSprites, "soil_wet_0_3_8"];
+        case calcId9FromHights([1, 1, 0, 1, 1, 1, 0, 1, 0]):
+            return [...baseSprites, "soil_wet_0_4_0"];
+        case calcId9FromHights([0, 0, 0, 1, 1, 1, 0, 1, 0]):
+            return [...baseSprites, "soil_wet_0_4_1"];
+        case calcId9FromHights([0, 0, 0, 1, 1, 1, 1, 1, 0]):
+            return [...baseSprites, "soil_wet_0_4_2"];
+        case calcId9FromHights([0, 1, 1, 1, 1, 1, 0, 1, 0]):
+            return [...baseSprites, "soil_wet_0_4_3"];
+        case calcId9FromHights([0, 1, 0, 0, 1, 1, 0, 1, 1]):
+            return [...baseSprites, "soil_wet_0_4_4"];
+        case calcId9FromHights([0, 1, 1, 1, 1, 1, 1, 1, 1]):
+            return [...baseSprites, "soil_wet_0_4_5"];
+        case calcId9FromHights([1, 1, 0, 1, 1, 1, 1, 1, 1]):
+            return [...baseSprites, "soil_wet_0_4_6"];
+        case calcId9FromHights([0, 1, 0, 1, 1, 0, 1, 1, 0]):
+            return [...baseSprites, "soil_wet_0_4_7"];
+        case calcId9FromHights([0, 1, 1, 0, 1, 1, 0, 1, 0]):
+            return [...baseSprites, "soil_wet_0_4_8"];
+        case calcId9FromHights([1, 1, 1, 1, 1, 1, 0, 1, 1]):
+            return [...baseSprites, "soil_wet_0_4_9"];
+        case calcId9FromHights([1, 1, 1, 1, 1, 1, 1, 1, 0]):
+            return [...baseSprites, "soil_wet_0_4_10"];
+        case calcId9FromHights([1, 1, 0, 1, 1, 0, 0, 1, 0]):
+            return [...baseSprites, "soil_wet_0_4_11"];
+        case calcId9FromHights([0, 1, 0, 1, 1, 1, 1, 1, 0]):
+            return [...baseSprites, "soil_wet_0_4_12"];
+        case calcId9FromHights([0, 1, 1, 1, 1, 1, 0, 0, 0]):
+            return [...baseSprites, "soil_wet_0_4_13"];
+        case calcId9FromHights([1, 1, 0, 1, 1, 1, 0, 0, 0]):
+            return [...baseSprites, "soil_wet_0_4_14"];
+        case calcId9FromHights([0, 1, 0, 1, 1, 1, 0, 1, 1]):
+            return [...baseSprites, "soil_wet_0_4_15"];
+        case calcId9FromHights([0, 1, 0, 1, 1, 1, 1, 1, 1]):
+            return [...baseSprites, "soil_wet_0_5_1"];
+        case calcId9FromHights([0, 1, 1, 1, 1, 1, 1, 1, 0]):
+            return [...baseSprites, "soil_wet_0_5_5"];
+        case calcId9FromHights([1, 1, 0, 1, 1, 1, 1, 1, 0]):
+            return [...baseSprites, "soil_wet_0_5_7"];
+        case calcId9FromHights([0, 1, 1, 1, 1, 1, 0, 1, 1]):
+            return [...baseSprites, "soil_wet_0_5_9"];
+        case calcId9FromHights([1, 1, 0, 1, 1, 1, 0, 1, 1]):
+            return [...baseSprites, "soil_wet_0_5_10"];
+        case calcId9FromHights([1, 1, 1, 1, 1, 1, 0, 1, 0]):
+            return [...baseSprites, "soil_wet_0_5_14"];
+
         default:
             break;
     }
 
     switch (soilId5) {
+        case calcId5FromHights([0, 0, 0, 0, 1, 0, 0, 0, 0]):
+            return [...baseSprites, "soil_wet_0_0_0"];
+        case calcId5FromHights([0, 1, 0, 0, 1, 0, 0, 0, 0]):
+            return [...baseSprites, "soil_wet_0_1_0"];
+        case calcId5FromHights([0, 1, 0, 0, 1, 0, 0, 1, 0]):
+            return [...baseSprites, "soil_wet_0_1_1"];
+        case calcId5FromHights([0, 0, 0, 0, 1, 0, 0, 1, 0]):
+            return [...baseSprites, "soil_wet_0_1_2"];
+        case calcId5FromHights([0, 0, 0, 0, 1, 1, 0, 0, 0]):
+            return [...baseSprites, "soil_wet_0_2_0"];
+        case calcId5FromHights([0, 0, 0, 1, 1, 1, 0, 0, 0]):
+            return [...baseSprites, "soil_wet_0_2_1"];
+        case calcId5FromHights([0, 0, 0, 1, 1, 0, 0, 0, 0]):
+            return [...baseSprites, "soil_wet_0_2_2"];
+
         case calcId5FromHights([0, 0, 0, 0, 1, 1, 0, 1, 1]):
             return [...baseSprites, "soil_wet_0_5_0"];
         case calcId5FromHights([0, 0, 0, 1, 1, 1, 1, 1, 1]):
