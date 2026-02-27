@@ -25,6 +25,7 @@ export class Player {
     private onkeyupListener: ((e: KeyboardEvent) => void) | null = null;
     private onWheel: ((e: WheelEvent) => void) | null = null;
     private onPointerMove: ((e: FederatedPointerEvent) => void) | null = null;
+    private onPointerDown: ((e: FederatedPointerEvent) => void) | null = null;
 
     constructor(target: Container, opt: { start: Pos2D; worldSize: Pos2D; tilePerViewport: Pos2D }) {
         this.target = target;
@@ -79,7 +80,7 @@ export class Player {
         this.target.interactive = true;
         this.target.on("pointermove", this.onPointerMove);
 
-        this.target.on("pointerdown", (e) => {
+        this.onPointerDown = (e) => {
             if (e.button === 2) { // 右クリック
                 this.pointerPosInGlobal.x = e.global.x;
                 this.pointerPosInGlobal.z = e.global.y;
@@ -89,7 +90,8 @@ export class Player {
                 const z = Math.floor(this.pointerPosInWorld.z);
                 interactWithTileCallback({ x, z });
             }
-        });
+        };
+        this.target.on("pointerdown", this.onPointerDown);
     }
   
     updatePointerPositionInWorld() {
@@ -117,6 +119,10 @@ export class Player {
         if (this.onPointerMove) {
             this.target.off("pointermove", this.onPointerMove);
             this.onPointerMove = null;
+        }
+        if (this.onPointerDown) {
+            this.target.off("pointerdown", this.onPointerDown);
+            this.onPointerDown = null;
         }
     }
 

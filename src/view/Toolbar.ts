@@ -1,10 +1,7 @@
 import { Container, Graphics, Rectangle, Sprite, Texture } from "pixi.js";
 import type { Player } from "../model/Player";
 
-const slotEntry = ["watering_can", "pickaxe", "axe", "sickle", "shovel", "potato_icon", null, null, null];
-
 const CELL_SIZE = 32;
-const TOOLBAR_WIDTH = CELL_SIZE * slotEntry.length;
 const TOOLBAR_HEIGHT = CELL_SIZE;
 const ICON_SIZE = 16;
 
@@ -14,9 +11,11 @@ export class Toolbar {
     private slots: Container[];
     private selectedBorder: Graphics;
     private updateToolbarPositionFn: () => void;
+    private toolbarWidth: number;
 
     constructor(player: Player) {
         this.player = player;
+        this.toolbarWidth = CELL_SIZE * player.toolbar.length;
         this.toolbar = this.createToolbarContainer();
 
         this.selectedBorder = new Graphics();
@@ -38,19 +37,19 @@ export class Toolbar {
         }
 
         this.updateToolbarPositionFn = () => {
-            this.toolbar.x = (window.innerWidth - TOOLBAR_WIDTH) / 2;
+            this.toolbar.x = (window.innerWidth - this.toolbarWidth) / 2;
             this.toolbar.y = window.innerHeight - TOOLBAR_HEIGHT - 20;
         };
     }
 
     private createToolbarContainer(): Container {
         const toolbar = new Container();
-        toolbar.x = (window.innerWidth - TOOLBAR_WIDTH) / 2;
+        toolbar.x = (window.innerWidth - this.toolbarWidth) / 2;
         toolbar.y = window.innerHeight - TOOLBAR_HEIGHT - 20; // 画面下部から20pxの余白
 
         // 背景（半透明の黒）
         const background = new Graphics();
-        background.rect(0, 0, TOOLBAR_WIDTH, TOOLBAR_HEIGHT);
+        background.rect(0, 0, this.toolbarWidth, TOOLBAR_HEIGHT);
         background.fill({ color: 0x000000, alpha: 0.7 });
         background.interactive = true; // 背景でイベントをキャッチ
         background.on("pointerdown", (event) => {

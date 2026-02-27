@@ -251,6 +251,8 @@ export function getTerrainSpriteNamesFromVoxel(voxel: number[], pos: Pos3D[]): s
                 default:
                     throw new Error(`Invalid y position for soil: ${pos[4].x}, ${pos[4].y}, ${pos[4].z}`);
             }
+        case TERRAIN_TYPES.wetSoil:
+            return ["soil_wet_0_5_9"];
         case TERRAIN_TYPES.grass:
             return grassSpritesName(pos, pos[4].y);
         default:
