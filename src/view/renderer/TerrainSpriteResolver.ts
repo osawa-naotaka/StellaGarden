@@ -155,20 +155,6 @@ export function grassSpritesName(pos: Pos3D[], centerHight: number): string[] {
         case calcId9FromHights([1, 1, 1, 1, 1, 1, 1, 1, 0]):
             return ["water_grass_normal_0_5_9", "grass_water_normal_0_4_10"];
         */
-        case calcId9FromHights([0, 0, 0, 0, 1, 0, 0, 0, 0]):
-            return ["water_grass_normal_0_5_9", "grass_water_normal_0_0_0"];
-        case calcId9FromHights([0, 1, 0, 0, 1, 0, 0, 0, 0]):
-            return ["water_grass_normal_0_5_9", "grass_water_normal_0_1_0"];
-        case calcId9FromHights([0, 1, 0, 0, 1, 0, 0, 1, 0]):
-            return ["water_grass_normal_0_5_9", "grass_water_normal_0_1_1"];
-        case calcId9FromHights([0, 0, 0, 0, 1, 0, 0, 1, 0]):
-            return ["water_grass_normal_0_5_9", "grass_water_normal_0_1_2"];
-        case calcId9FromHights([0, 0, 0, 0, 1, 1, 0, 0, 0]):
-            return ["water_grass_normal_0_5_9", "grass_water_normal_0_2_0"];
-        case calcId9FromHights([0, 0, 0, 1, 1, 1, 0, 0, 0]):
-            return ["water_grass_normal_0_5_9", "grass_water_normal_0_2_1"];
-        case calcId9FromHights([0, 0, 0, 1, 1, 0, 0, 0, 0]):
-            return ["water_grass_normal_0_5_9", "grass_water_normal_0_2_2"];
         case calcId9FromHights([0, 0, 0, 0, 1, 1, 0, 1, 0]):
             return ["water_grass_normal_0_5_9", "grass_water_normal_0_3_0"];
         case calcId9FromHights([0, 0, 0, 1, 1, 1, 0, 1, 0]):
@@ -242,20 +228,6 @@ export function grassSpritesName(pos: Pos3D[], centerHight: number): string[] {
         case calcId9FromHights([2, 2, 2, 2, 2, 2, 2, 2, 1]):
             return ["grass_water_normal_0_5_9", "grass_hill_dark_0_4_10"];
         */
-        case calcId9FromHights([1, 1, 1, 1, 2, 1, 1, 1, 1]):
-            return ["grass_water_normal_0_5_9", "grass_hill_dark_0_0_0"];
-        case calcId9FromHights([1, 2, 1, 1, 2, 1, 1, 1, 1]):
-            return ["grass_water_normal_0_5_9", "grass_hill_dark_0_1_0"];
-        case calcId9FromHights([1, 2, 1, 1, 2, 1, 1, 2, 1]):
-            return ["grass_water_normal_0_5_9", "grass_hill_dark_0_1_1"];
-        case calcId9FromHights([1, 1, 1, 1, 2, 1, 1, 2, 1]):
-            return ["grass_water_normal_0_5_9", "grass_hill_dark_0_1_2"];
-        case calcId9FromHights([1, 1, 1, 1, 2, 2, 1, 1, 1]):
-            return ["grass_water_normal_0_5_9", "grass_hill_dark_0_2_0"];
-        case calcId9FromHights([1, 1, 1, 2, 2, 2, 1, 1, 1]):
-            return ["grass_water_normal_0_5_9", "grass_hill_dark_0_2_1"];
-        case calcId9FromHights([1, 1, 1, 2, 2, 1, 1, 1, 1]):
-            return ["grass_water_normal_0_5_9", "grass_hill_dark_0_2_2"];
         case calcId9FromHights([1, 1, 1, 1, 2, 2, 1, 2, 1]):
             return ["grass_water_normal_0_5_9", "grass_hill_dark_0_3_0"];
         case calcId9FromHights([1, 1, 1, 2, 2, 2, 1, 2, 1]):
@@ -324,6 +296,21 @@ export function grassSpritesName(pos: Pos3D[], centerHight: number): string[] {
     }
 
     switch (hightId5) {
+        case calcId5FromHights([0, 0, 0, 0, 1, 0, 0, 0, 0]):
+            return ["water_grass_normal_0_5_9", "grass_water_normal_0_0_0"];
+        case calcId5FromHights([0, 1, 0, 0, 1, 0, 0, 0, 0]):
+            return ["water_grass_normal_0_5_9", "grass_water_normal_0_1_0"];
+        case calcId5FromHights([0, 1, 0, 0, 1, 0, 0, 1, 0]):
+            return ["water_grass_normal_0_5_9", "grass_water_normal_0_1_1"];
+        case calcId5FromHights([0, 0, 0, 0, 1, 0, 0, 1, 0]):
+            return ["water_grass_normal_0_5_9", "grass_water_normal_0_1_2"];
+        case calcId5FromHights([0, 0, 0, 0, 1, 1, 0, 0, 0]):
+            return ["water_grass_normal_0_5_9", "grass_water_normal_0_2_0"];
+        case calcId5FromHights([0, 0, 0, 1, 1, 1, 0, 0, 0]):
+            return ["water_grass_normal_0_5_9", "grass_water_normal_0_2_1"];
+        case calcId5FromHights([0, 0, 0, 1, 1, 0, 0, 0, 0]):
+            return ["water_grass_normal_0_5_9", "grass_water_normal_0_2_2"];
+
         case calcId5FromHights([0, 0, 0, 0, 1, 1, 0, 1, 1]):
             return ["water_grass_normal_0_5_9", "grass_water_normal_0_5_0"];
         case calcId5FromHights([0, 0, 0, 1, 1, 1, 1, 1, 1]):
@@ -342,6 +329,22 @@ export function grassSpritesName(pos: Pos3D[], centerHight: number): string[] {
             return ["water_grass_normal_0_5_9", "grass_water_normal_0_5_13"];
         case calcId5FromHights([1, 1, 0, 1, 1, 0, 0, 0, 0]):
             return ["water_grass_normal_0_5_9", "grass_water_normal_0_5_15"];
+
+
+        case calcId5FromHights([1, 1, 1, 1, 2, 1, 1, 1, 1]):
+            return ["grass_water_normal_0_5_9", "grass_hill_dark_0_0_0"];
+        case calcId5FromHights([1, 2, 1, 1, 2, 1, 1, 1, 1]):
+            return ["grass_water_normal_0_5_9", "grass_hill_dark_0_1_0"];
+        case calcId5FromHights([1, 2, 1, 1, 2, 1, 1, 2, 1]):
+            return ["grass_water_normal_0_5_9", "grass_hill_dark_0_1_1"];
+        case calcId5FromHights([1, 1, 1, 1, 2, 1, 1, 2, 1]):
+            return ["grass_water_normal_0_5_9", "grass_hill_dark_0_1_2"];
+        case calcId5FromHights([1, 1, 1, 1, 2, 2, 1, 1, 1]):
+            return ["grass_water_normal_0_5_9", "grass_hill_dark_0_2_0"];
+        case calcId5FromHights([1, 1, 1, 2, 2, 2, 1, 1, 1]):
+            return ["grass_water_normal_0_5_9", "grass_hill_dark_0_2_1"];
+        case calcId5FromHights([1, 1, 1, 2, 2, 1, 1, 1, 1]):
+            return ["grass_water_normal_0_5_9", "grass_hill_dark_0_2_2"];
 
         case calcId5FromHights([1, 1, 1, 1, 2, 2, 1, 2, 2]):
             return ["grass_water_normal_0_5_9", "grass_hill_dark_0_5_0"];
