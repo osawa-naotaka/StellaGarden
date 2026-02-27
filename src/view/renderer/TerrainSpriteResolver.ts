@@ -75,7 +75,7 @@ export function soilSpriteName(pos: Pos3D[], centerHight: number, voxel: number[
             return [...baseSprites, "soil_normal_0_3_8"];
         case calcId9FromHights([1, 1, 0, 1, 1, 1, 0, 1, 0]):
             return [...baseSprites, "soil_normal_0_4_0"];
-        case calcId9FromHights([0, 0, 0, 1, 1, 1, 0, 1, 0]):
+        case calcId9FromHights([0, 0, 0, 1, 1, 1, 0, 1, 1]):
             return [...baseSprites, "soil_normal_0_4_1"];
         case calcId9FromHights([0, 0, 0, 1, 1, 1, 1, 1, 0]):
             return [...baseSprites, "soil_normal_0_4_2"];
@@ -200,7 +200,7 @@ function wetSoilSpriteName(pos: Pos3D[], centerHight: number, voxel: number[]): 
             return [...baseSprites, "soil_wet_0_3_8"];
         case calcId9FromHights([1, 1, 0, 1, 1, 1, 0, 1, 0]):
             return [...baseSprites, "soil_wet_0_4_0"];
-        case calcId9FromHights([0, 0, 0, 1, 1, 1, 0, 1, 0]):
+        case calcId9FromHights([0, 0, 0, 1, 1, 1, 0, 1, 1]):
             return [...baseSprites, "soil_wet_0_4_1"];
         case calcId9FromHights([0, 0, 0, 1, 1, 1, 1, 1, 0]):
             return [...baseSprites, "soil_wet_0_4_2"];
@@ -215,6 +215,7 @@ function wetSoilSpriteName(pos: Pos3D[], centerHight: number, voxel: number[]): 
         case calcId9FromHights([0, 1, 0, 1, 1, 0, 1, 1, 0]):
             return [...baseSprites, "soil_wet_0_4_7"];
         case calcId9FromHights([0, 1, 1, 0, 1, 1, 0, 1, 0]):
+        case calcId9FromHights([1, 1, 1, 0, 1, 1, 0, 1, 0]):
             return [...baseSprites, "soil_wet_0_4_8"];
         case calcId9FromHights([1, 1, 1, 1, 1, 1, 0, 1, 1]):
             return [...baseSprites, "soil_wet_0_4_9"];
@@ -325,7 +326,7 @@ export function grassSpritesName(pos: Pos3D[], centerHight: number): string[] {
             return ["water_grass_normal_0_5_9", "grass_water_normal_0_3_8"];
         case calcId9FromHights([1, 1, 0, 1, 1, 1, 0, 1, 0]):
             return ["water_grass_normal_0_5_9", "grass_water_normal_0_4_0"];
-        case calcId9FromHights([0, 0, 0, 1, 1, 1, 0, 1, 0]):
+        case calcId9FromHights([0, 0, 0, 1, 1, 1, 0, 1, 1]):
             return ["water_grass_normal_0_5_9", "grass_water_normal_0_4_1"];
         case calcId9FromHights([0, 0, 0, 1, 1, 1, 1, 1, 0]):
             return ["water_grass_normal_0_5_9", "grass_water_normal_0_4_2"];
@@ -340,6 +341,7 @@ export function grassSpritesName(pos: Pos3D[], centerHight: number): string[] {
         case calcId9FromHights([0, 1, 0, 1, 1, 0, 1, 1, 0]):
             return ["water_grass_normal_0_5_9", "grass_water_normal_0_4_7"];
         case calcId9FromHights([0, 1, 1, 0, 1, 1, 0, 1, 0]):
+        case calcId9FromHights([1, 1, 1, 0, 1, 1, 0, 1, 0]):
             return ["water_grass_normal_0_5_9", "grass_water_normal_0_4_8"];
         case calcId9FromHights([1, 1, 1, 1, 1, 1, 0, 1, 1]):
             return ["water_grass_normal_0_5_9", "grass_water_normal_0_4_9"];
@@ -398,7 +400,7 @@ export function grassSpritesName(pos: Pos3D[], centerHight: number): string[] {
             return ["grass_water_normal_0_5_9", "grass_hill_dark_0_3_8"];
         case calcId9FromHights([2, 2, 1, 2, 2, 2, 1, 2, 1]):
             return ["grass_water_normal_0_5_9", "grass_hill_dark_0_4_0"];
-        case calcId9FromHights([1, 1, 1, 2, 2, 2, 1, 2, 1]):
+        case calcId9FromHights([1, 1, 1, 2, 2, 2, 1, 2, 2]):
             return ["grass_water_normal_0_5_9", "grass_hill_dark_0_4_1"];
         case calcId9FromHights([1, 1, 1, 2, 2, 2, 2, 2, 1]):
             return ["grass_water_normal_0_5_9", "grass_hill_dark_0_4_2"];
@@ -413,6 +415,7 @@ export function grassSpritesName(pos: Pos3D[], centerHight: number): string[] {
         case calcId9FromHights([1, 2, 1, 2, 2, 1, 2, 2, 1]):
             return ["grass_water_normal_0_5_9", "grass_hill_dark_0_4_7"];
         case calcId9FromHights([1, 2, 2, 1, 2, 2, 1, 2, 1]):
+        case calcId9FromHights([2, 2, 2, 1, 2, 2, 1, 2, 1]):
             return ["grass_water_normal_0_5_9", "grass_hill_dark_0_4_8"];
         case calcId9FromHights([2, 2, 2, 2, 2, 2, 1, 2, 2]):
             return ["grass_water_normal_0_5_9", "grass_hill_dark_0_4_9"];
