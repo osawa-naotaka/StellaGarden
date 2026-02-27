@@ -17,6 +17,11 @@ function calcId5FromPos3D(pos: Pos3D[]): number {
     return idArr.reduce((prev, cur) => (prev << 2) | cur, 0);
 }
 
+function calcId5FromVoxel(voxelIsSoil: number[]): number {
+    const idArr = [0, voxelIsSoil[1], 0, voxelIsSoil[3], voxelIsSoil[4], voxelIsSoil[5], 0, voxelIsSoil[7], 0];
+    return idArr.reduce((prev, cur) => (prev << 2) | cur, 0);
+}
+
 /** 5点 ID から高さ配列を復元する（デバッグ用）。 */
 function calcHightsFromId(id5: number): number[] {
     const hights: number[] = [];
@@ -35,6 +40,101 @@ function calcId9FromHights(hights: number[]): number {
 /** Pos3D 配列の9点すべての高さから ID を計算する。 */
 function calcId9FromPos3D(pos: Pos3D[]): number {
     return pos.reduce((prev, cur) => (prev << 2) | cur.y, 0);
+}
+
+function calcId9FromVoxel(voxelIsSoil: number[]): number {
+    return voxelIsSoil.reduce((prev, cur) => (prev << 2) | cur, 0);
+}
+
+export function soilSpriteName(pos: Pos3D[], centerHight: number, voxel: number[]): string[] {
+    const baseSprites = grassSpritesName(pos, centerHight);
+
+    const voxelIsSoil = voxel.map((v) => getTerrainTypeFromVoxel(v) === TERRAIN_TYPES.soil || getTerrainTypeFromVoxel(v) === TERRAIN_TYPES.wetSoil ? 1 : 0);
+
+    const soilId5 = calcId5FromVoxel(voxelIsSoil);
+    const soilId9 = calcId9FromVoxel(voxelIsSoil);
+
+    switch (soilId9) {
+        case calcId9FromHights([0, 1, 1, 1, 1, 1, 1, 1, 1]):
+            return [...baseSprites, "soil_normal_0_4_5"];
+        case calcId9FromHights([1, 1, 0, 1, 1, 1, 1, 1, 1]):
+            return [...baseSprites, "soil_normal_0_4_6"];
+        case calcId9FromHights([1, 1, 1, 1, 1, 1, 0, 1, 1]):
+            return [...baseSprites, "soil_normal_0_4_9"];
+        case calcId9FromHights([1, 1, 1, 1, 1, 1, 1, 1, 0]):
+            return [...baseSprites, "soil_normal_0_4_10"];
+        default:
+            break;
+    }
+
+    switch (soilId5) {
+        case calcId5FromHights([0, 0, 0, 0, 1, 1, 0, 1, 1]):
+            return [...baseSprites, "soil_normal_0_5_0"];
+        case calcId5FromHights([0, 0, 0, 1, 1, 1, 1, 1, 1]):
+            return [...baseSprites, "soil_normal_0_5_2"];
+        case calcId5FromHights([0, 0, 0, 1, 1, 0, 1, 1, 0]):
+            return [...baseSprites, "soil_normal_0_5_3"];
+        case calcId5FromHights([0, 1, 1, 0, 1, 1, 0, 1, 1]):
+            return [...baseSprites, "soil_normal_0_5_4"];
+        case calcId5FromHights([1, 1, 1, 1, 1, 1, 1, 1, 1]):
+            return [...baseSprites, "soil_normal_0_5_9"];
+        case calcId5FromHights([1, 1, 0, 1, 1, 0, 1, 1, 0]):
+            return [...baseSprites, "soil_normal_0_5_11"];
+        case calcId5FromHights([0, 1, 1, 0, 1, 1, 0, 0, 0]):
+            return [...baseSprites, "soil_normal_0_5_12"];
+        case calcId5FromHights([1, 1, 1, 1, 1, 1, 0, 0, 0]):
+            return [...baseSprites, "soil_normal_0_5_13"];
+        case calcId5FromHights([1, 1, 0, 1, 1, 0, 0, 0, 0]):
+            return [...baseSprites, "soil_normal_0_5_15"];
+
+        default:
+            return [...baseSprites, "soil_normal_0_5_9"];
+    }
+}
+
+function wetSoilSpriteName(pos: Pos3D[], centerHight: number, voxel: number[]): string[] {
+    const baseSprites = soilSpriteName(pos, centerHight, voxel);
+    const voxelIsWetSoil = voxel.map((v) => getTerrainTypeFromVoxel(v) === TERRAIN_TYPES.wetSoil ? 1 : 0);
+
+    const soilId5 = calcId5FromVoxel(voxelIsWetSoil);
+    const soilId9 = calcId9FromVoxel(voxelIsWetSoil);
+
+    switch (soilId9) {
+        case calcId9FromHights([0, 1, 1, 1, 1, 1, 1, 1, 1]):
+            return [...baseSprites, "soil_wet_0_4_5"];
+        case calcId9FromHights([1, 1, 0, 1, 1, 1, 1, 1, 1]):
+            return [...baseSprites, "soil_wet_0_4_6"];
+        case calcId9FromHights([1, 1, 1, 1, 1, 1, 0, 1, 1]):
+            return [...baseSprites, "soil_wet_0_4_9"];
+        case calcId9FromHights([1, 1, 1, 1, 1, 1, 1, 1, 0]):
+            return [...baseSprites, "soil_wet_0_4_10"];
+        default:
+            break;
+    }
+
+    switch (soilId5) {
+        case calcId5FromHights([0, 0, 0, 0, 1, 1, 0, 1, 1]):
+            return [...baseSprites, "soil_wet_0_5_0"];
+        case calcId5FromHights([0, 0, 0, 1, 1, 1, 1, 1, 1]):
+            return [...baseSprites, "soil_wet_0_5_2"];
+        case calcId5FromHights([0, 0, 0, 1, 1, 0, 1, 1, 0]):
+            return [...baseSprites, "soil_wet_0_5_3"];
+        case calcId5FromHights([0, 1, 1, 0, 1, 1, 0, 1, 1]):
+            return [...baseSprites, "soil_wet_0_5_4"];
+        case calcId5FromHights([1, 1, 1, 1, 1, 1, 1, 1, 1]):
+            return [...baseSprites, "soil_wet_0_5_9"];
+        case calcId5FromHights([1, 1, 0, 1, 1, 0, 1, 1, 0]):
+            return [...baseSprites, "soil_wet_0_5_11"];
+        case calcId5FromHights([0, 1, 1, 0, 1, 1, 0, 0, 0]):
+            return [...baseSprites, "soil_wet_0_5_12"];
+        case calcId5FromHights([1, 1, 1, 1, 1, 1, 0, 0, 0]):
+            return [...baseSprites, "soil_wet_0_5_13"];
+        case calcId5FromHights([1, 1, 0, 1, 1, 0, 0, 0, 0]):
+            return [...baseSprites, "soil_wet_0_5_15"];
+
+        default:
+            return [...baseSprites, "soil_wet_0_5_9"];
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -107,8 +207,6 @@ export function grassSpritesName(pos: Pos3D[], centerHight: number): string[] {
             if (centerHight === 1) {
                 return ["grass_water_normal_0_5_9"];
             } else if (centerHight === 2) {
-                return ["grass_water_dark_0_5_9"];
-            } else if (centerHight === 3) {
                 return ["grass_water_dark_0_5_9"];
             } else {
                 throw new Error(`Unknown hightId: ${calcHightsFromId(hightId5)}`);
@@ -237,18 +335,9 @@ export function getTerrainSpriteNamesFromVoxel(voxel: number[], pos: Pos3D[]): s
         case TERRAIN_TYPES.water:
             return ["water_grass_normal_0_5_9"];
         case TERRAIN_TYPES.soil:
-            switch (pos[4].y) {
-                case 1:
-                    return ["ground_normal_5"];
-                case 2:
-                    return ["ground_darker_5"];
-                case 3:
-                    return ["ground_darkest_5"];
-                default:
-                    throw new Error(`Invalid y position for soil: ${pos[4].x}, ${pos[4].y}, ${pos[4].z}`);
-            }
+            return soilSpriteName(pos, pos[4].y, voxel);
         case TERRAIN_TYPES.wetSoil:
-            return ["soil_wet_0_5_9"];
+            return wetSoilSpriteName(pos, pos[4].y, voxel);
         case TERRAIN_TYPES.grass:
             return grassSpritesName(pos, pos[4].y);
         default:
