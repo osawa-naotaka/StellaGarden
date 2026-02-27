@@ -8,32 +8,27 @@ const DEFAULT_SLOTS: readonly (ToolName | null)[] = [
 /** プレイヤーのツールバースロットと選択状態を管理する。
  *  将来のインベントリグリッド・クラフトシステムもここに追加する。 */
 export class Inventory {
-    private readonly m_slots: readonly (ToolName | null)[];
-    private m_selectedIndex = 0;
+    readonly slots: readonly (ToolName | null)[];
+    private selectedIndex_ = 0;
 
     constructor(slots: readonly (ToolName | null)[] = DEFAULT_SLOTS) {
-        this.m_slots = slots;
-    }
-
-    /** スロットの一覧（読み取り専用）。 */
-    get slots(): readonly (ToolName | null)[] {
-        return this.m_slots;
+        this.slots = slots;
     }
 
     /** 現在選択中のスロットインデックス。 */
     get selectedIndex(): number {
-        return this.m_selectedIndex;
+        return this.selectedIndex_;
     }
 
     /** 現在選択中のツール。空スロットの場合は null。 */
     get selectedTool(): ToolName | null {
-        return this.m_slots[this.m_selectedIndex] ?? null;
+        return this.slots[this.selectedIndex_] ?? null;
     }
 
     /** スロットを選択する。範囲外のインデックスは無視される。 */
     selectSlot(index: number): void {
-        if (index >= 0 && index < this.m_slots.length) {
-            this.m_selectedIndex = index;
+        if (index >= 0 && index < this.slots.length) {
+            this.selectedIndex_ = index;
         }
     }
 }

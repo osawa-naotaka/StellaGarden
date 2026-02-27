@@ -45,19 +45,14 @@ export class TopView {
 
     /** スプライトを初期化してビューポートに配置する。アセットロード完了後に呼ぶこと。 */
     initializeSprites() {
-        // terrain と entity の 2 プレーン分ループ
-        for (let plane = 0; plane < 2; plane++) {
+        for (const plane of [this.terrainPlane, this.entityPlane]) {
             for (let y = 0; y < this.chunkPerViewport.z; y++) {
                 for (let x = 0; x < this.chunkPerViewport.x; x++) {
                     const sprite = new Sprite(Texture.EMPTY);
                     sprite.x = x * this.tilePerChunk * this.pixelPerTile;
                     sprite.y = y * this.tilePerChunk * this.pixelPerTile;
                     this.chunkSpritePool.push(sprite);
-                    if (plane === 0) {
-                        this.terrainPlane.addChild(sprite);
-                    } else {
-                        this.entityPlane.addChild(sprite);
-                    }
+                    plane.addChild(sprite);
                 }
             }
         }

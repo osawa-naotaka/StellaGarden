@@ -1,14 +1,12 @@
 import { useEffect, useRef } from "react";
 import type { GameState } from "./model/GameState";
 import { createGameState } from "./model/GameState";
-import { InteractionSystem } from "./model/InteractionSystem";
+import { createInteractionHandler } from "./model/InteractionSystem";
 import { DebugText } from "./view/DebugText";
 import { loadSprite } from "./view/Sprite";
+import type { Pos2D } from "./lib/VoxelMap";
 
-export default function App() {
-    // PixiJSのcanvasはPixiJS自身が生成・管理する。
-    // ReactはdivコンテナのみをDOMで管理し、PixiJSのcanvasには触れない。
-    // これによりHMR時にdestroy(true)でcanvasを安全に破棄できる。
+function useGameEngine(worldSize: Pos2D, chunkPerViewport: Pos2D) {
     const containerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -22,11 +20,12 @@ export default function App() {
 
         let cancelled = false;
         let gameState: GameState | null = null;
+        let disposeListeners: (() => void) | null = null;
 
         async function init() {
             // createGameState の await 中にクリーンアップが走った場合に備えて
             // cancelled フラグで検知し、生成済み GameState を即破棄する
-            const gs = await createGameState({ x: 400, z: 400 }, { x: 6, z: 4 });
+            const gs = await createGameState(worldSize, chunkPerViewport);
             if (cancelled) {
                 gs.pixiApp.destroy(true, { children: true });
                 return;
@@ -41,8 +40,8 @@ export default function App() {
             gameState.topView.initializeSprites();
             gameState.toolbar.initializeSprites();
 
-            const interactionSystem = new InteractionSystem(gameState);
-            gameState.player.setListeners((pos) => interactionSystem.interact(pos));
+            const interact = createInteractionHandler(gameState);
+            disposeListeners = gameState.player.setListeners(interact);
 
             // デバッグテキスト（左上に主人公のXZ座標を表示）
             const debugText = new DebugText(gameState);
@@ -74,12 +73,17 @@ export default function App() {
             container.removeEventListener("contextmenu", preventContextMenu);
             if (gameState) {
                 window.removeEventListener("resize", gameState.toolbar.updateToolbarPosition);
-                gameState.player.removeListeners();
+                disposeListeners?.();
                 gameState.pixiApp.destroy(true, { children: true });
                 gameState = null; // init() 内の !gameState チェックで二重破棄を防ぐ
             }
         };
     }, []);
 
+    return containerRef;
+}
+
+export default function App() {
+    const containerRef = useGameEngine({ x: 400, z: 400 }, { x: 6, z: 4 });
     return <div ref={containerRef} style={{ position: "fixed", inset: 0 }} />;
 }

@@ -25,6 +25,10 @@ export class ChunkRenderer {
     private readonly neighborVoxels = new Array<number>(9);
     private readonly neighborPositions = new Array<Pos3D>(9);
 
+    // lookupIndex / tileIndex で使うストライドをキャッシュ
+    private readonly lookupStride: number;
+    private readonly tileStride: number;
+
     constructor(app: Application, opt: { pixelPerTile?: number; tilePerChunk?: number; numRenderTextures?: number }) {
         this.app = app;
         this.pixelPerTile = opt.pixelPerTile ?? 16;
@@ -37,6 +41,9 @@ export class ChunkRenderer {
         const drawEdge = this.tilePerChunk + 2 * CHUNK_RENDER_MARGIN;
         // lookupEdge: 近傍参照のためにさらに各辺 1 タイル拡張した参照テーブルの辺のタイル数
         const lookupEdge = drawEdge + 2;
+
+        this.tileStride = drawEdge;
+        this.lookupStride = lookupEdge;
 
         for (let i = 0; i < drawEdge * drawEdge; i++) {
             const tile = new Tile();
@@ -121,13 +128,11 @@ export class ChunkRenderer {
 
     /** ボクセル参照テーブル用インデックス（lookupEdge × lookupEdge の行列） */
     private lookupIndex(row: number, col: number): number {
-        const stride = this.tilePerChunk + 2 * CHUNK_RENDER_MARGIN + 2;
-        return (col + CHUNK_RENDER_MARGIN + 1) * stride + (row + CHUNK_RENDER_MARGIN + 1);
+        return (col + CHUNK_RENDER_MARGIN + 1) * this.lookupStride + (row + CHUNK_RENDER_MARGIN + 1);
     }
 
     /** タイルプール用インデックス（drawEdge × drawEdge の行列） */
     private tileIndex(row: number, col: number): number {
-        const stride = this.tilePerChunk + 2 * CHUNK_RENDER_MARGIN;
-        return (col + CHUNK_RENDER_MARGIN) * stride + (row + CHUNK_RENDER_MARGIN);
+        return (col + CHUNK_RENDER_MARGIN) * this.tileStride + (row + CHUNK_RENDER_MARGIN);
     }
 }

@@ -9,60 +9,30 @@ import { generateTerrain } from "./world/TerrainGenerator";
 const PIXEL_PER_TILE = 16; // タイル1枚のサイズ（ピクセル）。スプライトのサイズと一致させる必要がある。
 const TILE_PER_CHUNK = 16; // チャンクのタイル数
 
-export type GameStateOpt = {
-    pixiApp: Application;
-    voxelMap: VoxelMap;
-    worldContainer: Container;
-    topView: TopView;
-    toolbar: Toolbar;
-    player: Player;
-};
-
 export class GameState {
-    private readonly m_pixiApp: Application;
-    private readonly m_worldContainer: Container;
-    private m_voxelMap: VoxelMap;
-    private m_topView: TopView;
-    private m_toolbar: Toolbar;
-    private m_broker: EventBroker<EvTopicPacketMap>;
-    private m_player: Player;
+    readonly pixiApp: Application;
+    readonly worldContainer: Container;
+    readonly voxelMap: VoxelMap;
+    readonly topView: TopView;
+    readonly toolbar: Toolbar;
+    readonly player: Player;
+    readonly eventBroker: EventBroker<EvTopicPacketMap>;
 
-    constructor(opt: GameStateOpt) {
-        this.m_pixiApp = opt.pixiApp;
-        this.m_voxelMap = opt.voxelMap;
-        this.m_worldContainer = opt.worldContainer;
-        this.m_topView = opt.topView;
-        this.m_toolbar = opt.toolbar;
-        this.m_player = opt.player;
-        this.m_broker = createEventBroker<EvTopicPacketMap>(this);
-    }
-
-    get pixiApp() {
-        return this.m_pixiApp;
-    }
-
-    get worldContainer() {
-        return this.m_worldContainer;
-    }
-
-    get topView() {
-        return this.m_topView;
-    }
-
-    get toolbar() {
-        return this.m_toolbar;
-    }
-
-    get eventBroker() {
-        return this.m_broker;
-    }
-
-    get player() {
-        return this.m_player;
-    }
-
-    get voxelMap() {
-        return this.m_voxelMap;
+    constructor(opt: {
+        pixiApp: Application;
+        voxelMap: VoxelMap;
+        worldContainer: Container;
+        topView: TopView;
+        toolbar: Toolbar;
+        player: Player;
+    }) {
+        this.pixiApp = opt.pixiApp;
+        this.voxelMap = opt.voxelMap;
+        this.worldContainer = opt.worldContainer;
+        this.topView = opt.topView;
+        this.toolbar = opt.toolbar;
+        this.player = opt.player;
+        this.eventBroker = createEventBroker<EvTopicPacketMap>(this);
     }
 }
 

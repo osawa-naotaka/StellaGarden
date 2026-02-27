@@ -23,12 +23,6 @@ export class Player {
     private zoomLevel_ = 1.0;
     private keyPressState: Record<string, boolean> = {};
 
-    private onkeydownListener: ((e: KeyboardEvent) => void) | null = null;
-    private onkeyupListener: ((e: KeyboardEvent) => void) | null = null;
-    private onWheel: ((e: WheelEvent) => void) | null = null;
-    private onPointerMove: ((e: FederatedPointerEvent) => void) | null = null;
-    private onPointerDown: ((e: FederatedPointerEvent) => void) | null = null;
-
     constructor(target: Container, opt: { start: Pos2D; worldSize: Pos2D; tilePerViewport: Pos2D }) {
         this.target = target;
         this.playerPosInWorld = { x: opt.start.x, z: opt.start.z };
@@ -49,33 +43,34 @@ export class Player {
         return this.pointerPosInWorld;
     }
 
-    setListeners(interactWithTileCallback: (pos: Pos2D) => void) {
-        this.onkeydownListener = (e) => {
+    /** イベントリスナーを登録し、解除用の dispose 関数を返す。 */
+    setListeners(interactWithTileCallback: (pos: Pos2D) => void): () => void {
+        const onKeyDown = (e: KeyboardEvent) => {
             this.keyPressState[e.key.toLowerCase()] = true;
         };
-        window.addEventListener("keydown", this.onkeydownListener);
+        window.addEventListener("keydown", onKeyDown);
 
-        this.onkeyupListener = (e) => {
+        const onKeyUp = (e: KeyboardEvent) => {
             this.keyPressState[e.key.toLowerCase()] = false;
         };
-        window.addEventListener("keyup", this.onkeyupListener);
+        window.addEventListener("keyup", onKeyUp);
 
-        this.onWheel = (e: WheelEvent) => {
+        const onWheel = (e: WheelEvent) => {
             e.preventDefault();
             const delta = e.deltaY < 0 ? ZOOM_STEP : -ZOOM_STEP;
             this.zoomLevel_ = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, this.zoomLevel_ + delta));
         };
-        this.target.on("wheel", this.onWheel, { passive: false });
+        this.target.on("wheel", onWheel, { passive: false });
 
-        this.onPointerMove = (e) => {
+        this.target.interactive = true;
+        const onPointerMove = (e: FederatedPointerEvent) => {
             this.pointerPosInGlobal.x = e.global.x;
             this.pointerPosInGlobal.z = e.global.y;
             this.updatePointerPositionInWorld();
         };
-        this.target.interactive = true;
-        this.target.on("pointermove", this.onPointerMove);
+        this.target.on("pointermove", onPointerMove);
 
-        this.onPointerDown = (e) => {
+        const onPointerDown = (e: FederatedPointerEvent) => {
             if (e.button === 2) { // 右クリック
                 this.pointerPosInGlobal.x = e.global.x;
                 this.pointerPosInGlobal.z = e.global.y;
@@ -86,30 +81,15 @@ export class Player {
                 interactWithTileCallback({ x, z });
             }
         };
-        this.target.on("pointerdown", this.onPointerDown);
-    }
+        this.target.on("pointerdown", onPointerDown);
 
-    removeListeners() {
-        if (this.onkeydownListener) {
-            window.removeEventListener("keydown", this.onkeydownListener);
-            this.onkeydownListener = null;
-        }
-        if (this.onkeyupListener) {
-            window.removeEventListener("keyup", this.onkeyupListener);
-            this.onkeyupListener = null;
-        }
-        if (this.onWheel) {
-            this.target.off("wheel", this.onWheel);
-            this.onWheel = null;
-        }
-        if (this.onPointerMove) {
-            this.target.off("pointermove", this.onPointerMove);
-            this.onPointerMove = null;
-        }
-        if (this.onPointerDown) {
-            this.target.off("pointerdown", this.onPointerDown);
-            this.onPointerDown = null;
-        }
+        return () => {
+            window.removeEventListener("keydown", onKeyDown);
+            window.removeEventListener("keyup", onKeyUp);
+            this.target.off("wheel", onWheel);
+            this.target.off("pointermove", onPointerMove);
+            this.target.off("pointerdown", onPointerDown);
+        };
     }
 
     tick(deltaMS: number) {
@@ -143,7 +123,7 @@ export class Player {
         this.updatePointerPositionInWorld();
     }
 
-    updatePointerPositionInWorld() {
+    private updatePointerPositionInWorld() {
         this.pointerPosInWorld.x =
             this.playerPosInWorld.x - this.tilePerViewport.x / 2 + (this.pointerPosInGlobal.x / (this.target.width * this.zoomLevel_)) * this.tilePerViewport.x;
         this.pointerPosInWorld.z =

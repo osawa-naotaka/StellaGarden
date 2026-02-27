@@ -2,15 +2,10 @@ import type { Pos2D } from "../lib/VoxelMap";
 import type { GameState } from "./GameState";
 import { ENTITY_TYPES, TERRAIN_TYPES, getEntityTypeFromVoxel, getTerrainTypeFromVoxel } from "./world/TerrainDefs";
 
-export class InteractionSystem {
-    private gameState: GameState;
-
-    constructor(gameState: GameState) {
-        this.gameState = gameState;
-    }
-
-    interact(pos: Pos2D): void {
-        const { voxelMap, player } = this.gameState;
+/** 選択中のツールに応じてタイルを操作するハンドラを生成して返す。 */
+export function createInteractionHandler(gameState: GameState): (pos: Pos2D) => void {
+    return (pos: Pos2D) => {
+        const { voxelMap, player } = gameState;
         const surfacePos = voxelMap.getSurfacePosition({ x: pos.x, y: 0, z: pos.z });
         const voxel = voxelMap.get(surfacePos);
         const tool = player.inventory.selectedTool;
@@ -39,5 +34,5 @@ export class InteractionSystem {
                 }
                 break;
         }
-    }
+    };
 }
