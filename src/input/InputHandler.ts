@@ -55,7 +55,7 @@ export class InputHandler {
 
                 const x = Math.floor(this.playerState.pointerPosInWorld.x);
                 const z = Math.floor(this.playerState.pointerPosInWorld.z);
-                this.eventBroker.publish("interact", { pos: { x, y: 0, z }, entity: 0 });
+                this.eventBroker.publish("interact", { pos: { x, z } });
             }
         };
         this.target.on("pointerdown", onPointerDown);
