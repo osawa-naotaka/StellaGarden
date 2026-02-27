@@ -1,38 +1,23 @@
-import alea from "alea";
-import { createNoise2D } from "simplex-noise";
-import type { Pos3D, VoxelMap } from "../lib/VoxelMap";
+import type { Pos3D } from "../../lib/VoxelMap";
+import { ENTITY_TYPES, TERRAIN_TYPES, getEntityTypeFromVoxel, getTerrainTypeFromVoxel } from "../../model/world/TerrainDefs";
 
-export const TERRAIN_TYPES = {
-    empty: 0,
-    water: 1,
-    grass: 2,
-    soil: 3,
-    wetSoil: 4,
-};
+// -----------------------------------------------------------------------------
+// 内部ヘルパー: 高さ配列 ↔ ID の変換
+// -----------------------------------------------------------------------------
 
-export const ENTITY_TYPES = {
-    none: 0,
-    tree: 1,
-};
-
-export function getTerrainTypeFromVoxel(voxel: number): number {
-    return voxel & 0x000000ff;
-}
-
-export function getEntityTypeFromVoxel(voxel: number): number {
-    return (voxel >> 8) & 0x000000ff;
-}
-
+/** 上下左右中の5点（インデックス 1,3,4,5,7）の高さから ID を計算する。 */
 function calcId5FromHights(hights: number[]): number {
     const idArr = [0, hights[1], 0, hights[3], hights[4], hights[5], 0, hights[7], 0];
     return idArr.reduce((prev, cur) => (prev << 2) | cur, 0);
 }
 
+/** Pos3D 配列の上下左右中の5点から ID を計算する。 */
 function calcId5FromPos3D(pos: Pos3D[]): number {
     const idArr = [0, pos[1].y, 0, pos[3].y, pos[4].y, pos[5].y, 0, pos[7].y, 0];
     return idArr.reduce((prev, cur) => (prev << 2) | cur, 0);
 }
 
+/** 5点 ID から高さ配列を復元する（デバッグ用）。 */
 function calcHightsFromId(id5: number): number[] {
     const hights: number[] = [];
     for (let i = 0; i < 9; i++) {
@@ -42,13 +27,19 @@ function calcHightsFromId(id5: number): number[] {
     return hights;
 }
 
+/** 9点すべての高さから ID を計算する。 */
 function calcId9FromHights(hights: number[]): number {
     return hights.reduce((prev, cur) => (prev << 2) | cur, 0);
 }
 
+/** Pos3D 配列の9点すべての高さから ID を計算する。 */
 function calcId9FromPos3D(pos: Pos3D[]): number {
     return pos.reduce((prev, cur) => (prev << 2) | cur.y, 0);
 }
+
+// -----------------------------------------------------------------------------
+// 草地スプライト名の解決
+// -----------------------------------------------------------------------------
 
 export function grassSpritesName(pos: Pos3D[], centerHight: number): string[] {
     const hightId5 = calcId5FromPos3D(pos);
@@ -235,6 +226,11 @@ export function grassWaterSpriteName1(hights: number): string {
     }
 }
 
+// -----------------------------------------------------------------------------
+// ボクセル → スプライト名の解決
+// -----------------------------------------------------------------------------
+
+/** ボクセルデータから地形タイルのスプライト名配列を返す。 */
 export function getTerrainSpriteNamesFromVoxel(voxel: number[], pos: Pos3D[]): string[] {
     const type = getTerrainTypeFromVoxel(voxel[4]);
     switch (type) {
@@ -260,6 +256,7 @@ export function getTerrainSpriteNamesFromVoxel(voxel: number[], pos: Pos3D[]): s
     }
 }
 
+/** ボクセル値からエンティティタイルのスプライト名を返す。エンティティなしの場合は null。 */
 export function getEntitySpriteNameFromVoxel(voxel: number): string | null {
     const type = getEntityTypeFromVoxel(voxel);
     switch (type) {
@@ -268,63 +265,6 @@ export function getEntitySpriteNameFromVoxel(voxel: number): string | null {
         case ENTITY_TYPES.tree:
             return "birch_tree_sapling";
         default:
-            throw new Error(`Unknown voxel type: ${type}`);
-    }
-}
-
-export function generateTerrain(map: VoxelMap): void {
-    const terrainNoise = createNoise2D(alea("terrain"));
-    const scale = 0.01; // スケールを小さくすると大きな地形に
-
-    // 地形生成
-    for (let z = 0; z < map.depth; z++) {
-        for (let x = 0; x < map.width; x++) {
-            const noiseValue = terrainNoise(x * scale, z * scale);
-            const h = Math.min(map.height - 1, Math.floor((noiseValue + 1) * 0.5 * map.height));
-            if (h < map.horizonHeight) {
-                for (let y = 0; y < h; y++) {
-                    map.set(TERRAIN_TYPES.soil, { x, y, z }); // soil
-                }
-                for (let y = h; y < map.horizonHeight; y++) {
-                    map.set(TERRAIN_TYPES.water, { x, y, z }); // water
-                }
-            } else {
-                for (let y = 0; y < h; y++) {
-                    map.set(TERRAIN_TYPES.grass, { x, y, z }); // grass
-                }
-                map.set(TERRAIN_TYPES.grass, { x, y: h, z }); // grass
-            }
-        }
-    }
-
-    // 樹木生成
-    const forestNoise = createNoise2D(alea("forest"));
-    const treeNoise = createNoise2D(alea("tree"));
-    const forestScale = 0.025; // 森のバイオーム（低周波）
-    const treeScale = 0.15; // 個別の木の配置（高周波）
-
-    for (let z = 0; z < map.depth; z++) {
-        for (let x = 0; x < map.width; x++) {
-            const forestValue = forestNoise(x * forestScale, z * forestScale);
-            const treeValue = treeNoise(x * treeScale, z * treeScale);
-
-            // 森のバイオーム判定
-            const isForestBiome = forestValue > 0.2;
-
-            // 木を配置する判定
-            const shouldPlaceTree = isForestBiome && treeValue > 0.3;
-
-            if (shouldPlaceTree) {
-                // 表面セルを取得
-                const pos = map.getSurfacePosition({ x, y: 0, z });
-                const terrain = map.get(pos);
-                // grass または soil の上にのみ配置
-                if (terrain === TERRAIN_TYPES.soil || terrain === TERRAIN_TYPES.grass) {
-                    // 表面セルと同じ位置に樹木を配置
-                    const newTerrain = terrain | 0x00000100;
-                    map.set(newTerrain, pos);
-                }
-            }
-        }
+            throw new Error(`Unknown entity type: ${type}`);
     }
 }

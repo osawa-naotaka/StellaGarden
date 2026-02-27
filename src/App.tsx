@@ -20,13 +20,23 @@ export default function App() {
         const preventContextMenu = (e: MouseEvent) => e.preventDefault();
         container.addEventListener("contextmenu", preventContextMenu);
 
+        let cancelled = false;
         let gameState: GameState | null = null;
 
         async function init() {
-            gameState = await createGameState({ x: 400, z: 400 }, { x: 6, z: 4 });
+            // createGameState の await 中にクリーンアップが走った場合に備えて
+            // cancelled フラグで検知し、生成済み GameState を即破棄する
+            const gs = await createGameState({ x: 400, z: 400 }, { x: 6, z: 4 });
+            if (cancelled) {
+                gs.pixiApp.destroy(true, { children: true });
+                return;
+            }
+            gameState = gs;
             container.appendChild(gameState.pixiApp.canvas);
 
             await loadSprite();
+            // loadSprite の await 中にクリーンアップが走った場合は中断する
+            if (!gameState) return;
 
             gameState.topView.initializeSprites();
             gameState.toolbar.initializeSprites();
@@ -48,7 +58,7 @@ export default function App() {
                 gameState.player.tick(ticker.deltaMS);
 
                 // タイル位置が変わった場合のみスプライトを更新
-                gameState.topView.updateViewport(gameState, gameState.player.playerPositionInWorld);
+                gameState.topView.updateViewport(gameState.player.playerPositionInWorld, gameState.player.pointerPositionInWorld);
                 gameState.worldContainer.scale.set(gameState.player.zoomLevel);
 
                 // デバッグテキスト更新
@@ -60,12 +70,13 @@ export default function App() {
 
         // クリーンアップ
         return () => {
+            cancelled = true;
             container.removeEventListener("contextmenu", preventContextMenu);
             if (gameState) {
                 window.removeEventListener("resize", gameState.toolbar.updateToolbarPosition);
                 gameState.player.removeListeners();
                 gameState.pixiApp.destroy(true, { children: true });
-                gameState = null;
+                gameState = null; // init() 内の !gameState チェックで二重破棄を防ぐ
             }
         };
     }, []);

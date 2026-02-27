@@ -1,25 +1,27 @@
 import type { Container, FederatedPointerEvent } from "pixi.js";
-import { CHUNK_RENDER_MARGIN } from "../lib/ChunkRenderer";
-import type { Pos2D } from "../lib/VoxelMap";
+import { CHUNK_RENDER_MARGIN } from "../../lib/ChunkRenderer";
+import type { Pos2D } from "../../lib/VoxelMap";
+import { Inventory } from "./Inventory";
 
 const MIN_ZOOM = 0.5;
 const MAX_ZOOM = 4.0;
 const ZOOM_STEP = 0.1;
+const MOVE_SPEED = 10; // タイル/秒
 
+/** プレイヤーのカメラ位置・ズーム・入力処理を担う。
+ *  ツールバーの状態は inventory に委譲している。 */
 export class Player {
+    readonly inventory: Inventory;
+
     private readonly target: Container;
+    private readonly worldSize: Pos2D;
+    private readonly tilePerViewport: Pos2D;
+
     private playerPosInWorld: Pos2D;
     private pointerPosInWorld: Pos2D = { x: 0, z: 0 };
     private pointerPosInGlobal: Pos2D = { x: 0, z: 0 };
-
-    private toolbarSlot = ["watering_can", "pickaxe", "axe", "sickle", "shovel", "hoes", "potato_icon", null, null] as const;
-    private selectedSlot = 0;
-
-    private worldSize: Pos2D;
-    private speed = 10; // タイル/秒
-    private zoom_level = 1.0;
+    private zoomLevel_ = 1.0;
     private keyPressState: Record<string, boolean> = {};
-    private tilePerViewport: Pos2D;
 
     private onkeydownListener: ((e: KeyboardEvent) => void) | null = null;
     private onkeyupListener: ((e: KeyboardEvent) => void) | null = null;
@@ -32,26 +34,19 @@ export class Player {
         this.playerPosInWorld = { x: opt.start.x, z: opt.start.z };
         this.worldSize = { x: opt.worldSize.x, z: opt.worldSize.z };
         this.tilePerViewport = { x: opt.tilePerViewport.x, z: opt.tilePerViewport.z };
+        this.inventory = new Inventory();
     }
 
-    get playerPositionInWorld() {
+    get playerPositionInWorld(): Pos2D {
         return this.playerPosInWorld;
     }
 
-    get zoomLevel() {
-        return this.zoom_level;
+    get zoomLevel(): number {
+        return this.zoomLevel_;
     }
 
-    get pointerPositionInWorld() {
+    get pointerPositionInWorld(): Pos2D {
         return this.pointerPosInWorld;
-    }
-
-    get toolbar() {
-        return this.toolbarSlot;
-    }
-
-    get slotSelected() {
-        return this.selectedSlot;
     }
 
     setListeners(interactWithTileCallback: (pos: Pos2D) => void) {
@@ -68,7 +63,7 @@ export class Player {
         this.onWheel = (e: WheelEvent) => {
             e.preventDefault();
             const delta = e.deltaY < 0 ? ZOOM_STEP : -ZOOM_STEP;
-            this.zoom_level = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, this.zoom_level + delta));
+            this.zoomLevel_ = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, this.zoomLevel_ + delta));
         };
         this.target.on("wheel", this.onWheel, { passive: false });
 
@@ -92,15 +87,6 @@ export class Player {
             }
         };
         this.target.on("pointerdown", this.onPointerDown);
-    }
-  
-    updatePointerPositionInWorld() {
-        this.pointerPosInWorld.x =
-            this.playerPosInWorld.x - this.tilePerViewport.x / 2 + (this.pointerPosInGlobal.x / (this.target.width * this.zoom_level)) * this.tilePerViewport.x;
-        this.pointerPosInWorld.z =
-            this.playerPosInWorld.z -
-            this.tilePerViewport.z / 2 +
-            (this.pointerPosInGlobal.z / (this.target.height * this.zoom_level)) * this.tilePerViewport.z;
     }
 
     removeListeners() {
@@ -126,12 +112,6 @@ export class Player {
         }
     }
 
-    selectToolbarSlot(index: number) {
-        if (index >= 0 && index < this.toolbarSlot.length) {
-            this.selectedSlot = index;
-        }
-    }
-
     tick(deltaMS: number) {
         let dx = 0;
         let dz = 0;
@@ -149,17 +129,26 @@ export class Player {
             }
 
             const dt = deltaMS / 1000;
-            // 移動後の位置を計算。マップの端で止まるようにする。
-            // チャンクを描画する際に、チャンクサイズよりCHUNK_RENDER_MARGINタイルだけ外側を参照する。そのため、+-CHUNK_RENDER_MARGINの余裕を持たせる。
+            // チャンク描画時に CHUNK_RENDER_MARGIN タイル分のマージンを確保するため、
+            // プレイヤー位置がその範囲内に収まるよう制限する。
             this.playerPosInWorld.x = Math.max(
                 this.tilePerViewport.x / 2 + CHUNK_RENDER_MARGIN + 1,
-                Math.min(this.worldSize.x - 1 - this.tilePerViewport.x / 2 - CHUNK_RENDER_MARGIN - 1, this.playerPosInWorld.x + dx * this.speed * dt),
+                Math.min(this.worldSize.x - 1 - this.tilePerViewport.x / 2 - CHUNK_RENDER_MARGIN - 1, this.playerPosInWorld.x + dx * MOVE_SPEED * dt),
             );
             this.playerPosInWorld.z = Math.max(
                 this.tilePerViewport.z / 2 + CHUNK_RENDER_MARGIN + 1,
-                Math.min(this.worldSize.z - 1 - this.tilePerViewport.z / 2 - CHUNK_RENDER_MARGIN - 1, this.playerPosInWorld.z + dz * this.speed * dt),
+                Math.min(this.worldSize.z - 1 - this.tilePerViewport.z / 2 - CHUNK_RENDER_MARGIN - 1, this.playerPosInWorld.z + dz * MOVE_SPEED * dt),
             );
         }
         this.updatePointerPositionInWorld();
+    }
+
+    updatePointerPositionInWorld() {
+        this.pointerPosInWorld.x =
+            this.playerPosInWorld.x - this.tilePerViewport.x / 2 + (this.pointerPosInGlobal.x / (this.target.width * this.zoomLevel_)) * this.tilePerViewport.x;
+        this.pointerPosInWorld.z =
+            this.playerPosInWorld.z -
+            this.tilePerViewport.z / 2 +
+            (this.pointerPosInGlobal.z / (this.target.height * this.zoomLevel_)) * this.tilePerViewport.z;
     }
 }

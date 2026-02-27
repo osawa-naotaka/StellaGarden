@@ -1,6 +1,6 @@
 import type { Pos2D } from "../lib/VoxelMap";
 import type { GameState } from "./GameState";
-import { ENTITY_TYPES, TERRAIN_TYPES, getEntityTypeFromVoxel, getTerrainTypeFromVoxel } from "./Terrain";
+import { ENTITY_TYPES, TERRAIN_TYPES, getEntityTypeFromVoxel, getTerrainTypeFromVoxel } from "./world/TerrainDefs";
 
 export class InteractionSystem {
     private gameState: GameState;
@@ -13,7 +13,7 @@ export class InteractionSystem {
         const { voxelMap, player } = this.gameState;
         const surfacePos = voxelMap.getSurfacePosition({ x: pos.x, y: 0, z: pos.z });
         const voxel = voxelMap.get(surfacePos);
-        const tool = player.toolbar[player.slotSelected];
+        const tool = player.inventory.selectedTool;
 
         switch (tool) {
             case "watering_can":

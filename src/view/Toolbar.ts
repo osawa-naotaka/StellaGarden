@@ -1,21 +1,21 @@
 import { Container, Graphics, Rectangle, Sprite, Texture } from "pixi.js";
-import type { Player } from "../model/Player";
+import type { Inventory } from "../model/player/Inventory";
 
 const CELL_SIZE = 32;
 const TOOLBAR_HEIGHT = CELL_SIZE;
 const ICON_SIZE = 16;
 
 export class Toolbar {
-    private player: Player;
+    private inventory: Inventory;
     private toolbar: Container;
     private slots: Container[];
     private selectedBorder: Graphics;
     private updateToolbarPositionFn: () => void;
     private toolbarWidth: number;
 
-    constructor(player: Player) {
-        this.player = player;
-        this.toolbarWidth = CELL_SIZE * player.toolbar.length;
+    constructor(inventory: Inventory) {
+        this.inventory = inventory;
+        this.toolbarWidth = CELL_SIZE * inventory.slots.length;
         this.toolbar = this.createToolbarContainer();
 
         this.selectedBorder = new Graphics();
@@ -30,7 +30,7 @@ export class Toolbar {
         // 各セルを作成
         this.slots = [];
 
-        for (let i = 0; i < this.player.toolbar.length; i++) {
+        for (let i = 0; i < this.inventory.slots.length; i++) {
             const slot = this.createSlot(i);
             this.toolbar.addChild(slot);
             this.slots.push(slot);
@@ -81,7 +81,7 @@ export class Toolbar {
 
         slot.on("pointerdown", (event) => {
             event.stopPropagation(); // イベントの伝播を止める
-            this.player.selectToolbarSlot(index);
+            this.inventory.selectSlot(index);
             this.selectedBorder.x = index * CELL_SIZE;
         });
 
@@ -93,8 +93,8 @@ export class Toolbar {
     }
 
     initializeSprites() {
-        for (let i = 0; i < this.player.toolbar.length; i++) {
-            const iconName = this.player.toolbar[i];
+        for (let i = 0; i < this.inventory.slots.length; i++) {
+            const iconName = this.inventory.slots[i];
             if (iconName) {
                 const slot = this.slots[i];
                 const sprite = new Sprite(Texture.from(iconName));

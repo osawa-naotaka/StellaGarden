@@ -1,120 +1,133 @@
 import { type Application, Container, Graphics, RenderTexture, type Texture } from "pixi.js";
-import type { GameState } from "../model/GameState";
 import { Tile } from "../view/Tile";
 import type { Pos2D, Pos3D, VoxelMap } from "./VoxelMap";
 
-export const CHUNK_RENDER_MARGIN = 2; // チャンクのタイル数に対して、ビューポート端で部分的に見えるタイルを考慮して余分に描画するタイル数
+export const CHUNK_RENDER_MARGIN = 2;
+
+/** チャンクの各タイルにスプライトを設定するコールバック型。
+ *  neighborVoxels / neighborPositions は 3x3 の近傍データ（中心 = インデックス4）。 */
+export type SetupTileFn = (tile: Tile, neighborVoxels: number[], neighborPositions: Pos3D[]) => void;
 
 export class ChunkRenderer {
-    private app: Application;
-    private pixelPerTile: number;
-    private tilePerChunk: number;
-    private numRenderTextures: number;
+    private readonly app: Application;
+    private readonly pixelPerTile: number;
+    private readonly tilePerChunk: number;
 
-    private renderTexturePool: RenderTexture[] = [];
-    private voxelPool: number[] = [];
-    private surfacePosPool: Pos3D[] = [];
-    private tilePool: Tile[] = [];
-    private chunkContainer: Container;
+    private readonly renderTexturePool: RenderTexture[] = [];
+    private readonly tilePool: Tile[] = [];
+    private readonly chunkContainer: Container;
+
+    // ボクセル参照テーブル（近傍参照のため描画範囲より広く確保）
+    private readonly voxelLookup: number[];
+    private readonly positionLookup: Pos3D[];
+
+    // 各タイルの 3x3 近傍バッファ（renderChunk 内で使い回すためクラスフィールドに置く）
+    private readonly neighborVoxels = new Array<number>(9);
+    private readonly neighborPositions = new Array<Pos3D>(9);
 
     constructor(app: Application, opt: { pixelPerTile?: number; tilePerChunk?: number; numRenderTextures?: number }) {
         this.app = app;
-        this.pixelPerTile = opt.pixelPerTile || 16;
-        this.tilePerChunk = opt.tilePerChunk || 16;
-        this.numRenderTextures = opt.numRenderTextures || 16;
-        this.chunkContainer = new Container();
-        this.initializePool();
-    }
+        this.pixelPerTile = opt.pixelPerTile ?? 16;
+        this.tilePerChunk = opt.tilePerChunk ?? 16;
+        const numRenderTextures = opt.numRenderTextures ?? 16;
 
-    private initializePool() {
-        const edgeLen = this.tilePerChunk + 2 * CHUNK_RENDER_MARGIN; // チャンク内のタイル数 + ビューポート端で部分的に見えるタイル数
-        for (let i = 0; i < edgeLen * edgeLen; i++) {
+        this.chunkContainer = new Container();
+
+        // drawEdge: マージン込みの描画範囲の辺のタイル数
+        const drawEdge = this.tilePerChunk + 2 * CHUNK_RENDER_MARGIN;
+        // lookupEdge: 近傍参照のためにさらに各辺 1 タイル拡張した参照テーブルの辺のタイル数
+        const lookupEdge = drawEdge + 2;
+
+        for (let i = 0; i < drawEdge * drawEdge; i++) {
             const tile = new Tile();
             tile.setDebugFrame(this.pixelPerTile, 0x0000ff);
             this.chunkContainer.addChild(tile.top);
             this.tilePool.push(tile);
         }
 
-        const voxelPoolSize = (edgeLen + 2) * (edgeLen + 2); // タイル数 + チャンク描画時に参照する周囲のタイル数
-        this.voxelPool = new Array(voxelPoolSize).fill(0);
-        this.surfacePosPool = new Array(voxelPoolSize).fill({ x: 0, y: 0, z: 0 });
+        this.voxelLookup = new Array(lookupEdge * lookupEdge).fill(0);
+        this.positionLookup = new Array(lookupEdge * lookupEdge).fill({ x: 0, y: 0, z: 0 });
 
-        for (let i = 0; i < this.numRenderTextures; i++) {
-            const renderTexture = RenderTexture.create({
-                width: this.tilePerChunk * this.pixelPerTile,
-                height: this.tilePerChunk * this.pixelPerTile,
-            });
-            this.renderTexturePool.push(renderTexture);
+        for (let i = 0; i < numRenderTextures; i++) {
+            this.renderTexturePool.push(
+                RenderTexture.create({
+                    width: this.tilePerChunk * this.pixelPerTile,
+                    height: this.tilePerChunk * this.pixelPerTile,
+                }),
+            );
         }
 
-        // debug frame for chunk boundary
-        const chunkFrameDebug = new Graphics();
-        chunkFrameDebug.rect(0, 0, this.pixelPerTile * this.tilePerChunk, this.pixelPerTile * this.tilePerChunk);
-        chunkFrameDebug.stroke({ width: 2, color: 0xff0000 });
-        this.chunkContainer.addChild(chunkFrameDebug);
+        // デバッグ用チャンク境界線
+        const debugFrame = new Graphics();
+        debugFrame.rect(0, 0, this.pixelPerTile * this.tilePerChunk, this.pixelPerTile * this.tilePerChunk);
+        debugFrame.stroke({ width: 2, color: 0xff0000 });
+        this.chunkContainer.addChild(debugFrame);
     }
 
-    renderChunk(
-        gameState: GameState,
-        voxelMap: VoxelMap,
-        world: Pos2D,
-        renderTextureIndex: number,
-        setupSpriteFn: (gameState: GameState, tile: Tile, voxel: number[], position: Pos3D[]) => void,
-    ): Texture {
-        this.resetTilePoolVisibility();
+    /**
+     * チャンク 1 枚を RenderTexture に描画して返す。
+     * @param voxelMap ボクセルデータ
+     * @param world チャンク左上のワールド座標（タイル単位、小数可）
+     * @param renderTextureIndex 使用する RenderTexture のインデックス
+     * @param setupTile タイルのスプライトを設定するコールバック
+     */
+    renderChunk(voxelMap: VoxelMap, world: Pos2D, renderTextureIndex: number, setupTile: SetupTileFn): Texture {
+        this.clearTiles();
         const renderTexture = this.renderTexturePool[renderTextureIndex];
 
-        // チャンク内のタイルは、CHUNK_RENDER_MARGINタイル分の余白を持たせて描画する（ビューポート端のタイルが一部分だけ見えるケースに対応するため）
+        // Step 1: ボクセル参照テーブルを構築
+        // 描画範囲より 1 タイル広い範囲を取得して、端タイルの近傍参照に備える
         for (let col = -CHUNK_RENDER_MARGIN - 1; col < this.tilePerChunk + CHUNK_RENDER_MARGIN + 1; col++) {
             for (let row = -CHUNK_RENDER_MARGIN - 1; row < this.tilePerChunk + CHUNK_RENDER_MARGIN + 1; row++) {
-                const x = Math.floor(world.x) + row;
-                const z = Math.floor(world.z) + col;
-
-                const position = voxelMap.getSurfacePosition({ x, y: 0, z });
-                const voxel = voxelMap.get(position);
-                this.voxelPool[this.voxelPoolPositionToIndex(row, col)] = voxel;
-                this.surfacePosPool[this.voxelPoolPositionToIndex(row, col)] = position;
+                const pos = voxelMap.getSurfacePosition({ x: Math.floor(world.x) + row, y: 0, z: Math.floor(world.z) + col });
+                const idx = this.lookupIndex(row, col);
+                this.positionLookup[idx] = pos;
+                this.voxelLookup[idx] = voxelMap.get(pos);
             }
         }
 
-        const voxelBuf = new Array(3 * 3);
-        const surfacePosBuf = new Array(3 * 3);
-
+        // Step 2: 各タイルの位置を設定し、コールバックでスプライトを構成する
         for (let col = -CHUNK_RENDER_MARGIN; col < this.tilePerChunk + CHUNK_RENDER_MARGIN; col++) {
             for (let row = -CHUNK_RENDER_MARGIN; row < this.tilePerChunk + CHUNK_RENDER_MARGIN; row++) {
-                const tile = this.tilePool[this.tilePositionToIndex(row, col)];
+                const tile = this.tilePool[this.tileIndex(row, col)];
                 tile.sprites[0].visible = true;
                 tile.top.x = row * this.pixelPerTile - (world.x % 1) * this.pixelPerTile;
                 tile.top.y = col * this.pixelPerTile - (world.z % 1) * this.pixelPerTile;
 
-                for (let y = -1; y <= 1; y++) {
-                    for (let x = -1; x <= 1; x++) {
-                        const checkX = row + x;
-                        const checkZ = col + y;
-                        surfacePosBuf[(y + 1) * 3 + (x + 1)] = this.surfacePosPool[this.voxelPoolPositionToIndex(checkX, checkZ)];
-                        voxelBuf[(y + 1) * 3 + (x + 1)] = this.voxelPool[this.voxelPoolPositionToIndex(checkX, checkZ)];
+                // 3x3 近傍のボクセル情報をバッファに詰める（中心 = インデックス 4）
+                for (let dy = -1; dy <= 1; dy++) {
+                    for (let dx = -1; dx <= 1; dx++) {
+                        const ni = (dy + 1) * 3 + (dx + 1);
+                        const li = this.lookupIndex(row + dx, col + dy);
+                        this.neighborVoxels[ni] = this.voxelLookup[li];
+                        this.neighborPositions[ni] = this.positionLookup[li];
                     }
                 }
-                setupSpriteFn(gameState, tile, voxelBuf, surfacePosBuf);
+
+                setupTile(tile, this.neighborVoxels, this.neighborPositions);
             }
         }
 
+        // Step 3: chunkContainer を RenderTexture に焼き付ける
         this.app.renderer.render({ container: this.chunkContainer, target: renderTexture, clear: true });
         return renderTexture;
     }
 
-    private resetTilePoolVisibility() {
+    private clearTiles() {
         for (const tile of this.tilePool) {
             tile.init();
         }
     }
 
-    private voxelPoolPositionToIndex(row: number, col: number): number {
-        return (col + CHUNK_RENDER_MARGIN + 1) * (this.tilePerChunk + 2 * CHUNK_RENDER_MARGIN + 2) + (row + CHUNK_RENDER_MARGIN + 1);
+    /** ボクセル参照テーブル用インデックス（lookupEdge × lookupEdge の行列） */
+    private lookupIndex(row: number, col: number): number {
+        const stride = this.tilePerChunk + 2 * CHUNK_RENDER_MARGIN + 2;
+        return (col + CHUNK_RENDER_MARGIN + 1) * stride + (row + CHUNK_RENDER_MARGIN + 1);
     }
 
-    private tilePositionToIndex(row: number, col: number): number {
-        // rowとcolは-CHUNK_RENDER_MARGIN-1からTILE_PER_CHUNK + CHUNK_RENDER_MARGIN+1までの範囲を取るため、インデックスに変換する際に+CHUNK_RENDER_MARGIN+1して0から始まるようにする
-        return (col + CHUNK_RENDER_MARGIN) * (this.tilePerChunk + 2 * CHUNK_RENDER_MARGIN) + (row + CHUNK_RENDER_MARGIN);
+    /** タイルプール用インデックス（drawEdge × drawEdge の行列） */
+    private tileIndex(row: number, col: number): number {
+        const stride = this.tilePerChunk + 2 * CHUNK_RENDER_MARGIN;
+        return (col + CHUNK_RENDER_MARGIN) * stride + (row + CHUNK_RENDER_MARGIN);
     }
 }

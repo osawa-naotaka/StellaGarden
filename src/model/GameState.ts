@@ -3,8 +3,8 @@ import { createEventBroker, type EventBroker, type EvTopicPacketMap } from "../l
 import { type Pos2D, VoxelMap } from "../lib/VoxelMap";
 import { Toolbar } from "../view/Toolbar";
 import { TopView } from "../view/TopView";
-import { Player } from "./Player";
-import { generateTerrain } from "./Terrain";
+import { Player } from "./player/Player";
+import { generateTerrain } from "./world/TerrainGenerator";
 
 const PIXEL_PER_TILE = 16; // タイル1枚のサイズ（ピクセル）。スプライトのサイズと一致させる必要がある。
 const TILE_PER_CHUNK = 16; // チャンクのタイル数
@@ -91,7 +91,7 @@ export async function createGameState(worldSize: Pos2D, chunkPerViewport: Pos2D)
         tilePerViewport: { x: chunkPerViewport.x * TILE_PER_CHUNK, z: chunkPerViewport.z * TILE_PER_CHUNK },
     });
 
-    const toolbar = new Toolbar(player);
+    const toolbar = new Toolbar(player.inventory);
     pixiApp.stage.addChild(toolbar.top);
 
     return new GameState({ pixiApp, voxelMap, worldContainer, topView, toolbar, player });
