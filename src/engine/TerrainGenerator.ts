@@ -1,6 +1,6 @@
 import alea from "alea";
 import { createNoise2D } from "simplex-noise";
-import type { VoxelMap } from "../../lib/VoxelMap";
+import type { VoxelMap } from "../lib/VoxelMap";
 import { ENTITY_TYPES, TERRAIN_TYPES } from "./TerrainDefs";
 
 /** シンプレックスノイズで地形と樹木を生成し、VoxelMap に書き込む。 */

@@ -1,5 +1,5 @@
 import type { Pos3D } from "../../lib/VoxelMap";
-import { ENTITY_TYPES, TERRAIN_TYPES, getEntityTypeFromVoxel, getTerrainTypeFromVoxel } from "../../model/world/TerrainDefs";
+import { ENTITY_TYPES, TERRAIN_TYPES, getEntityTypeFromVoxel, getTerrainTypeFromVoxel } from "../../engine/TerrainDefs";
 
 // -----------------------------------------------------------------------------
 // 内部ヘルパー: 高さ配列 ↔ ID の変換

@@ -1,5 +1,5 @@
 import { Container, Graphics, Rectangle, Sprite, Texture } from "pixi.js";
-import type { Inventory } from "../model/player/Inventory";
+import type { Inventory } from "../engine/Inventory";
 
 const CELL_SIZE = 32;
 const TOOLBAR_HEIGHT = CELL_SIZE;

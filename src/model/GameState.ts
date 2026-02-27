@@ -1,10 +1,11 @@
 import { Application, Container, TextureSource } from "pixi.js";
-import { createEventBroker, type EventBroker, type EvTopicPacketMap } from "../lib/Event";
+import { PlayerState } from "../engine/PlayerState";
+import type { GameEventMap } from "../engine/Events";
+import { createEventBroker, type EventBroker } from "../lib/Event";
 import { type Pos2D, VoxelMap } from "../lib/VoxelMap";
 import { Toolbar } from "../view/Toolbar";
 import { TopView } from "../view/TopView";
-import { Player } from "./player/Player";
-import { generateTerrain } from "./world/TerrainGenerator";
+import { generateTerrain } from "../engine/TerrainGenerator";
 
 const PIXEL_PER_TILE = 16; // タイル1枚のサイズ（ピクセル）。スプライトのサイズと一致させる必要がある。
 const TILE_PER_CHUNK = 16; // チャンクのタイル数
@@ -15,8 +16,8 @@ export class GameState {
     readonly voxelMap: VoxelMap;
     readonly topView: TopView;
     readonly toolbar: Toolbar;
-    readonly player: Player;
-    readonly eventBroker: EventBroker<EvTopicPacketMap>;
+    readonly playerState: PlayerState;
+    readonly eventBroker: EventBroker<GameEventMap>;
 
     constructor(opt: {
         pixiApp: Application;
@@ -24,15 +25,15 @@ export class GameState {
         worldContainer: Container;
         topView: TopView;
         toolbar: Toolbar;
-        player: Player;
+        playerState: PlayerState;
     }) {
         this.pixiApp = opt.pixiApp;
         this.voxelMap = opt.voxelMap;
         this.worldContainer = opt.worldContainer;
         this.topView = opt.topView;
         this.toolbar = opt.toolbar;
-        this.player = opt.player;
-        this.eventBroker = createEventBroker<EvTopicPacketMap>(this);
+        this.playerState = opt.playerState;
+        this.eventBroker = createEventBroker<GameEventMap>();
     }
 }
 
@@ -54,15 +55,14 @@ export async function createGameState(worldSize: Pos2D, chunkPerViewport: Pos2D)
     const topView = new TopView(voxelMap, pixiApp, { pixelPerTile: PIXEL_PER_TILE, tilePerChunk: TILE_PER_CHUNK, chunkPerViewport });
     worldContainer.addChild(topView.top);
 
-    // 100x100スタート（タイル換算）
-    const player = new Player(topView.top, {
+    const playerState = new PlayerState({
         start: { x: 200, z: 200 },
         worldSize,
         tilePerViewport: { x: chunkPerViewport.x * TILE_PER_CHUNK, z: chunkPerViewport.z * TILE_PER_CHUNK },
     });
 
-    const toolbar = new Toolbar(player.inventory);
+    const toolbar = new Toolbar(playerState.inventory);
     pixiApp.stage.addChild(toolbar.top);
 
-    return new GameState({ pixiApp, voxelMap, worldContainer, topView, toolbar, player });
+    return new GameState({ pixiApp, voxelMap, worldContainer, topView, toolbar, playerState });
 }

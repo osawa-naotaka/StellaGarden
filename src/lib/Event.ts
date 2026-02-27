@@ -1,24 +1,8 @@
-import type { GameState } from "../model/GameState";
-import type { Pos3D } from "./VoxelMap";
-
 // -----------------------------------------------------------------------------
-// イベント型
+// 汎用イベントブローカー（ゲームロジックに依存しない）
 // -----------------------------------------------------------------------------
 
-export type EvTopicLabel = keyof EvTopicPacketMap;
-
-export type EvNoArgPacket = Record<string, never>;
-
-export type EvTopicPacketMap = {
-    interact: { pos: Pos3D; entity: number };
-    select_slot: { slotIndex: number };
-};
-
-// -----------------------------------------------------------------------------
-// イベントブローカー
-// -----------------------------------------------------------------------------
-
-export type OnEventListener<E, T extends keyof E> = (state: GameState, packet: E[T]) => void;
+export type OnEventListener<E, T extends keyof E> = (packet: E[T]) => void;
 
 export type PublishEvent<E> = <T extends keyof E>(topic: T, packet: E[T]) => void;
 export type SubscribeEvent<E> = <T extends keyof E>(topic: T, listener: OnEventListener<E, T>) => () => void;
@@ -28,7 +12,7 @@ export type EventBroker<E> = {
     subscribe: SubscribeEvent<E>;
 };
 
-export function createEventBroker<E>(gameState: GameState): EventBroker<E> {
+export function createEventBroker<E>(): EventBroker<E> {
     const listeners: { [key in keyof E]?: Set<OnEventListener<E, key>> } = {};
 
     function subscribe<T extends keyof E>(topic: T, listener: OnEventListener<E, T>) {
@@ -42,11 +26,10 @@ export function createEventBroker<E>(gameState: GameState): EventBroker<E> {
     }
 
     function publish<T extends keyof E>(topic: T, packet: E[T]): void {
-        console.log(`EventBroker: publish topic="${topic.toString()}", packet=`, packet);
         const topic_listeners = listeners[topic];
         if (topic_listeners) {
             for (const listener of topic_listeners) {
-                listener(gameState, packet);
+                listener(packet);
             }
         }
     }

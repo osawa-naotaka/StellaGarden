@@ -1,14 +1,19 @@
-import type { Pos2D } from "../lib/VoxelMap";
-import type { GameState } from "./GameState";
-import { ENTITY_TYPES, TERRAIN_TYPES, getEntityTypeFromVoxel, getTerrainTypeFromVoxel } from "./world/TerrainDefs";
+import type { Inventory } from "../engine/Inventory";
+import { ENTITY_TYPES, TERRAIN_TYPES, getEntityTypeFromVoxel, getTerrainTypeFromVoxel } from "../engine/TerrainDefs";
+import type { GameEventMap } from "../engine/Events";
+import type { EventBroker } from "../lib/Event";
+import type { VoxelMap } from "../lib/VoxelMap";
 
-/** 選択中のツールに応じてタイルを操作するハンドラを生成して返す。 */
-export function createInteractionHandler(gameState: GameState): (pos: Pos2D) => void {
-    return (pos: Pos2D) => {
-        const { voxelMap, player } = gameState;
-        const surfacePos = voxelMap.getSurfacePosition({ x: pos.x, y: 0, z: pos.z });
+/** 選択中のツールに応じてタイルを操作するハンドラを EventBroker に登録し、解除用の dispose 関数を返す。 */
+export function createInteractionHandler(
+    voxelMap: VoxelMap,
+    inventory: Inventory,
+    eventBroker: EventBroker<GameEventMap>,
+): () => void {
+    return eventBroker.subscribe("interact", (packet) => {
+        const surfacePos = voxelMap.getSurfacePosition({ x: packet.pos.x, y: 0, z: packet.pos.z });
         const voxel = voxelMap.get(surfacePos);
-        const tool = player.inventory.selectedTool;
+        const tool = inventory.selectedTool;
 
         switch (tool) {
             case "watering_can":
@@ -34,5 +39,5 @@ export function createInteractionHandler(gameState: GameState): (pos: Pos2D) => 
                 }
                 break;
         }
-    };
+    });
 }

@@ -1,7 +1,8 @@
 import { useEffect, useRef } from "react";
 import type { GameState } from "./model/GameState";
 import { createGameState } from "./model/GameState";
-import { createInteractionHandler } from "./model/InteractionSystem";
+import { InputHandler } from "./input/InputHandler";
+import { createInteractionHandler } from "./input/InteractionSystem";
 import { DebugText } from "./view/DebugText";
 import { loadSprite } from "./view/Sprite";
 import type { Pos2D } from "./lib/VoxelMap";
@@ -21,6 +22,7 @@ function useGameEngine(worldSize: Pos2D, chunkPerViewport: Pos2D) {
         let cancelled = false;
         let gameState: GameState | null = null;
         let disposeListeners: (() => void) | null = null;
+        let disposeInteraction: (() => void) | null = null;
 
         async function init() {
             // createGameState の await 中にクリーンアップが走った場合に備えて
@@ -40,11 +42,15 @@ function useGameEngine(worldSize: Pos2D, chunkPerViewport: Pos2D) {
             gameState.topView.initializeSprites();
             gameState.toolbar.initializeSprites();
 
-            const interact = createInteractionHandler(gameState);
-            disposeListeners = gameState.player.setListeners(interact);
+            const { playerState, voxelMap, eventBroker, topView } = gameState;
+
+            disposeInteraction = createInteractionHandler(voxelMap, playerState.inventory, eventBroker);
+
+            const inputHandler = new InputHandler(topView.top, playerState, eventBroker);
+            disposeListeners = inputHandler.setListeners();
 
             // デバッグテキスト（左上に主人公のXZ座標を表示）
-            const debugText = new DebugText(gameState);
+            const debugText = new DebugText(playerState);
             gameState.pixiApp.stage.addChild(debugText.textView);
 
             // ウィンドウリサイズ時にツールバーの位置を更新
@@ -54,11 +60,11 @@ function useGameEngine(worldSize: Pos2D, chunkPerViewport: Pos2D) {
             gameState.pixiApp.ticker.add((ticker) => {
                 if (!gameState) return;
 
-                gameState.player.tick(ticker.deltaMS);
+                inputHandler.tick(ticker.deltaMS);
 
                 // タイル位置が変わった場合のみスプライトを更新
-                gameState.topView.updateViewport(gameState.player.playerPositionInWorld, gameState.player.pointerPositionInWorld);
-                gameState.worldContainer.scale.set(gameState.player.zoomLevel);
+                gameState.topView.updateViewport(playerState.posInWorld, playerState.pointerPosInWorld);
+                gameState.worldContainer.scale.set(playerState.zoomLevel);
 
                 // デバッグテキスト更新
                 debugText.update();
@@ -74,6 +80,7 @@ function useGameEngine(worldSize: Pos2D, chunkPerViewport: Pos2D) {
             if (gameState) {
                 window.removeEventListener("resize", gameState.toolbar.updateToolbarPosition);
                 disposeListeners?.();
+                disposeInteraction?.();
                 gameState.pixiApp.destroy(true, { children: true });
                 gameState = null; // init() 内の !gameState チェックで二重破棄を防ぐ
             }

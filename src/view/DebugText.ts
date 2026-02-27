@@ -1,12 +1,12 @@
 import { BitmapText } from "pixi.js";
-import type { GameState } from "../model/GameState";
+import type { PlayerState } from "../engine/PlayerState";
 
 export class DebugText {
     private textObject: BitmapText;
-    private gameState: GameState;
+    private playerState: PlayerState;
 
-    constructor(gameState: GameState) {
-        this.gameState = gameState;
+    constructor(playerState: PlayerState) {
+        this.playerState = playerState;
         this.textObject = new BitmapText({
             text: this.getText(),
             style: {
@@ -28,6 +28,6 @@ export class DebugText {
     }
 
     private getText() {
-        return `X: ${this.gameState.player.playerPositionInWorld.x.toFixed(1)}, Z: ${this.gameState.player.playerPositionInWorld.z.toFixed(1)}\nZoom: ${this.gameState.player.zoomLevel.toFixed(2)}\nPointer: (${this.gameState.player.pointerPositionInWorld.x.toFixed(1)}, ${this.gameState.player.pointerPositionInWorld.z.toFixed(1)})`;
+        return `X: ${this.playerState.posInWorld.x.toFixed(1)}, Z: ${this.playerState.posInWorld.z.toFixed(1)}\nZoom: ${this.playerState.zoomLevel.toFixed(2)}\nPointer: (${this.playerState.pointerPosInWorld.x.toFixed(1)}, ${this.playerState.pointerPosInWorld.z.toFixed(1)})`;
     }
 }
