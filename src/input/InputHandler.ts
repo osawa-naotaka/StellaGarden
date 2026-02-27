@@ -1,8 +1,8 @@
 import type { Container, FederatedPointerEvent } from "pixi.js";
+import type { GameEventMap } from "../engine/Events";
 import type { PlayerState } from "../engine/PlayerState";
 import { ZOOM_STEP } from "../engine/PlayerState";
 import type { EventBroker } from "../lib/Event";
-import type { GameEventMap } from "../engine/Events";
 
 /** キーボード・マウスイベントを受け取り、PlayerState を更新する。
  *  インタラクションは EventBroker 経由で通知する。 */
@@ -48,7 +48,8 @@ export class InputHandler {
         this.target.on("pointermove", onPointerMove);
 
         const onPointerDown = (e: FederatedPointerEvent) => {
-            if (e.button === 2) { // 右クリック
+            if (e.button === 2) {
+                // 右クリック
                 this.pointerPosInGlobal.x = e.global.x;
                 this.pointerPosInGlobal.z = e.global.y;
                 this.updatePointerPosInWorld();
@@ -92,12 +93,8 @@ export class InputHandler {
 
     private updatePointerPosInWorld(): void {
         const { posInWorld, tilePerViewport, zoomLevel } = this.playerState;
-        const x =
-            posInWorld.x - tilePerViewport.x / 2 +
-            (this.pointerPosInGlobal.x / (this.target.width * zoomLevel)) * tilePerViewport.x;
-        const z =
-            posInWorld.z - tilePerViewport.z / 2 +
-            (this.pointerPosInGlobal.z / (this.target.height * zoomLevel)) * tilePerViewport.z;
+        const x = posInWorld.x - tilePerViewport.x / 2 + (this.pointerPosInGlobal.x / (this.target.width * zoomLevel)) * tilePerViewport.x;
+        const z = posInWorld.z - tilePerViewport.z / 2 + (this.pointerPosInGlobal.z / (this.target.height * zoomLevel)) * tilePerViewport.z;
         this.playerState.setPointerPosInWorld(x, z);
     }
 }

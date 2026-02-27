@@ -1,6 +1,6 @@
-import type { Inventory } from "../engine/Inventory";
-import { ENTITY_TYPES, TERRAIN_TYPES, getEntityTypeFromVoxel, getTerrainTypeFromVoxel } from "../engine/TerrainDefs";
 import type { GameEventMap } from "../engine/Events";
+import type { Inventory } from "../engine/Inventory";
+import { ENTITY_TYPES, getEntityTypeFromVoxel, getTerrainTypeFromVoxel, TERRAIN_TYPES } from "../engine/TerrainDefs";
 import type { EventBroker } from "../lib/Event";
 import type { VoxelMap } from "../lib/VoxelMap";
 
@@ -23,11 +23,7 @@ function isFlat3x3(voxelMap: VoxelMap, centerX: number, centerZ: number, centerY
 }
 
 /** 選択中のツールに応じてタイルを操作するハンドラを EventBroker に登録し、解除用の dispose 関数を返す。 */
-export function createInteractionHandler(
-    voxelMap: VoxelMap,
-    inventory: Inventory,
-    eventBroker: EventBroker<GameEventMap>,
-): () => void {
+export function createInteractionHandler(voxelMap: VoxelMap, inventory: Inventory, eventBroker: EventBroker<GameEventMap>): () => void {
     return eventBroker.subscribe("interact", (packet) => {
         const surfacePos = voxelMap.getSurfacePosition({ x: packet.pos.x, y: 0, z: packet.pos.z });
         const voxel = voxelMap.get(surfacePos);

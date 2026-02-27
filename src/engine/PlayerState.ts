@@ -42,17 +42,11 @@ export class PlayerState {
         const dt = deltaMS / 1000;
         this.posInWorld_.x = Math.max(
             this.tilePerViewport.x / 2 + CHUNK_RENDER_MARGIN + 1,
-            Math.min(
-                this.worldSize.x - 1 - this.tilePerViewport.x / 2 - CHUNK_RENDER_MARGIN - 1,
-                this.posInWorld_.x + dx * MOVE_SPEED * dt,
-            ),
+            Math.min(this.worldSize.x - 1 - this.tilePerViewport.x / 2 - CHUNK_RENDER_MARGIN - 1, this.posInWorld_.x + dx * MOVE_SPEED * dt),
         );
         this.posInWorld_.z = Math.max(
             this.tilePerViewport.z / 2 + CHUNK_RENDER_MARGIN + 1,
-            Math.min(
-                this.worldSize.z - 1 - this.tilePerViewport.z / 2 - CHUNK_RENDER_MARGIN - 1,
-                this.posInWorld_.z + dz * MOVE_SPEED * dt,
-            ),
+            Math.min(this.worldSize.z - 1 - this.tilePerViewport.z / 2 - CHUNK_RENDER_MARGIN - 1, this.posInWorld_.z + dz * MOVE_SPEED * dt),
         );
     }
 

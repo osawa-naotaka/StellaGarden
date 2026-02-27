@@ -1,11 +1,11 @@
 import { useEffect, useRef } from "react";
-import type { GameState } from "./model/GameState";
-import { createGameState } from "./model/GameState";
 import { InputHandler } from "./input/InputHandler";
 import { createInteractionHandler } from "./input/InteractionSystem";
+import type { Pos2D } from "./lib/VoxelMap";
+import type { GameState } from "./model/GameState";
+import { createGameState } from "./model/GameState";
 import { DebugText } from "./view/DebugText";
 import { loadSprite } from "./view/Sprite";
-import type { Pos2D } from "./lib/VoxelMap";
 
 function useGameEngine(worldSize: Pos2D, chunkPerViewport: Pos2D) {
     const containerRef = useRef<HTMLDivElement>(null);

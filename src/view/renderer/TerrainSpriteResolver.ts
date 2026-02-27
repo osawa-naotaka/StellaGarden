@@ -1,5 +1,5 @@
+import { ENTITY_TYPES, getEntityTypeFromVoxel, getTerrainTypeFromVoxel, TERRAIN_TYPES } from "../../engine/TerrainDefs";
 import type { Pos3D } from "../../lib/VoxelMap";
-import { ENTITY_TYPES, TERRAIN_TYPES, getEntityTypeFromVoxel, getTerrainTypeFromVoxel } from "../../engine/TerrainDefs";
 
 // -----------------------------------------------------------------------------
 // 内部ヘルパー: 高さ配列 ↔ ID の変換
@@ -49,7 +49,7 @@ function calcId9FromVoxel(voxelIsSoil: number[]): number {
 export function soilSpriteName(pos: Pos3D[], centerHight: number, voxel: number[]): string[] {
     const baseSprites = grassSpritesName(pos, centerHight);
 
-    const voxelIsSoil = voxel.map((v) => getTerrainTypeFromVoxel(v) === TERRAIN_TYPES.soil || getTerrainTypeFromVoxel(v) === TERRAIN_TYPES.wetSoil ? 1 : 0);
+    const voxelIsSoil = voxel.map((v) => (getTerrainTypeFromVoxel(v) === TERRAIN_TYPES.soil || getTerrainTypeFromVoxel(v) === TERRAIN_TYPES.wetSoil ? 1 : 0));
 
     const soilId5 = calcId5FromVoxel(voxelIsSoil);
     const soilId9 = calcId9FromVoxel(voxelIsSoil);
@@ -118,7 +118,6 @@ export function soilSpriteName(pos: Pos3D[], centerHight: number, voxel: number[
         case calcId9FromHights([1, 1, 1, 1, 1, 1, 0, 1, 0]):
             return [...baseSprites, "soil_normal_0_5_14"];
 
-
         default:
             break;
     }
@@ -165,7 +164,7 @@ export function soilSpriteName(pos: Pos3D[], centerHight: number, voxel: number[
 
 function wetSoilSpriteName(pos: Pos3D[], centerHight: number, voxel: number[]): string[] {
     const baseSprites = soilSpriteName(pos, centerHight, voxel);
-    const voxelIsWetSoil = voxel.map((v) => getTerrainTypeFromVoxel(v) === TERRAIN_TYPES.wetSoil ? 1 : 0);
+    const voxelIsWetSoil = voxel.map((v) => (getTerrainTypeFromVoxel(v) === TERRAIN_TYPES.wetSoil ? 1 : 0));
 
     const soilId5 = calcId5FromVoxel(voxelIsWetSoil);
     const soilId9 = calcId9FromVoxel(voxelIsWetSoil);
@@ -480,7 +479,6 @@ export function grassSpritesName(pos: Pos3D[], centerHight: number): string[] {
             return ["water_grass_normal_0_5_9", "grass_water_normal_0_5_13"];
         case calcId5FromHights([1, 1, 0, 1, 1, 0, 0, 0, 0]):
             return ["water_grass_normal_0_5_9", "grass_water_normal_0_5_15"];
-
 
         case calcId5FromHights([1, 1, 1, 1, 2, 1, 1, 1, 1]):
             return ["grass_water_normal_0_5_9", "grass_hill_dark_0_0_0"];

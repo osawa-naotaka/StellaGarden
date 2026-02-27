@@ -1,9 +1,7 @@
 /** ツールバーに配置できるアイテム名の型。 */
 export type ToolName = "watering_can" | "pickaxe" | "axe" | "sickle" | "shovel" | "hoes" | "potato_icon";
 
-const DEFAULT_SLOTS: readonly (ToolName | null)[] = [
-    "watering_can", "pickaxe", "axe", "sickle", "shovel", "hoes", "potato_icon", null, null,
-];
+const DEFAULT_SLOTS: readonly (ToolName | null)[] = ["watering_can", "pickaxe", "axe", "sickle", "shovel", "hoes", "potato_icon", null, null];
 
 /** プレイヤーのツールバースロットと選択状態を管理する。
  *  将来のインベントリグリッド・クラフトシステムもここに追加する。 */
