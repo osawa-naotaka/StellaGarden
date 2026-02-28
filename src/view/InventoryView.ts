@@ -1,7 +1,6 @@
 import { BitmapText, Container, type FederatedPointerEvent, Graphics, Rectangle, Sprite, Texture } from "pixi.js";
 import type { Inventory, ItemStack, SlotRef } from "../engine/Inventory";
 import { ITEM_DEFS } from "../engine/ItemDefs";
-import type { Toolbar } from "./Toolbar";
 
 const CELL_SIZE = 40;
 const ICON_SIZE = 32;
@@ -12,48 +11,72 @@ const INVENTORY_COLS = 8;
 const INVENTORY_ROWS = 8;
 const TOOLBAR_COLS = 9;
 
-/** ItemStack のアイコンを描画した Container を返す（カーソルやスロット内用）。 */
-function buildItemIcon(stack: ItemStack, cellSize: number): Container {
-    const icon = new Container();
+/** スロットに事前確保した表示オブジェクト群。tick ごとに内容を上書きして使い回す。 */
+interface SlotIcon {
+    sprite: Sprite;
+    graphics: Graphics;
+    countText: BitmapText;
+}
+
+/** SlotIcon の内容を現在の ItemStack に合わせて更新する（アロケーションなし）。 */
+function updateSlotIcon(icon: SlotIcon, stack: ItemStack | null, cellSize: number): void {
+    if (!stack) {
+        icon.sprite.visible = false;
+        icon.graphics.visible = false;
+        icon.countText.visible = false;
+        return;
+    }
+
     const def = ITEM_DEFS[stack.itemId];
+    const offset = (cellSize - ICON_SIZE) / 2;
 
     if (def.spriteName) {
-        const sprite = new Sprite(Texture.from(def.spriteName));
-        sprite.width = ICON_SIZE;
-        sprite.height = ICON_SIZE;
-        sprite.x = (cellSize - ICON_SIZE) / 2;
-        sprite.y = (cellSize - ICON_SIZE) / 2;
-        icon.addChild(sprite);
+        icon.sprite.texture = Texture.from(def.spriteName);
+        icon.sprite.visible = true;
+        icon.graphics.visible = false;
     } else {
-        // 仮アイコン（Graphics）
-        const g = new Graphics();
-        g.rect((cellSize - ICON_SIZE) / 2, (cellSize - ICON_SIZE) / 2, ICON_SIZE, ICON_SIZE);
-        g.fill({ color: def.placeholderColor ?? 0x888888 });
-        icon.addChild(g);
+        icon.graphics.clear();
+        icon.graphics.rect(offset, offset, ICON_SIZE, ICON_SIZE);
+        icon.graphics.fill({ color: def.placeholderColor ?? 0x888888 });
+        icon.graphics.visible = true;
+        icon.sprite.visible = false;
     }
 
     if (stack.count >= 2) {
-        const countText = new BitmapText({
-            text: String(stack.count),
-            style: { fontFamily: "Roboto", fontSize: 11, fill: 0xffffff },
-        });
-        countText.x = cellSize - countText.width - 2;
-        countText.y = cellSize - 13;
-        icon.addChild(countText);
+        icon.countText.text = String(stack.count);
+        icon.countText.x = cellSize - icon.countText.width - 2;
+        icon.countText.visible = true;
+    } else {
+        icon.countText.visible = false;
     }
-
-    return icon;
 }
 
-/** スロットコンテナのコンテンツ（インデックス 1 以降）を更新する。
- *  インデックス 0 は枠線として保持する。 */
-function refreshSlotContent(slotContainer: Container, stack: ItemStack | null): void {
-    while (slotContainer.children.length > 1) {
-        slotContainer.removeChildAt(1);
-    }
-    if (stack) {
-        slotContainer.addChild(buildItemIcon(stack, CELL_SIZE));
-    }
+/** スロット Container に表示オブジェクトを事前追加し、SlotIcon を返す。
+ *  返却した SlotIcon のフィールドは tick ごとに updateSlotIcon で上書きする。 */
+function createSlotIcon(container: Container, cellSize: number): SlotIcon {
+    const offset = (cellSize - ICON_SIZE) / 2;
+
+    const sprite = new Sprite();
+    sprite.width = ICON_SIZE;
+    sprite.height = ICON_SIZE;
+    sprite.x = offset;
+    sprite.y = offset;
+    sprite.visible = false;
+    container.addChild(sprite);
+
+    const graphics = new Graphics();
+    graphics.visible = false;
+    container.addChild(graphics);
+
+    const countText = new BitmapText({
+        text: "0",
+        style: { fontFamily: "Roboto", fontSize: 11, fill: 0xffffff },
+    });
+    countText.y = cellSize - 13;
+    countText.visible = false;
+    container.addChild(countText);
+
+    return { sprite, graphics, countText };
 }
 
 /** Eキーで開閉できる 8×8 インベントリウィンドウ。
@@ -62,15 +85,18 @@ function refreshSlotContent(slotContainer: Container, stack: ItemStack | null): 
 export class InventoryView {
     private container: Container;
     private inventory: Inventory;
-    private toolbar: Toolbar;
 
     private invSlotContainers: Container[] = [];
     private tbSlotContainers: Container[] = [];
+
+    private invSlotIcons: SlotIcon[] = [];
+    private tbSlotIcons: SlotIcon[] = [];
 
     /** ピックアップ状態：カーソルに持っているアイテムと元スロット。 */
     private pickedUp: { stack: ItemStack; source: SlotRef } | null = null;
     /** カーソル追従アイコン用コンテナ。PickedUp 時のみ表示。 */
     private cursorContainer: Container;
+    private cursorIcon: SlotIcon;
 
     /** ウィンドウの幅・高さ（位置計算に使用）。 */
     private windowWidth: number;
@@ -79,9 +105,8 @@ export class InventoryView {
     private onMouseMoveBound: (e: MouseEvent) => void;
     private onKeyDownBound: (e: KeyboardEvent) => void;
 
-    constructor(inventory: Inventory, toolbar: Toolbar) {
+    constructor(inventory: Inventory) {
         this.inventory = inventory;
-        this.toolbar = toolbar;
         this.container = new Container();
         this.container.visible = false;
 
@@ -94,6 +119,7 @@ export class InventoryView {
 
         this.cursorContainer = new Container();
         this.cursorContainer.visible = false;
+        this.cursorIcon = createSlotIcon(this.cursorContainer, CELL_SIZE);
 
         this.onMouseMoveBound = this.onMouseMove.bind(this);
         this.onKeyDownBound = this.onKeyDown.bind(this);
@@ -136,6 +162,7 @@ export class InventoryView {
                 slotContainer.y = invOffsetY + row * CELL_SIZE;
                 this.container.addChild(slotContainer);
                 this.invSlotContainers.push(slotContainer);
+                this.invSlotIcons.push(createSlotIcon(slotContainer, CELL_SIZE));
             }
         }
 
@@ -157,6 +184,7 @@ export class InventoryView {
             slotContainer.y = tbOffsetY;
             this.container.addChild(slotContainer);
             this.tbSlotContainers.push(slotContainer);
+            this.tbSlotIcons.push(createSlotIcon(slotContainer, CELL_SIZE));
         }
 
         // カーソル追従コンテナ（最前面）
@@ -177,50 +205,28 @@ export class InventoryView {
         slot.on("pointerdown", (event: FederatedPointerEvent) => {
             event.stopPropagation();
             if (event.button === 0) {
-                this.handleLeftClick(ref);
+                this.handleLeftClick(ref, event);
             } else if (event.button === 2) {
-                this.handleRightClick(ref);
+                this.handleRightClick(ref, event);
             }
         });
 
         return slot;
     }
 
-    private getSlotContainer(ref: SlotRef): Container | null {
-        if (ref.area === "inventory") return this.invSlotContainers[ref.index] ?? null;
-        return this.tbSlotContainers[ref.index] ?? null;
+    private setCursorPosition(clientX: number, clientY: number): void {
+        const local = this.container.toLocal({ x: clientX, y: clientY });
+        this.cursorContainer.x = local.x - CELL_SIZE / 2;
+        this.cursorContainer.y = local.y - CELL_SIZE / 2;
     }
 
-    private refreshSlotByRef(ref: SlotRef): void {
-        const container = this.getSlotContainer(ref);
-        if (container) {
-            refreshSlotContent(container, this.inventory.getSlot(ref));
-        }
-        if (ref.area === "toolbar") {
-            this.toolbar.refreshSlot(ref.index);
-        }
-    }
-
-    private refreshAll(): void {
-        for (let i = 0; i < INVENTORY_ROWS * INVENTORY_COLS; i++) {
-            const ref: SlotRef = { area: "inventory", index: i };
-            refreshSlotContent(this.invSlotContainers[i], this.inventory.getSlot(ref));
-        }
-        for (let i = 0; i < TOOLBAR_COLS; i++) {
-            const ref: SlotRef = { area: "toolbar", index: i };
-            refreshSlotContent(this.tbSlotContainers[i], this.inventory.getSlot(ref));
-        }
-    }
-
-    private handleLeftClick(ref: SlotRef): void {
+    private handleLeftClick(ref: SlotRef, event: FederatedPointerEvent): void {
         if (!this.pickedUp) {
             const stack = this.inventory.getSlot(ref);
             if (!stack) return;
-            // スタックをスロットから取り出してカーソルに持つ
             this.inventory.setSlot(ref, null);
             this.pickedUp = { stack: { ...stack }, source: ref };
-            this.refreshSlotByRef(ref);
-            this.showCursorIcon();
+            this.setCursorPosition(event.clientX, event.clientY);
             return;
         }
 
@@ -228,32 +234,23 @@ export class InventoryView {
         if (ref.area === this.pickedUp.source.area && ref.index === this.pickedUp.source.index) {
             this.inventory.setSlot(ref, this.pickedUp.stack);
             this.pickedUp = null;
-            this.refreshSlotByRef(ref);
-            this.hideCursorIcon();
             return;
         }
 
         // 別スロットをクリック → 入れ替え
         const targetStack = this.inventory.getSlot(ref);
-        const prevSource = this.pickedUp.source;
         this.inventory.setSlot(ref, this.pickedUp.stack);
-        this.refreshSlotByRef(ref);
 
         if (targetStack) {
-            // 持ち替え（picked-up を更新）
             this.pickedUp = { stack: { ...targetStack }, source: ref };
-            this.showCursorIcon();
+            this.setCursorPosition(event.clientX, event.clientY);
         } else {
             this.pickedUp = null;
-            this.hideCursorIcon();
         }
-
-        this.refreshSlotByRef(prevSource);
     }
 
-    private handleRightClick(ref: SlotRef): void {
+    private handleRightClick(ref: SlotRef, event: FederatedPointerEvent): void {
         if (!this.pickedUp) {
-            // スロットから 1 個取り出してカーソルに持つ
             const stack = this.inventory.getSlot(ref);
             if (!stack) return;
 
@@ -264,8 +261,7 @@ export class InventoryView {
                 stack.count--;
             }
             this.pickedUp = { stack: taken, source: ref };
-            this.refreshSlotByRef(ref);
-            this.showCursorIcon();
+            this.setCursorPosition(event.clientX, event.clientY);
             return;
         }
 
@@ -282,44 +278,24 @@ export class InventoryView {
         }
 
         this.pickedUp.stack.count--;
-        this.refreshSlotByRef(ref);
 
         if (this.pickedUp.stack.count === 0) {
             this.pickedUp = null;
-            this.hideCursorIcon();
-        } else {
-            this.showCursorIcon();
         }
-    }
-
-    private showCursorIcon(): void {
-        if (!this.pickedUp) return;
-        this.cursorContainer.removeChildren();
-        this.cursorContainer.addChild(buildItemIcon(this.pickedUp.stack, CELL_SIZE));
-        this.cursorContainer.visible = true;
-    }
-
-    private hideCursorIcon(): void {
-        this.cursorContainer.visible = false;
-        this.cursorContainer.removeChildren();
     }
 
     /** window の mousemove をリッスンしてカーソルアイコンをマウス位置に追従させる。
      *  canvas が position:fixed で画面全体を覆っているため clientX/Y == PixiJS グローバル座標。 */
     private onMouseMove(e: MouseEvent): void {
         if (!this.pickedUp) return;
-        const local = this.container.toLocal({ x: e.clientX, y: e.clientY });
-        this.cursorContainer.x = local.x - CELL_SIZE / 2;
-        this.cursorContainer.y = local.y - CELL_SIZE / 2;
+        this.setCursorPosition(e.clientX, e.clientY);
     }
 
     private onKeyDown(e: KeyboardEvent): void {
         if (e.key === "Escape" && this.pickedUp) {
             // ピックアップをキャンセルして元のスロットに戻す
             this.inventory.setSlot(this.pickedUp.source, this.pickedUp.stack);
-            this.refreshSlotByRef(this.pickedUp.source);
             this.pickedUp = null;
-            this.hideCursorIcon();
         }
     }
 
@@ -328,19 +304,32 @@ export class InventoryView {
         this.container.y = (window.innerHeight - this.windowHeight) / 2;
     }
 
-    /** スプライトが利用可能になった後に呼ぶ。全スロットのアイコンを初期描画する。 */
-    initializeSprites(): void {
-        this.refreshAll();
-    }
-
     get top(): Container {
         return this.container;
     }
 
-    /** インベントリウィンドウを表示する。開くたびに全スロットを最新状態で再描画する。 */
+    /** ゲームループから毎 tick 呼ぶ。表示中のみ全スロットを状態から再描画する。 */
+    tick(): void {
+        if (!this.container.visible) return;
+
+        for (let i = 0; i < INVENTORY_ROWS * INVENTORY_COLS; i++) {
+            updateSlotIcon(this.invSlotIcons[i], this.inventory.getSlot({ area: "inventory", index: i }), CELL_SIZE);
+        }
+        for (let i = 0; i < TOOLBAR_COLS; i++) {
+            updateSlotIcon(this.tbSlotIcons[i], this.inventory.getSlot({ area: "toolbar", index: i }), CELL_SIZE);
+        }
+
+        if (this.pickedUp) {
+            updateSlotIcon(this.cursorIcon, this.pickedUp.stack, CELL_SIZE);
+            this.cursorContainer.visible = true;
+        } else {
+            this.cursorContainer.visible = false;
+        }
+    }
+
+    /** インベントリウィンドウを表示する。 */
     show(): void {
         this.updateWindowPosition();
-        this.refreshAll();
         this.container.visible = true;
         window.addEventListener("mousemove", this.onMouseMoveBound);
         window.addEventListener("keydown", this.onKeyDownBound);
@@ -354,9 +343,7 @@ export class InventoryView {
         // ピックアップ状態をキャンセルして元に戻す
         if (this.pickedUp) {
             this.inventory.setSlot(this.pickedUp.source, this.pickedUp.stack);
-            this.refreshSlotByRef(this.pickedUp.source);
             this.pickedUp = null;
-            this.hideCursorIcon();
         }
     }
 }

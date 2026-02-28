@@ -68,7 +68,7 @@ export async function createGameState(worldSize: Pos2D, chunkPerViewport: Pos2D)
     const toolbar = new Toolbar(playerState.inventory);
     pixiApp.stage.addChild(toolbar.top);
 
-    const inventoryView = new InventoryView(playerState.inventory, toolbar);
+    const inventoryView = new InventoryView(playerState.inventory);
     pixiApp.stage.addChild(inventoryView.top);
 
     return new GameState({ pixiApp, voxelMap, worldContainer, topView, toolbar, inventoryView, playerState });

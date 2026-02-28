@@ -6,43 +6,51 @@ const CELL_SIZE = 40;
 const TOOLBAR_HEIGHT = CELL_SIZE;
 const ICON_SIZE = 32;
 
-function createItemIcon(stack: ItemStack): Container {
-    const icon = new Container();
+/** スロットに事前確保した表示オブジェクト群。tick ごとに内容を上書きして使い回す。 */
+interface SlotIcon {
+    sprite: Sprite;
+    graphics: Graphics;
+    countText: BitmapText;
+}
+
+/** SlotIcon の内容を現在の ItemStack に合わせて更新する（アロケーションなし）。 */
+function updateSlotIcon(icon: SlotIcon, stack: ItemStack | null): void {
+    if (!stack) {
+        icon.sprite.visible = false;
+        icon.graphics.visible = false;
+        icon.countText.visible = false;
+        return;
+    }
+
     const def = ITEM_DEFS[stack.itemId];
+    const offset = (CELL_SIZE - ICON_SIZE) / 2;
 
     if (def.spriteName) {
-        const sprite = new Sprite(Texture.from(def.spriteName));
-        sprite.width = ICON_SIZE;
-        sprite.height = ICON_SIZE;
-        sprite.x = (CELL_SIZE - ICON_SIZE) / 2;
-        sprite.y = (CELL_SIZE - ICON_SIZE) / 2;
-        icon.addChild(sprite);
+        icon.sprite.texture = Texture.from(def.spriteName);
+        icon.sprite.visible = true;
+        icon.graphics.visible = false;
     } else {
-        // 仮アイコン（Graphics）
-        const g = new Graphics();
-        g.rect((CELL_SIZE - ICON_SIZE) / 2, (CELL_SIZE - ICON_SIZE) / 2, ICON_SIZE, ICON_SIZE);
-        g.fill({ color: def.placeholderColor ?? 0x888888 });
-        icon.addChild(g);
+        icon.graphics.clear();
+        icon.graphics.rect(offset, offset, ICON_SIZE, ICON_SIZE);
+        icon.graphics.fill({ color: def.placeholderColor ?? 0x888888 });
+        icon.graphics.visible = true;
+        icon.sprite.visible = false;
     }
 
-    // スタック数（2個以上の場合のみ表示）
     if (stack.count >= 2) {
-        const countText = new BitmapText({
-            text: String(stack.count),
-            style: { fontFamily: "Roboto", fontSize: 10, fill: 0xffffff },
-        });
-        countText.x = CELL_SIZE - countText.width - 2;
-        countText.y = CELL_SIZE - 12;
-        icon.addChild(countText);
+        icon.countText.text = String(stack.count);
+        icon.countText.x = CELL_SIZE - icon.countText.width - 2;
+        icon.countText.visible = true;
+    } else {
+        icon.countText.visible = false;
     }
-
-    return icon;
 }
 
 export class Toolbar {
     private inventory: Inventory;
     private toolbar: Container;
     private slots: Container[];
+    private slotIcons: SlotIcon[] = [];
     private selectedBorder: Graphics;
     private updateToolbarPositionFn: () => void;
     private toolbarWidth: number;
@@ -110,10 +118,34 @@ export class Toolbar {
         });
         slot.addChild(slotBorder);
 
+        // アイコン表示オブジェクトを事前確保
+        const offset = (CELL_SIZE - ICON_SIZE) / 2;
+
+        const sprite = new Sprite();
+        sprite.width = ICON_SIZE;
+        sprite.height = ICON_SIZE;
+        sprite.x = offset;
+        sprite.y = offset;
+        sprite.visible = false;
+        slot.addChild(sprite);
+
+        const graphics = new Graphics();
+        graphics.visible = false;
+        slot.addChild(graphics);
+
+        const countText = new BitmapText({
+            text: "0",
+            style: { fontFamily: "Roboto", fontSize: 10, fill: 0xffffff },
+        });
+        countText.y = CELL_SIZE - 12;
+        countText.visible = false;
+        slot.addChild(countText);
+
+        this.slotIcons.push({ sprite, graphics, countText });
+
         slot.on("pointerdown", (event) => {
             event.stopPropagation();
             this.inventory.selectSlot(index);
-            this.selectedBorder.x = index * CELL_SIZE;
         });
 
         return slot;
@@ -123,33 +155,12 @@ export class Toolbar {
         return this.toolbar;
     }
 
-    /** スプライトが利用可能になった後に呼ぶ。全スロットのアイコンを初期描画する。 */
-    initializeSprites() {
+    /** ゲームループから毎 tick 呼ぶ。全スロットを状態から再描画する。 */
+    tick(): void {
+        this.selectedBorder.x = this.inventory.selectedIndex * CELL_SIZE;
+
         for (let i = 0; i < this.inventory.toolbarSlots.length; i++) {
-            this.refreshSlot(i);
-        }
-    }
-
-    /** 指定スロットのアイコン表示を更新する。アイテム変化後に呼ぶ。 */
-    refreshSlot(index: number): void {
-        const slot = this.slots[index];
-        if (!slot) return;
-
-        // インデックス 0 は枠線（保持）、以降のコンテンツを削除して再描画
-        while (slot.children.length > 1) {
-            slot.removeChildAt(1);
-        }
-
-        const stack = this.inventory.toolbarSlots[index];
-        if (stack) {
-            slot.addChild(createItemIcon(stack));
-        }
-    }
-
-    /** 全ツールバースロットのアイコン表示を更新する。 */
-    refreshAll(): void {
-        for (let i = 0; i < this.inventory.toolbarSlots.length; i++) {
-            this.refreshSlot(i);
+            updateSlotIcon(this.slotIcons[i], this.inventory.toolbarSlots[i] ?? null);
         }
     }
 

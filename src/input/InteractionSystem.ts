@@ -62,13 +62,11 @@ function isSafeToAdd3x3(voxelMap: VoxelMap, centerX: number, centerZ: number): b
     return true;
 }
 
-/** 選択中のツールに応じてタイルを操作するハンドラを EventBroker に登録し、解除用の dispose 関数を返す。
- *  onInventoryChanged はインベントリに変化が生じたあとに呼ばれる（ツールバー再描画などに使う）。 */
+/** 選択中のツールに応じてタイルを操作するハンドラを EventBroker に登録し、解除用の dispose 関数を返す。 */
 export function createInteractionHandler(
     voxelMap: VoxelMap,
     inventory: Inventory,
     eventBroker: EventBroker<GameEventMap>,
-    onInventoryChanged: () => void,
 ): () => void {
     return eventBroker.subscribe("interact", (packet) => {
         const surfacePos = voxelMap.getSurfacePosition({ x: packet.pos.x, y: 0, z: packet.pos.z });
@@ -92,12 +90,10 @@ export function createInteractionHandler(
                         voxelMap.remove(surfacePos);
                         voxelMap.set(TERRAIN_TYPES.water, { x: surfacePos.x, y: 0, z: surfacePos.z });
                         inventory.addItem("dirt", 1);
-                        onInventoryChanged();
                     } else if (surfacePos.y > 1) {
                         // y=2 以上の草地を削る → 除去して下の地形を露出
                         voxelMap.remove(surfacePos);
                         inventory.addItem("dirt", 1);
-                        onInventoryChanged();
                     }
                 }
                 break;
@@ -105,7 +101,6 @@ export function createInteractionHandler(
                 if (getEntityTypeFromVoxel(voxel) === ENTITY_TYPES.tree) {
                     voxelMap.set(voxel & 0x000000ff, surfacePos);
                     inventory.addItem("wood", 1);
-                    onInventoryChanged();
                 }
                 break;
             case "hoes":
@@ -126,7 +121,6 @@ export function createInteractionHandler(
                     inventory.consumeSelectedItem(1)
                 ) {
                     voxelMap.set(TERRAIN_TYPES.grass, { x: surfacePos.x, y: surfacePos.y + 1, z: surfacePos.z });
-                    onInventoryChanged();
                 }
                 break;
         }

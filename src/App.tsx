@@ -41,14 +41,10 @@ function useGameEngine(worldSize: Pos2D, chunkPerViewport: Pos2D) {
             if (!gameState) return;
 
             gameState.topView.initializeSprites();
-            gameState.toolbar.initializeSprites();
-            gameState.inventoryView.initializeSprites();
 
             const { playerState, voxelMap, eventBroker, topView, toolbar, inventoryView } = gameState;
 
-            disposeInteraction = createInteractionHandler(voxelMap, playerState.inventory, eventBroker, () => {
-                toolbar.refreshAll();
-            });
+            disposeInteraction = createInteractionHandler(voxelMap, playerState.inventory, eventBroker);
 
             // インベントリトグル（Eキー）
             let inventoryOpen = false;
@@ -86,6 +82,9 @@ function useGameEngine(worldSize: Pos2D, chunkPerViewport: Pos2D) {
 
                 // デバッグテキスト更新
                 debugText.update();
+
+                toolbar.tick();
+                inventoryView.tick();
             });
         }
 
