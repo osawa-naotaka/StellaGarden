@@ -1,9 +1,43 @@
-import { Container, Graphics, Rectangle, Sprite, Texture } from "pixi.js";
-import type { Inventory } from "../engine/Inventory";
+import { BitmapText, Container, Graphics, Rectangle, Sprite, Texture } from "pixi.js";
+import type { Inventory, ItemStack } from "../engine/Inventory";
+import { ITEM_DEFS } from "../engine/ItemDefs";
 
 const CELL_SIZE = 32;
 const TOOLBAR_HEIGHT = CELL_SIZE;
-const ICON_SIZE = 16;
+const ICON_SIZE = 20;
+
+function createItemIcon(stack: ItemStack): Container {
+    const icon = new Container();
+    const def = ITEM_DEFS[stack.itemId];
+
+    if (def.spriteName) {
+        const sprite = new Sprite(Texture.from(def.spriteName));
+        sprite.width = ICON_SIZE;
+        sprite.height = ICON_SIZE;
+        sprite.x = (CELL_SIZE - ICON_SIZE) / 2;
+        sprite.y = (CELL_SIZE - ICON_SIZE) / 2;
+        icon.addChild(sprite);
+    } else {
+        // 仮アイコン（土：茶色四角形）
+        const g = new Graphics();
+        g.rect((CELL_SIZE - ICON_SIZE) / 2, (CELL_SIZE - ICON_SIZE) / 2, ICON_SIZE, ICON_SIZE);
+        g.fill({ color: 0x8b5e3c });
+        icon.addChild(g);
+    }
+
+    // スタック数（2個以上の場合のみ表示）
+    if (stack.count >= 2) {
+        const countText = new BitmapText({
+            text: String(stack.count),
+            style: { fontFamily: "RobotoBold", fontSize: 10, fill: 0xffffff },
+        });
+        countText.x = CELL_SIZE - countText.width - 2;
+        countText.y = CELL_SIZE - 12;
+        icon.addChild(countText);
+    }
+
+    return icon;
+}
 
 export class Toolbar {
     private inventory: Inventory;
@@ -15,7 +49,7 @@ export class Toolbar {
 
     constructor(inventory: Inventory) {
         this.inventory = inventory;
-        this.toolbarWidth = CELL_SIZE * inventory.slots.length;
+        this.toolbarWidth = CELL_SIZE * inventory.toolbarSlots.length;
         this.toolbar = this.createToolbarContainer();
 
         this.selectedBorder = new Graphics();
@@ -30,7 +64,7 @@ export class Toolbar {
         // 各セルを作成
         this.slots = [];
 
-        for (let i = 0; i < this.inventory.slots.length; i++) {
+        for (let i = 0; i < this.inventory.toolbarSlots.length; i++) {
             const slot = this.createSlot(i);
             this.toolbar.addChild(slot);
             this.slots.push(slot);
@@ -45,15 +79,14 @@ export class Toolbar {
     private createToolbarContainer(): Container {
         const toolbar = new Container();
         toolbar.x = (window.innerWidth - this.toolbarWidth) / 2;
-        toolbar.y = window.innerHeight - TOOLBAR_HEIGHT - 20; // 画面下部から20pxの余白
+        toolbar.y = window.innerHeight - TOOLBAR_HEIGHT - 20;
 
-        // 背景（半透明の黒）
         const background = new Graphics();
         background.rect(0, 0, this.toolbarWidth, TOOLBAR_HEIGHT);
         background.fill({ color: 0x000000, alpha: 0.7 });
-        background.interactive = true; // 背景でイベントをキャッチ
+        background.interactive = true;
         background.on("pointerdown", (event) => {
-            event.stopPropagation(); // イベントの伝播を止める
+            event.stopPropagation();
         });
         toolbar.addChild(background);
 
@@ -67,10 +100,8 @@ export class Toolbar {
         slot.interactive = true;
         slot.cursor = "pointer";
 
-        // 当たり判定を明示的に設定（セル全体をクリック可能に）
         slot.hitArea = new Rectangle(0, 0, CELL_SIZE, CELL_SIZE);
 
-        // 枠線を描画する関数
         const slotBorder = new Graphics();
         slotBorder.rect(0, 0, CELL_SIZE, CELL_SIZE);
         slotBorder.stroke({
@@ -80,7 +111,7 @@ export class Toolbar {
         slot.addChild(slotBorder);
 
         slot.on("pointerdown", (event) => {
-            event.stopPropagation(); // イベントの伝播を止める
+            event.stopPropagation();
             this.inventory.selectSlot(index);
             this.selectedBorder.x = index * CELL_SIZE;
         });
@@ -92,18 +123,33 @@ export class Toolbar {
         return this.toolbar;
     }
 
+    /** スプライトが利用可能になった後に呼ぶ。全スロットのアイコンを初期描画する。 */
     initializeSprites() {
-        for (let i = 0; i < this.inventory.slots.length; i++) {
-            const iconName = this.inventory.slots[i];
-            if (iconName) {
-                const slot = this.slots[i];
-                const sprite = new Sprite(Texture.from(iconName));
-                sprite.width = ICON_SIZE;
-                sprite.height = ICON_SIZE;
-                sprite.x = (CELL_SIZE - ICON_SIZE) / 2;
-                sprite.y = (CELL_SIZE - ICON_SIZE) / 2;
-                slot.addChild(sprite);
-            }
+        for (let i = 0; i < this.inventory.toolbarSlots.length; i++) {
+            this.refreshSlot(i);
+        }
+    }
+
+    /** 指定スロットのアイコン表示を更新する。アイテム変化後に呼ぶ。 */
+    refreshSlot(index: number): void {
+        const slot = this.slots[index];
+        if (!slot) return;
+
+        // インデックス 0 は枠線（保持）、以降のコンテンツを削除して再描画
+        while (slot.children.length > 1) {
+            slot.removeChildAt(1);
+        }
+
+        const stack = this.inventory.toolbarSlots[index];
+        if (stack) {
+            slot.addChild(createItemIcon(stack));
+        }
+    }
+
+    /** 全ツールバースロットのアイコン表示を更新する。 */
+    refreshAll(): void {
+        for (let i = 0; i < this.inventory.toolbarSlots.length; i++) {
+            this.refreshSlot(i);
         }
     }
 

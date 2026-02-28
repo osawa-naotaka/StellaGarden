@@ -23,6 +23,7 @@ function useGameEngine(worldSize: Pos2D, chunkPerViewport: Pos2D) {
         let gameState: GameState | null = null;
         let disposeListeners: (() => void) | null = null;
         let disposeInteraction: (() => void) | null = null;
+        let disposeInventoryToggle: (() => void) | null = null;
 
         async function init() {
             // createGameState の await 中にクリーンアップが走った場合に備えて
@@ -41,10 +42,27 @@ function useGameEngine(worldSize: Pos2D, chunkPerViewport: Pos2D) {
 
             gameState.topView.initializeSprites();
             gameState.toolbar.initializeSprites();
+            gameState.inventoryView.initializeSprites();
 
-            const { playerState, voxelMap, eventBroker, topView } = gameState;
+            const { playerState, voxelMap, eventBroker, topView, toolbar, inventoryView } = gameState;
 
-            disposeInteraction = createInteractionHandler(voxelMap, playerState.inventory, eventBroker);
+            disposeInteraction = createInteractionHandler(voxelMap, playerState.inventory, eventBroker, () => {
+                toolbar.refreshAll();
+            });
+
+            // インベントリトグル（Eキー）
+            let inventoryOpen = false;
+            disposeInventoryToggle = eventBroker.subscribe("toggle_inventory", () => {
+                if (!gameState) return;
+                inventoryOpen = !inventoryOpen;
+                if (inventoryOpen) {
+                    toolbar.top.visible = false;
+                    inventoryView.show();
+                } else {
+                    inventoryView.hide();
+                    toolbar.top.visible = true;
+                }
+            });
 
             const inputHandler = new InputHandler(topView.top, playerState, eventBroker);
             disposeListeners = inputHandler.setListeners();
@@ -81,6 +99,7 @@ function useGameEngine(worldSize: Pos2D, chunkPerViewport: Pos2D) {
                 window.removeEventListener("resize", gameState.toolbar.updateToolbarPosition);
                 disposeListeners?.();
                 disposeInteraction?.();
+                disposeInventoryToggle?.();
                 gameState.pixiApp.destroy(true, { children: true });
                 gameState = null; // init() 内の !gameState チェックで二重破棄を防ぐ
             }

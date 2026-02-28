@@ -4,4 +4,5 @@ import type { Pos2D } from "../lib/VoxelMap";
 export type GameEventMap = {
     interact: { pos: Pos2D };
     select_slot: { slotIndex: number };
+    toggle_inventory: Record<string, never>;
 };

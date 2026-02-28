@@ -23,7 +23,11 @@ export class InputHandler {
     /** イベントリスナーを登録し、解除用の dispose 関数を返す。 */
     setListeners(): () => void {
         const onKeyDown = (e: KeyboardEvent) => {
-            this.keyPressState[e.key.toLowerCase()] = true;
+            const key = e.key.toLowerCase();
+            this.keyPressState[key] = true;
+            if (key === "e") {
+                this.eventBroker.publish("toggle_inventory", {});
+            }
         };
         window.addEventListener("keydown", onKeyDown);
 

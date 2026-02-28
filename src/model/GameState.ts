@@ -4,6 +4,7 @@ import { PlayerState } from "../engine/PlayerState";
 import { generateTerrain } from "../engine/TerrainGenerator";
 import { createEventBroker, type EventBroker } from "../lib/Event";
 import { type Pos2D, VoxelMap } from "../lib/VoxelMap";
+import { InventoryView } from "../view/InventoryView";
 import { Toolbar } from "../view/Toolbar";
 import { TopView } from "../view/TopView";
 
@@ -16,6 +17,7 @@ export class GameState {
     readonly voxelMap: VoxelMap;
     readonly topView: TopView;
     readonly toolbar: Toolbar;
+    readonly inventoryView: InventoryView;
     readonly playerState: PlayerState;
     readonly eventBroker: EventBroker<GameEventMap>;
 
@@ -25,6 +27,7 @@ export class GameState {
         worldContainer: Container;
         topView: TopView;
         toolbar: Toolbar;
+        inventoryView: InventoryView;
         playerState: PlayerState;
     }) {
         this.pixiApp = opt.pixiApp;
@@ -32,6 +35,7 @@ export class GameState {
         this.worldContainer = opt.worldContainer;
         this.topView = opt.topView;
         this.toolbar = opt.toolbar;
+        this.inventoryView = opt.inventoryView;
         this.playerState = opt.playerState;
         this.eventBroker = createEventBroker<GameEventMap>();
     }
@@ -64,5 +68,8 @@ export async function createGameState(worldSize: Pos2D, chunkPerViewport: Pos2D)
     const toolbar = new Toolbar(playerState.inventory);
     pixiApp.stage.addChild(toolbar.top);
 
-    return new GameState({ pixiApp, voxelMap, worldContainer, topView, toolbar, playerState });
+    const inventoryView = new InventoryView(playerState.inventory, toolbar);
+    pixiApp.stage.addChild(inventoryView.top);
+
+    return new GameState({ pixiApp, voxelMap, worldContainer, topView, toolbar, inventoryView, playerState });
 }
