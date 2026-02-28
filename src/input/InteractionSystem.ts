@@ -104,6 +104,8 @@ export function createInteractionHandler(
             case "axe":
                 if (getEntityTypeFromVoxel(voxel) === ENTITY_TYPES.tree) {
                     voxelMap.set(voxel & 0x000000ff, surfacePos);
+                    inventory.addItem("wood", 1);
+                    onInventoryChanged();
                 }
                 break;
             case "hoes":

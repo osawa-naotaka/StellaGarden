@@ -25,10 +25,10 @@ function buildItemIcon(stack: ItemStack, cellSize: number): Container {
         sprite.y = (cellSize - ICON_SIZE) / 2;
         icon.addChild(sprite);
     } else {
-        // 仮アイコン（土：茶色四角形）
+        // 仮アイコン（Graphics）
         const g = new Graphics();
         g.rect((cellSize - ICON_SIZE) / 2, (cellSize - ICON_SIZE) / 2, ICON_SIZE, ICON_SIZE);
-        g.fill({ color: 0x8b5e3c });
+        g.fill({ color: def.placeholderColor ?? 0x888888 });
         icon.addChild(g);
     }
 
@@ -114,7 +114,7 @@ export class InventoryView {
 
         // タイトル
         const title = new BitmapText({
-            text: "インベントリ",
+            text: "Inventory",
             style: { fontFamily: "RobotoBold", fontSize: 16, fill: 0xdddddd },
         });
         title.x = PADDING;

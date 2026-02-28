@@ -11,7 +11,7 @@ export class DebugText {
             text: this.getText(),
             style: {
                 fontFamily: "RobotoBold",
-                fontSize: 16,
+                fontSize: 32,
                 fill: 0xffffff,
             },
         });

@@ -14,14 +14,15 @@ function createItemIcon(stack: ItemStack): Container {
         const sprite = new Sprite(Texture.from(def.spriteName));
         sprite.width = ICON_SIZE;
         sprite.height = ICON_SIZE;
-        sprite.x = (CELL_SIZE - ICON_SIZE) / 2;
-        sprite.y = (CELL_SIZE - ICON_SIZE) / 2;
+        sprite.scale.set(2);
+        // sprite.x = (CELL_SIZE - ICON_SIZE) / 2;
+        // sprite.y = (CELL_SIZE - ICON_SIZE) / 2;
         icon.addChild(sprite);
     } else {
-        // 仮アイコン（土：茶色四角形）
+        // 仮アイコン（Graphics）
         const g = new Graphics();
         g.rect((CELL_SIZE - ICON_SIZE) / 2, (CELL_SIZE - ICON_SIZE) / 2, ICON_SIZE, ICON_SIZE);
-        g.fill({ color: 0x8b5e3c });
+        g.fill({ color: def.placeholderColor ?? 0x888888 });
         icon.addChild(g);
     }
 
