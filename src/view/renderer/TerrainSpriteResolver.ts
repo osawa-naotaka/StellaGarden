@@ -5,16 +5,15 @@ import type { Pos3D } from "../../lib/VoxelMap";
 // 内部ヘルパー: 高さ配列 ↔ ID の変換
 // -----------------------------------------------------------------------------
 
-/** 上下左右中の5点（インデックス 1,3,4,5,7）の高さから ID を計算する。 */
+/** 5点 ID: 上下左右中（インデックス 1,3,4,5,7）の高さからビット連結 ID を計算する。 */
 function calcId5FromHights(hights: number[]): number {
     const idArr = [0, hights[1], 0, hights[3], hights[4], hights[5], 0, hights[7], 0];
     return idArr.reduce((prev, cur) => (prev << 2) | cur, 0);
 }
 
-/** Pos3D 配列の上下左右中の5点から ID を計算する。 */
-function calcId5FromPos3D(pos: Pos3D[]): number {
-    const idArr = [0, pos[1].y, 0, pos[3].y, pos[4].y, pos[5].y, 0, pos[7].y, 0];
-    return idArr.reduce((prev, cur) => (prev << 2) | cur, 0);
+/** 9点 ID: 全9点の高さからビット連結 ID を計算する。 */
+function calcId9FromHights(hights: number[]): number {
+    return hights.reduce((prev, cur) => (prev << 2) | cur, 0);
 }
 
 function calcId5FromVoxel(voxelIsSoil: number[]): number {
@@ -22,260 +21,97 @@ function calcId5FromVoxel(voxelIsSoil: number[]): number {
     return idArr.reduce((prev, cur) => (prev << 2) | cur, 0);
 }
 
-/** 5点 ID から高さ配列を復元する（デバッグ用）。 */
-function calcHightsFromId(id5: number): number[] {
-    const hights: number[] = [];
-    for (let i = 0; i < 9; i++) {
-        hights.unshift(id5 & 0x00000003);
-        id5 >>= 2;
-    }
-    return hights;
-}
-
-/** 9点すべての高さから ID を計算する。 */
-function calcId9FromHights(hights: number[]): number {
-    return hights.reduce((prev, cur) => (prev << 2) | cur, 0);
-}
-
-/** Pos3D 配列の9点すべての高さから ID を計算する。 */
-function calcId9FromPos3D(pos: Pos3D[]): number {
-    return pos.reduce((prev, cur) => (prev << 2) | cur.y, 0);
-}
-
 function calcId9FromVoxel(voxelIsSoil: number[]): number {
     return voxelIsSoil.reduce((prev, cur) => (prev << 2) | cur, 0);
 }
 
+// -----------------------------------------------------------------------------
+// ルックアップテーブル（モジュールロード時に一度だけ計算）
+// 隣接パターン ID → スプライトサフィックス（"0_3_0" 等）
+// 草・耕地・湿潤耕地で共通（高さを正規化した 0/1 フラグを使う）
+// -----------------------------------------------------------------------------
+
+/** 9近傍パターン → サフィックス。両端・角の情報が必要なケース。 */
+const TRANSITION_ID9: ReadonlyMap<number, string> = new Map([
+    [calcId9FromHights([0, 0, 0, 0, 1, 1, 0, 1, 0]), "0_3_0"],
+    [calcId9FromHights([0, 0, 0, 1, 1, 1, 0, 1, 0]), "0_3_1"],
+    [calcId9FromHights([0, 0, 0, 1, 1, 0, 0, 1, 0]), "0_3_2"],
+    [calcId9FromHights([0, 1, 0, 0, 1, 1, 0, 1, 0]), "0_3_3"],
+    [calcId9FromHights([0, 1, 0, 1, 1, 1, 0, 1, 0]), "0_3_4"],
+    [calcId9FromHights([0, 1, 0, 1, 1, 0, 0, 1, 0]), "0_3_5"],
+    [calcId9FromHights([0, 1, 0, 0, 1, 1, 0, 0, 0]), "0_3_6"],
+    [calcId9FromHights([0, 1, 0, 1, 1, 1, 0, 0, 0]), "0_3_7"],
+    [calcId9FromHights([0, 1, 0, 1, 1, 0, 0, 0, 0]), "0_3_8"],
+    [calcId9FromHights([1, 1, 0, 1, 1, 1, 0, 1, 0]), "0_4_0"],
+    [calcId9FromHights([0, 0, 0, 1, 1, 1, 0, 1, 1]), "0_4_1"],
+    [calcId9FromHights([0, 0, 0, 1, 1, 1, 1, 1, 0]), "0_4_2"],
+    [calcId9FromHights([0, 1, 1, 1, 1, 1, 0, 1, 0]), "0_4_3"],
+    [calcId9FromHights([0, 1, 0, 0, 1, 1, 0, 1, 1]), "0_4_4"],
+    [calcId9FromHights([0, 1, 1, 1, 1, 1, 1, 1, 1]), "0_4_5"],
+    [calcId9FromHights([1, 1, 0, 1, 1, 1, 1, 1, 1]), "0_4_6"],
+    [calcId9FromHights([0, 1, 0, 1, 1, 0, 1, 1, 0]), "0_4_7"],
+    // ★ 2 パターンを同一サフィックスに統合（soil のみ片方が欠損していたバグを修正）
+    [calcId9FromHights([0, 1, 1, 0, 1, 1, 0, 1, 0]), "0_4_8"],
+    [calcId9FromHights([1, 1, 1, 0, 1, 1, 0, 1, 0]), "0_4_8"],
+    [calcId9FromHights([1, 1, 1, 1, 1, 1, 0, 1, 1]), "0_4_9"],
+    [calcId9FromHights([1, 1, 1, 1, 1, 1, 1, 1, 0]), "0_4_10"],
+    [calcId9FromHights([1, 1, 0, 1, 1, 0, 0, 1, 0]), "0_4_11"],
+    [calcId9FromHights([0, 1, 0, 1, 1, 1, 1, 1, 0]), "0_4_12"],
+    [calcId9FromHights([0, 1, 1, 1, 1, 1, 0, 0, 0]), "0_4_13"],
+    [calcId9FromHights([1, 1, 0, 1, 1, 1, 0, 0, 0]), "0_4_14"],
+    [calcId9FromHights([0, 1, 0, 1, 1, 1, 0, 1, 1]), "0_4_15"],
+    [calcId9FromHights([0, 1, 0, 1, 1, 1, 1, 1, 1]), "0_5_1"],
+    [calcId9FromHights([0, 1, 1, 1, 1, 1, 1, 1, 0]), "0_5_5"],
+    [calcId9FromHights([1, 1, 0, 1, 1, 1, 1, 1, 0]), "0_5_7"],
+    // ★ soil では "0_5_9" になっていたが草を正として "0_5_8" に統一（バグ修正）
+    [calcId9FromHights([0, 1, 1, 1, 1, 1, 0, 1, 1]), "0_5_8"],
+    [calcId9FromHights([1, 1, 0, 1, 1, 1, 0, 1, 1]), "0_5_10"],
+    [calcId9FromHights([1, 1, 1, 1, 1, 1, 0, 1, 0]), "0_5_14"],
+]);
+
+/** 5近傍パターン → サフィックス。上下左右中のみで判定できるケース。 */
+const TRANSITION_ID5: ReadonlyMap<number, string> = new Map([
+    [calcId5FromHights([0, 0, 0, 0, 1, 0, 0, 0, 0]), "0_0_0"],
+    [calcId5FromHights([0, 1, 0, 0, 1, 0, 0, 0, 0]), "0_1_0"],
+    [calcId5FromHights([0, 1, 0, 0, 1, 0, 0, 1, 0]), "0_1_1"],
+    [calcId5FromHights([0, 0, 0, 0, 1, 0, 0, 1, 0]), "0_1_2"],
+    [calcId5FromHights([0, 0, 0, 0, 1, 1, 0, 0, 0]), "0_2_0"],
+    [calcId5FromHights([0, 0, 0, 1, 1, 1, 0, 0, 0]), "0_2_1"],
+    [calcId5FromHights([0, 0, 0, 1, 1, 0, 0, 0, 0]), "0_2_2"],
+    [calcId5FromHights([0, 0, 0, 0, 1, 1, 0, 1, 1]), "0_5_0"],
+    [calcId5FromHights([0, 0, 0, 1, 1, 1, 1, 1, 1]), "0_5_2"],
+    [calcId5FromHights([0, 0, 0, 1, 1, 0, 1, 1, 0]), "0_5_3"],
+    [calcId5FromHights([0, 1, 1, 0, 1, 1, 0, 1, 1]), "0_5_4"],
+    [calcId5FromHights([1, 1, 0, 1, 1, 0, 1, 1, 0]), "0_5_11"],
+    [calcId5FromHights([0, 1, 1, 0, 1, 1, 0, 0, 0]), "0_5_12"],
+    [calcId5FromHights([1, 1, 1, 1, 1, 1, 0, 0, 0]), "0_5_13"],
+    [calcId5FromHights([1, 1, 0, 1, 1, 0, 0, 0, 0]), "0_5_15"],
+]);
+
+// -----------------------------------------------------------------------------
+// 耕地・湿潤耕地オーバーレイの解決
+// -----------------------------------------------------------------------------
+
+/** voxel 配列 + 述語からスプライトオーバーレイ名を解決する。 */
+function resolveSoilOverlay(voxel: number[], isSoilPredicate: (v: number) => boolean, prefix: string): string {
+    const flags = voxel.map((v) => (isSoilPredicate(v) ? 1 : 0));
+    const id9 = calcId9FromVoxel(flags);
+    const id5 = calcId5FromVoxel(flags);
+    const suffix = TRANSITION_ID9.get(id9) ?? TRANSITION_ID5.get(id5) ?? "0_5_9";
+    return `${prefix}_${suffix}`;
+}
+
 export function soilSpriteName(pos: Pos3D[], centerHight: number, voxel: number[]): string[] {
-    const baseSprites = grassSpritesName(pos, centerHight);
-
-    const voxelIsSoil = voxel.map((v) => (getTerrainTypeFromVoxel(v) === TERRAIN_TYPES.soil || getTerrainTypeFromVoxel(v) === TERRAIN_TYPES.wetSoil ? 1 : 0));
-
-    const soilId5 = calcId5FromVoxel(voxelIsSoil);
-    const soilId9 = calcId9FromVoxel(voxelIsSoil);
-
-    switch (soilId9) {
-        case calcId9FromHights([0, 0, 0, 0, 1, 1, 0, 1, 0]):
-            return [...baseSprites, "soil_normal_0_3_0"];
-        case calcId9FromHights([0, 0, 0, 1, 1, 1, 0, 1, 0]):
-            return [...baseSprites, "soil_normal_0_3_1"];
-        case calcId9FromHights([0, 0, 0, 1, 1, 0, 0, 1, 0]):
-            return [...baseSprites, "soil_normal_0_3_2"];
-        case calcId9FromHights([0, 1, 0, 0, 1, 1, 0, 1, 0]):
-            return [...baseSprites, "soil_normal_0_3_3"];
-        case calcId9FromHights([0, 1, 0, 1, 1, 1, 0, 1, 0]):
-            return [...baseSprites, "soil_normal_0_3_4"];
-        case calcId9FromHights([0, 1, 0, 1, 1, 0, 0, 1, 0]):
-            return [...baseSprites, "soil_normal_0_3_5"];
-        case calcId9FromHights([0, 1, 0, 0, 1, 1, 0, 0, 0]):
-            return [...baseSprites, "soil_normal_0_3_6"];
-        case calcId9FromHights([0, 1, 0, 1, 1, 1, 0, 0, 0]):
-            return [...baseSprites, "soil_normal_0_3_7"];
-        case calcId9FromHights([0, 1, 0, 1, 1, 0, 0, 0, 0]):
-            return [...baseSprites, "soil_normal_0_3_8"];
-        case calcId9FromHights([1, 1, 0, 1, 1, 1, 0, 1, 0]):
-            return [...baseSprites, "soil_normal_0_4_0"];
-        case calcId9FromHights([0, 0, 0, 1, 1, 1, 0, 1, 1]):
-            return [...baseSprites, "soil_normal_0_4_1"];
-        case calcId9FromHights([0, 0, 0, 1, 1, 1, 1, 1, 0]):
-            return [...baseSprites, "soil_normal_0_4_2"];
-        case calcId9FromHights([0, 1, 1, 1, 1, 1, 0, 1, 0]):
-            return [...baseSprites, "soil_normal_0_4_3"];
-        case calcId9FromHights([0, 1, 0, 0, 1, 1, 0, 1, 1]):
-            return [...baseSprites, "soil_normal_0_4_4"];
-        case calcId9FromHights([0, 1, 1, 1, 1, 1, 1, 1, 1]):
-            return [...baseSprites, "soil_normal_0_4_5"];
-        case calcId9FromHights([1, 1, 0, 1, 1, 1, 1, 1, 1]):
-            return [...baseSprites, "soil_normal_0_4_6"];
-        case calcId9FromHights([0, 1, 0, 1, 1, 0, 1, 1, 0]):
-            return [...baseSprites, "soil_normal_0_4_7"];
-        case calcId9FromHights([0, 1, 1, 0, 1, 1, 0, 1, 0]):
-            return [...baseSprites, "soil_normal_0_4_8"];
-        case calcId9FromHights([1, 1, 1, 1, 1, 1, 0, 1, 1]):
-            return [...baseSprites, "soil_normal_0_4_9"];
-        case calcId9FromHights([1, 1, 1, 1, 1, 1, 1, 1, 0]):
-            return [...baseSprites, "soil_normal_0_4_10"];
-        case calcId9FromHights([1, 1, 0, 1, 1, 0, 0, 1, 0]):
-            return [...baseSprites, "soil_normal_0_4_11"];
-        case calcId9FromHights([0, 1, 0, 1, 1, 1, 1, 1, 0]):
-            return [...baseSprites, "soil_normal_0_4_12"];
-        case calcId9FromHights([0, 1, 1, 1, 1, 1, 0, 0, 0]):
-            return [...baseSprites, "soil_normal_0_4_13"];
-        case calcId9FromHights([1, 1, 0, 1, 1, 1, 0, 0, 0]):
-            return [...baseSprites, "soil_normal_0_4_14"];
-        case calcId9FromHights([0, 1, 0, 1, 1, 1, 0, 1, 1]):
-            return [...baseSprites, "soil_normal_0_4_15"];
-        case calcId9FromHights([0, 1, 0, 1, 1, 1, 1, 1, 1]):
-            return [...baseSprites, "soil_normal_0_5_1"];
-        case calcId9FromHights([0, 1, 1, 1, 1, 1, 1, 1, 0]):
-            return [...baseSprites, "soil_normal_0_5_5"];
-        case calcId9FromHights([1, 1, 0, 1, 1, 1, 1, 1, 0]):
-            return [...baseSprites, "soil_normal_0_5_7"];
-        case calcId9FromHights([0, 1, 1, 1, 1, 1, 0, 1, 1]):
-            return [...baseSprites, "soil_normal_0_5_9"];
-        case calcId9FromHights([1, 1, 0, 1, 1, 1, 0, 1, 1]):
-            return [...baseSprites, "soil_normal_0_5_10"];
-        case calcId9FromHights([1, 1, 1, 1, 1, 1, 0, 1, 0]):
-            return [...baseSprites, "soil_normal_0_5_14"];
-
-        default:
-            break;
-    }
-
-    switch (soilId5) {
-        case calcId5FromHights([0, 0, 0, 0, 1, 0, 0, 0, 0]):
-            return [...baseSprites, "soil_normal_0_0_0"];
-        case calcId5FromHights([0, 1, 0, 0, 1, 0, 0, 0, 0]):
-            return [...baseSprites, "soil_normal_0_1_0"];
-        case calcId5FromHights([0, 1, 0, 0, 1, 0, 0, 1, 0]):
-            return [...baseSprites, "soil_normal_0_1_1"];
-        case calcId5FromHights([0, 0, 0, 0, 1, 0, 0, 1, 0]):
-            return [...baseSprites, "soil_normal_0_1_2"];
-        case calcId5FromHights([0, 0, 0, 0, 1, 1, 0, 0, 0]):
-            return [...baseSprites, "soil_normal_0_2_0"];
-        case calcId5FromHights([0, 0, 0, 1, 1, 1, 0, 0, 0]):
-            return [...baseSprites, "soil_normal_0_2_1"];
-        case calcId5FromHights([0, 0, 0, 1, 1, 0, 0, 0, 0]):
-            return [...baseSprites, "soil_normal_0_2_2"];
-
-        case calcId5FromHights([0, 0, 0, 0, 1, 1, 0, 1, 1]):
-            return [...baseSprites, "soil_normal_0_5_0"];
-        case calcId5FromHights([0, 0, 0, 1, 1, 1, 1, 1, 1]):
-            return [...baseSprites, "soil_normal_0_5_2"];
-        case calcId5FromHights([0, 0, 0, 1, 1, 0, 1, 1, 0]):
-            return [...baseSprites, "soil_normal_0_5_3"];
-        case calcId5FromHights([0, 1, 1, 0, 1, 1, 0, 1, 1]):
-            return [...baseSprites, "soil_normal_0_5_4"];
-        case calcId5FromHights([1, 1, 1, 1, 1, 1, 1, 1, 1]):
-            return [...baseSprites, "soil_normal_0_5_9"];
-        case calcId5FromHights([1, 1, 0, 1, 1, 0, 1, 1, 0]):
-            return [...baseSprites, "soil_normal_0_5_11"];
-        case calcId5FromHights([0, 1, 1, 0, 1, 1, 0, 0, 0]):
-            return [...baseSprites, "soil_normal_0_5_12"];
-        case calcId5FromHights([1, 1, 1, 1, 1, 1, 0, 0, 0]):
-            return [...baseSprites, "soil_normal_0_5_13"];
-        case calcId5FromHights([1, 1, 0, 1, 1, 0, 0, 0, 0]):
-            return [...baseSprites, "soil_normal_0_5_15"];
-
-        default:
-            return [...baseSprites, "soil_normal_0_5_9"];
-    }
+    const base = grassSpritesName(pos, centerHight);
+    const isSoil = (v: number) =>
+        getTerrainTypeFromVoxel(v) === TERRAIN_TYPES.soil || getTerrainTypeFromVoxel(v) === TERRAIN_TYPES.wetSoil;
+    return [...base, resolveSoilOverlay(voxel, isSoil, "soil_normal")];
 }
 
 function wetSoilSpriteName(pos: Pos3D[], centerHight: number, voxel: number[]): string[] {
-    const baseSprites = soilSpriteName(pos, centerHight, voxel);
-    const voxelIsWetSoil = voxel.map((v) => (getTerrainTypeFromVoxel(v) === TERRAIN_TYPES.wetSoil ? 1 : 0));
-
-    const soilId5 = calcId5FromVoxel(voxelIsWetSoil);
-    const soilId9 = calcId9FromVoxel(voxelIsWetSoil);
-
-    switch (soilId9) {
-        case calcId9FromHights([0, 0, 0, 0, 1, 1, 0, 1, 0]):
-            return [...baseSprites, "soil_wet_0_3_0"];
-        case calcId9FromHights([0, 0, 0, 1, 1, 1, 0, 1, 0]):
-            return [...baseSprites, "soil_wet_0_3_1"];
-        case calcId9FromHights([0, 0, 0, 1, 1, 0, 0, 1, 0]):
-            return [...baseSprites, "soil_wet_0_3_2"];
-        case calcId9FromHights([0, 1, 0, 0, 1, 1, 0, 1, 0]):
-            return [...baseSprites, "soil_wet_0_3_3"];
-        case calcId9FromHights([0, 1, 0, 1, 1, 1, 0, 1, 0]):
-            return [...baseSprites, "soil_wet_0_3_4"];
-        case calcId9FromHights([0, 1, 0, 1, 1, 0, 0, 1, 0]):
-            return [...baseSprites, "soil_wet_0_3_5"];
-        case calcId9FromHights([0, 1, 0, 0, 1, 1, 0, 0, 0]):
-            return [...baseSprites, "soil_wet_0_3_6"];
-        case calcId9FromHights([0, 1, 0, 1, 1, 1, 0, 0, 0]):
-            return [...baseSprites, "soil_wet_0_3_7"];
-        case calcId9FromHights([0, 1, 0, 1, 1, 0, 0, 0, 0]):
-            return [...baseSprites, "soil_wet_0_3_8"];
-        case calcId9FromHights([1, 1, 0, 1, 1, 1, 0, 1, 0]):
-            return [...baseSprites, "soil_wet_0_4_0"];
-        case calcId9FromHights([0, 0, 0, 1, 1, 1, 0, 1, 1]):
-            return [...baseSprites, "soil_wet_0_4_1"];
-        case calcId9FromHights([0, 0, 0, 1, 1, 1, 1, 1, 0]):
-            return [...baseSprites, "soil_wet_0_4_2"];
-        case calcId9FromHights([0, 1, 1, 1, 1, 1, 0, 1, 0]):
-            return [...baseSprites, "soil_wet_0_4_3"];
-        case calcId9FromHights([0, 1, 0, 0, 1, 1, 0, 1, 1]):
-            return [...baseSprites, "soil_wet_0_4_4"];
-        case calcId9FromHights([0, 1, 1, 1, 1, 1, 1, 1, 1]):
-            return [...baseSprites, "soil_wet_0_4_5"];
-        case calcId9FromHights([1, 1, 0, 1, 1, 1, 1, 1, 1]):
-            return [...baseSprites, "soil_wet_0_4_6"];
-        case calcId9FromHights([0, 1, 0, 1, 1, 0, 1, 1, 0]):
-            return [...baseSprites, "soil_wet_0_4_7"];
-        case calcId9FromHights([0, 1, 1, 0, 1, 1, 0, 1, 0]):
-        case calcId9FromHights([1, 1, 1, 0, 1, 1, 0, 1, 0]):
-            return [...baseSprites, "soil_wet_0_4_8"];
-        case calcId9FromHights([1, 1, 1, 1, 1, 1, 0, 1, 1]):
-            return [...baseSprites, "soil_wet_0_4_9"];
-        case calcId9FromHights([1, 1, 1, 1, 1, 1, 1, 1, 0]):
-            return [...baseSprites, "soil_wet_0_4_10"];
-        case calcId9FromHights([1, 1, 0, 1, 1, 0, 0, 1, 0]):
-            return [...baseSprites, "soil_wet_0_4_11"];
-        case calcId9FromHights([0, 1, 0, 1, 1, 1, 1, 1, 0]):
-            return [...baseSprites, "soil_wet_0_4_12"];
-        case calcId9FromHights([0, 1, 1, 1, 1, 1, 0, 0, 0]):
-            return [...baseSprites, "soil_wet_0_4_13"];
-        case calcId9FromHights([1, 1, 0, 1, 1, 1, 0, 0, 0]):
-            return [...baseSprites, "soil_wet_0_4_14"];
-        case calcId9FromHights([0, 1, 0, 1, 1, 1, 0, 1, 1]):
-            return [...baseSprites, "soil_wet_0_4_15"];
-        case calcId9FromHights([0, 1, 0, 1, 1, 1, 1, 1, 1]):
-            return [...baseSprites, "soil_wet_0_5_1"];
-        case calcId9FromHights([0, 1, 1, 1, 1, 1, 1, 1, 0]):
-            return [...baseSprites, "soil_wet_0_5_5"];
-        case calcId9FromHights([1, 1, 0, 1, 1, 1, 1, 1, 0]):
-            return [...baseSprites, "soil_wet_0_5_7"];
-        case calcId9FromHights([0, 1, 1, 1, 1, 1, 0, 1, 1]):
-            return [...baseSprites, "soil_wet_0_5_9"];
-        case calcId9FromHights([1, 1, 0, 1, 1, 1, 0, 1, 1]):
-            return [...baseSprites, "soil_wet_0_5_10"];
-        case calcId9FromHights([1, 1, 1, 1, 1, 1, 0, 1, 0]):
-            return [...baseSprites, "soil_wet_0_5_14"];
-
-        default:
-            break;
-    }
-
-    switch (soilId5) {
-        case calcId5FromHights([0, 0, 0, 0, 1, 0, 0, 0, 0]):
-            return [...baseSprites, "soil_wet_0_0_0"];
-        case calcId5FromHights([0, 1, 0, 0, 1, 0, 0, 0, 0]):
-            return [...baseSprites, "soil_wet_0_1_0"];
-        case calcId5FromHights([0, 1, 0, 0, 1, 0, 0, 1, 0]):
-            return [...baseSprites, "soil_wet_0_1_1"];
-        case calcId5FromHights([0, 0, 0, 0, 1, 0, 0, 1, 0]):
-            return [...baseSprites, "soil_wet_0_1_2"];
-        case calcId5FromHights([0, 0, 0, 0, 1, 1, 0, 0, 0]):
-            return [...baseSprites, "soil_wet_0_2_0"];
-        case calcId5FromHights([0, 0, 0, 1, 1, 1, 0, 0, 0]):
-            return [...baseSprites, "soil_wet_0_2_1"];
-        case calcId5FromHights([0, 0, 0, 1, 1, 0, 0, 0, 0]):
-            return [...baseSprites, "soil_wet_0_2_2"];
-
-        case calcId5FromHights([0, 0, 0, 0, 1, 1, 0, 1, 1]):
-            return [...baseSprites, "soil_wet_0_5_0"];
-        case calcId5FromHights([0, 0, 0, 1, 1, 1, 1, 1, 1]):
-            return [...baseSprites, "soil_wet_0_5_2"];
-        case calcId5FromHights([0, 0, 0, 1, 1, 0, 1, 1, 0]):
-            return [...baseSprites, "soil_wet_0_5_3"];
-        case calcId5FromHights([0, 1, 1, 0, 1, 1, 0, 1, 1]):
-            return [...baseSprites, "soil_wet_0_5_4"];
-        case calcId5FromHights([1, 1, 1, 1, 1, 1, 1, 1, 1]):
-            return [...baseSprites, "soil_wet_0_5_9"];
-        case calcId5FromHights([1, 1, 0, 1, 1, 0, 1, 1, 0]):
-            return [...baseSprites, "soil_wet_0_5_11"];
-        case calcId5FromHights([0, 1, 1, 0, 1, 1, 0, 0, 0]):
-            return [...baseSprites, "soil_wet_0_5_12"];
-        case calcId5FromHights([1, 1, 1, 1, 1, 1, 0, 0, 0]):
-            return [...baseSprites, "soil_wet_0_5_13"];
-        case calcId5FromHights([1, 1, 0, 1, 1, 0, 0, 0, 0]):
-            return [...baseSprites, "soil_wet_0_5_15"];
-
-        default:
-            return [...baseSprites, "soil_wet_0_5_9"];
-    }
+    const base = soilSpriteName(pos, centerHight, voxel);
+    const isWetSoil = (v: number) => getTerrainTypeFromVoxel(v) === TERRAIN_TYPES.wetSoil;
+    return [...base, resolveSoilOverlay(voxel, isWetSoil, "soil_wet")];
 }
 
 // -----------------------------------------------------------------------------
@@ -283,218 +119,33 @@ function wetSoilSpriteName(pos: Pos3D[], centerHight: number, voxel: number[]): 
 // -----------------------------------------------------------------------------
 
 export function grassSpritesName(pos: Pos3D[], centerHight: number): string[] {
-    const hightId5 = calcId5FromPos3D(pos);
-    const hightId9 = calcId9FromPos3D(pos);
-    switch (hightId9) {
-        case calcId9FromHights([0, 0, 0, 0, 1, 1, 0, 1, 0]):
-            return ["water_grass_normal_0_5_9", "grass_water_normal_0_3_0"];
-        case calcId9FromHights([0, 0, 0, 1, 1, 1, 0, 1, 0]):
-            return ["water_grass_normal_0_5_9", "grass_water_normal_0_3_1"];
-        case calcId9FromHights([0, 0, 0, 1, 1, 0, 0, 1, 0]):
-            return ["water_grass_normal_0_5_9", "grass_water_normal_0_3_2"];
-        case calcId9FromHights([0, 1, 0, 0, 1, 1, 0, 1, 0]):
-            return ["water_grass_normal_0_5_9", "grass_water_normal_0_3_3"];
-        case calcId9FromHights([0, 1, 0, 1, 1, 1, 0, 1, 0]):
-            return ["water_grass_normal_0_5_9", "grass_water_normal_0_3_4"];
-        case calcId9FromHights([0, 1, 0, 1, 1, 0, 0, 1, 0]):
-            return ["water_grass_normal_0_5_9", "grass_water_normal_0_3_5"];
-        case calcId9FromHights([0, 1, 0, 0, 1, 1, 0, 0, 0]):
-            return ["water_grass_normal_0_5_9", "grass_water_normal_0_3_6"];
-        case calcId9FromHights([0, 1, 0, 1, 1, 1, 0, 0, 0]):
-            return ["water_grass_normal_0_5_9", "grass_water_normal_0_3_7"];
-        case calcId9FromHights([0, 1, 0, 1, 1, 0, 0, 0, 0]):
-            return ["water_grass_normal_0_5_9", "grass_water_normal_0_3_8"];
-        case calcId9FromHights([1, 1, 0, 1, 1, 1, 0, 1, 0]):
-            return ["water_grass_normal_0_5_9", "grass_water_normal_0_4_0"];
-        case calcId9FromHights([0, 0, 0, 1, 1, 1, 0, 1, 1]):
-            return ["water_grass_normal_0_5_9", "grass_water_normal_0_4_1"];
-        case calcId9FromHights([0, 0, 0, 1, 1, 1, 1, 1, 0]):
-            return ["water_grass_normal_0_5_9", "grass_water_normal_0_4_2"];
-        case calcId9FromHights([0, 1, 1, 1, 1, 1, 0, 1, 0]):
-            return ["water_grass_normal_0_5_9", "grass_water_normal_0_4_3"];
-        case calcId9FromHights([0, 1, 0, 0, 1, 1, 0, 1, 1]):
-            return ["water_grass_normal_0_5_9", "grass_water_normal_0_4_4"];
-        case calcId9FromHights([0, 1, 1, 1, 1, 1, 1, 1, 1]):
-            return ["water_grass_normal_0_5_9", "grass_water_normal_0_4_5"];
-        case calcId9FromHights([1, 1, 0, 1, 1, 1, 1, 1, 1]):
-            return ["water_grass_normal_0_5_9", "grass_water_normal_0_4_6"];
-        case calcId9FromHights([0, 1, 0, 1, 1, 0, 1, 1, 0]):
-            return ["water_grass_normal_0_5_9", "grass_water_normal_0_4_7"];
-        case calcId9FromHights([0, 1, 1, 0, 1, 1, 0, 1, 0]):
-        case calcId9FromHights([1, 1, 1, 0, 1, 1, 0, 1, 0]):
-            return ["water_grass_normal_0_5_9", "grass_water_normal_0_4_8"];
-        case calcId9FromHights([1, 1, 1, 1, 1, 1, 0, 1, 1]):
-            return ["water_grass_normal_0_5_9", "grass_water_normal_0_4_9"];
-        case calcId9FromHights([1, 1, 1, 1, 1, 1, 1, 1, 0]):
-            return ["water_grass_normal_0_5_9", "grass_water_normal_0_4_10"];
-        case calcId9FromHights([1, 1, 0, 1, 1, 0, 0, 1, 0]):
-            return ["water_grass_normal_0_5_9", "grass_water_normal_0_4_11"];
-        case calcId9FromHights([0, 1, 0, 1, 1, 1, 1, 1, 0]):
-            return ["water_grass_normal_0_5_9", "grass_water_normal_0_4_12"];
-        case calcId9FromHights([0, 1, 1, 1, 1, 1, 0, 0, 0]):
-            return ["water_grass_normal_0_5_9", "grass_water_normal_0_4_13"];
-        case calcId9FromHights([1, 1, 0, 1, 1, 1, 0, 0, 0]):
-            return ["water_grass_normal_0_5_9", "grass_water_normal_0_4_14"];
-        case calcId9FromHights([0, 1, 0, 1, 1, 1, 0, 1, 1]):
-            return ["water_grass_normal_0_5_9", "grass_water_normal_0_4_15"];
-        case calcId9FromHights([0, 1, 0, 1, 1, 1, 1, 1, 1]):
-            return ["water_grass_normal_0_5_9", "grass_water_normal_0_5_1"];
-        case calcId9FromHights([0, 1, 1, 1, 1, 1, 1, 1, 0]):
-            return ["water_grass_normal_0_5_9", "grass_water_normal_0_5_5"];
-        case calcId9FromHights([1, 1, 0, 1, 1, 1, 1, 1, 0]):
-            return ["water_grass_normal_0_5_9", "grass_water_normal_0_5_7"];
-        case calcId9FromHights([0, 1, 1, 1, 1, 1, 0, 1, 1]):
-            return ["water_grass_normal_0_5_9", "grass_water_normal_0_5_8"];
-        case calcId9FromHights([1, 1, 0, 1, 1, 1, 0, 1, 1]):
-            return ["water_grass_normal_0_5_9", "grass_water_normal_0_5_10"];
-        case calcId9FromHights([1, 1, 1, 1, 1, 1, 0, 1, 0]):
-            return ["water_grass_normal_0_5_9", "grass_water_normal_0_5_14"];
-
-        case calcId9FromHights([1, 1, 1, 1, 2, 2, 1, 2, 1]):
-            return ["grass_water_normal_0_5_9", "grass_hill_dark_0_3_0"];
-        case calcId9FromHights([1, 1, 1, 2, 2, 2, 1, 2, 1]):
-            return ["grass_water_normal_0_5_9", "grass_hill_dark_0_3_1"];
-        case calcId9FromHights([1, 1, 1, 2, 2, 1, 1, 2, 1]):
-            return ["grass_water_normal_0_5_9", "grass_hill_dark_0_3_2"];
-        case calcId9FromHights([1, 2, 1, 1, 2, 2, 1, 2, 1]):
-            return ["grass_water_normal_0_5_9", "grass_hill_dark_0_3_3"];
-        case calcId9FromHights([1, 2, 1, 2, 2, 2, 1, 2, 1]):
-            return ["grass_water_normal_0_5_9", "grass_hill_dark_0_3_4"];
-        case calcId9FromHights([1, 2, 1, 2, 2, 1, 1, 2, 1]):
-            return ["grass_water_normal_0_5_9", "grass_hill_dark_0_3_5"];
-        case calcId9FromHights([1, 2, 1, 1, 2, 2, 1, 1, 1]):
-            return ["grass_water_normal_0_5_9", "grass_hill_dark_0_3_6"];
-        case calcId9FromHights([1, 2, 1, 2, 2, 2, 1, 1, 1]):
-            return ["grass_water_normal_0_5_9", "grass_hill_dark_0_3_7"];
-        case calcId9FromHights([1, 2, 1, 2, 2, 1, 1, 1, 1]):
-            return ["grass_water_normal_0_5_9", "grass_hill_dark_0_3_8"];
-        case calcId9FromHights([2, 2, 1, 2, 2, 2, 1, 2, 1]):
-            return ["grass_water_normal_0_5_9", "grass_hill_dark_0_4_0"];
-        case calcId9FromHights([1, 1, 1, 2, 2, 2, 1, 2, 2]):
-            return ["grass_water_normal_0_5_9", "grass_hill_dark_0_4_1"];
-        case calcId9FromHights([1, 1, 1, 2, 2, 2, 2, 2, 1]):
-            return ["grass_water_normal_0_5_9", "grass_hill_dark_0_4_2"];
-        case calcId9FromHights([1, 2, 2, 2, 2, 2, 1, 2, 1]):
-            return ["grass_water_normal_0_5_9", "grass_hill_dark_0_4_3"];
-        case calcId9FromHights([1, 2, 1, 1, 2, 2, 1, 2, 2]):
-            return ["grass_water_normal_0_5_9", "grass_hill_dark_0_4_4"];
-        case calcId9FromHights([1, 2, 2, 2, 2, 2, 2, 2, 2]):
-            return ["grass_water_normal_0_5_9", "grass_hill_dark_0_4_5"];
-        case calcId9FromHights([2, 2, 1, 2, 2, 2, 2, 2, 2]):
-            return ["grass_water_normal_0_5_9", "grass_hill_dark_0_4_6"];
-        case calcId9FromHights([1, 2, 1, 2, 2, 1, 2, 2, 1]):
-            return ["grass_water_normal_0_5_9", "grass_hill_dark_0_4_7"];
-        case calcId9FromHights([1, 2, 2, 1, 2, 2, 1, 2, 1]):
-        case calcId9FromHights([2, 2, 2, 1, 2, 2, 1, 2, 1]):
-            return ["grass_water_normal_0_5_9", "grass_hill_dark_0_4_8"];
-        case calcId9FromHights([2, 2, 2, 2, 2, 2, 1, 2, 2]):
-            return ["grass_water_normal_0_5_9", "grass_hill_dark_0_4_9"];
-        case calcId9FromHights([2, 2, 2, 2, 2, 2, 2, 2, 1]):
-            return ["grass_water_normal_0_5_9", "grass_hill_dark_0_4_10"];
-        case calcId9FromHights([2, 2, 1, 2, 2, 1, 1, 2, 1]):
-            return ["grass_water_normal_0_5_9", "grass_hill_dark_0_4_11"];
-        case calcId9FromHights([1, 2, 1, 2, 2, 2, 2, 2, 1]):
-            return ["grass_water_normal_0_5_9", "grass_hill_dark_0_4_12"];
-        case calcId9FromHights([1, 2, 2, 2, 2, 2, 1, 1, 1]):
-            return ["grass_water_normal_0_5_9", "grass_hill_dark_0_4_13"];
-        case calcId9FromHights([2, 2, 1, 2, 2, 2, 1, 1, 1]):
-            return ["grass_water_normal_0_5_9", "grass_hill_dark_0_4_14"];
-        case calcId9FromHights([1, 2, 1, 2, 2, 2, 1, 2, 2]):
-            return ["grass_water_normal_0_5_9", "grass_hill_dark_0_4_15"];
-        case calcId9FromHights([1, 2, 1, 2, 2, 2, 2, 2, 2]):
-            return ["grass_water_normal_0_5_9", "grass_hill_dark_0_5_1"];
-        case calcId9FromHights([1, 2, 2, 2, 2, 2, 2, 2, 1]):
-            return ["grass_water_normal_0_5_9", "grass_hill_dark_0_5_5"];
-        case calcId9FromHights([2, 2, 1, 2, 2, 2, 2, 2, 1]):
-            return ["grass_water_normal_0_5_9", "grass_hill_dark_0_5_7"];
-        case calcId9FromHights([1, 2, 2, 2, 2, 2, 1, 2, 2]):
-            return ["grass_water_normal_0_5_9", "grass_hill_dark_0_5_8"];
-        case calcId9FromHights([2, 2, 1, 2, 2, 2, 1, 2, 2]):
-            return ["grass_water_normal_0_5_9", "grass_hill_dark_0_5_10"];
-        case calcId9FromHights([2, 2, 2, 2, 2, 2, 1, 2, 1]):
-            return ["grass_water_normal_0_5_9", "grass_hill_dark_0_5_14"];
-
-        default:
-            break;
+    if (centerHight !== 1 && centerHight !== 2) {
+        throw new Error(`Unsupported centerHight: ${centerHight}`);
     }
 
-    switch (hightId5) {
-        case calcId5FromHights([0, 0, 0, 0, 1, 0, 0, 0, 0]):
-            return ["water_grass_normal_0_5_9", "grass_water_normal_0_0_0"];
-        case calcId5FromHights([0, 1, 0, 0, 1, 0, 0, 0, 0]):
-            return ["water_grass_normal_0_5_9", "grass_water_normal_0_1_0"];
-        case calcId5FromHights([0, 1, 0, 0, 1, 0, 0, 1, 0]):
-            return ["water_grass_normal_0_5_9", "grass_water_normal_0_1_1"];
-        case calcId5FromHights([0, 0, 0, 0, 1, 0, 0, 1, 0]):
-            return ["water_grass_normal_0_5_9", "grass_water_normal_0_1_2"];
-        case calcId5FromHights([0, 0, 0, 0, 1, 1, 0, 0, 0]):
-            return ["water_grass_normal_0_5_9", "grass_water_normal_0_2_0"];
-        case calcId5FromHights([0, 0, 0, 1, 1, 1, 0, 0, 0]):
-            return ["water_grass_normal_0_5_9", "grass_water_normal_0_2_1"];
-        case calcId5FromHights([0, 0, 0, 1, 1, 0, 0, 0, 0]):
-            return ["water_grass_normal_0_5_9", "grass_water_normal_0_2_2"];
+    // 高さを正規化（低い方 = 0、同じ高さ = 1）
+    const minH = centerHight - 1;
+    const normalized = pos.map((p) => Math.min(1, Math.max(0, p.y - minH)));
 
-        case calcId5FromHights([0, 0, 0, 0, 1, 1, 0, 1, 1]):
-            return ["water_grass_normal_0_5_9", "grass_water_normal_0_5_0"];
-        case calcId5FromHights([0, 0, 0, 1, 1, 1, 1, 1, 1]):
-            return ["water_grass_normal_0_5_9", "grass_water_normal_0_5_2"];
-        case calcId5FromHights([0, 0, 0, 1, 1, 0, 1, 1, 0]):
-            return ["water_grass_normal_0_5_9", "grass_water_normal_0_5_3"];
-        case calcId5FromHights([0, 1, 1, 0, 1, 1, 0, 1, 1]):
-            return ["water_grass_normal_0_5_9", "grass_water_normal_0_5_4"];
-        case calcId5FromHights([1, 1, 1, 1, 1, 1, 1, 1, 1]):
-            return ["grass_water_normal_0_5_9"];
-        case calcId5FromHights([1, 1, 0, 1, 1, 0, 1, 1, 0]):
-            return ["water_grass_normal_0_5_9", "grass_water_normal_0_5_11"];
-        case calcId5FromHights([0, 1, 1, 0, 1, 1, 0, 0, 0]):
-            return ["water_grass_normal_0_5_9", "grass_water_normal_0_5_12"];
-        case calcId5FromHights([1, 1, 1, 1, 1, 1, 0, 0, 0]):
-            return ["water_grass_normal_0_5_9", "grass_water_normal_0_5_13"];
-        case calcId5FromHights([1, 1, 0, 1, 1, 0, 0, 0, 0]):
-            return ["water_grass_normal_0_5_9", "grass_water_normal_0_5_15"];
-
-        case calcId5FromHights([1, 1, 1, 1, 2, 1, 1, 1, 1]):
-            return ["grass_water_normal_0_5_9", "grass_hill_dark_0_0_0"];
-        case calcId5FromHights([1, 2, 1, 1, 2, 1, 1, 1, 1]):
-            return ["grass_water_normal_0_5_9", "grass_hill_dark_0_1_0"];
-        case calcId5FromHights([1, 2, 1, 1, 2, 1, 1, 2, 1]):
-            return ["grass_water_normal_0_5_9", "grass_hill_dark_0_1_1"];
-        case calcId5FromHights([1, 1, 1, 1, 2, 1, 1, 2, 1]):
-            return ["grass_water_normal_0_5_9", "grass_hill_dark_0_1_2"];
-        case calcId5FromHights([1, 1, 1, 1, 2, 2, 1, 1, 1]):
-            return ["grass_water_normal_0_5_9", "grass_hill_dark_0_2_0"];
-        case calcId5FromHights([1, 1, 1, 2, 2, 2, 1, 1, 1]):
-            return ["grass_water_normal_0_5_9", "grass_hill_dark_0_2_1"];
-        case calcId5FromHights([1, 1, 1, 2, 2, 1, 1, 1, 1]):
-            return ["grass_water_normal_0_5_9", "grass_hill_dark_0_2_2"];
-
-        case calcId5FromHights([1, 1, 1, 1, 2, 2, 1, 2, 2]):
-            return ["grass_water_normal_0_5_9", "grass_hill_dark_0_5_0"];
-        case calcId5FromHights([1, 1, 1, 2, 2, 2, 2, 2, 2]):
-            return ["grass_water_normal_0_5_9", "grass_hill_dark_0_5_2"];
-        case calcId5FromHights([1, 1, 1, 2, 2, 1, 2, 2, 1]):
-            return ["grass_water_normal_0_5_9", "grass_hill_dark_0_5_3"];
-        case calcId5FromHights([1, 2, 2, 1, 2, 2, 1, 2, 2]):
-            return ["grass_water_normal_0_5_9", "grass_hill_dark_0_5_4"];
-        case calcId5FromHights([2, 2, 2, 2, 2, 2, 2, 2, 2]):
-            return ["grass_hill_dark_0_5_9"];
-        case calcId5FromHights([2, 2, 1, 2, 2, 1, 2, 2, 1]):
-            return ["grass_water_normal_0_5_9", "grass_hill_dark_0_5_11"];
-        case calcId5FromHights([1, 2, 2, 1, 2, 2, 1, 1, 1]):
-            return ["grass_water_normal_0_5_9", "grass_hill_dark_0_5_12"];
-        case calcId5FromHights([2, 2, 2, 2, 2, 2, 1, 1, 1]):
-            return ["grass_water_normal_0_5_9", "grass_hill_dark_0_5_13"];
-        case calcId5FromHights([2, 2, 1, 2, 2, 1, 1, 1, 1]):
-            return ["grass_water_normal_0_5_9", "grass_hill_dark_0_5_15"];
-        default:
-            if (centerHight === 1) {
-                return ["grass_water_normal_0_5_9"];
-            } else if (centerHight === 2) {
-                return ["grass_water_dark_0_5_9"];
-            } else {
-                throw new Error(`Unknown hightId: ${calcHightsFromId(hightId5)}`);
-            }
+    // 全面同一高さ → オーバーレイ不要、ベーススプライトのみ
+    if (normalized.every((h) => h === 1)) {
+        return [centerHight === 1 ? "grass_water_normal_0_5_9" : "grass_hill_dark_0_5_9"];
     }
+
+    const baseSprite = centerHight === 1 ? "water_grass_normal_0_5_9" : "grass_water_normal_0_5_9";
+    const overlayPrefix = centerHight === 1 ? "grass_water_normal" : "grass_hill_dark";
+    const defaultSprite = centerHight === 1 ? "grass_water_normal_0_5_9" : "grass_water_dark_0_5_9";
+
+    const id9 = calcId9FromHights(normalized);
+    const id5 = calcId5FromHights([0, normalized[1], 0, normalized[3], normalized[4], normalized[5], 0, normalized[7], 0]);
+
+    const suffix9 = TRANSITION_ID9.get(id9);
+    if (suffix9) return [baseSprite, `${overlayPrefix}_${suffix9}`];
+
+    const suffix5 = TRANSITION_ID5.get(id5);
+    if (suffix5) return [baseSprite, `${overlayPrefix}_${suffix5}`];
+
+    return [defaultSprite];
 }
 
 // -----------------------------------------------------------------------------
