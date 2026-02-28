@@ -10,7 +10,7 @@ export class DebugText {
         this.textObject = new BitmapText({
             text: this.getText(),
             style: {
-                fontFamily: "RobotoBold",
+                fontFamily: "Roboto",
                 fontSize: 32,
                 fill: 0xffffff,
             },

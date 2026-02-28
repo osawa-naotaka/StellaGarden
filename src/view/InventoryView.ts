@@ -35,7 +35,7 @@ function buildItemIcon(stack: ItemStack, cellSize: number): Container {
     if (stack.count >= 2) {
         const countText = new BitmapText({
             text: String(stack.count),
-            style: { fontFamily: "RobotoBold", fontSize: 11, fill: 0xffffff },
+            style: { fontFamily: "Roboto", fontSize: 11, fill: 0xffffff },
         });
         countText.x = cellSize - countText.width - 2;
         countText.y = cellSize - 13;
@@ -115,7 +115,7 @@ export class InventoryView {
         // タイトル
         const title = new BitmapText({
             text: "Inventory",
-            style: { fontFamily: "RobotoBold", fontSize: 16, fill: 0xdddddd },
+            style: { fontFamily: "Roboto", fontSize: 20, fill: 0xdddddd },
         });
         title.x = PADDING;
         title.y = PADDING;
