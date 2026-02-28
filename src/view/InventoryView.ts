@@ -4,7 +4,7 @@ import { ITEM_DEFS } from "../engine/ItemDefs";
 import type { Toolbar } from "./Toolbar";
 
 const CELL_SIZE = 40;
-const ICON_SIZE = 24;
+const ICON_SIZE = 32;
 const PADDING = 10;
 const TITLE_HEIGHT = 28;
 const SEPARATOR_HEIGHT = 14;

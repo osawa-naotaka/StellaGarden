@@ -2,9 +2,9 @@ import { BitmapText, Container, Graphics, Rectangle, Sprite, Texture } from "pix
 import type { Inventory, ItemStack } from "../engine/Inventory";
 import { ITEM_DEFS } from "../engine/ItemDefs";
 
-const CELL_SIZE = 32;
+const CELL_SIZE = 40;
 const TOOLBAR_HEIGHT = CELL_SIZE;
-const ICON_SIZE = 20;
+const ICON_SIZE = 32;
 
 function createItemIcon(stack: ItemStack): Container {
     const icon = new Container();
@@ -14,9 +14,8 @@ function createItemIcon(stack: ItemStack): Container {
         const sprite = new Sprite(Texture.from(def.spriteName));
         sprite.width = ICON_SIZE;
         sprite.height = ICON_SIZE;
-        sprite.scale.set(2);
-        // sprite.x = (CELL_SIZE - ICON_SIZE) / 2;
-        // sprite.y = (CELL_SIZE - ICON_SIZE) / 2;
+        sprite.x = (CELL_SIZE - ICON_SIZE) / 2;
+        sprite.y = (CELL_SIZE - ICON_SIZE) / 2;
         icon.addChild(sprite);
     } else {
         // 仮アイコン（Graphics）
@@ -30,7 +29,7 @@ function createItemIcon(stack: ItemStack): Container {
     if (stack.count >= 2) {
         const countText = new BitmapText({
             text: String(stack.count),
-            style: { fontFamily: "RobotoBold", fontSize: 10, fill: 0xffffff },
+            style: { fontFamily: "Roboto", fontSize: 10, fill: 0xffffff },
         });
         countText.x = CELL_SIZE - countText.width - 2;
         countText.y = CELL_SIZE - 12;

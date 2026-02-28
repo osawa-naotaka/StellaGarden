@@ -19,6 +19,6 @@ export const ITEM_DEFS: Record<ItemId, ItemDef> = {
     shovel: { id: "shovel", spriteName: "shovel", maxStack: 1 },
     hoes: { id: "hoes", spriteName: "hoes", maxStack: 1 },
     potato: { id: "potato", spriteName: "potato_icon", maxStack: 64 },
-    dirt: { id: "dirt", spriteName: null, placeholderColor: 0x8b5e3c, maxStack: 64 },
-    wood: { id: "wood", spriteName: null, placeholderColor: 0xc87941, maxStack: 64 },
+    dirt: { id: "dirt", spriteName: "tile_027.png", maxStack: 64 },
+    wood: { id: "wood", spriteName: "tile_048.png", maxStack: 64 },
 };
