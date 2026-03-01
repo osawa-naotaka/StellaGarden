@@ -1,11 +1,11 @@
 import { BitmapText } from "pixi.js";
-import type { PlayerState } from "../engine/PlayerState";
+import type { IPlayerStateReader } from "../_boundary/interfaces";
 
 export class DebugText {
     private textObject: BitmapText;
-    private playerState: PlayerState;
+    private playerState: IPlayerStateReader;
 
-    constructor(playerState: PlayerState) {
+    constructor(playerState: IPlayerStateReader) {
         this.playerState = playerState;
         this.textObject = new BitmapText({
             text: this.getText(),

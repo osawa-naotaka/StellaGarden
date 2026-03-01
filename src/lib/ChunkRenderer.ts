@@ -1,6 +1,6 @@
 import { type Application, Container, Graphics, RenderTexture, type Texture } from "pixi.js";
 import { Tile } from "../view/Tile";
-import type { Pos2D, Pos3D, VoxelMap } from "./VoxelMap";
+import type { IVoxelReader, Pos2D, Pos3D } from "../_boundary/interfaces";
 
 export const CHUNK_RENDER_MARGIN = 2;
 
@@ -78,7 +78,7 @@ export class ChunkRenderer {
      * @param renderTextureIndex 使用する RenderTexture のインデックス
      * @param setupTile タイルのスプライトを設定するコールバック
      */
-    renderChunk(voxelMap: VoxelMap, world: Pos2D, renderTextureIndex: number, setupTile: SetupTileFn): Texture {
+    renderChunk(voxelMap: IVoxelReader, world: Pos2D, renderTextureIndex: number, setupTile: SetupTileFn): Texture {
         this.clearTiles();
         const renderTexture = this.renderTexturePool[renderTextureIndex];
 

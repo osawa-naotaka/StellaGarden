@@ -1,6 +1,6 @@
 import { type Application, ColorMatrixFilter, Container, Sprite, Texture } from "pixi.js";
 import { ChunkRenderer } from "../lib/ChunkRenderer";
-import type { Pos2D, Pos3D, VoxelMap } from "../lib/VoxelMap";
+import type { IVoxelReader, Pos2D, Pos3D } from "../_boundary/interfaces";
 import { getEntitySpriteNameFromVoxel, getTerrainSpriteNamesFromVoxel } from "./renderer/TerrainSpriteResolver";
 import type { Tile } from "./Tile";
 
@@ -9,7 +9,7 @@ const hoverFilter = new ColorMatrixFilter();
 hoverFilter.brightness(1.5, false);
 
 export class TopView {
-    private readonly voxelMap: VoxelMap;
+    private readonly voxelMap: IVoxelReader;
     private readonly topPlane: Container;
     private readonly terrainPlane: Container;
     private readonly entityPlane: Container;
@@ -20,7 +20,7 @@ export class TopView {
     private readonly tilePerChunk: number;
     private readonly chunkPerViewport: Pos2D;
 
-    constructor(voxelMap: VoxelMap, app: Application, opt: { pixelPerTile: number; tilePerChunk: number; chunkPerViewport: Pos2D }) {
+    constructor(voxelMap: IVoxelReader, app: Application, opt: { pixelPerTile: number; tilePerChunk: number; chunkPerViewport: Pos2D }) {
         this.voxelMap = voxelMap;
         this.pixelPerTile = opt.pixelPerTile;
         this.tilePerChunk = opt.tilePerChunk;

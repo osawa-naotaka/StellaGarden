@@ -1,5 +1,5 @@
 import { BitmapText, Container, Graphics, Rectangle, Sprite, Texture } from "pixi.js";
-import type { Inventory, ItemStack } from "../engine/Inventory";
+import type { IInventoryWriter, ItemStack } from "../_boundary/interfaces";
 import { ITEM_DEFS } from "../engine/ItemDefs";
 
 const CELL_SIZE = 40;
@@ -47,7 +47,7 @@ function updateSlotIcon(icon: SlotIcon, stack: ItemStack | null): void {
 }
 
 export class Toolbar {
-    private inventory: Inventory;
+    private inventory: IInventoryWriter;
     private toolbar: Container;
     private slots: Container[];
     private slotIcons: SlotIcon[] = [];
@@ -55,7 +55,7 @@ export class Toolbar {
     private updateToolbarPositionFn: () => void;
     private toolbarWidth: number;
 
-    constructor(inventory: Inventory) {
+    constructor(inventory: IInventoryWriter) {
         this.inventory = inventory;
         this.toolbarWidth = CELL_SIZE * inventory.toolbarSlots.length;
         this.toolbar = this.createToolbarContainer();

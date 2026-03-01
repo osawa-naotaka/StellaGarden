@@ -1,5 +1,5 @@
 import { BitmapText, Container, type FederatedPointerEvent, Graphics, Rectangle, Sprite, Texture } from "pixi.js";
-import type { Inventory, ItemStack, SlotRef } from "../engine/Inventory";
+import type { IInventoryWriter, ItemStack, SlotRef } from "../_boundary/interfaces";
 import { ITEM_DEFS } from "../engine/ItemDefs";
 
 const CELL_SIZE = 40;
@@ -84,7 +84,7 @@ function createSlotIcon(container: Container, cellSize: number): SlotIcon {
  *  スロット間のアイテム移動（左クリック全交換・右クリック1個移動）をサポートする。 */
 export class InventoryView {
     private container: Container;
-    private inventory: Inventory;
+    private inventory: IInventoryWriter;
 
     private invSlotContainers: Container[] = [];
     private tbSlotContainers: Container[] = [];
@@ -105,7 +105,7 @@ export class InventoryView {
     private onMouseMoveBound: (e: MouseEvent) => void;
     private onKeyDownBound: (e: KeyboardEvent) => void;
 
-    constructor(inventory: Inventory) {
+    constructor(inventory: IInventoryWriter) {
         this.inventory = inventory;
         this.container = new Container();
         this.container.visible = false;
