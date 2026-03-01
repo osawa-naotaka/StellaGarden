@@ -1,8 +1,8 @@
-import { ITEM_DEFS, type ItemId } from "./ItemDefs";
 import type { IEventBroker, IInventoryWriter, ItemStack, SlotRef } from "../_boundary/interfaces";
+import { ITEM_DEFS, type ItemId } from "./ItemDefs";
 
 // 後方互換のための re-export。既存コードの import 先を変えなくてよい。
-export type { ItemStack, SlotRef, SlotArea } from "../_boundary/interfaces";
+export type { ItemStack, SlotArea, SlotRef } from "../_boundary/interfaces";
 
 const TOOLBAR_SLOT_COUNT = 9;
 const INVENTORY_SLOT_COUNT = 64; // 8×8

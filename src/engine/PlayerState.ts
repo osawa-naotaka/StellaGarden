@@ -1,6 +1,6 @@
+import type { IEventBroker, IPlayerStateWriter } from "../_boundary/interfaces";
 import { CHUNK_RENDER_MARGIN } from "../lib/ChunkRenderer";
 import type { Pos2D } from "../lib/VoxelMap";
-import type { IEventBroker, IPlayerStateWriter } from "../_boundary/interfaces";
 import { Inventory } from "./Inventory";
 
 const MIN_ZOOM = 0.5;

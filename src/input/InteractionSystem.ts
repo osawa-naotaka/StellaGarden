@@ -62,11 +62,7 @@ function isSafeToAdd3x3(voxelMap: IVoxelWriter, centerX: number, centerZ: number
 }
 
 /** 選択中のツールに応じてタイルを操作するハンドラを EventBroker に登録し、解除用の dispose 関数を返す。 */
-export function createInteractionHandler(
-    voxelMap: IVoxelWriter,
-    inventory: IInventoryWriter,
-    eventBroker: EventBroker<GameEventMap>,
-): () => void {
+export function createInteractionHandler(voxelMap: IVoxelWriter, inventory: IInventoryWriter, eventBroker: EventBroker<GameEventMap>): () => void {
     return eventBroker.subscribe("interact_world", (packet) => {
         const surfacePos = voxelMap.getSurfacePosition({ x: packet.pos.x, y: 0, z: packet.pos.z });
         const voxel = voxelMap.get(surfacePos);

@@ -8,18 +8,17 @@
  *           _boundary/ → engine/ItemDefs.ts → (なし)
  */
 
-import type { Pos2D, Pos3D } from "../lib/VoxelMap";
 import type { ItemId } from "../engine/ItemDefs";
 import type { EventBroker } from "../lib/Event";
+import type { Pos2D, Pos3D } from "../lib/VoxelMap";
 import type { GameEventMap } from "./events";
-
-// ─── 座標型の再エクスポート ──────────────────────────────────────────────────
-// サブエージェントはここから import すればよく、lib/ を直接参照しなくてよい
-export type { Pos2D, Pos3D } from "../lib/VoxelMap";
 
 // ─── ItemId の再エクスポート ──────────────────────────────────────────────────
 // アイテム ID の正規定義は engine/ItemDefs.ts。サブエージェントはここから取得する。
 export type { ItemId } from "../engine/ItemDefs";
+// ─── 座標型の再エクスポート ──────────────────────────────────────────────────
+// サブエージェントはここから import すればよく、lib/ を直接参照しなくてよい
+export type { Pos2D, Pos3D } from "../lib/VoxelMap";
 
 // ─── 境界を越えるデータ型（_boundary が正規定義） ─────────────────────────────
 // view/ と engine/ の両方が使うシンプルなデータ型。

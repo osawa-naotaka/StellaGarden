@@ -1,5 +1,5 @@
-import { useEffect, useRef } from "react";
 import { Application, Container, TextureSource } from "pixi.js";
+import { useEffect, useRef } from "react";
 import { PIXEL_PER_TILE, TILE_PER_CHUNK } from "./_boundary/constants";
 import type { GameEventMap } from "./_boundary/events";
 import { PlayerState } from "./engine/PlayerState";
@@ -18,6 +18,7 @@ import { TopView } from "./view/TopView";
 function useGameEngine(worldSize: Pos2D, chunkPerViewport: Pos2D) {
     const containerRef = useRef<HTMLDivElement>(null);
 
+    // biome-ignore lint/correctness/useExhaustiveDependencies: worldSize/chunkPerViewport は実質定数。PixiJS 初期化はマウント時一度だけ行う設計のため依存追加しない
     useEffect(() => {
         if (!containerRef.current) return;
 
@@ -87,26 +88,32 @@ function useGameEngine(worldSize: Pos2D, chunkPerViewport: Pos2D) {
             disposers.push(createInteractionHandler(voxelMap, playerState.inventory, eventBroker));
 
             // input → engine: player_move / zoom_change を購読して PlayerState を更新
-            disposers.push(eventBroker.subscribe("player_move", ({ dx, dz, deltaMS }) => {
-                playerState.moveBy(dx, dz, deltaMS);
-            }));
-            disposers.push(eventBroker.subscribe("zoom_change", ({ delta }) => {
-                playerState.adjustZoom(delta);
-            }));
+            disposers.push(
+                eventBroker.subscribe("player_move", ({ dx, dz, deltaMS }) => {
+                    playerState.moveBy(dx, dz, deltaMS);
+                }),
+            );
+            disposers.push(
+                eventBroker.subscribe("zoom_change", ({ delta }) => {
+                    playerState.adjustZoom(delta);
+                }),
+            );
 
             // インベントリトグル（Eキー）— view が subscribe する唯一の UI イベント
             let inventoryOpen = false;
-            disposers.push(eventBroker.subscribe("toggle_inventory", () => {
-                if (!pixiApp) return;
-                inventoryOpen = !inventoryOpen;
-                if (inventoryOpen) {
-                    toolbar.top.visible = false;
-                    inventoryView.show();
-                } else {
-                    inventoryView.hide();
-                    toolbar.top.visible = true;
-                }
-            }));
+            disposers.push(
+                eventBroker.subscribe("toggle_inventory", () => {
+                    if (!pixiApp) return;
+                    inventoryOpen = !inventoryOpen;
+                    if (inventoryOpen) {
+                        toolbar.top.visible = false;
+                        inventoryView.show();
+                    } else {
+                        inventoryView.hide();
+                        toolbar.top.visible = true;
+                    }
+                }),
+            );
 
             const inputHandler = new InputHandler(topView.top, playerState, eventBroker);
             disposers.push(inputHandler.setListeners());
@@ -140,7 +147,9 @@ function useGameEngine(worldSize: Pos2D, chunkPerViewport: Pos2D) {
             cancelled = true;
             container.removeEventListener("contextmenu", preventContextMenu);
             if (pixiApp) {
-                disposers.forEach((d) => d());
+                disposers.forEach((d) => {
+                    d();
+                });
                 pixiApp.destroy(true, { children: true });
                 pixiApp = null; // init() 内の !pixiApp チェックで二重破棄を防ぐ
             }

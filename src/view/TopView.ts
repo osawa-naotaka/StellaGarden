@@ -1,6 +1,6 @@
 import { type Application, ColorMatrixFilter, Container, Sprite, Texture } from "pixi.js";
-import { ChunkRenderer } from "../lib/ChunkRenderer";
 import type { IVoxelReader, Pos2D, Pos3D } from "../_boundary/interfaces";
+import { ChunkRenderer } from "../lib/ChunkRenderer";
 import { getEntitySpriteNameFromVoxel, getTerrainSpriteNamesFromVoxel } from "./renderer/TerrainSpriteResolver";
 import type { Tile } from "./Tile";
 

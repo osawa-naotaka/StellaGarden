@@ -1,6 +1,6 @@
 import { type Application, Container, Graphics, RenderTexture, type Texture } from "pixi.js";
-import { Tile } from "../view/Tile";
 import type { IVoxelReader, Pos2D, Pos3D } from "../_boundary/interfaces";
+import { Tile } from "../view/Tile";
 
 export const CHUNK_RENDER_MARGIN = 2;
 

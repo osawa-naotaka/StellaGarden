@@ -103,8 +103,7 @@ function resolveSoilOverlay(voxel: number[], isSoilPredicate: (v: number) => boo
 
 export function soilSpriteName(pos: Pos3D[], centerHight: number, voxel: number[]): string[] {
     const base = grassSpritesName(pos, centerHight);
-    const isSoil = (v: number) =>
-        getTerrainTypeFromVoxel(v) === TERRAIN_TYPES.soil || getTerrainTypeFromVoxel(v) === TERRAIN_TYPES.wetSoil;
+    const isSoil = (v: number) => getTerrainTypeFromVoxel(v) === TERRAIN_TYPES.soil || getTerrainTypeFromVoxel(v) === TERRAIN_TYPES.wetSoil;
     return [...base, resolveSoilOverlay(voxel, isSoil, "soil_normal")];
 }
 
