@@ -29,6 +29,7 @@ export class GameState {
         toolbar: Toolbar;
         inventoryView: InventoryView;
         playerState: PlayerState;
+        eventBroker: EventBroker<GameEventMap>;
     }) {
         this.pixiApp = opt.pixiApp;
         this.voxelMap = opt.voxelMap;
@@ -37,13 +38,16 @@ export class GameState {
         this.toolbar = opt.toolbar;
         this.inventoryView = opt.inventoryView;
         this.playerState = opt.playerState;
-        this.eventBroker = createEventBroker<GameEventMap>();
+        this.eventBroker = opt.eventBroker;
     }
 }
 
 export async function createGameState(worldSize: Pos2D, chunkPerViewport: Pos2D): Promise<GameState> {
     TextureSource.defaultOptions.scaleMode = "nearest";
     TextureSource.defaultOptions.wrapMode = "clamp-to-edge";
+
+    // EventBroker を最初に生成し、全エンジンクラスに注入する
+    const eventBroker = createEventBroker<GameEventMap>();
 
     const pixiApp = new Application();
     await pixiApp.init({
@@ -54,8 +58,11 @@ export async function createGameState(worldSize: Pos2D, chunkPerViewport: Pos2D)
     const worldContainer = new Container();
     pixiApp.stage.addChild(worldContainer);
 
+    // 地形生成後に broker を注入（生成中のイベント洪水を避けるため）
     const voxelMap = new VoxelMap(worldSize.x, 3, worldSize.z, 1);
     generateTerrain(voxelMap);
+    voxelMap.setEventBroker(eventBroker);
+
     const topView = new TopView(voxelMap, pixiApp, { pixelPerTile: PIXEL_PER_TILE, tilePerChunk: TILE_PER_CHUNK, chunkPerViewport });
     worldContainer.addChild(topView.top);
 
@@ -64,6 +71,8 @@ export async function createGameState(worldSize: Pos2D, chunkPerViewport: Pos2D)
         worldSize,
         tilePerViewport: { x: chunkPerViewport.x * TILE_PER_CHUNK, z: chunkPerViewport.z * TILE_PER_CHUNK },
     });
+    playerState.setEventBroker(eventBroker);
+    playerState.inventory.setEventBroker(eventBroker);
 
     const toolbar = new Toolbar(playerState.inventory);
     pixiApp.stage.addChild(toolbar.top);
@@ -71,5 +80,5 @@ export async function createGameState(worldSize: Pos2D, chunkPerViewport: Pos2D)
     const inventoryView = new InventoryView(playerState.inventory);
     pixiApp.stage.addChild(inventoryView.top);
 
-    return new GameState({ pixiApp, voxelMap, worldContainer, topView, toolbar, inventoryView, playerState });
+    return new GameState({ pixiApp, voxelMap, worldContainer, topView, toolbar, inventoryView, playerState, eventBroker });
 }

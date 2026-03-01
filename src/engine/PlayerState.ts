@@ -1,6 +1,6 @@
 import { CHUNK_RENDER_MARGIN } from "../lib/ChunkRenderer";
 import type { Pos2D } from "../lib/VoxelMap";
-import type { IPlayerStateWriter } from "../_boundary/interfaces";
+import type { IEventBroker, IPlayerStateWriter } from "../_boundary/interfaces";
 import { Inventory } from "./Inventory";
 
 const MIN_ZOOM = 0.5;
@@ -17,6 +17,12 @@ export class PlayerState implements IPlayerStateWriter {
     private posInWorld_: Pos2D;
     private pointerPosInWorld_: Pos2D = { x: 0, z: 0 };
     private zoomLevel_ = 1.0;
+    private broker: IEventBroker | null = null;
+
+    /** ゲームプレイ開始後に EventBroker を注入する。 */
+    setEventBroker(broker: IEventBroker): void {
+        this.broker = broker;
+    }
 
     constructor(opt: { start: Pos2D; worldSize: Pos2D; tilePerViewport: Pos2D }) {
         this.inventory = new Inventory();
@@ -49,6 +55,7 @@ export class PlayerState implements IPlayerStateWriter {
             this.tilePerViewport.z / 2 + CHUNK_RENDER_MARGIN + 1,
             Math.min(this.worldSize.z - 1 - this.tilePerViewport.z / 2 - CHUNK_RENDER_MARGIN - 1, this.posInWorld_.z + dz * MOVE_SPEED * dt),
         );
+        this.broker?.publish("player_position_changed", { posInWorld: this.posInWorld_, zoomLevel: this.zoomLevel_ });
     }
 
     /** ポインタのワールド座標を更新する。InputHandler から呼ぶ。 */
@@ -57,9 +64,10 @@ export class PlayerState implements IPlayerStateWriter {
         this.pointerPosInWorld_.z = z;
     }
 
-    /** ズームレベルを変更する。InputHandler から呼ぶ。 */
+    /** ズームレベルを変更する。EventBroker 経由で zoom_change を受け取った App.tsx から呼ぶ。 */
     adjustZoom(delta: number): void {
         this.zoomLevel_ = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, this.zoomLevel_ + delta));
+        this.broker?.publish("player_position_changed", { posInWorld: this.posInWorld_, zoomLevel: this.zoomLevel_ });
     }
 }
 

@@ -1,5 +1,5 @@
 import { ITEM_DEFS, type ItemId } from "./ItemDefs";
-import type { IInventoryWriter, ItemStack, SlotRef } from "../_boundary/interfaces";
+import type { IEventBroker, IInventoryWriter, ItemStack, SlotRef } from "../_boundary/interfaces";
 
 // 後方互換のための re-export。既存コードの import 先を変えなくてよい。
 export type { ItemStack, SlotRef, SlotArea } from "../_boundary/interfaces";
@@ -14,6 +14,12 @@ export class Inventory implements IInventoryWriter {
     private toolbarSlots_: (ItemStack | null)[];
     private inventorySlots_: (ItemStack | null)[];
     private selectedIndex_ = 0;
+    private broker: IEventBroker | null = null;
+
+    /** ゲームプレイ開始後に EventBroker を注入する。 */
+    setEventBroker(broker: IEventBroker): void {
+        this.broker = broker;
+    }
 
     constructor() {
         this.toolbarSlots_ = DEFAULT_TOOLBAR_ITEMS.map((id) => (id ? { itemId: id, count: 1 } : null));
@@ -60,6 +66,11 @@ export class Inventory implements IInventoryWriter {
         } else {
             this.inventorySlots_[ref.index] = stack;
         }
+        this.broker?.publish("inventory_changed", {
+            slotIndex: ref.index,
+            isToolbar: ref.area === "toolbar",
+            stack: stack ? { itemId: stack.itemId, count: stack.count } : null,
+        });
     }
 
     /** 2 スロット間でアイテムスタックを完全に入れ替える。 */
@@ -113,6 +124,11 @@ export class Inventory implements IInventoryWriter {
         if (slot.count === 0) {
             this.toolbarSlots_[this.selectedIndex_] = null;
         }
+        this.broker?.publish("inventory_changed", {
+            slotIndex: this.selectedIndex_,
+            isToolbar: true,
+            stack: this.toolbarSlots_[this.selectedIndex_],
+        });
         return true;
     }
 }

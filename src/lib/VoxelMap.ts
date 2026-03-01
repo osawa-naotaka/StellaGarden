@@ -1,4 +1,4 @@
-import type { IVoxelWriter } from "../_boundary/interfaces";
+import type { IEventBroker, IVoxelWriter } from "../_boundary/interfaces";
 
 export type Pos2D = {
     x: number;
@@ -17,6 +17,12 @@ export class VoxelMap implements IVoxelWriter {
     readonly depth: number;
     readonly horizonHeight: number;
     private voxels: Uint32Array;
+    private broker: IEventBroker | null = null;
+
+    /** ゲームプレイ開始後に EventBroker を注入する。地形生成前は呼ばないこと。 */
+    setEventBroker(broker: IEventBroker): void {
+        this.broker = broker;
+    }
 
     constructor(width: number, height: number, depth: number, horizonHeight: number) {
         this.width = width;
@@ -37,11 +43,13 @@ export class VoxelMap implements IVoxelWriter {
     set(voxel: number, pos: Pos3D): void {
         const index = this.posToIndex(pos);
         this.voxels[index] = voxel;
+        this.broker?.publish("terrain_changed", { pos, voxel });
     }
 
     remove(pos: Pos3D): void {
         const index = this.posToIndex(pos);
         this.voxels[index] = 0;
+        this.broker?.publish("terrain_changed", { pos, voxel: 0 });
     }
 
     getSurfacePositions(): Pos3D[] {
