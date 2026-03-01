@@ -97,7 +97,6 @@ export class ChunkRenderer {
         for (let col = -CHUNK_RENDER_MARGIN; col < this.tilePerChunk + CHUNK_RENDER_MARGIN; col++) {
             for (let row = -CHUNK_RENDER_MARGIN; row < this.tilePerChunk + CHUNK_RENDER_MARGIN; row++) {
                 const tile = this.tilePool[this.tileIndex(row, col)];
-                tile.sprites[0].visible = true;
                 tile.top.x = row * this.pixelPerTile - (world.x % 1) * this.pixelPerTile;
                 tile.top.y = col * this.pixelPerTile - (world.z % 1) * this.pixelPerTile;
 
