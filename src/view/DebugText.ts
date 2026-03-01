@@ -1,12 +1,14 @@
 import { BitmapText } from "pixi.js";
-import type { IPlayerStateReader } from "../_boundary/interfaces";
+import type { IGameTimeReader, IPlayerStateReader } from "../_boundary/interfaces";
 
 export class DebugText {
     private textObject: BitmapText;
     private playerState: IPlayerStateReader;
+    private gameTime: IGameTimeReader;
 
-    constructor(playerState: IPlayerStateReader) {
+    constructor(playerState: IPlayerStateReader, gameTime: IGameTimeReader) {
         this.playerState = playerState;
+        this.gameTime = gameTime;
         this.textObject = new BitmapText({
             text: this.getText(),
             style: {
@@ -28,6 +30,6 @@ export class DebugText {
     }
 
     private getText() {
-        return `X: ${this.playerState.posInWorld.x.toFixed(1)}, Z: ${this.playerState.posInWorld.z.toFixed(1)}\nZoom: ${this.playerState.zoomLevel.toFixed(2)}\nPointer: (${this.playerState.pointerPosInWorld.x.toFixed(1)}, ${this.playerState.pointerPosInWorld.z.toFixed(1)})`;
+        return `X: ${this.playerState.posInWorld.x.toFixed(1)}, Z: ${this.playerState.posInWorld.z.toFixed(1)}\nZoom: ${this.playerState.zoomLevel.toFixed(2)}\nPointer: (${this.playerState.pointerPosInWorld.x.toFixed(1)}, ${this.playerState.pointerPosInWorld.z.toFixed(1)})\nDay ${this.gameTime.dayCount}  ${this.gameTime.currentTimeString}`;
     }
 }

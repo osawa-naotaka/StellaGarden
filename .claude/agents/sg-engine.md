@@ -29,9 +29,11 @@ StellaGarden は Vite + React 19 + TypeScript + PixiJS 8 で作られたチル�
 |---|---|
 | `Inventory.ts` | ツールバー（9スロット）と 8×8 インベントリグリッドのデータ管理。`IInventoryWriter` を implements。 |
 | `PlayerState.ts` | プレイヤー位置・カメラ・ズームレベルの状態管理。`IPlayerStateWriter` を implements。 |
-| `TerrainDefs.ts` | 地形タイプ・エンティティタイプの定数とビットフィールドデコード関数（純粋定数・関数のみ）。 |
+| `TerrainDefs.ts` | 地形タイプ・エンティティタイプの定数とビットフィールドデコード関数（純粋定数・関数のみ）。育成カウンタ操作関数（`getCropGrowthStageFromVoxel`, `setCropGrowthStageInVoxel`）を含む。 |
 | `ItemDefs.ts` | アイテム ID 型・アイテム定義（スプライト名、スタック上限）（純粋定数のみ）。 |
 | `TerrainGenerator.ts` | Simplex Noise を使った 400×400 マップの地形生成。 |
+| `GameTime.ts` | ゲーム内時間管理。1日=10分（600,000ms）。朝5時を通過するたびに `day_changed` を発行。`IGameTimeReader` を implements。 |
+| `CropSystem.ts` | 作物育成システム。`advanceDayAllCrops(voxelMap)` で全芋タイル（y=horizonHeight）の育成カウンタを+1（上限5）。 |
 
 ## あなたが発行するイベント（EventBroker.publish）
 
@@ -40,6 +42,7 @@ StellaGarden は Vite + React 19 + TypeScript + PixiJS 8 で作られたチル�
 | `terrain_changed` | VoxelMap.set / remove 後 | `{ pos: Pos3D; voxel: number }` |
 | `inventory_changed` | Inventory.setSlot / consumeSelectedItem 後 | `{ slotIndex, isToolbar, stack }` |
 | `player_position_changed` | PlayerState.moveBy / adjustZoom 後 | `{ posInWorld: Pos2D; zoomLevel: number }` |
+| `day_changed` | GameTime がゲーム内朝5時を通過したとき | `{}` |
 | `crop_planted` | 作物植え付け時 | `{ pos: Pos2D; cropType: string }` |
 | `crop_watered` | 水やり時 | `{ pos: Pos2D }` |
 | `crop_harvested` | 収穫時 | `{ pos: Pos2D; itemId: string; count: number }` |
@@ -99,9 +102,14 @@ this.broker?.publish("terrain_changed", { pos, voxel });
 
 ```
 bits  0– 7 : 地形タイプ（TERRAIN_TYPES: empty / water / grass / soil / wetSoil）
-bits  8–15 : エンティティタイプ（ENTITY_TYPES: none / tree）
-bits 16–31 : 将来の農業状態用（成長段階・水やりフラグ・肥料フラグ等）
+bits  8–15 : エンティティタイプ（ENTITY_TYPES: none / tree / potato）
+bits 16–18 : 作物育成カウンタ（3bit、0=potato_seed、1〜5=potato_1〜potato_5）
+bits 19–31 : 将来の農業状態用（水やりフラグ・肥料フラグ等）
 ```
+
+育成カウンタの操作は `TerrainDefs.ts` の純粋関数を使う:
+- `getCropGrowthStageFromVoxel(voxel)` — bits 16-18 を取り出す
+- `setCropGrowthStageInVoxel(voxel, stage)` — bits 16-18 を書き込んだ新しい値を返す
 
 ## このプロンプトの自己更新
 

@@ -23,3 +23,19 @@ export function getTerrainTypeFromVoxel(voxel: number): number {
 export function getEntityTypeFromVoxel(voxel: number): number {
     return (voxel >> 8) & 0x000000ff;
 }
+
+/**
+ * ボクセル値から作物の育成カウンタを取り出す（bits 16-18、3bit）。
+ * 0 = 植えたて（seed）、1〜5 = potato_1〜potato_5。
+ */
+export function getCropGrowthStageFromVoxel(voxel: number): number {
+    return (voxel >> 16) & 0x7;
+}
+
+/**
+ * ボクセル値に育成カウンタを書き込んだ新しい値を返す（bits 16-18）。
+ * 元の値は変更しない（純粋関数）。
+ */
+export function setCropGrowthStageInVoxel(voxel: number, stage: number): number {
+    return (voxel & ~(0x7 << 16)) | ((stage & 0x7) << 16);
+}

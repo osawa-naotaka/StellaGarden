@@ -1,4 +1,4 @@
-import { ENTITY_TYPES, getEntityTypeFromVoxel, getTerrainTypeFromVoxel, TERRAIN_TYPES } from "../../engine/TerrainDefs";
+import { ENTITY_TYPES, getCropGrowthStageFromVoxel, getEntityTypeFromVoxel, getTerrainTypeFromVoxel, TERRAIN_TYPES } from "../../engine/TerrainDefs";
 import type { Pos3D } from "../../lib/VoxelMap";
 
 // -----------------------------------------------------------------------------
@@ -176,7 +176,7 @@ export type EntitySpriteInfo = {
 // エンティティタイプごとの暫定anchor値。ユーザーが調整する想定。
 const ENTITY_ANCHORS: Record<number, { x: number; y: number }> = {
     [ENTITY_TYPES.tree]:   { x: 0.25,  y: 0.75  }, // birch_tree_sapling: 底部を地面に合わせる
-    [ENTITY_TYPES.potato]: { x: 0, y: 0 }, // potato_1: 現状値を維持
+    [ENTITY_TYPES.potato]: { x: 0, y: 0.25 }, // potato_1: 現状値を維持
 };
 
 /** ボクセル値からエンティティタイルのスプライト情報を返す。エンティティなしの場合は null。 */
@@ -187,8 +187,11 @@ export function getEntitySpriteNameFromVoxel(voxel: number): EntitySpriteInfo | 
             return null;
         case ENTITY_TYPES.tree:
             return { spriteName: "birch_tree_sapling", anchor: ENTITY_ANCHORS[type] };
-        case ENTITY_TYPES.potato:
-            return { spriteName: "potato_1", anchor: ENTITY_ANCHORS[type] };
+        case ENTITY_TYPES.potato: {
+            const stage = getCropGrowthStageFromVoxel(voxel);
+            const spriteNames = ["potato_seed", "potato_1", "potato_2", "potato_3", "potato_4", "potato_5"];
+            return { spriteName: spriteNames[stage] ?? "potato_seed", anchor: ENTITY_ANCHORS[type] };
+        }
         default:
             throw new Error(`Unknown entity type: ${type}`);
     }

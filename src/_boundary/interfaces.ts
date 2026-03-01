@@ -111,6 +111,19 @@ export interface IPlayerStateWriter extends IPlayerStateReader {
     setPointerPosInWorld(x: number, z: number): void;
 }
 
+// ─── GameTime インターフェース ────────────────────────────────────────────────
+
+/**
+ * ゲーム内時間の読み取りインターフェース。
+ * view/ が tick() で参照する。GameTime クラスはこのインターフェースを implements する。
+ */
+export interface IGameTimeReader {
+    /** 現在のゲーム内時刻を "HH:MM" 形式の文字列で返す（例: "05:00", "23:30"）。 */
+    readonly currentTimeString: string;
+    /** 経過した日数（ゲーム開始を0日目とする）。 */
+    readonly dayCount: number;
+}
+
 // ─── EventBroker インターフェース ────────────────────────────────────────────
 
 /**

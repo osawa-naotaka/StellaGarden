@@ -2,6 +2,8 @@ import { Application, Container, TextureSource } from "pixi.js";
 import { useEffect, useRef } from "react";
 import { PIXEL_PER_TILE, TILE_PER_CHUNK } from "./_boundary/constants";
 import type { GameEventMap } from "./_boundary/events";
+import { advanceDayAllCrops } from "./engine/CropSystem";
+import { GameTime } from "./engine/GameTime";
 import { PlayerState } from "./engine/PlayerState";
 import { generateTerrain } from "./engine/TerrainGenerator";
 import { InputHandler } from "./input/InputHandler";
@@ -87,6 +89,14 @@ function useGameEngine(worldSize: Pos2D, chunkPerViewport: Pos2D) {
 
             disposers.push(createInteractionHandler(voxelMap, playerState.inventory, eventBroker));
 
+            // day_changed: ゲーム内1日が経過するたびに全作物の育成カウンタをインクリメント
+            const gameTime = new GameTime();
+            disposers.push(
+                eventBroker.subscribe("day_changed", () => {
+                    advanceDayAllCrops(voxelMap);
+                }),
+            );
+
             // input → engine: player_move / zoom_change を購読して PlayerState を更新
             disposers.push(
                 eventBroker.subscribe("player_move", ({ dx, dz, deltaMS }) => {
@@ -118,13 +128,14 @@ function useGameEngine(worldSize: Pos2D, chunkPerViewport: Pos2D) {
             const inputHandler = new InputHandler(topView.top, playerState, eventBroker);
             disposers.push(inputHandler.setListeners());
 
-            const debugText = new DebugText(playerState);
+            const debugText = new DebugText(playerState, gameTime);
             pixiApp.stage.addChild(debugText.textView);
 
             // ゲームループ
             pixiApp.ticker.add((ticker) => {
                 if (!pixiApp) return;
 
+                gameTime.tick(ticker.deltaMS, eventBroker);
                 inputHandler.tick(ticker.deltaMS);
 
                 topView.updateViewport(playerState.posInWorld, playerState.pointerPosInWorld);

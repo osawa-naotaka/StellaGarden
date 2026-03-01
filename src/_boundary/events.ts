@@ -41,6 +41,11 @@ export type GameEventMap = {
     /** プレイヤー位置・ズーム変更通知 */
     player_position_changed: { posInWorld: Pos2D; zoomLevel: number };
 
+    // ─── engine 発行: ゲーム内時間 ──────────────────────────────────────────
+    /** ゲーム内の1日が切り替わった（朝5時相当）。
+     *  発行: engine/GameTime。購読: App.tsx → CropSystem.advanceDayAllCrops() を呼ぶ。 */
+    day_changed: Record<string, never>;
+
     // ─── engine 内部（ゲームロジック間の通知） ───────────────────────────────
     // engine 内の複数システム間で使う。view/ / input/ は原則として subscribe しない。
     /** 作物が植えられた */

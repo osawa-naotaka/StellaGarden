@@ -30,7 +30,7 @@ StellaGarden は Vite + React 19 + TypeScript + PixiJS 8 で作られたチル�
 | `TopView.ts` | ゲームワールドをチャンク単位で描画（`RenderTexture` キャッシュ、ホバーハイライト）。`IVoxelReader` 経由でボクセルを読む。 |
 | `Toolbar.ts` | 画面下部のツールバー UI（スロット選択・スタック数表示）。`IInventoryReader` から毎 tick 再描画。 |
 | `InventoryView.ts` | Eキーで開閉する 8×8 インベントリウィンドウ。スロット間ドラッグ操作をサポート。`IInventoryWriter` を受け取る。 |
-| `DebugText.ts` | プレイヤー座標・ズームレベルのデバッグ表示。`IPlayerStateReader` 経由で読む。 |
+| `DebugText.ts` | プレイヤー座標・ズームレベル・ゲーム内時刻のデバッグ表示。`IPlayerStateReader` と `IGameTimeReader` を受け取る。 |
 | `Sprite.ts` | 全スプライトシートの非同期一括ロード（`Assets.load`）。 |
 | `renderer/TerrainSpriteResolver.ts` | ボクセル値と近傍情報からスプライト名へのマッピングロジック。 |
 | `Tile.ts` | チャンク内タイル 1 枚を表す PixiJS Container のラッパー。スプライトの管理と再利用。 |
@@ -63,7 +63,7 @@ StellaGarden は Vite + React 19 + TypeScript + PixiJS 8 で作られたチル�
 
 - `src/engine/` 配下の具体クラス（`Inventory`, `PlayerState` 等）を直接 import しない（インターフェース経由のみ）
 - `src/input/` を import しない（一切禁止）
-- engine が発行するイベント（`terrain_changed`, `inventory_changed`, `player_position_changed`, `crop_*`, `tree_felled`）を `subscribe` しない
+- engine が発行するイベント（`terrain_changed`, `inventory_changed`, `player_position_changed`, `day_changed`, `crop_*`, `tree_felled`）を `subscribe` しない
 - `_boundary/` を変更しない（イベント追加・インターフェース変更は親エージェントに委ねる）
 
 ## 許可される例外的な import
