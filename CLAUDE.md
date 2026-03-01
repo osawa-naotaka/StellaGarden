@@ -33,48 +33,42 @@
 2. タスクがどのモジュール（engine / view / input / lib）に属するかを特定する
 3. 複数モジュールにまたがる場合は、モジュールごとにサブエージェントを分割して並列実行する
 
+### 利用可能なサブエージェント
+
+以下のプロジェクト固有サブエージェントが `.claude/agents/` に定義されている。
+各エージェントのシステムプロンプトには、担当領域・必読ファイル・発行/購読イベント・禁止事項・コーディング規約がすべて記載されている。
+
+| エージェント名 | 担当領域 | 主な責務 |
+|---|---|---|
+| `sg-engine` | `src/engine/` | ゲームロジック（農業・インベントリ・地形・プレイヤー状態）。PixiJS 非依存。 |
+| `sg-view` | `src/view/` | PixiJS レンダリング・UI（TopView・Toolbar・InventoryView 等）。 |
+| `sg-input` | `src/input/` | キーボード・マウス入力の受け取りと EventBroker へのイベント発行。 |
+| `sg-lib` | `src/lib/` | 汎用ユーティリティ（EventBroker・VoxelMap・ChunkRenderer・Pool）。 |
+
 ### サブエージェントへの指示テンプレート
 
+各エージェントのシステムプロンプトが担当領域・制約・コーディング規約を保持しているため、指示はタスク内容に集中してよい。
+
 ```
-あなたは StellaGarden の [担当モジュール] 担当エージェントです。
-
-## 必ず最初に読むファイル
-1. doc/07_RE_ARCHETECTURE.md
-2. src/_boundary/events.ts
-3. src/_boundary/interfaces.ts
-4. [担当ファイル一覧]
-
 ## タスク
 [具体的な実装内容]
 
-## 制約
-- engine/ の具体クラスを直接 import しないこと（インターフェース経由のみ）
-- EventBroker 経由でないモジュール間通信を追加しないこと
-- view/ は terrain_changed / inventory_changed 等 engine 発行イベントを購読しないこと
-  （tick() で毎フレーム完全描画する方針のため）
-- engine/ItemDefs.ts と engine/TerrainDefs.ts は純粋データ定数なので import して構わない
-- 新しいイベントが必要な場合は src/_boundary/events.ts を先に更新すること
+## タスク固有の追加情報（あれば）
+- _boundary/ に追加済みの新しいイベント/インターフェース: [内容]
+- 他エージェントとの連携で前提となる変更: [内容]
 ```
 
 ### モジュール分割の判断基準
 
 | タスクの性質 | アプローチ |
 |---|---|
-| engine ロジックのみ（地形・インベントリ・農業） | engine エージェント1体 |
-| view のみ（UI・描画） | view エージェント1体 |
-| input + engine（新しい操作の追加） | input エージェントと engine エージェントを並列 |
-| _boundary 変更を伴う（新イベント・新インターフェース） | 先に _boundary を自分で更新してからエージェントに委譲 |
+| engine ロジックのみ（地形・インベントリ・農業） | `sg-engine` 1体 |
+| view のみ（UI・描画） | `sg-view` 1体 |
+| input + engine（新しい操作の追加） | `sg-input` と `sg-engine` を並列 |
+| _boundary 変更を伴う（新イベント・新インターフェース） | 先に `_boundary/` を自分で更新してからエージェントに委譲 |
 | 単一ファイルの軽微な修正 | サブエージェント不要、直接編集 |
-
-### 各モジュールが読む必須ファイル
-
-- **engine エージェント**: `_boundary/events.ts`, `_boundary/interfaces.ts`, `engine/**`
-- **view エージェント**: `_boundary/events.ts`, `_boundary/interfaces.ts`, `view/**`
-- **input エージェント**: `_boundary/events.ts`, `input/**`
-- **lib エージェント**: `_boundary/interfaces.ts`, `lib/**`
 
 ### 注意事項
 
 - `_boundary/` の変更（新イベント追加・インターフェース変更）は全モジュールに影響するため、サブエージェントに委譲せず自分で行ってから各エージェントを起動する
-- サブエージェントは `src/**` の Edit/Write 権限が必要（`.claude/settings.json` で設定済み）
 - ビルド確認（`bun run build`）は全エージェント完了後に自分で行う
