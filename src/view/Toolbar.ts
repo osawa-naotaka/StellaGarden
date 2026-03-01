@@ -52,7 +52,6 @@ export class Toolbar {
     private slots: Container[];
     private slotIcons: SlotIcon[] = [];
     private selectedBorder: Graphics;
-    private updateToolbarPositionFn: () => void;
     private toolbarWidth: number;
 
     constructor(inventory: IInventoryWriter) {
@@ -77,11 +76,6 @@ export class Toolbar {
             this.toolbar.addChild(slot);
             this.slots.push(slot);
         }
-
-        this.updateToolbarPositionFn = () => {
-            this.toolbar.x = (window.innerWidth - this.toolbarWidth) / 2;
-            this.toolbar.y = window.innerHeight - TOOLBAR_HEIGHT - 20;
-        };
     }
 
     private createToolbarContainer(): Container {
@@ -155,16 +149,15 @@ export class Toolbar {
         return this.toolbar;
     }
 
-    /** ゲームループから毎 tick 呼ぶ。全スロットを状態から再描画する。 */
+    /** ゲームループから毎 tick 呼ぶ。全スロットを状態から再描画し、位置もウィンドウサイズに追従させる。 */
     tick(): void {
+        this.toolbar.x = (window.innerWidth - this.toolbarWidth) / 2;
+        this.toolbar.y = window.innerHeight - TOOLBAR_HEIGHT - 20;
+
         this.selectedBorder.x = this.inventory.selectedIndex * CELL_SIZE;
 
         for (let i = 0; i < this.inventory.toolbarSlots.length; i++) {
             updateSlotIcon(this.slotIcons[i], this.inventory.toolbarSlots[i] ?? null);
         }
-    }
-
-    get updateToolbarPosition() {
-        return this.updateToolbarPositionFn;
     }
 }

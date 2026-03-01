@@ -121,10 +121,6 @@ function useGameEngine(worldSize: Pos2D, chunkPerViewport: Pos2D) {
             const debugText = new DebugText(playerState);
             pixiApp.stage.addChild(debugText.textView);
 
-            // ウィンドウリサイズ時にツールバーの位置を更新
-            window.addEventListener("resize", toolbar.updateToolbarPosition);
-            disposers.push(() => window.removeEventListener("resize", toolbar.updateToolbarPosition));
-
             // ゲームループ
             pixiApp.ticker.add((ticker) => {
                 if (!pixiApp) return;
