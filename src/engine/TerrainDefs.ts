@@ -11,6 +11,7 @@ export const TERRAIN_TYPES = {
 export const ENTITY_TYPES = {
     none: 0,
     tree: 1,
+    potato: 2,
 } as const;
 
 /** ボクセル値から地形タイプを取り出す。 */

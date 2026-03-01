@@ -107,6 +107,16 @@ export function createInteractionHandler(voxelMap: IVoxelWriter, inventory: IInv
                     voxelMap.set(TERRAIN_TYPES.soil, surfacePos);
                 }
                 break;
+            case "potato":
+                if (
+                    getTerrainTypeFromVoxel(voxel) === TERRAIN_TYPES.soil &&
+                    getEntityTypeFromVoxel(voxel) === ENTITY_TYPES.none &&
+                    inventory.consumeSelectedItem(1)
+                ) {
+                    voxelMap.set(TERRAIN_TYPES.soil | (ENTITY_TYPES.potato << 8), surfacePos);
+                    eventBroker.publish("crop_planted", { pos: { x: packet.pos.x, z: packet.pos.z }, cropType: "potato" });
+                }
+                break;
             case "dirt":
                 // water（y=0）または grass（y=1）の上に土を盛って草地にする
                 if (

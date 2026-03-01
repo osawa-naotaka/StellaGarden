@@ -168,14 +168,27 @@ export function getTerrainSpriteNamesFromVoxel(voxel: number[], pos: Pos3D[]): s
     }
 }
 
-/** ボクセル値からエンティティタイルのスプライト名を返す。エンティティなしの場合は null。 */
-export function getEntitySpriteNameFromVoxel(voxel: number): string | null {
+export type EntitySpriteInfo = {
+    spriteName: string;
+    anchor: { x: number; y: number };
+};
+
+// エンティティタイプごとの暫定anchor値。ユーザーが調整する想定。
+const ENTITY_ANCHORS: Record<number, { x: number; y: number }> = {
+    [ENTITY_TYPES.tree]:   { x: 0.25,  y: 0.75  }, // birch_tree_sapling: 底部を地面に合わせる
+    [ENTITY_TYPES.potato]: { x: 0, y: 0 }, // potato_1: 現状値を維持
+};
+
+/** ボクセル値からエンティティタイルのスプライト情報を返す。エンティティなしの場合は null。 */
+export function getEntitySpriteNameFromVoxel(voxel: number): EntitySpriteInfo | null {
     const type = getEntityTypeFromVoxel(voxel);
     switch (type) {
         case ENTITY_TYPES.none:
             return null;
         case ENTITY_TYPES.tree:
-            return "birch_tree_sapling";
+            return { spriteName: "birch_tree_sapling", anchor: ENTITY_ANCHORS[type] };
+        case ENTITY_TYPES.potato:
+            return { spriteName: "potato_1", anchor: ENTITY_ANCHORS[type] };
         default:
             throw new Error(`Unknown entity type: ${type}`);
     }

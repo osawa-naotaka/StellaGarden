@@ -4,7 +4,18 @@ import { ITEM_DEFS, type ItemId } from "./ItemDefs";
 const TOOLBAR_SLOT_COUNT = 9;
 const INVENTORY_SLOT_COUNT = 64; // 8×8
 
-const DEFAULT_TOOLBAR_ITEMS: readonly (ItemId | null)[] = ["watering_can", "pickaxe", "axe", "sickle", "shovel", "hoes", "potato", null, null];
+type DefaultItem = { itemId: ItemId; count: number };
+const DEFAULT_TOOLBAR_ITEMS: readonly (DefaultItem | null)[] = [
+    { itemId: "watering_can", count: 1 },
+    { itemId: "pickaxe", count: 1 },
+    { itemId: "axe", count: 1 },
+    { itemId: "sickle", count: 1 },
+    { itemId: "shovel", count: 1 },
+    { itemId: "hoes", count: 1 },
+    { itemId: "potato", count: 64 },
+    null,
+    null,
+];
 
 /** プレイヤーのツールバーと 8×8 インベントリグリッドを管理する。 */
 export class Inventory implements IInventoryWriter {
@@ -19,7 +30,7 @@ export class Inventory implements IInventoryWriter {
     }
 
     constructor() {
-        this.toolbarSlots_ = DEFAULT_TOOLBAR_ITEMS.map((id) => (id ? { itemId: id, count: 1 } : null));
+        this.toolbarSlots_ = DEFAULT_TOOLBAR_ITEMS.map((item) => (item ? { itemId: item.itemId, count: item.count } : null));
         this.inventorySlots_ = Array<ItemStack | null>(INVENTORY_SLOT_COUNT).fill(null);
     }
 
