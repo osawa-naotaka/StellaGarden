@@ -174,7 +174,6 @@ export interface IVoxelReader {
     readonly width: number; height: number; depth: number; horizonHeight: number;
     get(pos: Pos3D): number;
     getSurfacePosition(pos: Pos3D): Pos3D;
-    getSurfacePositions(): Pos3D[];
 }
 export interface IVoxelWriter extends IVoxelReader {
     set(voxel: number, pos: Pos3D): void;

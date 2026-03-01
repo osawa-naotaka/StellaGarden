@@ -52,19 +52,6 @@ export class VoxelMap implements IVoxelWriter {
         this.broker?.publish("terrain_changed", { pos, voxel: 0 });
     }
 
-    getSurfacePositions(): Pos3D[] {
-        const surfacePositions: Pos3D[] = [];
-        for (let x = 0; x < this.width; x++) {
-            for (let z = 0; z < this.depth; z++) {
-                const pos = this.getSurfacePosition({ x, y: 0, z }); // yは無視されるので任意の値でOK
-                if (pos) {
-                    surfacePositions.push(pos);
-                }
-            }
-        }
-        return surfacePositions;
-    }
-
     getSurfacePosition(pos: Pos3D): Pos3D {
         if (pos.x < 0 || pos.x >= this.width || pos.z < 0 || pos.z >= this.depth) {
             throw new Error(`Position out of bounds: (${pos.x}, ${pos.y}, ${pos.z})`);

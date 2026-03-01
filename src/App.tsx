@@ -29,12 +29,7 @@ function useGameEngine(worldSize: Pos2D, chunkPerViewport: Pos2D) {
 
         let cancelled = false;
         let pixiApp: Application | null = null;
-        let disposeListeners: (() => void) | null = null;
-        let disposeInteraction: (() => void) | null = null;
-        let disposeInventoryToggle: (() => void) | null = null;
-        let disposePlayerMove: (() => void) | null = null;
-        let disposeZoomChange: (() => void) | null = null;
-        let toolbarResizeListener: (() => void) | null = null;
+        const disposers: (() => void)[] = [];
 
         async function init() {
             TextureSource.defaultOptions.scaleMode = "nearest";
@@ -89,19 +84,19 @@ function useGameEngine(worldSize: Pos2D, chunkPerViewport: Pos2D) {
 
             topView.initializeSprites();
 
-            disposeInteraction = createInteractionHandler(voxelMap, playerState.inventory, eventBroker);
+            disposers.push(createInteractionHandler(voxelMap, playerState.inventory, eventBroker));
 
             // input → engine: player_move / zoom_change を購読して PlayerState を更新
-            disposePlayerMove = eventBroker.subscribe("player_move", ({ dx, dz, deltaMS }) => {
+            disposers.push(eventBroker.subscribe("player_move", ({ dx, dz, deltaMS }) => {
                 playerState.moveBy(dx, dz, deltaMS);
-            });
-            disposeZoomChange = eventBroker.subscribe("zoom_change", ({ delta }) => {
+            }));
+            disposers.push(eventBroker.subscribe("zoom_change", ({ delta }) => {
                 playerState.adjustZoom(delta);
-            });
+            }));
 
             // インベントリトグル（Eキー）— view が subscribe する唯一の UI イベント
             let inventoryOpen = false;
-            disposeInventoryToggle = eventBroker.subscribe("toggle_inventory", () => {
+            disposers.push(eventBroker.subscribe("toggle_inventory", () => {
                 if (!pixiApp) return;
                 inventoryOpen = !inventoryOpen;
                 if (inventoryOpen) {
@@ -111,17 +106,17 @@ function useGameEngine(worldSize: Pos2D, chunkPerViewport: Pos2D) {
                     inventoryView.hide();
                     toolbar.top.visible = true;
                 }
-            });
+            }));
 
             const inputHandler = new InputHandler(topView.top, playerState, eventBroker);
-            disposeListeners = inputHandler.setListeners();
+            disposers.push(inputHandler.setListeners());
 
             const debugText = new DebugText(playerState);
             pixiApp.stage.addChild(debugText.textView);
 
             // ウィンドウリサイズ時にツールバーの位置を更新
-            toolbarResizeListener = toolbar.updateToolbarPosition;
-            window.addEventListener("resize", toolbarResizeListener);
+            window.addEventListener("resize", toolbar.updateToolbarPosition);
+            disposers.push(() => window.removeEventListener("resize", toolbar.updateToolbarPosition));
 
             // ゲームループ
             pixiApp.ticker.add((ticker) => {
@@ -145,14 +140,7 @@ function useGameEngine(worldSize: Pos2D, chunkPerViewport: Pos2D) {
             cancelled = true;
             container.removeEventListener("contextmenu", preventContextMenu);
             if (pixiApp) {
-                if (toolbarResizeListener) {
-                    window.removeEventListener("resize", toolbarResizeListener);
-                }
-                disposeListeners?.();
-                disposeInteraction?.();
-                disposeInventoryToggle?.();
-                disposePlayerMove?.();
-                disposeZoomChange?.();
+                disposers.forEach((d) => d());
                 pixiApp.destroy(true, { children: true });
                 pixiApp = null; // init() 内の !pixiApp チェックで二重破棄を防ぐ
             }
