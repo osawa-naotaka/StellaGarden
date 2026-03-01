@@ -1,18 +1,8 @@
 import { ITEM_DEFS, type ItemId } from "./ItemDefs";
+import type { IInventoryWriter, ItemStack, SlotRef } from "../_boundary/interfaces";
 
-/** インベントリのスロットに格納されるアイテムスタック。 */
-export interface ItemStack {
-    itemId: ItemId;
-    count: number;
-}
-
-/** スロットの参照先（ツールバーまたはインベントリグリッド）。 */
-export type SlotArea = "toolbar" | "inventory";
-
-export interface SlotRef {
-    area: SlotArea;
-    index: number;
-}
+// 後方互換のための re-export。既存コードの import 先を変えなくてよい。
+export type { ItemStack, SlotRef, SlotArea } from "../_boundary/interfaces";
 
 const TOOLBAR_SLOT_COUNT = 9;
 const INVENTORY_SLOT_COUNT = 64; // 8×8
@@ -20,7 +10,7 @@ const INVENTORY_SLOT_COUNT = 64; // 8×8
 const DEFAULT_TOOLBAR_ITEMS: readonly (ItemId | null)[] = ["watering_can", "pickaxe", "axe", "sickle", "shovel", "hoes", "potato", null, null];
 
 /** プレイヤーのツールバーと 8×8 インベントリグリッドを管理する。 */
-export class Inventory {
+export class Inventory implements IInventoryWriter {
     private toolbarSlots_: (ItemStack | null)[];
     private inventorySlots_: (ItemStack | null)[];
     private selectedIndex_ = 0;

@@ -1,5 +1,6 @@
 import { CHUNK_RENDER_MARGIN } from "../lib/ChunkRenderer";
 import type { Pos2D } from "../lib/VoxelMap";
+import type { IPlayerStateWriter } from "../_boundary/interfaces";
 import { Inventory } from "./Inventory";
 
 const MIN_ZOOM = 0.5;
@@ -8,7 +9,7 @@ const ZOOM_STEP = 0.1;
 const MOVE_SPEED = 10; // タイル/秒
 
 /** プレイヤーの位置・カメラ状態を管理する純粋なデータクラス。PixiJS に依存しない。 */
-export class PlayerState {
+export class PlayerState implements IPlayerStateWriter {
     readonly inventory: Inventory;
     readonly worldSize: Pos2D;
     readonly tilePerViewport: Pos2D;

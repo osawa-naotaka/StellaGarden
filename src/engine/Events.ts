@@ -1,8 +1,6 @@
-import type { Pos2D } from "../lib/VoxelMap";
-
-/** ゲーム内イベントの型定義。 */
-export type GameEventMap = {
-    interact: { pos: Pos2D };
-    select_slot: { slotIndex: number };
-    toggle_inventory: Record<string, never>;
-};
+/**
+ * 後方互換のための re-export。
+ * GameEventMap の正規定義は src/_boundary/events.ts に移動済み。
+ * 既存の `import { GameEventMap } from "../engine/Events"` はそのまま動作する。
+ */
+export type { GameEventMap } from "../_boundary/events";

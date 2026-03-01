@@ -1,3 +1,5 @@
+import type { IVoxelWriter } from "../_boundary/interfaces";
+
 export type Pos2D = {
     x: number;
     z: number;
@@ -9,7 +11,7 @@ export type Pos3D = {
     z: number;
 };
 
-export class VoxelMap {
+export class VoxelMap implements IVoxelWriter {
     readonly width: number;
     readonly height: number;
     readonly depth: number;
