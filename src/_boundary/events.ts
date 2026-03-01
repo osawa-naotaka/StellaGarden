@@ -4,15 +4,13 @@ import type { Pos2D, Pos3D } from "../lib/VoxelMap";
  * ゲーム内の全イベント型定義。全モジュールの唯一のイベント型定義ソース。
  *
  * カテゴリ:
- *   - 既存イベント: 後方互換のために維持（将来フェーズで移行予定）
- *   - input → engine: InputHandler が発行、engine が購読（Phase 3 以降）
+ *   - UI イベント: view/ や App.tsx が発行・購読する
+ *   - input → engine: InputHandler が発行、engine が購読
  *   - engine 発行: engine が状態変化時に発行するが現フェーズでは購読者なし（将来の最適化用）
  *   - engine 内部: engine 内の複数システム間で使うイベント
  */
 export type GameEventMap = {
-    // ─── 既存イベント（後方互換のため維持） ─────────────────────────────────
-    /** @deprecated Phase 3 で interact_world に移行予定 */
-    interact: { pos: Pos2D };
+    // ─── UI イベント ──────────────────────────────────────────────────────────
     /** ツールバースロット選択 */
     select_slot: { slotIndex: number };
     /** インベントリ開閉トグル（E キー）。view/ が subscribe する唯一の UI イベント。 */

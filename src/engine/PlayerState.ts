@@ -5,7 +5,6 @@ import { Inventory } from "./Inventory";
 
 const MIN_ZOOM = 0.5;
 const MAX_ZOOM = 4.0;
-const ZOOM_STEP = 0.1;
 const MOVE_SPEED = 10; // タイル/秒
 
 /** プレイヤーの位置・カメラ状態を管理する純粋なデータクラス。PixiJS に依存しない。 */
@@ -70,5 +69,3 @@ export class PlayerState implements IPlayerStateWriter {
         this.broker?.publish("player_position_changed", { posInWorld: this.posInWorld_, zoomLevel: this.zoomLevel_ });
     }
 }
-
-export { ZOOM_STEP };
