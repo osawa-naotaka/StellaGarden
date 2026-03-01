@@ -1,11 +1,10 @@
-import type { GameEventMap } from "../engine/Events";
-import type { Inventory } from "../engine/Inventory";
+import type { GameEventMap } from "../_boundary/events";
+import type { IInventoryWriter, IVoxelWriter } from "../_boundary/interfaces";
 import { ENTITY_TYPES, getEntityTypeFromVoxel, getTerrainTypeFromVoxel, TERRAIN_TYPES } from "../engine/TerrainDefs";
 import type { EventBroker } from "../lib/Event";
-import type { VoxelMap } from "../lib/VoxelMap";
 
 /** 中心座標を含む 3x3 範囲の表面 y がすべて同じかどうかを返す。範囲外タイルが含まれる場合は false。 */
-function isFlat3x3(voxelMap: VoxelMap, centerX: number, centerZ: number, centerY: number): boolean {
+function isFlat3x3(voxelMap: IVoxelWriter, centerX: number, centerZ: number, centerY: number): boolean {
     for (let dz = -1; dz <= 1; dz++) {
         for (let dx = -1; dx <= 1; dx++) {
             if (dx === 0 && dz === 0) continue;
@@ -24,7 +23,7 @@ function isFlat3x3(voxelMap: VoxelMap, centerX: number, centerZ: number, centerY
 
 /** 中心を削った後（y - 1）でも、3x3 範囲の各セルとの高さ差が 1 以下に収まるか返す。
  *  範囲外タイルが含まれる場合は false。 */
-function isSafeToRemove3x3(voxelMap: VoxelMap, centerX: number, centerZ: number): boolean {
+function isSafeToRemove3x3(voxelMap: IVoxelWriter, centerX: number, centerZ: number): boolean {
     const centerY = voxelMap.getSurfacePosition({ x: centerX, y: 0, z: centerZ }).y;
     const newCenterY = centerY - 1;
     for (let dz = -1; dz <= 1; dz++) {
@@ -44,7 +43,7 @@ function isSafeToRemove3x3(voxelMap: VoxelMap, centerX: number, centerZ: number)
 
 /** 中心に土を盛った後（y + 1）でも、3x3 範囲の各セルとの高さ差が 1 以下に収まるか返す。
  *  範囲外タイルが含まれる場合は false。 */
-function isSafeToAdd3x3(voxelMap: VoxelMap, centerX: number, centerZ: number): boolean {
+function isSafeToAdd3x3(voxelMap: IVoxelWriter, centerX: number, centerZ: number): boolean {
     const centerY = voxelMap.getSurfacePosition({ x: centerX, y: 0, z: centerZ }).y;
     const newCenterY = centerY + 1;
     for (let dz = -1; dz <= 1; dz++) {
@@ -64,11 +63,11 @@ function isSafeToAdd3x3(voxelMap: VoxelMap, centerX: number, centerZ: number): b
 
 /** 選択中のツールに応じてタイルを操作するハンドラを EventBroker に登録し、解除用の dispose 関数を返す。 */
 export function createInteractionHandler(
-    voxelMap: VoxelMap,
-    inventory: Inventory,
+    voxelMap: IVoxelWriter,
+    inventory: IInventoryWriter,
     eventBroker: EventBroker<GameEventMap>,
 ): () => void {
-    return eventBroker.subscribe("interact", (packet) => {
+    return eventBroker.subscribe("interact_world", (packet) => {
         const surfacePos = voxelMap.getSurfacePosition({ x: packet.pos.x, y: 0, z: packet.pos.z });
         const voxel = voxelMap.get(surfacePos);
         const tool = inventory.selectedTool;

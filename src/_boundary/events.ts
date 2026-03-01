@@ -19,8 +19,10 @@ export type GameEventMap = {
     toggle_inventory: Record<string, never>;
 
     // ─── input → engine（Phase 3 以降で使用） ───────────────────────────────
-    /** プレイヤー移動要求。移動量が 0 でない場合のみ発行すること。 */
-    player_move: { dx: number; dz: number };
+    /** プレイヤー移動要求。移動量が 0 でない場合のみ発行すること。
+     *  dx, dz は正規化済みの方向ベクトル、deltaMS はフレーム時間(ms)。
+     *  engine サブスクライバーは moveBy(dx, dz, deltaMS) を呼んで座標を更新する。 */
+    player_move: { dx: number; dz: number; deltaMS: number };
     /** ワールドへのインタラクション（右クリック）— interact の後継 */
     interact_world: { pos: Pos2D };
     /** ズーム変更 */

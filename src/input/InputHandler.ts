@@ -1,20 +1,21 @@
 import type { Container, FederatedPointerEvent } from "pixi.js";
-import type { GameEventMap } from "../engine/Events";
-import type { PlayerState } from "../engine/PlayerState";
-import { ZOOM_STEP } from "../engine/PlayerState";
+import type { GameEventMap } from "../_boundary/events";
+import type { IPlayerStateWriter } from "../_boundary/interfaces";
 import type { EventBroker } from "../lib/Event";
+
+const ZOOM_STEP = 0.1;
 
 /** キーボード・マウスイベントを受け取り、PlayerState を更新する。
  *  インタラクションは EventBroker 経由で通知する。 */
 export class InputHandler {
     private readonly target: Container;
-    private readonly playerState: PlayerState;
+    private readonly playerState: IPlayerStateWriter;
     private readonly eventBroker: EventBroker<GameEventMap>;
 
     private keyPressState: Record<string, boolean> = {};
     private pointerPosInGlobal = { x: 0, z: 0 };
 
-    constructor(target: Container, playerState: PlayerState, eventBroker: EventBroker<GameEventMap>) {
+    constructor(target: Container, playerState: IPlayerStateWriter, eventBroker: EventBroker<GameEventMap>) {
         this.target = target;
         this.playerState = playerState;
         this.eventBroker = eventBroker;
@@ -39,7 +40,7 @@ export class InputHandler {
         const onWheel = (e: WheelEvent) => {
             e.preventDefault();
             const delta = e.deltaY < 0 ? ZOOM_STEP : -ZOOM_STEP;
-            this.playerState.adjustZoom(delta);
+            this.eventBroker.publish("zoom_change", { delta });
         };
         this.target.on("wheel", onWheel, { passive: false });
 
@@ -60,7 +61,7 @@ export class InputHandler {
 
                 const x = Math.floor(this.playerState.pointerPosInWorld.x);
                 const z = Math.floor(this.playerState.pointerPosInWorld.z);
-                this.eventBroker.publish("interact", { pos: { x, z } });
+                this.eventBroker.publish("interact_world", { pos: { x, z } });
             }
         };
         this.target.on("pointerdown", onPointerDown);
@@ -90,7 +91,7 @@ export class InputHandler {
                 dx *= norm;
                 dz *= norm;
             }
-            this.playerState.moveBy(dx, dz, deltaMS);
+            this.eventBroker.publish("player_move", { dx, dz, deltaMS });
         }
         this.updatePointerPosInWorld();
     }

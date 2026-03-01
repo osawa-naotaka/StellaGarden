@@ -24,6 +24,8 @@ function useGameEngine(worldSize: Pos2D, chunkPerViewport: Pos2D) {
         let disposeListeners: (() => void) | null = null;
         let disposeInteraction: (() => void) | null = null;
         let disposeInventoryToggle: (() => void) | null = null;
+        let disposePlayerMove: (() => void) | null = null;
+        let disposeZoomChange: (() => void) | null = null;
 
         async function init() {
             // createGameState の await 中にクリーンアップが走った場合に備えて
@@ -45,6 +47,14 @@ function useGameEngine(worldSize: Pos2D, chunkPerViewport: Pos2D) {
             const { playerState, voxelMap, eventBroker, topView, toolbar, inventoryView } = gameState;
 
             disposeInteraction = createInteractionHandler(voxelMap, playerState.inventory, eventBroker);
+
+            // input → engine: player_move / zoom_change を購読して PlayerState を更新
+            disposePlayerMove = eventBroker.subscribe("player_move", ({ dx, dz, deltaMS }) => {
+                playerState.moveBy(dx, dz, deltaMS);
+            });
+            disposeZoomChange = eventBroker.subscribe("zoom_change", ({ delta }) => {
+                playerState.adjustZoom(delta);
+            });
 
             // インベントリトグル（Eキー）
             let inventoryOpen = false;
@@ -99,6 +109,8 @@ function useGameEngine(worldSize: Pos2D, chunkPerViewport: Pos2D) {
                 disposeListeners?.();
                 disposeInteraction?.();
                 disposeInventoryToggle?.();
+                disposePlayerMove?.();
+                disposeZoomChange?.();
                 gameState.pixiApp.destroy(true, { children: true });
                 gameState = null; // init() 内の !gameState チェックで二重破棄を防ぐ
             }
