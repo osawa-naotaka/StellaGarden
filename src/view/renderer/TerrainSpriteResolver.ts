@@ -120,7 +120,8 @@ function dirtSpriteName(pos: Pos3D[], centerHight: number, voxel: number[]): str
         // 断崖スプライトは高い方のタイルにのみ描画される
         isEdge = centerHight === maxH;
     } else {
-        throw new Error(`Unexpected number of distinct heights in 3x3 neighborhood: ${heights.size} (heights: ${[...heights].join(", ")})`);
+        // 3種類以上の高さが混在する場合はエッジとして扱う
+        isEdge = true;
     }
 
     if (isEdge) {
