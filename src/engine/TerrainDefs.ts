@@ -5,6 +5,7 @@ export const TERRAIN_TYPES = {
     grass: 2,
     soil: 3,
     wetSoil: 4,
+    dirt: 5,
 } as const;
 
 /** エンティティタイプの定数。ボクセル値の 8〜15 ビット目に格納される。 */

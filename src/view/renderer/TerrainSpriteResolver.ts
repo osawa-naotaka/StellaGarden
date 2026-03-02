@@ -107,6 +107,12 @@ export function soilSpriteName(pos: Pos3D[], centerHight: number, voxel: number[
     return [...base, resolveSoilOverlay(voxel, isSoil, "soil_normal")];
 }
 
+function dirtSpriteName(pos: Pos3D[], centerHight: number, voxel: number[]): string[] {
+    const base = grassSpritesName(pos, centerHight);
+    const isDirt = (v: number) => getTerrainTypeFromVoxel(v) === TERRAIN_TYPES.dirt;
+    return [...base, resolveSoilOverlay(voxel, isDirt, "dirt_grass_normal")];
+}
+
 function wetSoilSpriteName(pos: Pos3D[], centerHight: number, voxel: number[]): string[] {
     const base = soilSpriteName(pos, centerHight, voxel);
     const isWetSoil = (v: number) => getTerrainTypeFromVoxel(v) === TERRAIN_TYPES.wetSoil;
@@ -163,6 +169,8 @@ export function getTerrainSpriteNamesFromVoxel(voxel: number[], pos: Pos3D[]): s
             return wetSoilSpriteName(pos, pos[4].y, voxel);
         case TERRAIN_TYPES.grass:
             return grassSpritesName(pos, pos[4].y);
+        case TERRAIN_TYPES.dirt:
+            return dirtSpriteName(pos, pos[4].y, voxel);
         default:
             throw new Error(`Unknown voxel type: ${type}`);
     }

@@ -61,6 +61,23 @@ function isSafeToAdd3x3(voxelMap: IVoxelWriter, centerX: number, centerZ: number
     return true;
 }
 
+/** (cx, cz) の高さ変化によって isFlat3x3 条件が崩れた近傍 soil/wetSoil タイルを dirt に戻す。 */
+function revertNearbyInvalidSoil(voxelMap: IVoxelWriter, cx: number, cz: number): void {
+    for (let dz = -1; dz <= 1; dz++) {
+        for (let dx = -1; dx <= 1; dx++) {
+            const nx = cx + dx;
+            const nz = cz + dz;
+            if (nx < 0 || nx >= voxelMap.width || nz < 0 || nz >= voxelMap.depth) continue;
+            const pos = voxelMap.getSurfacePosition({ x: nx, y: 0, z: nz });
+            const terrain = getTerrainTypeFromVoxel(voxelMap.get(pos));
+            if (terrain !== TERRAIN_TYPES.soil && terrain !== TERRAIN_TYPES.wetSoil) continue;
+            if (!isFlat3x3(voxelMap, nx, nz, pos.y)) {
+                voxelMap.set(TERRAIN_TYPES.dirt, pos);
+            }
+        }
+    }
+}
+
 /** 選択中のツールに応じてタイルを操作するハンドラを EventBroker に登録し、解除用の dispose 関数を返す。 */
 export function createInteractionHandler(voxelMap: IVoxelWriter, inventory: IInventoryWriter, eventBroker: EventBroker<GameEventMap>): () => void {
     return eventBroker.subscribe("interact_world", (packet) => {
@@ -76,7 +93,7 @@ export function createInteractionHandler(voxelMap: IVoxelWriter, inventory: IInv
                 ) {
                     const harvestCount = 2 + Math.floor(Math.random() * 3); // 2〜4個
                     if (inventory.addItem("potato", harvestCount)) {
-                        voxelMap.set(TERRAIN_TYPES.grass, surfacePos);
+                        voxelMap.set(TERRAIN_TYPES.dirt, surfacePos);
                         eventBroker.publish("crop_harvested", { pos: { x: packet.pos.x, z: packet.pos.z }, itemId: "potato", count: harvestCount });
                     }
                 }
@@ -89,7 +106,7 @@ export function createInteractionHandler(voxelMap: IVoxelWriter, inventory: IInv
                 break;
             case "shovel":
                 if (
-                    getTerrainTypeFromVoxel(voxel) === TERRAIN_TYPES.grass &&
+                    (getTerrainTypeFromVoxel(voxel) === TERRAIN_TYPES.grass || getTerrainTypeFromVoxel(voxel) === TERRAIN_TYPES.dirt) &&
                     getEntityTypeFromVoxel(voxel) === ENTITY_TYPES.none &&
                     isSafeToRemove3x3(voxelMap, packet.pos.x, packet.pos.z)
                 ) {
@@ -99,12 +116,14 @@ export function createInteractionHandler(voxelMap: IVoxelWriter, inventory: IInv
                         if (inventory.addItem("dirt", 1)) {
                             voxelMap.remove(surfacePos);
                             voxelMap.set(TERRAIN_TYPES.water, { x: surfacePos.x, y: 0, z: surfacePos.z });
+                            revertNearbyInvalidSoil(voxelMap, packet.pos.x, packet.pos.z);
                         }
                     } else if (surfacePos.y > 1) {
                         // y=2 以上の草地を削る → 除去して下の地形を露出
                         // インベントリが満杯の場合はキャンセル
                         if (inventory.addItem("dirt", 1)) {
                             voxelMap.remove(surfacePos);
+                            revertNearbyInvalidSoil(voxelMap, packet.pos.x, packet.pos.z);
                         }
                     }
                 }
@@ -127,7 +146,7 @@ export function createInteractionHandler(voxelMap: IVoxelWriter, inventory: IInv
                     // 作物エンティティを削除（虚空へ消滅、アイテム追加なし）
                     voxelMap.set(terrainType, surfacePos);
                 } else if (
-                    terrainType === TERRAIN_TYPES.grass &&
+                    (terrainType === TERRAIN_TYPES.grass || terrainType === TERRAIN_TYPES.dirt) &&
                     entityType === ENTITY_TYPES.none &&
                     isFlat3x3(voxelMap, packet.pos.x, packet.pos.z, surfacePos.y)
                 ) {
@@ -156,7 +175,8 @@ export function createInteractionHandler(voxelMap: IVoxelWriter, inventory: IInv
                     isSafeToAdd3x3(voxelMap, packet.pos.x, packet.pos.z) &&
                     inventory.consumeSelectedItem(1)
                 ) {
-                    voxelMap.set(TERRAIN_TYPES.grass, { x: surfacePos.x, y: surfacePos.y + 1, z: surfacePos.z });
+                    voxelMap.set(TERRAIN_TYPES.dirt, { x: surfacePos.x, y: surfacePos.y + 1, z: surfacePos.z });
+                    revertNearbyInvalidSoil(voxelMap, packet.pos.x, packet.pos.z);
                 }
                 break;
         }

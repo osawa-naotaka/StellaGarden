@@ -20,15 +20,16 @@ function generateHeightmap(map: VoxelMap): void {
 
             if (h < map.horizonHeight) {
                 for (let y = 0; y < h; y++) {
-                    map.set(TERRAIN_TYPES.soil, { x, y, z });
+                    map.set(TERRAIN_TYPES.dirt, { x, y, z });
                 }
                 for (let y = h; y < map.horizonHeight; y++) {
                     map.set(TERRAIN_TYPES.water, { x, y, z });
                 }
             } else {
-                for (let y = 0; y <= h; y++) {
-                    map.set(TERRAIN_TYPES.grass, { x, y, z });
+                for (let y = 0; y < h; y++) {
+                    map.set(TERRAIN_TYPES.dirt, { x, y, z });
                 }
+                map.set(TERRAIN_TYPES.grass, { x, y: h, z });
             }
         }
     }
