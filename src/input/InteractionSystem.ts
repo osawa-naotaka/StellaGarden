@@ -62,7 +62,7 @@ function isSafeToAdd3x3(voxelMap: IVoxelWriter, centerX: number, centerZ: number
 }
 
 /** (cx, cz) の高さ変化によって isFlat3x3 条件が崩れた近傍 soil/wetSoil タイルを dirt に戻す。 */
-function revertNearbyInvalidSoil(voxelMap: IVoxelWriter, cx: number, cz: number): void {
+function revertNearbyInvalidTerrain(voxelMap: IVoxelWriter, cx: number, cz: number): void {
     for (let dz = -1; dz <= 1; dz++) {
         for (let dx = -1; dx <= 1; dx++) {
             const nx = cx + dx;
@@ -70,8 +70,8 @@ function revertNearbyInvalidSoil(voxelMap: IVoxelWriter, cx: number, cz: number)
             if (nx < 0 || nx >= voxelMap.width || nz < 0 || nz >= voxelMap.depth) continue;
             const pos = voxelMap.getSurfacePosition({ x: nx, y: 0, z: nz });
             const terrain = getTerrainTypeFromVoxel(voxelMap.get(pos));
-            if (terrain !== TERRAIN_TYPES.soil && terrain !== TERRAIN_TYPES.wetSoil) continue;
-            if (!isFlat3x3(voxelMap, nx, nz, pos.y)) {
+            if (isFlat3x3(voxelMap, nx, nz, pos.y)) continue;
+            if (terrain === TERRAIN_TYPES.soil || terrain === TERRAIN_TYPES.wetSoil) {
                 voxelMap.set(TERRAIN_TYPES.dirt, pos);
             }
         }
@@ -116,14 +116,14 @@ export function createInteractionHandler(voxelMap: IVoxelWriter, inventory: IInv
                         if (inventory.addItem("dirt", 1)) {
                             voxelMap.remove(surfacePos);
                             voxelMap.set(TERRAIN_TYPES.water, { x: surfacePos.x, y: 0, z: surfacePos.z });
-                            revertNearbyInvalidSoil(voxelMap, packet.pos.x, packet.pos.z);
+                            revertNearbyInvalidTerrain(voxelMap, packet.pos.x, packet.pos.z);
                         }
                     } else if (surfacePos.y > 1) {
                         // y=2 以上の草地を削る → 除去して下の地形を露出
                         // インベントリが満杯の場合はキャンセル
                         if (inventory.addItem("dirt", 1)) {
                             voxelMap.remove(surfacePos);
-                            revertNearbyInvalidSoil(voxelMap, packet.pos.x, packet.pos.z);
+                            revertNearbyInvalidTerrain(voxelMap, packet.pos.x, packet.pos.z);
                         }
                     }
                 }
@@ -168,15 +168,18 @@ export function createInteractionHandler(voxelMap: IVoxelWriter, inventory: IInv
                 break;
             }
             case "dirt":
-                // water（y=0）または grass（y=1）の上に土を盛って草地にする
+                // 高さ差1以下なら盛れる。さらに3x3が全て同じ高さならdirt、そうでなければgrass
                 if (
-                    (getTerrainTypeFromVoxel(voxel) === TERRAIN_TYPES.water || getTerrainTypeFromVoxel(voxel) === TERRAIN_TYPES.grass) &&
+                    (getTerrainTypeFromVoxel(voxel) === TERRAIN_TYPES.water || getTerrainTypeFromVoxel(voxel) === TERRAIN_TYPES.grass || getTerrainTypeFromVoxel(voxel) === TERRAIN_TYPES.dirt) &&
                     surfacePos.y + 1 < voxelMap.height &&
                     isSafeToAdd3x3(voxelMap, packet.pos.x, packet.pos.z) &&
                     inventory.consumeSelectedItem(1)
                 ) {
-                    voxelMap.set(TERRAIN_TYPES.dirt, { x: surfacePos.x, y: surfacePos.y + 1, z: surfacePos.z });
-                    revertNearbyInvalidSoil(voxelMap, packet.pos.x, packet.pos.z);
+                    const newTerrain = isFlat3x3(voxelMap, packet.pos.x, packet.pos.z, surfacePos.y + 1)
+                        ? TERRAIN_TYPES.dirt
+                        : TERRAIN_TYPES.grass;
+                    voxelMap.set(newTerrain, { x: surfacePos.x, y: surfacePos.y + 1, z: surfacePos.z });
+                    revertNearbyInvalidTerrain(voxelMap, packet.pos.x, packet.pos.z);
                 }
                 break;
         }

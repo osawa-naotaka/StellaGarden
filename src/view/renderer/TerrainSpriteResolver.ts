@@ -108,9 +108,20 @@ export function soilSpriteName(pos: Pos3D[], centerHight: number, voxel: number[
 }
 
 function dirtSpriteName(pos: Pos3D[], centerHight: number, voxel: number[]): string[] {
+    // エッジ（周囲のいずれかが中心と高さが異なる）場合はgrassとして描画
+    const isEdge = pos.some((p) => p.y !== centerHight);
+    if (isEdge) {
+        return grassSpritesName(pos, centerHight);
+    }
     const base = grassSpritesName(pos, centerHight);
-    const isDirt = (v: number) => getTerrainTypeFromVoxel(v) === TERRAIN_TYPES.dirt;
-    return [...base, resolveSoilOverlay(voxel, isDirt, "dirt_grass_normal")];
+    // 中心と同じ高さのdirtのみ繋がりとして扱う（高さが異なるdirtは無視）
+    const flags = voxel.map((v, i) =>
+        getTerrainTypeFromVoxel(v) === TERRAIN_TYPES.dirt && pos[i].y === centerHight ? 1 : 0
+    );
+    const id9 = calcId9FromVoxel(flags);
+    const id5 = calcId5FromVoxel(flags);
+    const suffix = TRANSITION_ID9.get(id9) ?? TRANSITION_ID5.get(id5) ?? "0_5_9";
+    return [...base, `dirt_grass_normal_${suffix}`];
 }
 
 function wetSoilSpriteName(pos: Pos3D[], centerHight: number, voxel: number[]): string[] {
