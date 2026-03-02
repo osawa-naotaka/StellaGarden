@@ -168,17 +168,14 @@ export function createInteractionHandler(voxelMap: IVoxelWriter, inventory: IInv
                 break;
             }
             case "dirt":
-                // 高さ差1以下なら盛れる。さらに3x3が全て同じ高さならdirt、そうでなければgrass
+                // 高さ差1以下なら盛れる。voxelは常にdirt（エッジの表示はスプライトリゾルバーで制御）
                 if (
                     (getTerrainTypeFromVoxel(voxel) === TERRAIN_TYPES.water || getTerrainTypeFromVoxel(voxel) === TERRAIN_TYPES.grass || getTerrainTypeFromVoxel(voxel) === TERRAIN_TYPES.dirt) &&
                     surfacePos.y + 1 < voxelMap.height &&
                     isSafeToAdd3x3(voxelMap, packet.pos.x, packet.pos.z) &&
                     inventory.consumeSelectedItem(1)
                 ) {
-                    const newTerrain = isFlat3x3(voxelMap, packet.pos.x, packet.pos.z, surfacePos.y + 1)
-                        ? TERRAIN_TYPES.dirt
-                        : TERRAIN_TYPES.grass;
-                    voxelMap.set(newTerrain, { x: surfacePos.x, y: surfacePos.y + 1, z: surfacePos.z });
+                    voxelMap.set(TERRAIN_TYPES.dirt, { x: surfacePos.x, y: surfacePos.y + 1, z: surfacePos.z });
                     revertNearbyInvalidTerrain(voxelMap, packet.pos.x, packet.pos.z);
                 }
                 break;

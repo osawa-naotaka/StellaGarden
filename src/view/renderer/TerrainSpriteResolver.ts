@@ -108,8 +108,21 @@ export function soilSpriteName(pos: Pos3D[], centerHight: number, voxel: number[
 }
 
 function dirtSpriteName(pos: Pos3D[], centerHight: number, voxel: number[]): string[] {
-    // エッジ（周囲のいずれかが中心と高さが異なる）場合はgrassとして描画
-    const isEdge = pos.some((p) => p.y !== centerHight);
+    const heights = new Set(pos.map((p) => p.y));
+
+    let isEdge: boolean;
+    if (heights.size === 1) {
+        // 全部同じ高さ → 平坦
+        isEdge = false;
+    } else if (heights.size === 2) {
+        const sorted = [...heights].sort((a, b) => a - b);
+        const maxH = sorted[1];
+        // 断崖スプライトは高い方のタイルにのみ描画される
+        isEdge = centerHight === maxH;
+    } else {
+        throw new Error(`Unexpected number of distinct heights in 3x3 neighborhood: ${heights.size} (heights: ${[...heights].join(", ")})`);
+    }
+
     if (isEdge) {
         return grassSpritesName(pos, centerHight);
     }
