@@ -174,11 +174,11 @@ export class InventoryView {
         separator.stroke({ width: 1, color: 0x888888, alpha: 0.7 });
         this.container.addChild(separator);
 
-        // ツールバー部分（9スロット）
+        // ツールバー部分（手スロット除く 9スロット: index 1〜9）
         const tbOffsetX = PADDING + (contentWidth - tbWidth) / 2;
         const tbOffsetY = invOffsetY + INVENTORY_ROWS * CELL_SIZE + SEPARATOR_HEIGHT;
         for (let i = 0; i < TOOLBAR_COLS; i++) {
-            const ref: SlotRef = { area: "toolbar", index: i };
+            const ref: SlotRef = { area: "toolbar", index: i + 1 };
             const slotContainer = this.createSlotContainer(ref);
             slotContainer.x = tbOffsetX + i * CELL_SIZE;
             slotContainer.y = tbOffsetY;
@@ -316,7 +316,7 @@ export class InventoryView {
             updateSlotIcon(this.invSlotIcons[i], this.inventory.getSlot({ area: "inventory", index: i }), CELL_SIZE);
         }
         for (let i = 0; i < TOOLBAR_COLS; i++) {
-            updateSlotIcon(this.tbSlotIcons[i], this.inventory.getSlot({ area: "toolbar", index: i }), CELL_SIZE);
+            updateSlotIcon(this.tbSlotIcons[i], this.inventory.getSlot({ area: "toolbar", index: i + 1 }), CELL_SIZE);
         }
 
         if (this.pickedUp) {

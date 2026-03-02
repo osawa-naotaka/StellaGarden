@@ -1,7 +1,9 @@
 import type { IVoxelWriter } from "../_boundary/interfaces";
 import {
     ENTITY_TYPES,
+    TERRAIN_TYPES,
     getEntityTypeFromVoxel,
+    getTerrainTypeFromVoxel,
     getCropGrowthStageFromVoxel,
     setCropGrowthStageInVoxel,
 } from "./TerrainDefs";
@@ -17,6 +19,28 @@ const MAX_GROWTH_STAGE = 5;
  * - 育成カウンタが MAX_GROWTH_STAGE（5）に達しているタイルは更新しない
  * - y = horizonHeight の地表層のみを走査する
  */
+/**
+ * VoxelMap 全体を走査して、wet soil を soil に変更する。
+ * 作物エンティティが存在する場合はエンティティと growthStage を保持したまま地形タイプのみ変更する。
+ *
+ * - ゲーム内1日が経過するたびに呼び出す（day_changed イベントを受けて App.tsx が呼ぶ）
+ */
+export function dryWetSoil(voxelMap: IVoxelWriter): void {
+    const horizon = voxelMap.horizonHeight;
+
+    for (let x = 0; x < voxelMap.width; x++) {
+        for (let z = 0; z < voxelMap.depth; z++) {
+            const pos = { x, y: horizon, z };
+            const voxel = voxelMap.get(pos);
+
+            if (getTerrainTypeFromVoxel(voxel) !== TERRAIN_TYPES.wetSoil) continue;
+
+            // 地形タイプのみ soil に変更（エンティティ・growthStage は保持）
+            voxelMap.set((voxel & ~0xff) | TERRAIN_TYPES.soil, pos);
+        }
+    }
+}
+
 export function advanceDayAllCrops(voxelMap: IVoxelWriter): void {
     const horizon = voxelMap.horizonHeight;
 

@@ -2,7 +2,7 @@ import { Application, Container, TextureSource } from "pixi.js";
 import { useEffect, useRef } from "react";
 import { PIXEL_PER_TILE, TILE_PER_CHUNK } from "./_boundary/constants";
 import type { GameEventMap } from "./_boundary/events";
-import { advanceDayAllCrops } from "./engine/CropSystem";
+import { advanceDayAllCrops, dryWetSoil } from "./engine/CropSystem";
 import { GameTime } from "./engine/GameTime";
 import { PlayerState } from "./engine/PlayerState";
 import { generateTerrain } from "./engine/TerrainGenerator";
@@ -93,6 +93,7 @@ function useGameEngine(worldSize: Pos2D, chunkPerViewport: Pos2D) {
             const gameTime = new GameTime();
             disposers.push(
                 eventBroker.subscribe("day_changed", () => {
+                    dryWetSoil(voxelMap);
                     advanceDayAllCrops(voxelMap);
                 }),
             );

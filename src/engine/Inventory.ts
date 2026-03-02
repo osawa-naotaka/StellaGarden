@@ -1,11 +1,12 @@
 import type { IEventBroker, IInventoryWriter, ItemStack, SlotRef } from "../_boundary/interfaces";
 import { ITEM_DEFS, type ItemId } from "./ItemDefs";
 
-const TOOLBAR_SLOT_COUNT = 9;
+const TOOLBAR_SLOT_COUNT = 10;
 const INVENTORY_SLOT_COUNT = 64; // 8×8
 
 type DefaultItem = { itemId: ItemId; count: number };
 const DEFAULT_TOOLBAR_ITEMS: readonly (DefaultItem | null)[] = [
+    { itemId: "hand", count: 1 },
     { itemId: "watering_can", count: 1 },
     { itemId: "pickaxe", count: 1 },
     { itemId: "axe", count: 1 },

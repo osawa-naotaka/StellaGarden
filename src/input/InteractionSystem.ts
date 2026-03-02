@@ -1,6 +1,6 @@
 import type { GameEventMap } from "../_boundary/events";
 import type { IInventoryWriter, IVoxelWriter } from "../_boundary/interfaces";
-import { ENTITY_TYPES, getEntityTypeFromVoxel, getTerrainTypeFromVoxel, TERRAIN_TYPES } from "../engine/TerrainDefs";
+import { ENTITY_TYPES, getCropGrowthStageFromVoxel, getEntityTypeFromVoxel, getTerrainTypeFromVoxel, TERRAIN_TYPES } from "../engine/TerrainDefs";
 import type { EventBroker } from "../lib/Event";
 
 /** 中心座標を含む 3x3 範囲の表面 y がすべて同じかどうかを返す。範囲外タイルが含まれる場合は false。 */
@@ -69,9 +69,22 @@ export function createInteractionHandler(voxelMap: IVoxelWriter, inventory: IInv
         const tool = inventory.selectedTool;
 
         switch (tool) {
+            case "hand":
+                if (
+                    getEntityTypeFromVoxel(voxel) === ENTITY_TYPES.potato &&
+                    getCropGrowthStageFromVoxel(voxel) === 5
+                ) {
+                    const harvestCount = 2 + Math.floor(Math.random() * 3); // 2〜4個
+                    if (inventory.addItem("potato", harvestCount)) {
+                        voxelMap.set(TERRAIN_TYPES.grass, surfacePos);
+                        eventBroker.publish("crop_harvested", { pos: { x: packet.pos.x, z: packet.pos.z }, itemId: "potato", count: harvestCount });
+                    }
+                }
+                break;
             case "watering_can":
                 if (getTerrainTypeFromVoxel(voxel) === TERRAIN_TYPES.soil) {
-                    voxelMap.set(TERRAIN_TYPES.wetSoil, surfacePos);
+                    // エンティティビットと growthStage を保持したまま地形タイプのみ wetSoil に変更
+                    voxelMap.set((voxel & ~0xff) | TERRAIN_TYPES.wetSoil, surfacePos);
                 }
                 break;
             case "shovel":
@@ -82,41 +95,59 @@ export function createInteractionHandler(voxelMap: IVoxelWriter, inventory: IInv
                 ) {
                     if (surfacePos.y === 1) {
                         // y=1 の草地を削除し、y=0 を water にして海底に戻す
-                        voxelMap.remove(surfacePos);
-                        voxelMap.set(TERRAIN_TYPES.water, { x: surfacePos.x, y: 0, z: surfacePos.z });
-                        inventory.addItem("dirt", 1);
+                        // インベントリが満杯の場合はキャンセル
+                        if (inventory.addItem("dirt", 1)) {
+                            voxelMap.remove(surfacePos);
+                            voxelMap.set(TERRAIN_TYPES.water, { x: surfacePos.x, y: 0, z: surfacePos.z });
+                        }
                     } else if (surfacePos.y > 1) {
                         // y=2 以上の草地を削る → 除去して下の地形を露出
-                        voxelMap.remove(surfacePos);
-                        inventory.addItem("dirt", 1);
+                        // インベントリが満杯の場合はキャンセル
+                        if (inventory.addItem("dirt", 1)) {
+                            voxelMap.remove(surfacePos);
+                        }
                     }
                 }
                 break;
             case "axe":
                 if (getEntityTypeFromVoxel(voxel) === ENTITY_TYPES.tree) {
-                    voxelMap.set(voxel & 0x000000ff, surfacePos);
-                    inventory.addItem("wood", 1);
+                    // インベントリが満杯の場合はキャンセル
+                    if (inventory.addItem("wood", 1)) {
+                        voxelMap.set(voxel & 0x000000ff, surfacePos);
+                    }
                 }
                 break;
-            case "hoes":
+            case "hoes": {
+                const terrainType = getTerrainTypeFromVoxel(voxel);
+                const entityType = getEntityTypeFromVoxel(voxel);
                 if (
-                    getTerrainTypeFromVoxel(voxel) === TERRAIN_TYPES.grass &&
-                    getEntityTypeFromVoxel(voxel) === ENTITY_TYPES.none &&
+                    (terrainType === TERRAIN_TYPES.soil || terrainType === TERRAIN_TYPES.wetSoil) &&
+                    entityType !== ENTITY_TYPES.none
+                ) {
+                    // 作物エンティティを削除（虚空へ消滅、アイテム追加なし）
+                    voxelMap.set(terrainType, surfacePos);
+                } else if (
+                    terrainType === TERRAIN_TYPES.grass &&
+                    entityType === ENTITY_TYPES.none &&
                     isFlat3x3(voxelMap, packet.pos.x, packet.pos.z, surfacePos.y)
                 ) {
                     voxelMap.set(TERRAIN_TYPES.soil, surfacePos);
                 }
                 break;
-            case "potato":
+            }
+            case "potato": {
+                const potatoTerrainType = getTerrainTypeFromVoxel(voxel);
                 if (
-                    getTerrainTypeFromVoxel(voxel) === TERRAIN_TYPES.soil &&
+                    (potatoTerrainType === TERRAIN_TYPES.soil || potatoTerrainType === TERRAIN_TYPES.wetSoil) &&
                     getEntityTypeFromVoxel(voxel) === ENTITY_TYPES.none &&
                     inventory.consumeSelectedItem(1)
                 ) {
-                    voxelMap.set(TERRAIN_TYPES.soil | (ENTITY_TYPES.potato << 8), surfacePos);
+                    // 地形タイプ（soil or wetSoil）を保持してエンティティを追加
+                    voxelMap.set(potatoTerrainType | (ENTITY_TYPES.potato << 8), surfacePos);
                     eventBroker.publish("crop_planted", { pos: { x: packet.pos.x, z: packet.pos.z }, cropType: "potato" });
                 }
                 break;
+            }
             case "dirt":
                 // water（y=0）または grass（y=1）の上に土を盛って草地にする
                 if (
