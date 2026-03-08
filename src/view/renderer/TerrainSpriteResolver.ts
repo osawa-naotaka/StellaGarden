@@ -149,22 +149,18 @@ function wetSoilSpriteName(pos: Pos3D[], centerHight: number, voxel: number[]): 
 // -----------------------------------------------------------------------------
 
 export function grassSpritesName(pos: Pos3D[], centerHight: number): string[] {
-    if (centerHight !== 1 && centerHight !== 2) {
-        throw new Error(`Unsupported centerHight: ${centerHight}`);
-    }
-
     // 高さを正規化（低い方 = 0、同じ高さ = 1）
     const minH = centerHight - 1;
     const normalized = pos.map((p) => Math.min(1, Math.max(0, p.y - minH)));
 
     // 全面同一高さ → オーバーレイ不要、ベーススプライトのみ
     if (normalized.every((h) => h === 1)) {
-        return [centerHight === 1 ? "grass_water_normal_0_5_9" : "grass_hill_dark_0_5_9"];
+        return ["grass_water_normal_0_5_9"];
     }
 
     const baseSprite = centerHight === 1 ? "water_grass_normal_0_5_9" : "grass_water_normal_0_5_9";
-    const overlayPrefix = centerHight === 1 ? "grass_water_normal" : "grass_hill_dark";
-    const defaultSprite = centerHight === 1 ? "grass_water_normal_0_5_9" : "grass_water_dark_0_5_9";
+    const overlayPrefix = "grass_water_normal"
+    const defaultSprite = "grass_water_normal_0_5_9";
 
     const id9 = calcId9FromHights(normalized);
     const id5 = calcId5FromHights([0, normalized[1], 0, normalized[3], normalized[4], normalized[5], 0, normalized[7], 0]);
