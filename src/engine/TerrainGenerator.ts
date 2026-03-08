@@ -10,12 +10,22 @@ export function generateTerrain(map: VoxelMap): void {
 }
 
 function generateHeightmap(map: VoxelMap): void {
-    const noise = createNoise2D(alea("terrain"));
-    const scale = 0.01;
+    // fBm (fractal Brownian motion): 複数オクターブのノイズを重ねて複雑な地形を生成
+    const octaves = [
+        { noise: createNoise2D(alea("terrain_0")), frequency: 0.008,  amplitude: 1.00 }, // 大陸スケール
+        { noise: createNoise2D(alea("terrain_1")), frequency: 0.025,  amplitude: 0.45 }, // 山・谷
+        { noise: createNoise2D(alea("terrain_2")), frequency: 0.070,  amplitude: 0.18 }, // 丘
+        { noise: createNoise2D(alea("terrain_3")), frequency: 0.180,  amplitude: 0.07 }, // 細かい起伏
+    ];
+    const totalAmplitude = octaves.reduce((s, o) => s + o.amplitude, 0);
 
     for (let z = 0; z < map.depth; z++) {
         for (let x = 0; x < map.width; x++) {
-            const noiseValue = noise(x * scale, z * scale);
+            let noiseValue = 0;
+            for (const { noise, frequency, amplitude } of octaves) {
+                noiseValue += noise(x * frequency, z * frequency) * amplitude;
+            }
+            noiseValue /= totalAmplitude; // [-1, 1] に正規化
             const h = Math.min(map.height - 1, Math.floor((noiseValue + 1) * 0.5 * map.height));
 
             if (h < map.horizonHeight) {
