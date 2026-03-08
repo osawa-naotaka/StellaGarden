@@ -14,8 +14,8 @@ const DEFAULT_TOOLBAR_ITEMS: readonly (DefaultItem | null)[] = [
     { itemId: "shovel", count: 1 },
     { itemId: "hoes", count: 1 },
     { itemId: "potato", count: 64 },
-    null,
-    null,
+    { itemId: "soy", count: 64 },
+    { itemId: "flax", count: 64 },
 ];
 
 /** プレイヤーのツールバーと 8×8 インベントリグリッドを管理する。 */

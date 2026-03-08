@@ -1,5 +1,5 @@
 /** インベントリに配置できるアイテムの ID 型。 */
-export type ItemId = "hand" | "watering_can" | "pickaxe" | "axe" | "sickle" | "shovel" | "hoes" | "potato" | "dirt" | "wood";
+export type ItemId = "hand" | "watering_can" | "pickaxe" | "axe" | "sickle" | "shovel" | "hoes" | "potato" | "soy" | "flax" | "dirt" | "wood";
 
 export interface ItemDef {
     readonly id: ItemId;
@@ -20,6 +20,8 @@ export const ITEM_DEFS: Record<ItemId, ItemDef> = {
     shovel: { id: "shovel", spriteName: "shovel", maxStack: 1 },
     hoes: { id: "hoes", spriteName: "ss_sprite_001.png", maxStack: 1 },
     potato: { id: "potato", spriteName: "ss_sprite_009.png", maxStack: 64 },
+    soy: { id: "soy", spriteName: "ss_sprite_015.png", maxStack: 64 },
+    flax: { id: "flax", spriteName: "ss_sprite_021.png", maxStack: 64 },
     dirt: { id: "dirt", spriteName: "tile_027.png", maxStack: 64 },
     wood: { id: "wood", spriteName: "tile_048.png", maxStack: 64 },
 };

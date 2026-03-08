@@ -210,6 +210,8 @@ export type EntitySpriteInfo = {
 const ENTITY_ANCHORS: Record<number, { x: number; y: number }> = {
     [ENTITY_TYPES.tree]:   { x: 0.25,  y: 0.75  }, // birch_tree_sapling: 底部を地面に合わせる
     [ENTITY_TYPES.potato]: { x: 0, y: 0.25 }, // potato_1: 現状値を維持
+    [ENTITY_TYPES.soy]: { x: 0, y: 0.25 },
+    [ENTITY_TYPES.flax]: { x: 0, y: 0.25 },
 };
 
 /** ボクセル値からエンティティタイルのスプライト情報を返す。エンティティなしの場合は null。 */
@@ -222,7 +224,17 @@ export function getEntitySpriteNameFromVoxel(voxel: number): EntitySpriteInfo | 
             return { spriteName: "birch_tree_sapling", anchor: ENTITY_ANCHORS[type] };
         case ENTITY_TYPES.potato: {
             const stage = getCropGrowthStageFromVoxel(voxel);
-            const spriteNames = ["potato_seed", "potato_1", "potato_2", "potato_3", "potato_4", "potato_5"];
+            const spriteNames = ["ss_sprite_008.png", "ss_sprite_010.png", "ss_sprite_011.png", "ss_sprite_012.png"];
+            return { spriteName: spriteNames[stage] ?? "potato_seed", anchor: ENTITY_ANCHORS[type] };
+        }
+        case ENTITY_TYPES.soy: {
+            const stage = getCropGrowthStageFromVoxel(voxel);
+            const spriteNames = ["ss_sprite_008.png", "ss_sprite_018.png", "ss_sprite_019.png", "ss_sprite_020.png"];
+            return { spriteName: spriteNames[stage] ?? "potato_seed", anchor: ENTITY_ANCHORS[type] };
+        }
+        case ENTITY_TYPES.flax: {
+            const stage = getCropGrowthStageFromVoxel(voxel);
+            const spriteNames = ["ss_sprite_008.png", "ss_sprite_029.png", "ss_sprite_030.png", "ss_sprite_031.png"];
             return { spriteName: spriteNames[stage] ?? "potato_seed", anchor: ENTITY_ANCHORS[type] };
         }
         default:

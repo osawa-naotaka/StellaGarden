@@ -13,6 +13,8 @@ export const ENTITY_TYPES = {
     none: 0,
     tree: 1,
     potato: 2,
+    soy: 3,
+    flax: 4,
 } as const;
 
 /** ボクセル値から地形タイプを取り出す。 */
@@ -27,7 +29,7 @@ export function getEntityTypeFromVoxel(voxel: number): number {
 
 /**
  * ボクセル値から作物の育成カウンタを取り出す（bits 16-18、3bit）。
- * 0 = 植えたて（seed）、1〜5 = potato_1〜potato_5。
+ * 0 = 植えたて（seed）、1〜3 = potato_1〜potato_3。
  */
 export function getCropGrowthStageFromVoxel(voxel: number): number {
     return (voxel >> 16) & 0x7;

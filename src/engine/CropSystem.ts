@@ -9,7 +9,7 @@ import {
 } from "./TerrainDefs";
 
 /** 作物の最終育成段階（potato_5）。これを超えてはならない。 */
-const MAX_GROWTH_STAGE = 5;
+const MAX_GROWTH_STAGE = 3;
 
 /**
  * VoxelMap 全体を走査して、芋エンティティが載っているボクセルの
@@ -49,7 +49,9 @@ export function advanceDayAllCrops(voxelMap: IVoxelWriter): void {
             const pos = { x, y: horizon, z };
             const voxel = voxelMap.get(pos);
 
-            if (getEntityTypeFromVoxel(voxel) !== ENTITY_TYPES.potato) continue;
+            if (getEntityTypeFromVoxel(voxel) !== ENTITY_TYPES.potato &&
+                getEntityTypeFromVoxel(voxel) !== ENTITY_TYPES.soy &&
+                getEntityTypeFromVoxel(voxel) !== ENTITY_TYPES.flax) continue;
 
             const stage = getCropGrowthStageFromVoxel(voxel);
             if (stage >= MAX_GROWTH_STAGE) continue;
