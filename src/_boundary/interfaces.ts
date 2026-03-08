@@ -47,6 +47,7 @@ export interface IVoxelReader {
     readonly depth: number;
     readonly horizonHeight: number;
     get(pos: Pos3D): number;
+    getSurface(pos: Pos3D): number;
     getSurfacePosition(pos: Pos3D): Pos3D;
 }
 

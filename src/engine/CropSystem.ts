@@ -42,11 +42,9 @@ export function dryWetSoil(voxelMap: IVoxelWriter): void {
 }
 
 export function advanceDayAllCrops(voxelMap: IVoxelWriter): void {
-    const horizon = voxelMap.horizonHeight;
-
     for (let x = 0; x < voxelMap.width; x++) {
         for (let z = 0; z < voxelMap.depth; z++) {
-            const pos = { x, y: horizon, z };
+            const pos = voxelMap.getSurfacePosition({ x, y: 0, z });
             const voxel = voxelMap.get(pos);
 
             if (getEntityTypeFromVoxel(voxel) !== ENTITY_TYPES.potato &&

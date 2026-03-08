@@ -13,6 +13,8 @@ const DEFAULT_TOOLBAR_ITEMS: readonly (DefaultItem | null)[] = [
     { itemId: "sickle", count: 1 },
     { itemId: "shovel", count: 1 },
     { itemId: "hoes", count: 1 },
+];
+const DEFAULT_INVENTORY_ITEMS: readonly (DefaultItem | null)[] = [
     { itemId: "potato", count: 64 },
     { itemId: "soy", count: 64 },
     { itemId: "flax", count: 64 },
@@ -30,9 +32,18 @@ export class Inventory implements IInventoryWriter {
         this.broker = broker;
     }
 
-    constructor() {
-        this.toolbarSlots_ = DEFAULT_TOOLBAR_ITEMS.map((item) => (item ? { itemId: item.itemId, count: item.count } : null));
-        this.inventorySlots_ = Array<ItemStack | null>(INVENTORY_SLOT_COUNT).fill(null);
+    constructor(
+        toolbarItems: readonly (DefaultItem | null)[] = DEFAULT_TOOLBAR_ITEMS,
+        inventoryItems: readonly (DefaultItem | null)[] = DEFAULT_INVENTORY_ITEMS,
+    ) {
+        this.toolbarSlots_ = Array.from({ length: TOOLBAR_SLOT_COUNT }, (_, i) => {
+            const item = toolbarItems[i] ?? null;
+            return item ? { itemId: item.itemId, count: item.count } : null;
+        });
+        this.inventorySlots_ = Array.from({ length: INVENTORY_SLOT_COUNT }, (_, i) => {
+            const item = inventoryItems[i] ?? null;
+            return item ? { itemId: item.itemId, count: item.count } : null;
+        });
     }
 
     /** ツールバーの全スロット（readonly）。 */
