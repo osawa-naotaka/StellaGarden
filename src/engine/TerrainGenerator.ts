@@ -210,8 +210,16 @@ function generateRivers(map: VoxelMap, hm: Int32Array, hmf: Float32Array): void 
         if (!tooClose) { springs.push(idx); springCoords.push([sx, sz]); }
     }
 
-    // 各川を追跡してタイルをマーク
-    // visited を川ごとに使い回す（配列確保コスト削減）
+    // ドメインワーピング用ノイズ:
+    //   経路スコア = effectiveHmf + WARP_AMP * warpNoise
+    //   → 下流方向へ流れながら、ノイズが蛇行バイアスを与えて自然なカーブを描く
+    //   WARP_SCALE: 蛇行の空間スケール（小さいほど高周波な曲がり）
+    //   WARP_AMP:   蛇行の強さ（大きいほど曲がりやすいが、大きすぎると上り坂に入る）
+    const warpNoise  = createNoise2D(alea("river_warp"));
+    const WARP_SCALE = 0.035;
+    const WARP_AMP   = 0.10;
+
+    // 各川を追跡してタイルをマーク（visited は川ごとに fill(0) で使い回す）
     const riverCells = new Uint8Array(W * D);
     const visited    = new Uint8Array(W * D);
 
@@ -241,20 +249,21 @@ function generateRivers(map: VoxelMap, hm: Int32Array, hmf: Float32Array): void 
                 break; // 海に到達 → 終了
             }
 
-            // 次のセル: 未訪問の隣接セルのうち effectiveHmf が最小のものへ
-            // ★ 現在セルより高くても移動する（平坦エリア通過のため厳密降下を外す）
-            let minF   = Infinity;
-            let minIdx = -1;
+            // 次のセル: score = effectiveHmf + WARP_AMP * warpNoise が最小の未訪問隣接セルへ
+            // warpNoise が隣接セルごとに異なるスコアバイアスを与え、経路を自然に蛇行させる
+            let minScore = Infinity;
+            let minIdx   = -1;
             for (const [dz, dx] of DIRS8) {
                 const nx = x + dx, nz = z + dz;
                 if (nx < 0 || nx >= W || nz < 0 || nz >= D) continue;
                 const nidx = nz * W + nx;
                 if (visited[nidx]) continue;
-                const nf = effectiveHmf[nidx];
-                if (nf < minF) { minF = nf; minIdx = nidx; }
+                const warp  = warpNoise(nx * WARP_SCALE, nz * WARP_SCALE);
+                const score = effectiveHmf[nidx] + WARP_AMP * warp;
+                if (score < minScore) { minScore = score; minIdx = nidx; }
             }
 
-            if (minIdx === -1) break; // 全8隣接が訪問済み（ほぼ発生しない）
+            if (minIdx === -1) break;
             idx = minIdx;
             step++;
         }
