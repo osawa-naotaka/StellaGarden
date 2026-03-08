@@ -87,7 +87,7 @@ export class TopView {
         const sprite = this.chunkSpritePool[idx];
         const ppt = this.pixelPerTile;
         sprite.texture = this.chunkRenderer.renderChunk(this.voxelMap, world, idx, (tile, voxels, positions) =>
-            setupTerrainTile(tile, voxels, positions, pointerPos, ppt),
+            setupTerrainTile(tile, voxels, positions, this.voxelMap.horizonHeight, pointerPos, ppt),
         );
         sprite.visible = true;
     }
@@ -107,8 +107,8 @@ export class TopView {
     }
 }
 
-function setupTerrainTile(tile: Tile, voxels: number[], positions: Pos3D[], pointerPos: Pos2D, pixelPerTile: number): void {
-    const spriteNames = getTerrainSpriteNamesFromVoxel(voxels, positions);
+function setupTerrainTile(tile: Tile, voxels: number[], positions: Pos3D[], horizonHeight: number, pointerPos: Pos2D, pixelPerTile: number): void {
+    const spriteNames = getTerrainSpriteNamesFromVoxel(voxels, positions, horizonHeight);
     tile.useNSprites(spriteNames.length);
 
     const isHovered = Math.floor(pointerPos.x) === positions[4].x && Math.floor(pointerPos.z) === positions[4].z;

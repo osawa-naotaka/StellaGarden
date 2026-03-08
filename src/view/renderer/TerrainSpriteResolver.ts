@@ -101,13 +101,13 @@ function resolveSoilOverlay(voxel: number[], isSoilPredicate: (v: number) => boo
     return `${prefix}_${suffix}`;
 }
 
-export function soilSpriteName(pos: Pos3D[], centerHight: number, voxel: number[]): string[] {
-    const base = grassSpritesName(pos, centerHight);
+export function soilSpriteName(pos: Pos3D[], centerHight: number, horizonHeight: number, voxel: number[]): string[] {
+    const base = grassSpritesName(pos, centerHight, horizonHeight);
     const isSoil = (v: number) => getTerrainTypeFromVoxel(v) === TERRAIN_TYPES.soil || getTerrainTypeFromVoxel(v) === TERRAIN_TYPES.wetSoil;
     return [...base, resolveSoilOverlay(voxel, isSoil, "soil_normal")];
 }
 
-function dirtSpriteName(pos: Pos3D[], centerHight: number, voxel: number[]): string[] {
+function dirtSpriteName(pos: Pos3D[], centerHight: number, horizonHeight: number, voxel: number[]): string[] {
     const heights = new Set(pos.map((p) => p.y));
 
     let isEdge: boolean;
@@ -125,9 +125,9 @@ function dirtSpriteName(pos: Pos3D[], centerHight: number, voxel: number[]): str
     }
 
     if (isEdge) {
-        return grassSpritesName(pos, centerHight);
+        return grassSpritesName(pos, centerHight, horizonHeight);
     }
-    const base = grassSpritesName(pos, centerHight);
+    const base = grassSpritesName(pos, centerHight, horizonHeight);
     // 中心と同じ高さのdirtのみ繋がりとして扱う（高さが異なるdirtは無視）
     const flags = voxel.map((v, i) =>
         getTerrainTypeFromVoxel(v) === TERRAIN_TYPES.dirt && pos[i].y === centerHight ? 1 : 0
@@ -138,8 +138,8 @@ function dirtSpriteName(pos: Pos3D[], centerHight: number, voxel: number[]): str
     return [...base, `dirt_grass_normal_${suffix}`];
 }
 
-function wetSoilSpriteName(pos: Pos3D[], centerHight: number, voxel: number[]): string[] {
-    const base = soilSpriteName(pos, centerHight, voxel);
+function wetSoilSpriteName(pos: Pos3D[], centerHight: number, horizonHeight: number, voxel: number[]): string[] {
+    const base = soilSpriteName(pos, centerHight, horizonHeight, voxel);
     const isWetSoil = (v: number) => getTerrainTypeFromVoxel(v) === TERRAIN_TYPES.wetSoil;
     return [...base, resolveSoilOverlay(voxel, isWetSoil, "soil_wet")];
 }
@@ -148,7 +148,7 @@ function wetSoilSpriteName(pos: Pos3D[], centerHight: number, voxel: number[]): 
 // 草地スプライト名の解決
 // -----------------------------------------------------------------------------
 
-export function grassSpritesName(pos: Pos3D[], centerHight: number): string[] {
+export function grassSpritesName(pos: Pos3D[], centerHight: number, horizonHeight: number): string[] {
     // 高さを正規化（低い方 = 0、同じ高さ = 1）
     const minH = centerHight - 1;
     const normalized = pos.map((p) => Math.min(1, Math.max(0, p.y - minH)));
@@ -158,9 +158,9 @@ export function grassSpritesName(pos: Pos3D[], centerHight: number): string[] {
         return ["grass_water_normal_0_5_9"];
     }
 
-    const baseSprite = centerHight === 1 ? "water_grass_normal_0_5_9" : "grass_water_normal_0_5_9";
-    const overlayPrefix = "grass_water_normal"
-    const defaultSprite = "grass_water_normal_0_5_9";
+    const baseSprite = centerHight <= horizonHeight ? "water_grass_normal_0_5_9" : "grass_water_normal_0_5_9";
+    const overlayPrefix = centerHight <= horizonHeight ? "grass_water_normal" : "grass_hill_normal";
+    const defaultSprite = centerHight <= horizonHeight ? "grass_water_normal_0_5_9" : "grass_water_dark_0_5_9";
 
     const id9 = calcId9FromHights(normalized);
     const id5 = calcId5FromHights([0, normalized[1], 0, normalized[3], normalized[4], normalized[5], 0, normalized[7], 0]);
@@ -179,19 +179,19 @@ export function grassSpritesName(pos: Pos3D[], centerHight: number): string[] {
 // -----------------------------------------------------------------------------
 
 /** ボクセルデータから地形タイルのスプライト名配列を返す。 */
-export function getTerrainSpriteNamesFromVoxel(voxel: number[], pos: Pos3D[]): string[] {
+export function getTerrainSpriteNamesFromVoxel(voxel: number[], pos: Pos3D[], horizonHeight: number): string[] {
     const type = getTerrainTypeFromVoxel(voxel[4]);
     switch (type) {
         case TERRAIN_TYPES.water:
             return ["water_grass_normal_0_5_9"];
         case TERRAIN_TYPES.soil:
-            return soilSpriteName(pos, pos[4].y, voxel);
+            return soilSpriteName(pos, pos[4].y, horizonHeight, voxel);
         case TERRAIN_TYPES.wetSoil:
-            return wetSoilSpriteName(pos, pos[4].y, voxel);
+            return wetSoilSpriteName(pos, pos[4].y, horizonHeight, voxel);
         case TERRAIN_TYPES.grass:
-            return grassSpritesName(pos, pos[4].y);
+            return grassSpritesName(pos, pos[4].y, horizonHeight);
         case TERRAIN_TYPES.dirt:
-            return dirtSpriteName(pos, pos[4].y, voxel);
+            return dirtSpriteName(pos, pos[4].y, horizonHeight, voxel);
         default:
             throw new Error(`Unknown voxel type: ${type}`);
     }
