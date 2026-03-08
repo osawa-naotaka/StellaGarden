@@ -66,133 +66,82 @@ function writeHeightmap(map: VoxelMap, hm: Int32Array, horizonHeight: number): v
 }
 
 /**
- * 陸地セル限定の Priority-Flood でくぼ地を埋める。
+ * 貪欲ウォーク + ノイズコスト方式で川を生成する。
  *
- * 全セル対象の fillDepressions を使うと海セルも陸地として流路計算され、
- * accumulation が海底セルに吸収されて陸上に戻らなくなる（川が生成されない原因）。
- * 本関数は海セル（hm < horizonHeight）を outlet として扱い、
- * 陸地セルのみで Priority-Flood を行う。
- * → 沿岸の陸セルが真の outlet になり、accumulation が陸上に集中する。
- */
-function fillLandDepressions(
-    hmf: Float32Array,
-    hm: Int32Array,
-    horizonHeight: number,
-    width: number,
-    depth: number,
-): Float32Array {
-    const DIRS8 = [[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]] as const;
-    const filled  = new Float32Array(hmf);
-    const visited = new Uint8Array(width * depth);
-
-    const heap: Array<[number, number]> = [];
-    const heapPush = (val: number, idx: number) => {
-        heap.push([val, idx]);
-        let i = heap.length - 1;
-        while (i > 0) {
-            const p = (i - 1) >> 1;
-            if (heap[p][0] <= heap[i][0]) break;
-            [heap[p], heap[i]] = [heap[i], heap[p]];
-            i = p;
-        }
-    };
-    const heapPop = (): [number, number] => {
-        const top = heap[0];
-        const last = heap.pop()!;
-        if (heap.length > 0) {
-            heap[0] = last;
-            let i = 0;
-            while (true) {
-                let s = i;
-                const l = 2 * i + 1, r = 2 * i + 2;
-                if (l < heap.length && heap[l][0] < heap[s][0]) s = l;
-                if (r < heap.length && heap[r][0] < heap[s][0]) s = r;
-                if (s === i) break;
-                [heap[i], heap[s]] = [heap[s], heap[i]];
-                i = s;
-            }
-        }
-        return top;
-    };
-
-    // シード: 海セルに隣接する陸地セル（沿岸セル）＋マップ境界の陸地セル
-    for (let z = 0; z < depth; z++) {
-        for (let x = 0; x < width; x++) {
-            const idx = z * width + x;
-            if (hm[idx] < horizonHeight) { visited[idx] = 1; continue; } // 海セルは処理対象外
-
-            let isSeed = (x === 0 || x === width - 1 || z === 0 || z === depth - 1);
-            if (!isSeed) {
-                for (const [dz, dx] of DIRS8) {
-                    const nx = x + dx, nz = z + dz;
-                    if (nx < 0 || nx >= width || nz < 0 || nz >= depth) { isSeed = true; break; }
-                    if (hm[nz * width + nx] < horizonHeight) { isSeed = true; break; } // 海隣接
-                }
-            }
-            if (isSeed) {
-                heapPush(hmf[idx], idx);
-                visited[idx] = 1;
-            }
-        }
-    }
-
-    // 陸地セルのみで低い順に処理
-    while (heap.length > 0) {
-        const [h, idx] = heapPop();
-        const x = idx % width, z = (idx / width) | 0;
-        for (const [dz, dx] of DIRS8) {
-            const nx = x + dx, nz = z + dz;
-            if (nx < 0 || nx >= width || nz < 0 || nz >= depth) continue;
-            const nidx = nz * width + nx;
-            if (visited[nidx]) continue;
-            if (hm[nidx] < horizonHeight) { visited[nidx] = 1; continue; } // 海セルはスキップ
-            visited[nidx] = 1;
-            filled[nidx] = Math.max(hmf[nidx], h);
-            heapPush(filled[nidx], nidx);
-        }
-    }
-
-    return filled;
-}
-
-/**
- * パス追跡方式で川を生成する。
+ * bigbadwofl 方式: 各ステップで「目標までの距離 + ノイズ値」が最小の
+ * 隣接セルを貪欲に選ぶ。累積コストを持たないため、ノイズが毎ステップ
+ * 横方向に引っ張ることで自然な蛇行が生まれる。
  *
- * フロー累積は map.height が小さい（6段階）と沿岸に出口が多数生まれて
- * 累積が分散し機能しないため、代わりに以下の方法を用いる:
- *
- * 1. fillLandDepressions でくぼ地補正済みの effectiveHmf を作る
- * 2. 高地の山頂付近から N 本の川を発生させる（春点選択）
- * 3. 各春点から effectiveHmf の最急降下方向に追跡して海まで連続したパスを引く
+ * 1. 高地の山頂付近から N 本の川を発生させる（春点選択）
+ * 2. 各春点から最寄りの海岸／海セルへ向かって貪欲ウォーク
+ * 3. score = 目標までの距離 + ノイズ値 × 重み で次セルを選択
  * 4. 経過距離に応じて川幅を広げる（下流ほど幅広）
  */
 function generateRivers(map: VoxelMap, hm: Int32Array, hmf: Float32Array): void {
     const W = map.width, D = map.depth;
-    const DIRS8 = [[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]] as const;
+    const DIRS8: ReadonlyArray<[number, number]> = [[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]];
 
-    // くぼ地補正: 平坦エリアでも底→縁方向に微小勾配を付与して追跡を安定させる
-    const filledHmf = fillLandDepressions(hmf, hm, map.horizonHeight, W, D);
-    const effectiveHmf = new Float32Array(W * D);
-    for (let i = 0; i < W * D; i++) {
-        effectiveHmf[i] = filledHmf[i] + (filledHmf[i] - hmf[i]) * 1e-4;
+    // --- ノイズマップ生成 ---
+    // 貪欲ウォークのスコアに加算するノイズ。これが蛇行の源。
+    const pathNoise = createNoise2D(alea("river_path"));
+    const NOISE_SCALE = 1.4;   // ノイズの空間周波数（小さいほど大きなカーブ）
+    const NOISE_WEIGHT = 5.0;   // ノイズコストの重み（距離1に対してノイズ0〜5で横に引っ張る）
+
+    // ノイズコストマップを事前計算（0〜1 に正規化）
+    const noiseCost = new Float32Array(W * D);
+    for (let z = 0; z < D; z++) {
+        for (let x = 0; x < W; x++) {
+            noiseCost[z * W + x] = (pathNoise(x * NOISE_SCALE, z * NOISE_SCALE) + 1) * 0.5;
+        }
     }
 
-    // 春点（river source）の選択:
-    //   上位 30% の陸地セルから、互いに MIN_SEP タイル以上離れた点を選ぶ
-    const NUM_RIVERS  = 25;
-    const MIN_SEP     = 25;
-    const TOP_FRAC    = 0.30;
+    // --- 各海セルから最寄りの海岸までの距離マップ（BFS）---
+    // 貪欲ウォークのヒューリスティックとして使う。
+    // マンハッタン距離だと最寄りの海岸1点にしか向かわないが、
+    // BFS距離なら「最も近い海」全体に向かうので、パスが自然に集束する。
+    const distToSea = new Float32Array(W * D);
+    distToSea.fill(Infinity);
+    const bfsQueue: number[] = [];
+    for (let z = 0; z < D; z++) {
+        for (let x = 0; x < W; x++) {
+            const idx = z * W + x;
+            if (hm[idx] < map.horizonHeight) {
+                distToSea[idx] = 0;
+                bfsQueue.push(idx);
+            }
+        }
+    }
+    let head = 0;
+    while (head < bfsQueue.length) {
+        const idx = bfsQueue[head++];
+        const x = idx % W, z = (idx / W) | 0;
+        const d = distToSea[idx];
+        for (const [dz, dx] of DIRS8) {
+            const nx = x + dx, nz = z + dz;
+            if (nx < 0 || nx >= W || nz < 0 || nz >= D) continue;
+            const nidx = nz * W + nx;
+            const nd = d + 1;
+            if (nd < distToSea[nidx]) {
+                distToSea[nidx] = nd;
+                bfsQueue.push(nidx);
+            }
+        }
+    }
+
+    // --- 春点（river source）の選択 ---
+    const NUM_RIVERS = 25;
+    const MIN_SEP = 25;
+    const TOP_FRAC = 0.30;
 
     const landByHeight: number[] = [];
     for (let i = 0; i < W * D; i++) {
         if (hm[i] >= map.horizonHeight) landByHeight.push(i);
     }
-    landByHeight.sort((a, b) => effectiveHmf[b] - effectiveHmf[a]);
+    landByHeight.sort((a, b) => hmf[b] - hmf[a]);
 
-    const rng     = alea("river_sources");
-    const topN    = (landByHeight.length * TOP_FRAC) | 0;
-    const pool    = landByHeight.slice(0, topN);
-    // Fisher-Yates シャッフルで重複なくランダムに選ぶ
+    const rng = alea("river_sources");
+    const topN = (landByHeight.length * TOP_FRAC) | 0;
+    const pool = landByHeight.slice(0, topN);
     for (let i = pool.length - 1; i > 0; i--) {
         const j = (rng() * (i + 1)) | 0;
         [pool[i], pool[j]] = [pool[j], pool[i]];
@@ -210,62 +159,57 @@ function generateRivers(map: VoxelMap, hm: Int32Array, hmf: Float32Array): void 
         if (!tooClose) { springs.push(idx); springCoords.push([sx, sz]); }
     }
 
-    // ドメインワーピング用ノイズ:
-    //   経路スコア = effectiveHmf + WARP_AMP * warpNoise
-    //   → 下流方向へ流れながら、ノイズが蛇行バイアスを与えて自然なカーブを描く
-    //   WARP_SCALE: 蛇行の空間スケール（小さいほど高周波な曲がり）
-    //   WARP_AMP:   蛇行の強さ（大きいほど曲がりやすいが、大きすぎると上り坂に入る）
-    const warpNoise  = createNoise2D(alea("river_warp"));
-    const WARP_SCALE = 0.035;
-    const WARP_AMP   = 0.10;
-
-    // 各川を追跡してタイルをマーク（visited は川ごとに fill(0) で使い回す）
+    // --- 貪欲ウォークで各川のパスを生成 ---
     const riverCells = new Uint8Array(W * D);
-    const visited    = new Uint8Array(W * D);
 
     for (const spring of springs) {
-        visited.fill(0);
-        let idx  = spring;
-        let step = 0;
+        const visited = new Uint8Array(W * D);
+        const path: number[] = [];
+        let current = spring;
 
-        while (step < 5000) {
-            if (visited[idx]) break;
-            visited[idx] = 1;
+        while (path.length < 5000) {
+            if (visited[current]) break;
+            visited[current] = 1;
+            path.push(current);
 
-            const x = idx % W, z = (idx / W) | 0;
+            // 海に到達 → 終了
+            if (hm[current] < map.horizonHeight) break;
 
-            if (hm[idx] >= map.horizonHeight) {
-                riverCells[idx] = 1;
-                // 下流ほど幅を広げる
-                if (step > 30) {
-                    for (const [dz, dx] of DIRS8) {
-                        const nx = x + dx, nz = z + dz;
-                        if (nx >= 0 && nx < W && nz >= 0 && nz < D) {
-                            if (hm[nz * W + nx] >= map.horizonHeight) riverCells[nz * W + nx] = 1;
-                        }
-                    }
-                }
-            } else {
-                break; // 海に到達 → 終了
-            }
-
-            // 次のセル: score = effectiveHmf + WARP_AMP * warpNoise が最小の未訪問隣接セルへ
-            // warpNoise が隣接セルごとに異なるスコアバイアスを与え、経路を自然に蛇行させる
-            let minScore = Infinity;
-            let minIdx   = -1;
+            // 未訪問の隣接セルの中で score = distToSea + noise * weight が最小のものを選ぶ
+            const cx = current % W, cz = (current / W) | 0;
+            let bestScore = Infinity;
+            let bestIdx = -1;
             for (const [dz, dx] of DIRS8) {
-                const nx = x + dx, nz = z + dz;
+                const nx = cx + dx, nz = cz + dz;
                 if (nx < 0 || nx >= W || nz < 0 || nz >= D) continue;
                 const nidx = nz * W + nx;
                 if (visited[nidx]) continue;
-                const warp  = warpNoise(nx * WARP_SCALE, nz * WARP_SCALE);
-                const score = effectiveHmf[nidx] + WARP_AMP * warp;
-                if (score < minScore) { minScore = score; minIdx = nidx; }
+                const score = distToSea[nidx] + noiseCost[nidx] * NOISE_WEIGHT;
+                if (score < bestScore) { bestScore = score; bestIdx = nidx; }
             }
 
-            if (minIdx === -1) break;
-            idx = minIdx;
-            step++;
+            if (bestIdx === -1) break;
+            current = bestIdx;
+        }
+
+        // パスの各セルを riverCells にマーク（下流ほど幅を広げる）
+        for (let i = 0; i < path.length; i++) {
+            const idx = path[i];
+            if (hm[idx] < map.horizonHeight) continue;
+            riverCells[idx] = 1;
+
+            // 後半 60% は幅を広げる（3x3）
+            const progress = i / path.length;
+            if (progress > 0.4) {
+                const px = idx % W, pz = (idx / W) | 0;
+                for (const [dz, dx] of DIRS8) {
+                    const nx = px + dx, nz = pz + dz;
+                    if (nx >= 0 && nx < W && nz >= 0 && nz < D) {
+                        const nidx = nz * W + nx;
+                        if (hm[nidx] >= map.horizonHeight) riverCells[nidx] = 1;
+                    }
+                }
+            }
         }
     }
 
