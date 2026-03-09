@@ -55,7 +55,6 @@ function useGameEngine(worldSize: Pos2D, chunkPerViewport: Pos2D) {
             const worldContainer = new Container();
             pixiApp.stage.addChild(worldContainer);
 
-            // 地形生成後に broker を注入（生成中のイベント洪水を避けるため）
             const voxelMap = generateTerrain({ width: worldSize.x, height: 12, depth: worldSize.z, horizontalHeight: 4 });
             voxelMap.setEventBroker(eventBroker);
 

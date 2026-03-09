@@ -113,8 +113,8 @@ type GenerateRiversReturnType = {
 };
 
 function generateRivers(hm: Int8Array, hmf: Float32Array, opt: GenerateTerrainOptions): GenerateRiversReturnType {
-    const W = opt.width,
-        D = opt.depth;
+    const W = opt.width;
+    const D = opt.depth;
     const DIRS8: ReadonlyArray<[number, number]> = [
         [-1, -1],
         [-1, 0],
@@ -253,69 +253,10 @@ function generateRivers(hm: Int8Array, hmf: Float32Array, opt: GenerateTerrainOp
 
         if (i < 5) continue; // 短すぎるパスはスキップ
 
-        /*
-        // --- 高さプロファイルの単調減少化 ---
-        const pathHeight = new Int32Array(path.length);
-        for (let i = 0; i < path.length; i++) {
-            pathHeight[i] = hm[path[i]];
-        }
-
-        // パス1: 後方→前方走査（先に下がった後に登る箇所を除去）
-        let minSoFar = opt.horizontalHeight;
-        for (let i = path.length - 1; i >= 0; i--) {
-            pathHeight[i] = Math.min(pathHeight[i], minSoFar);
-            minSoFar = pathHeight[i];
-        }
-
-        // パス2: 前方走査で単調減少を保証
-        for (let i = 1; i < path.length; i++) {
-            if (pathHeight[i] > pathHeight[i - 1]) {
-                pathHeight[i] = pathHeight[i - 1];
-            }
-        }
-
-        // --- 川底カービング（川のパス上のみ掘る）---
-        for (let i = 0; i < path.length; i++) {
-            const idx = path[i];
-            const riverBed = pathHeight[i];
-            if (hm[idx] > riverBed) {
-                hm[idx] = riverBed;
-                carvedQueue.push(idx);
-            }
-        }
-        */
-
         // 春点を水源として記録
         waterSources.add(spring);
         paths.push(path);
     }
-
-    // --- BFS 平滑化: 隣接タイルの高さ差が1以下になるように周囲を掘る ---
-    /*
-    const DIRS4: ReadonlyArray<[number, number]> = [
-        [0, -1],
-        [0, 1],
-        [-1, 0],
-        [1, 0],
-    ];
-    let qHead = 0;
-    while (qHead < carvedQueue.length) {
-        const idx = carvedQueue[qHead++];
-        const x = idx % W,
-            z = (idx / W) | 0;
-        const h = hm[idx];
-        for (const [dx, dz] of DIRS4) {
-            const nx = x + dx,
-                nz = z + dz;
-            if (nx < 0 || nx >= W || nz < 0 || nz >= D) continue;
-            const nidx = nz * W + nx;
-            if (hm[nidx] > h + 1) {
-                hm[nidx] = h + 1;
-                carvedQueue.push(nidx);
-            }
-        }
-    }
-    */
 
     return { waterSources, paths };
 }
