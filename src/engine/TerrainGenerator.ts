@@ -11,20 +11,38 @@ export type GenerateTerrainOptions = {
     horizontalHeight: number;
 };
 
-type Rivers = {
-    waterSources: Set<number>;
-    paths: number[][];
-};
+type River = {
+    waterSource: number;
+    path: number[];
+}
 
 /** シンプレックスノイズで地形と樹木を生成し、VoxelMap に書き込む。 */
 export function generateTerrain(opt: GenerateTerrainOptions): VoxelMap {
-    const { hm, hmf } = computeHeightmap(opt.width, opt.depth, opt.height);
-    const rivers = generateRivers(hm, hmf, opt);
+    const hightMap = computeHeightmap(opt.width, opt.depth, opt.height);
+    const rivers = generateRivers(hightMap.hm, hightMap.hmf, opt);
+    const hm = elodeRiverside(hightMap.hm, rivers, opt); // 渓谷カービングで高さマップを掘り下げる
     const map = createVoxelMap(hm, rivers, opt);
     // floodFillWater(map);
     placeForestTrees(map);
 
     return map;
+}
+
+function elodeRiverside(hm: Int8Array, rivers: River[], opt: GenerateTerrainOptions): Int8Array {
+    const W = opt.width;
+    const D = opt.depth;
+
+    for (const river of rivers) {
+        for (const idx of river.path) {
+            const x = idx % W;
+            const z = (idx / W) | 0;
+            const h = hm[idx];
+            
+            hm[idx] = Math.max(opt.horizontalHeight - 1, h - 2); // 水面より高い位置は掘り下げる（最大2ブロック）
+        }
+    }
+
+    return hm;
 }
 
 /**
@@ -61,7 +79,7 @@ function computeHeightmap(width: number, depth: number, maxHeight: number): { hm
 }
 
 /** 高さマップを VoxelMap に書き込む。水源位置にはwaterSourceブロックを配置する。 */
-function createVoxelMap(hm: Int8Array, rivers: Rivers, opt: GenerateTerrainOptions): VoxelMap {
+function createVoxelMap(hm: Int8Array, rivers: River[], opt: GenerateTerrainOptions): VoxelMap {
     const W = opt.width;
 
     const map = new VoxelMap(opt.width, opt.height, opt.depth, opt.horizontalHeight);
@@ -72,11 +90,11 @@ function createVoxelMap(hm: Int8Array, rivers: Rivers, opt: GenerateTerrainOptio
             const h = hm[idx];
             if (h < opt.horizontalHeight) {
                 for (let y = 0; y < h; y++) map.set(TERRAIN_TYPES.dirt, { x, y, z });
-                // map.set(TERRAIN_TYPES.water, { x, y: h, z });
+                map.set(TERRAIN_TYPES.water, { x, y: h, z });
             } else {
                 for (let y = 0; y < h; y++) map.set(TERRAIN_TYPES.dirt, { x, y, z });
                 // 水源位置には waterSource を配置、それ以外は草地
-                if (rivers.waterSources.has(idx)) {
+                if (rivers.some(river => river.waterSource === idx)) {
                     map.set(TERRAIN_TYPES.waterSource, { x, y: h, z });
                 } else {
                     map.set(TERRAIN_TYPES.grass, { x, y: h, z });
@@ -85,14 +103,6 @@ function createVoxelMap(hm: Int8Array, rivers: Rivers, opt: GenerateTerrainOptio
         }
     }
 
-    for (const path of rivers.paths) {
-        for (const idx of path) {
-            const x = idx % W,
-                z = (idx / W) | 0;
-            const h = hm[idx];
-            map.set(TERRAIN_TYPES.water, { x, y: h, z });
-        }
-    }
     return map;
 }
 
@@ -107,12 +117,8 @@ function createVoxelMap(hm: Int8Array, rivers: Rivers, opt: GenerateTerrainOptio
  * 水の配置は後続の floodFillWater() が行う。
  * hm は in-place で変更される（渓谷カービングのため）。
  */
-type GenerateRiversReturnType = {
-    waterSources: Set<number>;
-    paths: number[][];
-};
 
-function generateRivers(hm: Int8Array, hmf: Float32Array, opt: GenerateTerrainOptions): GenerateRiversReturnType {
+function generateRivers(hm: Int8Array, hmf: Float32Array, opt: GenerateTerrainOptions): River[] {
     const W = opt.width;
     const D = opt.depth;
     const DIRS8: ReadonlyArray<[number, number]> = [
@@ -158,8 +164,8 @@ function generateRivers(hm: Int8Array, hmf: Float32Array, opt: GenerateTerrainOp
             z = (idx / W) | 0;
         const d = distToSea[idx];
         for (const [dz, dx] of DIRS8) {
-            const nx = x + dx,
-                nz = z + dz;
+            const nx = x + dx;
+            const nz = z + dz;
             if (nx < 0 || nx >= W || nz < 0 || nz >= D) continue;
             const nidx = nz * W + nx;
             const nd = d + 1;
@@ -208,13 +214,10 @@ function generateRivers(hm: Int8Array, hmf: Float32Array, opt: GenerateTerrainOp
         }
     }
 
-    // --- 貪欲ウォークで各川のパスを生成 + 川底カービング ---
+    // --- 貪欲ウォークで各川のパスを生成 ---
 
     // 水源位置を記録（writeHeightmap 後に配置するため）
-    const waterSources: Set<number> = new Set();
-    // BFS 平滑化用: カービングで高さが下がったセルを収集
-    // const carvedQueue: number[] = [];
-    const paths: number[][] = [];
+    const rivers: River[] = [];
 
     for (const spring of springs) {
         const visited = new Uint8Array(W * D);
@@ -254,11 +257,10 @@ function generateRivers(hm: Int8Array, hmf: Float32Array, opt: GenerateTerrainOp
         if (i < 5) continue; // 短すぎるパスはスキップ
 
         // 春点を水源として記録
-        waterSources.add(spring);
-        paths.push(path);
+        rivers.push({ waterSource: spring, path });
     }
 
-    return { waterSources, paths };
+    return rivers;
 }
 
 function placeForestTrees(map: VoxelMap): void {
