@@ -6,6 +6,7 @@ import { advanceDayAllCrops, dryWetSoil } from "./engine/CropSystem";
 import { GameTime } from "./engine/GameTime";
 import { PlayerState } from "./engine/PlayerState";
 import { generateTerrain } from "./engine/TerrainGenerator";
+import { floodFillWater } from "./engine/WaterSystem";
 import { InputHandler } from "./input/InputHandler";
 import { createInteractionHandler } from "./input/InteractionSystem";
 import { createEventBroker } from "./lib/Event";
@@ -87,7 +88,7 @@ function useGameEngine(worldSize: Pos2D, chunkPerViewport: Pos2D) {
 
             topView.initializeSprites();
 
-            disposers.push(createInteractionHandler(voxelMap, playerState.inventory, eventBroker));
+            disposers.push(createInteractionHandler(voxelMap, playerState.inventory, eventBroker, () => floodFillWater(voxelMap)));
 
             // day_changed: ゲーム内1日が経過するたびに全作物の育成カウンタをインクリメント
             const gameTime = new GameTime();

@@ -78,12 +78,17 @@ function revertNearbyInvalidTerrain(voxelMap: IVoxelWriter, cx: number, cz: numb
     }
 }
 
-/** 選択中のツールに応じてタイルを操作するハンドラを EventBroker に登録し、解除用の dispose 関数を返す。 */
-export function createInteractionHandler(voxelMap: IVoxelWriter, inventory: IInventoryWriter, eventBroker: EventBroker<GameEventMap>): () => void {
+/** 選択中のツールに応じてタイルを操作するハンドラを EventBroker に登録し、解除用の dispose 関数を返す。
+ * onTerrainModified が指定された場合、地形変更操作（掘る・盛る）の後に呼び出される。 */
+export function createInteractionHandler(voxelMap: IVoxelWriter, inventory: IInventoryWriter, eventBroker: EventBroker<GameEventMap>, onTerrainModified?: () => void): () => void {
     return eventBroker.subscribe("interact_world", (packet) => {
         const surfacePos = voxelMap.getSurfacePosition({ x: packet.pos.x, y: 0, z: packet.pos.z });
         const voxel = voxelMap.get(surfacePos);
+        const terrainType = getTerrainTypeFromVoxel(voxel);
         const tool = inventory.selectedTool;
+
+        // 水源ブロックは操作対象外（破壊不能）
+        if (terrainType === TERRAIN_TYPES.waterSource) return;
 
         switch (tool) {
             case "hand":
@@ -106,24 +111,21 @@ export function createInteractionHandler(voxelMap: IVoxelWriter, inventory: IInv
                 break;
             case "shovel":
                 if (
-                    (getTerrainTypeFromVoxel(voxel) === TERRAIN_TYPES.grass || getTerrainTypeFromVoxel(voxel) === TERRAIN_TYPES.dirt) &&
+                    (terrainType === TERRAIN_TYPES.grass || terrainType === TERRAIN_TYPES.dirt) &&
                     getEntityTypeFromVoxel(voxel) === ENTITY_TYPES.none &&
                     isSafeToRemove3x3(voxelMap, packet.pos.x, packet.pos.z)
                 ) {
                     if (surfacePos.y === 1) {
-                        // y=1 の草地を削除し、y=0 を water にして海底に戻す
-                        // インベントリが満杯の場合はキャンセル
                         if (inventory.addItem("dirt", 1)) {
                             voxelMap.remove(surfacePos);
-                            voxelMap.set(TERRAIN_TYPES.water, { x: surfacePos.x, y: 0, z: surfacePos.z });
                             revertNearbyInvalidTerrain(voxelMap, packet.pos.x, packet.pos.z);
+                            onTerrainModified?.();
                         }
                     } else if (surfacePos.y > 1) {
-                        // y=2 以上の草地を削る → 除去して下の地形を露出
-                        // インベントリが満杯の場合はキャンセル
                         if (inventory.addItem("dirt", 1)) {
                             voxelMap.remove(surfacePos);
                             revertNearbyInvalidTerrain(voxelMap, packet.pos.x, packet.pos.z);
+                            onTerrainModified?.();
                         }
                     }
                 }
@@ -216,15 +218,16 @@ export function createInteractionHandler(voxelMap: IVoxelWriter, inventory: IInv
                 break;
             }
             case "dirt":
-                // 高さ差1以下なら盛れる。voxelは常にdirt（エッジの表示はスプライトリゾルバーで制御）
+                // 高さ差1以下なら盛れる。水タイルの上にも盛れる（堤防として機能）
                 if (
-                    (getTerrainTypeFromVoxel(voxel) === TERRAIN_TYPES.water || getTerrainTypeFromVoxel(voxel) === TERRAIN_TYPES.grass || getTerrainTypeFromVoxel(voxel) === TERRAIN_TYPES.dirt) &&
+                    (terrainType === TERRAIN_TYPES.water || terrainType === TERRAIN_TYPES.grass || terrainType === TERRAIN_TYPES.dirt) &&
                     surfacePos.y + 1 < voxelMap.height &&
                     isSafeToAdd3x3(voxelMap, packet.pos.x, packet.pos.z) &&
                     inventory.consumeSelectedItem(1)
                 ) {
                     voxelMap.set(TERRAIN_TYPES.dirt, { x: surfacePos.x, y: surfacePos.y + 1, z: surfacePos.z });
                     revertNearbyInvalidTerrain(voxelMap, packet.pos.x, packet.pos.z);
+                    onTerrainModified?.();
                 }
                 break;
         }

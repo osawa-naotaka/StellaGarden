@@ -2,12 +2,14 @@ import alea from "alea";
 import { createNoise2D } from "simplex-noise";
 import type { VoxelMap } from "../lib/VoxelMap";
 import { ENTITY_TYPES, TERRAIN_TYPES } from "./TerrainDefs";
+import { floodFillWater } from "./WaterSystem";
 
 /** シンプレックスノイズで地形と樹木を生成し、VoxelMap に書き込む。 */
 export function generateTerrain(map: VoxelMap): void {
     const { hm, hmf } = computeHeightmap(map.width, map.depth, map.height);
-    writeHeightmap(map, hm, map.horizonHeight);
     generateRivers(map, hm, hmf);
+    writeHeightmap(map, hm, map.horizonHeight);
+    floodFillWater(map);
     placeForestTrees(map);
 }
 
@@ -48,46 +50,60 @@ function computeHeightmap(
     return { hm, hmf };
 }
 
-/** 高さマップを VoxelMap に書き込む。 */
+/** 高さマップを VoxelMap に書き込む。水源位置にはwaterSourceブロックを配置する。 */
 function writeHeightmap(map: VoxelMap, hm: Int32Array, horizonHeight: number): void {
     const W = map.width;
+
+    // 水源位置のセットを作成（高速ルックアップ用）
+    const waterSources = (map as VoxelMap & { _waterSources?: Array<{ x: number; z: number }> })._waterSources ?? [];
+    const sourceSet = new Set<number>();
+    for (const src of waterSources) {
+        sourceSet.add(src.z * W + src.x);
+    }
+
     for (let z = 0; z < map.depth; z++) {
         for (let x = 0; x < map.width; x++) {
-            const h = hm[z * W + x];
+            const idx = z * W + x;
+            const h = hm[idx];
             if (h < horizonHeight) {
                 for (let y = 0; y < h; y++) map.set(TERRAIN_TYPES.dirt, { x, y, z });
                 for (let y = h; y < horizonHeight; y++) map.set(TERRAIN_TYPES.water, { x, y, z });
             } else {
                 for (let y = 0; y < h; y++) map.set(TERRAIN_TYPES.dirt, { x, y, z });
-                map.set(TERRAIN_TYPES.grass, { x, y: h, z });
+                // 水源位置には waterSource を配置、それ以外は草地
+                if (sourceSet.has(idx)) {
+                    map.set(TERRAIN_TYPES.waterSource, { x, y: h, z });
+                } else {
+                    map.set(TERRAIN_TYPES.grass, { x, y: h, z });
+                }
             }
         }
     }
+
+    // 一時データをクリーンアップ
+    delete (map as VoxelMap & { _waterSources?: Array<{ x: number; z: number }> })._waterSources;
 }
 
 /**
- * 貪欲ウォーク + ノイズコスト方式で川を生成する。
+ * 渓谷カービング + 水源配置方式で川を生成する。
  *
- * bigbadwofl 方式: 各ステップで「目標までの距離 + ノイズ値」が最小の
- * 隣接セルを貪欲に選ぶ。累積コストを持たないため、ノイズが毎ステップ
- * 横方向に引っ張ることで自然な蛇行が生まれる。
+ * 1. 貪欲ウォーク（既存）で春点→海岸のパスを生成
+ * 2. パスの高さプロファイルを単調減少に補正
+ * 3. パスに沿って渓谷をカービング（ハイトマップを掘り下げる）
+ * 4. 春点に水源ブロック（waterSource）を配置
  *
- * 1. 高地の山頂付近から N 本の川を発生させる（春点選択）
- * 2. 各春点から最寄りの海岸／海セルへ向かって貪欲ウォーク
- * 3. score = 目標までの距離 + ノイズ値 × 重み で次セルを選択
- * 4. 経過距離に応じて川幅を広げる（下流ほど幅広）
+ * 水の配置は後続の floodFillWater() が行う。
+ * hm は in-place で変更される（渓谷カービングのため）。
  */
 function generateRivers(map: VoxelMap, hm: Int32Array, hmf: Float32Array): void {
     const W = map.width, D = map.depth;
     const DIRS8: ReadonlyArray<[number, number]> = [[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]];
 
     // --- ノイズマップ生成 ---
-    // 貪欲ウォークのスコアに加算するノイズ。これが蛇行の源。
     const pathNoise = createNoise2D(alea("river_path"));
-    const NOISE_SCALE = 1.4;   // ノイズの空間周波数（小さいほど大きなカーブ）
-    const NOISE_WEIGHT = 5.0;   // ノイズコストの重み（距離1に対してノイズ0〜5で横に引っ張る）
+    const NOISE_SCALE = 1.4;
+    const NOISE_WEIGHT = 5.0;
 
-    // ノイズコストマップを事前計算（0〜1 に正規化）
     const noiseCost = new Float32Array(W * D);
     for (let z = 0; z < D; z++) {
         for (let x = 0; x < W; x++) {
@@ -95,10 +111,7 @@ function generateRivers(map: VoxelMap, hm: Int32Array, hmf: Float32Array): void 
         }
     }
 
-    // --- 各海セルから最寄りの海岸までの距離マップ（BFS）---
-    // 貪欲ウォークのヒューリスティックとして使う。
-    // マンハッタン距離だと最寄りの海岸1点にしか向かわないが、
-    // BFS距離なら「最も近い海」全体に向かうので、パスが自然に集束する。
+    // --- 海までの距離マップ（BFS）---
     const distToSea = new Float32Array(W * D);
     distToSea.fill(Infinity);
     const bfsQueue: number[] = [];
@@ -159,23 +172,26 @@ function generateRivers(map: VoxelMap, hm: Int32Array, hmf: Float32Array): void 
         if (!tooClose) { springs.push(idx); springCoords.push([sx, sz]); }
     }
 
-    // --- 貪欲ウォークで各川のパスを生成 ---
-    const riverCells = new Uint8Array(W * D);
+    // --- 貪欲ウォークで各川のパスを生成 + 川底カービング ---
+
+    // 水源位置を記録（writeHeightmap 後に配置するため）
+    const waterSources: Array<{ x: number; z: number }> = [];
+    // BFS 平滑化用: カービングで高さが下がったセルを収集
+    const carvedQueue: number[] = [];
 
     for (const spring of springs) {
         const visited = new Uint8Array(W * D);
         const path: number[] = [];
         let current = spring;
 
+        // パス生成（貪欲ウォーク）
         while (path.length < 5000) {
             if (visited[current]) break;
             visited[current] = 1;
             path.push(current);
 
-            // 海に到達 → 終了
             if (hm[current] < map.horizonHeight) break;
 
-            // 未訪問の隣接セルの中で score = distToSea + noise * weight が最小のものを選ぶ
             const cx = current % W, cz = (current / W) | 0;
             let bestScore = Infinity;
             let bestIdx = -1;
@@ -192,33 +208,66 @@ function generateRivers(map: VoxelMap, hm: Int32Array, hmf: Float32Array): void 
             current = bestIdx;
         }
 
-        // パスの各セルを riverCells にマーク（下流ほど幅を広げる）
+        if (path.length < 5) continue; // 短すぎるパスはスキップ
+
+        // --- 高さプロファイルの単調減少化 ---
+        const pathHeight = new Int32Array(path.length);
+        for (let i = 0; i < path.length; i++) {
+            pathHeight[i] = hm[path[i]];
+        }
+
+        // パス1: 後方→前方走査（先に下がった後に登る箇所を除去）
+        let minSoFar = map.horizonHeight;
+        for (let i = path.length - 1; i >= 0; i--) {
+            pathHeight[i] = Math.min(pathHeight[i], minSoFar);
+            minSoFar = pathHeight[i];
+        }
+
+        // パス2: 前方走査で単調減少を保証
+        for (let i = 1; i < path.length; i++) {
+            if (pathHeight[i] > pathHeight[i - 1]) {
+                pathHeight[i] = pathHeight[i - 1];
+            }
+        }
+
+        // --- 川底カービング（川のパス上のみ掘る）---
         for (let i = 0; i < path.length; i++) {
             const idx = path[i];
-            if (hm[idx] < map.horizonHeight) continue;
-            riverCells[idx] = 1;
+            const riverBed = pathHeight[i];
+            if (hm[idx] > riverBed) {
+                hm[idx] = riverBed;
+                carvedQueue.push(idx);
+            }
+        }
 
-            // 後半 60% は幅を広げる（3x3）
-            const progress = i / path.length;
-            if (progress > 0.4) {
-                const px = idx % W, pz = (idx / W) | 0;
-                for (const [dz, dx] of DIRS8) {
-                    const nx = px + dx, nz = pz + dz;
-                    if (nx >= 0 && nx < W && nz >= 0 && nz < D) {
-                        const nidx = nz * W + nx;
-                        if (hm[nidx] >= map.horizonHeight) riverCells[nidx] = 1;
-                    }
-                }
+        // 春点を水源として記録
+        const sx = spring % W, sz = (spring / W) | 0;
+        waterSources.push({ x: sx, z: sz });
+    }
+
+    // --- BFS 平滑化: 隣接タイルの高さ差が1以下になるように周囲を掘る ---
+    const DIRS4: ReadonlyArray<[number, number]> = [[0, -1], [0, 1], [-1, 0], [1, 0]];
+    let qHead = 0;
+    while (qHead < carvedQueue.length) {
+        const idx = carvedQueue[qHead++];
+        const x = idx % W, z = (idx / W) | 0;
+        const h = hm[idx];
+        for (const [dx, dz] of DIRS4) {
+            const nx = x + dx, nz = z + dz;
+            if (nx < 0 || nx >= W || nz < 0 || nz >= D) continue;
+            const nidx = nz * W + nx;
+            if (hm[nidx] > h + 1) {
+                hm[nidx] = h + 1;
+                carvedQueue.push(nidx);
             }
         }
     }
 
-    // マークされた陸地セルを water タイルに変換
-    for (let i = 0; i < W * D; i++) {
-        if (!riverCells[i]) continue;
-        const x = i % W, z = (i / W) | 0;
-        map.set(TERRAIN_TYPES.water, { x, y: hm[i], z });
-    }
+    // --- 水源ブロックの配置（hm を変更済みなので writeHeightmap で配置する）---
+    // writeHeightmap の後に配置するため、map のプロパティとして記録する。
+    // ただし VoxelMap に拡張プロパティを持たせたくないので、
+    // writeHeightmap 内で waterSource を配置するための情報を保持する。
+    (map as VoxelMap & { _waterSources?: Array<{ x: number; z: number }> })._waterSources = waterSources;
 }
 
 function placeForestTrees(map: VoxelMap): void {

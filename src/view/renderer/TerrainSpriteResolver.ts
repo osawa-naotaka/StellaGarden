@@ -183,6 +183,7 @@ export function getTerrainSpriteNamesFromVoxel(voxel: number[], pos: Pos3D[], ho
     const type = getTerrainTypeFromVoxel(voxel[4]);
     switch (type) {
         case TERRAIN_TYPES.water:
+        case TERRAIN_TYPES.waterSource:
             return ["water_grass_normal_0_5_9"];
         case TERRAIN_TYPES.soil:
             return soilSpriteName(pos, pos[4].y, horizonHeight, voxel);
