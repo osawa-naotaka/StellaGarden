@@ -1,6 +1,6 @@
 import alea from "alea";
 import { createNoise2D } from "simplex-noise";
-import { VoxelMap } from "../lib/VoxelMap";
+import { VoxelMap, type Pos2D } from "../lib/VoxelMap";
 import { ENTITY_TYPES, TERRAIN_TYPES } from "./TerrainDefs";
 import { floodFillWater } from "./WaterSystem";
 
@@ -29,20 +29,37 @@ export function generateTerrain(opt: GenerateTerrainOptions): VoxelMap {
 }
 
 function elodeRiverside(hm: Int8Array, rivers: River[], opt: GenerateTerrainOptions): Int8Array {
-    const W = opt.width;
-    const D = opt.depth;
-
     for (const river of rivers) {
         for (const idx of river.path) {
-            const x = idx % W;
-            const z = (idx / W) | 0;
-            const h = hm[idx];
-            
-            hm[idx] = Math.max(opt.horizontalHeight - 1, h - 2); // 水面より高い位置は掘り下げる（最大2ブロック）
+            const h = hm[idx];            
+            hm[idx] = Math.max(opt.horizontalHeight - 1, h - 1); // 水面より高い位置は掘り下げる（最大2ブロック）
+        }
+    }
+
+    // --- BFS 平滑化: 隣接タイルの高さ差が1以下になるように周囲を掘る ---
+    const DIRS4: ReadonlyArray<[number, number]> = [[0, -1], [0, 1], [-1, 0], [1, 0]];
+    const carvedQueue: number[] = rivers.flatMap(river => river.path);
+    let qHead = 0;
+    while (qHead < carvedQueue.length) {
+        const idx = carvedQueue[qHead++];
+        const { x, z } = idxToPos(idx, opt.width);
+        const h = hm[idx];
+        for (const [dx, dz] of DIRS4) {
+            const nx = x + dx, nz = z + dz;
+            if (nx < 0 || nx >= opt.width || nz < 0 || nz >= opt.depth) continue;
+            const nidx = nz * opt.width + nx;
+            if (hm[nidx] > h + 1) {
+                hm[nidx] = h + 1;
+                carvedQueue.push(nidx);
+            }
         }
     }
 
     return hm;
+}
+
+function idxToPos(idx: number, width: number): Pos2D {
+    return { x: idx % width, z: (idx / width) | 0 };
 }
 
 /**
@@ -80,13 +97,11 @@ function computeHeightmap(width: number, depth: number, maxHeight: number): { hm
 
 /** 高さマップを VoxelMap に書き込む。水源位置にはwaterSourceブロックを配置する。 */
 function createVoxelMap(hm: Int8Array, rivers: River[], opt: GenerateTerrainOptions): VoxelMap {
-    const W = opt.width;
-
     const map = new VoxelMap(opt.width, opt.height, opt.depth, opt.horizontalHeight);
 
     for (let z = 0; z < opt.depth; z++) {
         for (let x = 0; x < opt.width; x++) {
-            const idx = z * W + x;
+            const idx = z * opt.width + x;
             const h = hm[idx];
             if (h < opt.horizontalHeight) {
                 for (let y = 0; y < h; y++) map.set(TERRAIN_TYPES.dirt, { x, y, z });
@@ -119,8 +134,6 @@ function createVoxelMap(hm: Int8Array, rivers: River[], opt: GenerateTerrainOpti
  */
 
 function generateRivers(hm: Int8Array, hmf: Float32Array, opt: GenerateTerrainOptions): River[] {
-    const W = opt.width;
-    const D = opt.depth;
     const DIRS8: ReadonlyArray<[number, number]> = [
         [-1, -1],
         [-1, 0],
@@ -137,20 +150,20 @@ function generateRivers(hm: Int8Array, hmf: Float32Array, opt: GenerateTerrainOp
     const NOISE_SCALE = 1.4;
     const NOISE_WEIGHT = 15.0;
 
-    const noiseCost = new Float32Array(W * D);
-    for (let z = 0; z < D; z++) {
-        for (let x = 0; x < W; x++) {
-            noiseCost[z * W + x] = (pathNoise(x * NOISE_SCALE, z * NOISE_SCALE) + 1) * 0.5;
+    const noiseCost = new Float32Array(opt.width * opt.depth);
+    for (let z = 0; z < opt.depth; z++) {
+        for (let x = 0; x < opt.width; x++) {
+            noiseCost[z * opt.width + x] = (pathNoise(x * NOISE_SCALE, z * NOISE_SCALE) + 1) * 0.5;
         }
     }
 
     // --- 海までの距離マップ（BFS）---
-    const distToSea = new Float32Array(W * D);
+    const distToSea = new Float32Array(opt.width * opt.depth);
     distToSea.fill(Infinity);
     const bfsQueue: number[] = [];
-    for (let z = 0; z < D; z++) {
-        for (let x = 0; x < W; x++) {
-            const idx = z * W + x;
+    for (let z = 0; z < opt.depth; z++) {
+        for (let x = 0; x < opt.width; x++) {
+            const idx = z * opt.width + x;
             if (hm[idx] < opt.horizontalHeight) {
                 distToSea[idx] = 0;
                 bfsQueue.push(idx);
@@ -160,14 +173,13 @@ function generateRivers(hm: Int8Array, hmf: Float32Array, opt: GenerateTerrainOp
     let head = 0;
     while (head < bfsQueue.length) {
         const idx = bfsQueue[head++];
-        const x = idx % W,
-            z = (idx / W) | 0;
+        const { x, z } = idxToPos(idx, opt.width);
         const d = distToSea[idx];
         for (const [dz, dx] of DIRS8) {
             const nx = x + dx;
             const nz = z + dz;
-            if (nx < 0 || nx >= W || nz < 0 || nz >= D) continue;
-            const nidx = nz * W + nx;
+            if (nx < 0 || nx >= opt.width || nz < 0 || nz >= opt.depth) continue;
+            const nidx = nz * opt.width + nx;
             const nd = d + 1;
             if (nd < distToSea[nidx]) {
                 distToSea[nidx] = nd;
@@ -182,7 +194,7 @@ function generateRivers(hm: Int8Array, hmf: Float32Array, opt: GenerateTerrainOp
     const TOP_FRAC = 0.3;
 
     const landByHeight: number[] = [];
-    for (let i = 0; i < W * D; i++) {
+    for (let i = 0; i < opt.width * opt.depth; i++) {
         if (hm[i] >= opt.horizontalHeight) landByHeight.push(i);
     }
     landByHeight.sort((a, b) => hmf[b] - hmf[a]);
@@ -199,8 +211,7 @@ function generateRivers(hm: Int8Array, hmf: Float32Array, opt: GenerateTerrainOp
     const springCoords: Array<[number, number]> = [];
     for (const idx of pool) {
         if (springs.length >= NUM_RIVERS) break;
-        const sx = idx % W,
-            sz = (idx / W) | 0;
+        const { x: sx, z: sz } = idxToPos(idx, opt.width);
         let tooClose = false;
         for (const [cx, cz] of springCoords) {
             if (Math.abs(cx - sx) + Math.abs(cz - sz) < MIN_SEP) {
@@ -220,7 +231,7 @@ function generateRivers(hm: Int8Array, hmf: Float32Array, opt: GenerateTerrainOp
     const rivers: River[] = [];
 
     for (const spring of springs) {
-        const visited = new Uint8Array(W * D);
+        const visited = new Uint8Array(opt.width * opt.depth);
         const path: number[] = [];
         let current = spring;
 
@@ -233,15 +244,14 @@ function generateRivers(hm: Int8Array, hmf: Float32Array, opt: GenerateTerrainOp
 
             if (hm[current] < opt.horizontalHeight) break;
 
-            const cx = current % W,
-                cz = (current / W) | 0;
+            const { x: cx, z: cz } = idxToPos(current, opt.width);
             let bestScore = Infinity;
             let bestIdx = -1;
             for (const [dz, dx] of DIRS8) {
                 const nx = cx + dx,
                     nz = cz + dz;
-                if (nx < 0 || nx >= W || nz < 0 || nz >= D) continue;
-                const nidx = nz * W + nx;
+                if (nx < 0 || nx >= opt.width || nz < 0 || nz >= opt.depth) continue;
+                const nidx = nz * opt.width + nx;
                 if (visited[nidx]) continue;
                 const score = distToSea[nidx] + noiseCost[nidx] * NOISE_WEIGHT;
                 if (score < bestScore) {
