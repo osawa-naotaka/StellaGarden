@@ -11,7 +11,6 @@ import { InputHandler } from "./input/InputHandler";
 import { createInteractionHandler } from "./input/InteractionSystem";
 import { createEventBroker } from "./lib/Event";
 import type { Pos2D } from "./lib/VoxelMap";
-import { VoxelMap } from "./lib/VoxelMap";
 import { DebugText } from "./view/DebugText";
 import { InventoryView } from "./view/InventoryView";
 import { loadSprite } from "./view/Sprite";
@@ -57,8 +56,7 @@ function useGameEngine(worldSize: Pos2D, chunkPerViewport: Pos2D) {
             pixiApp.stage.addChild(worldContainer);
 
             // 地形生成後に broker を注入（生成中のイベント洪水を避けるため）
-            const voxelMap = new VoxelMap(worldSize.x, 12, worldSize.z, 4);
-            generateTerrain(voxelMap);
+            const voxelMap = generateTerrain({ width: worldSize.x, height: 12, depth: worldSize.z, horizontalHeight: 4 });
             voxelMap.setEventBroker(eventBroker);
 
             const topView = new TopView(voxelMap, pixiApp, {

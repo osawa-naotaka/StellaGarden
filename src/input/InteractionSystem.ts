@@ -80,7 +80,12 @@ function revertNearbyInvalidTerrain(voxelMap: IVoxelWriter, cx: number, cz: numb
 
 /** 選択中のツールに応じてタイルを操作するハンドラを EventBroker に登録し、解除用の dispose 関数を返す。
  * onTerrainModified が指定された場合、地形変更操作（掘る・盛る）の後に呼び出される。 */
-export function createInteractionHandler(voxelMap: IVoxelWriter, inventory: IInventoryWriter, eventBroker: EventBroker<GameEventMap>, onTerrainModified?: () => void): () => void {
+export function createInteractionHandler(
+    voxelMap: IVoxelWriter,
+    inventory: IInventoryWriter,
+    eventBroker: EventBroker<GameEventMap>,
+    onTerrainModified?: () => void,
+): () => void {
     return eventBroker.subscribe("interact_world", (packet) => {
         const surfacePos = voxelMap.getSurfacePosition({ x: packet.pos.x, y: 0, z: packet.pos.z });
         const voxel = voxelMap.get(surfacePos);
@@ -92,10 +97,7 @@ export function createInteractionHandler(voxelMap: IVoxelWriter, inventory: IInv
 
         switch (tool) {
             case "hand":
-                if (
-                    getEntityTypeFromVoxel(voxel) === ENTITY_TYPES.potato &&
-                    getCropGrowthStageFromVoxel(voxel) === 3
-                ) {
+                if (getEntityTypeFromVoxel(voxel) === ENTITY_TYPES.potato && getCropGrowthStageFromVoxel(voxel) === 3) {
                     const harvestCount = 2 + Math.floor(Math.random() * 3); // 2〜4個
                     if (inventory.addItem("potato", harvestCount)) {
                         voxelMap.set(TERRAIN_TYPES.dirt, surfacePos);
@@ -139,19 +141,13 @@ export function createInteractionHandler(voxelMap: IVoxelWriter, inventory: IInv
                 }
                 break;
             case "sickle": {
-                if (
-                    getEntityTypeFromVoxel(voxel) === ENTITY_TYPES.soy &&
-                    getCropGrowthStageFromVoxel(voxel) === 3
-                ) {
+                if (getEntityTypeFromVoxel(voxel) === ENTITY_TYPES.soy && getCropGrowthStageFromVoxel(voxel) === 3) {
                     const harvestCount = 2 + Math.floor(Math.random() * 3); // 2〜4個
                     if (inventory.addItem("soy", harvestCount)) {
                         voxelMap.set(TERRAIN_TYPES.dirt, surfacePos);
                         eventBroker.publish("crop_harvested", { pos: { x: packet.pos.x, z: packet.pos.z }, itemId: "soy", count: harvestCount });
                     }
-                } else if (
-                    getEntityTypeFromVoxel(voxel) === ENTITY_TYPES.flax &&
-                    getCropGrowthStageFromVoxel(voxel) === 3
-                ) {
+                } else if (getEntityTypeFromVoxel(voxel) === ENTITY_TYPES.flax && getCropGrowthStageFromVoxel(voxel) === 3) {
                     const harvestCount = 2 + Math.floor(Math.random() * 3); // 2〜4個
                     if (inventory.addItem("flax", harvestCount)) {
                         voxelMap.set(TERRAIN_TYPES.dirt, surfacePos);
@@ -163,10 +159,7 @@ export function createInteractionHandler(voxelMap: IVoxelWriter, inventory: IInv
             case "hoes": {
                 const terrainType = getTerrainTypeFromVoxel(voxel);
                 const entityType = getEntityTypeFromVoxel(voxel);
-                if (
-                    (terrainType === TERRAIN_TYPES.soil || terrainType === TERRAIN_TYPES.wetSoil) &&
-                    entityType !== ENTITY_TYPES.none
-                ) {
+                if ((terrainType === TERRAIN_TYPES.soil || terrainType === TERRAIN_TYPES.wetSoil) && entityType !== ENTITY_TYPES.none) {
                     // 作物エンティティを削除（虚空へ消滅、アイテム追加なし）
                     voxelMap.set(terrainType, surfacePos);
                 } else if (

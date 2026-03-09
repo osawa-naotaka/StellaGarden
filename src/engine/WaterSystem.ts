@@ -86,7 +86,12 @@ export function floodFillWater(map: IVoxelWriter): void {
         if (level < minBucket) minBucket = level;
     }
 
-    const DIRS4: ReadonlyArray<[number, number]> = [[0, -1], [0, 1], [-1, 0], [1, 0]];
+    const DIRS4: ReadonlyArray<[number, number]> = [
+        [0, -1],
+        [0, 1],
+        [-1, 0],
+        [1, 0],
+    ];
 
     while (minBucket <= H) {
         const bucket = buckets[minBucket];

@@ -1,11 +1,11 @@
 import type { IVoxelWriter } from "../_boundary/interfaces";
 import {
     ENTITY_TYPES,
-    TERRAIN_TYPES,
+    getCropGrowthStageFromVoxel,
     getEntityTypeFromVoxel,
     getTerrainTypeFromVoxel,
-    getCropGrowthStageFromVoxel,
     setCropGrowthStageInVoxel,
+    TERRAIN_TYPES,
 } from "./TerrainDefs";
 
 /** 作物の最終育成段階（potato_5）。これを超えてはならない。 */
@@ -47,9 +47,12 @@ export function advanceDayAllCrops(voxelMap: IVoxelWriter): void {
             const pos = voxelMap.getSurfacePosition({ x, y: 0, z });
             const voxel = voxelMap.get(pos);
 
-            if (getEntityTypeFromVoxel(voxel) !== ENTITY_TYPES.potato &&
+            if (
+                getEntityTypeFromVoxel(voxel) !== ENTITY_TYPES.potato &&
                 getEntityTypeFromVoxel(voxel) !== ENTITY_TYPES.soy &&
-                getEntityTypeFromVoxel(voxel) !== ENTITY_TYPES.flax) continue;
+                getEntityTypeFromVoxel(voxel) !== ENTITY_TYPES.flax
+            )
+                continue;
 
             const stage = getCropGrowthStageFromVoxel(voxel);
             if (stage >= MAX_GROWTH_STAGE) continue;

@@ -129,9 +129,7 @@ function dirtSpriteName(pos: Pos3D[], centerHight: number, horizonHeight: number
     }
     const base = grassSpritesName(pos, centerHight, horizonHeight);
     // 中心と同じ高さのdirtのみ繋がりとして扱う（高さが異なるdirtは無視）
-    const flags = voxel.map((v, i) =>
-        getTerrainTypeFromVoxel(v) === TERRAIN_TYPES.dirt && pos[i].y === centerHight ? 1 : 0
-    );
+    const flags = voxel.map((v, i) => (getTerrainTypeFromVoxel(v) === TERRAIN_TYPES.dirt && pos[i].y === centerHight ? 1 : 0));
     const id9 = calcId9FromVoxel(flags);
     const id5 = calcId5FromVoxel(flags);
     const suffix = TRANSITION_ID9.get(id9) ?? TRANSITION_ID5.get(id5) ?? "0_5_9";
@@ -205,7 +203,7 @@ export type EntitySpriteInfo = {
 
 // エンティティタイプごとの暫定anchor値。ユーザーが調整する想定。
 const ENTITY_ANCHORS: Record<number, { x: number; y: number }> = {
-    [ENTITY_TYPES.tree]:   { x: 0.25,  y: 0.75  }, // birch_tree_sapling: 底部を地面に合わせる
+    [ENTITY_TYPES.tree]: { x: 0.25, y: 0.75 }, // birch_tree_sapling: 底部を地面に合わせる
     [ENTITY_TYPES.potato]: { x: 0, y: 0.25 }, // potato_1: 現状値を維持
     [ENTITY_TYPES.soy]: { x: 0, y: 0.25 },
     [ENTITY_TYPES.flax]: { x: 0, y: 0.25 },
