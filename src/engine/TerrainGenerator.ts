@@ -14,8 +14,8 @@ export type GenerateTerrainOptions = {
 /** シンプレックスノイズで地形と樹木を生成し、VoxelMap に書き込む。 */
 export function generateTerrain(opt: GenerateTerrainOptions): VoxelMap {
     const { hm, hmf } = computeHeightmap(opt.width, opt.depth, opt.height);
-    const waterSources = generateRivers(hm, hmf, opt);
-    const map = createVoxelMapFromHeight(hm, waterSources, opt);
+    const { waterSources, hightMap } = generateRivers(hm, hmf, opt);
+    const map = createVoxelMapFromHeight(hightMap, waterSources, opt);
     floodFillWater(map);
     placeForestTrees(map);
 
@@ -67,7 +67,6 @@ function createVoxelMapFromHeight(hm: Int32Array, waterSources: Set<number>, opt
             const h = hm[idx];
             if (h < opt.horizontalHeight) {
                 for (let y = 0; y < h; y++) map.set(TERRAIN_TYPES.dirt, { x, y, z });
-                for (let y = h; y < opt.horizontalHeight; y++) map.set(TERRAIN_TYPES.water, { x, y, z });
             } else {
                 for (let y = 0; y < h; y++) map.set(TERRAIN_TYPES.dirt, { x, y, z });
                 // 水源位置には waterSource を配置、それ以外は草地
@@ -93,7 +92,12 @@ function createVoxelMapFromHeight(hm: Int32Array, waterSources: Set<number>, opt
  * 水の配置は後続の floodFillWater() が行う。
  * hm は in-place で変更される（渓谷カービングのため）。
  */
-function generateRivers(hm: Int32Array, hmf: Float32Array, opt: GenerateTerrainOptions): Set<number> {
+type GenerateRiversReturnType = {
+    waterSources: Set<number>;
+    hightMap: Int32Array;
+};
+
+function generateRivers(hm: Int32Array, hmf: Float32Array, opt: GenerateTerrainOptions): GenerateRiversReturnType {
     const W = opt.width,
         D = opt.depth;
     const DIRS8: ReadonlyArray<[number, number]> = [
@@ -291,7 +295,7 @@ function generateRivers(hm: Int32Array, hmf: Float32Array, opt: GenerateTerrainO
         }
     }
 
-    return waterSources;
+    return { waterSources, hightMap: hm };
 }
 
 function placeForestTrees(map: VoxelMap): void {

@@ -14,18 +14,6 @@ export function floodFillWater(map: IVoxelWriter): void {
     const D = map.depth;
     const H = map.height;
 
-    // --- 1. 既存の water タイルを除去（waterSource は残す）---
-    for (let z = 0; z < D; z++) {
-        for (let x = 0; x < W; x++) {
-            for (let y = 0; y < H; y++) {
-                const voxel = map.get({ x, y, z });
-                if (getTerrainTypeFromVoxel(voxel) === TERRAIN_TYPES.water) {
-                    map.remove({ x, y, z });
-                }
-            }
-        }
-    }
-
     // --- 2. 各セルの地表高さを計算 + 水源を収集 ---
     const groundHeight = new Int32Array(W * D);
     const sources: Array<{ x: number; z: number; y: number }> = [];
