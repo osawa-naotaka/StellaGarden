@@ -232,27 +232,70 @@ pngフォーマットで、RGBA8888。
 - [ ] 054 **脱穀機**（32x16・横長）
   - 千歯扱き（せんばこき）をモデルにした手動式。木の台座に金属の細い歯（くし状）が横一列に並んでいる。大豆の茎を歯にあてがって引き抜くことで莢が外れる仕組み。
   - 参考: [千歯扱き (Wikipedia)](https://ja.wikipedia.org/wiki/%E5%8D%83%E6%AD%AF%E6%89%B1%E3%81%8D)
+  - 画像資料
+    - https://www.kubota.co.jp/kubotatanbo/history/tools/img/3-3-4_threshing_007.jpg
+      - このアングルで描いてください。台座のところはこの画像よりも小さく、上の歯のところはおおきくして描いてください。
+    - 一応、類似資料です。
+      - https://ja.wikipedia.org/wiki/%E5%8D%83%E6%AD%AF%E6%89%B1%E3%81%8D#/media/%E3%83%95%E3%82%A1%E3%82%A4%E3%83%AB:Japanese_old_threshing_machine,Senba-koki,Katori-city,Japan.JPG
+    - 一応、道具の使いかたです
+      - https://www.kubota.co.jp/kubotatanbo/history/tools/img/3-3-4_threshing_001.jpg
+  - 資料元
+    - https://www.kubota.co.jp/kubotatanbo/history/tools/threshing.html
+    - https://ja.wikipedia.org/wiki/%E5%8D%83%E6%AD%AF%E6%89%B1%E3%81%8D
+
 
 - [ ] 055 **搾油機**（32x32）
   - 木製の縦型スクリュープレス機。太い木の柱に螺旋状のネジが通っており、上から押し付けて素材から油を搾り出す。中世ヨーロッパの亜麻仁油・オリーブ油搾油機のイメージ。
   - 参考: [Category:Oil presses (Wikimedia Commons)](https://commons.wikimedia.org/wiki/Category:Oil_presses)
   - 参考: [Category:Screw presses (Wikimedia Commons)](https://commons.wikimedia.org/wiki/Category:Screw_presses)
+  - 画像資料
+    - https://commons.wikimedia.org/wiki/Category:Oil_presses#/media/File:St_Michel_l'Observatoire_-_moulin_huile.JPG
+  - ぐるぐる回して上から圧力をかけることで油が搾り取られるイメージです
+
 
 - [ ] 056 **浸漬槽**（48x16・横長）
   - 長方形の木製の水槽。水が満たされており、亜麻の束が水平に漬けられている。水面は青みがかった色。水場（川・池）の近くに設置されるイメージ。
   - 参考: [Category:Flax retting (Wikimedia Commons)](https://commons.wikimedia.org/wiki/Category:Flax_retting)
+  - 画像資料
+    - https://handmade-wafu.com/essay/wp-content/uploads/2020/08/linen_string_01.jpg
+    - これは斜めから描かれていますが、真上からの絵を描いてください。大きな木製の水槽なので、四角い枠だけが見える感じになると思います。その中に、この画像のように亜麻の束を並べてください。
+  - 資料元
+    - https://handmade-wafu.com/essay/blog/2020/08/11/linen_string/
+
 
 - [ ] 057 **叩き台**（16x16）
   - 木製の台に、板状の木の刃（スカッチングナイフ）がついた道具。浸漬済みの亜麻を台に押し当てて叩き、繊維と木質部を分離する。
   - 参考: [Category:Scutching (Wikimedia Commons)](https://commons.wikimedia.org/wiki/Category:Scutching)
+  - 画像資料
+    - https://commons.wikimedia.org/wiki/Category:Scutching#/media/File:Dressed_woman_at_the_flax_edit.jpg
+    - 長い木の板で、上の方に、亜麻を挟む溝がついているような構成です
+    - この長い木の板とスカッチングナイフは、紐で結び、ナイフはこの木の傍らに置いておくか、立てかけるようにしておいてください。
+  - 参考作業動画
+    - https://upload.wikimedia.org/wikipedia/commons/transcoded/d/db/Linberedning_p%C3%A5_Skansen.webm/Linberedning_p%C3%A5_Skansen.webm.480p.vp9.webm
+    - 絵の参考にはならないかもしれませんが、一応、使い方の動画です。
+    - 動画36～46秒くらいまでの間で、亜麻の束を縦に叩いています。このように使います。この人が持っているものがスカッチングナイフです。
+  - 参考ページ
+    - https://mori.market/product/linenscutcing/
+
 
 - [ ] 058 **紡ぎ車**（32x16）
   - 大きな木製の車輪（フライホイール）とその隣に小さなスピンドル。車輪を回すと糸が撚られる。ヨーロッパの伝統的な踏み車（トレドル式）がイメージに近い。
   - 参考: [Category:Spinning wheels (Wikimedia Commons)](https://commons.wikimedia.org/wiki/Category:Spinning_wheels)
+  - 参考画像
+    - https://shop.r10s.jp/lamer-shop/cabinet/spinning/tdsw-web.jpg
+  - 参考サイト
+    - https://item.rakuten.co.jp/lamer-shop/tdsw/?scid=af_pc_etc&sc2id=af_103_0_10000645
+    - 使い方の動画があります。参考まで。
 
 - [ ] 059 **織機**（32x32）
   - 木製の枠に縦糸が張られ、横糸を通すための梭（シャトル）がある。シンプルな手織り機（バックストラップロームまたはフレームロームのトップビュー）。
   - 参考: [Loom (Wikimedia Commons)](https://commons.wikimedia.org/wiki/Loom)
+  - 参考サイト
+    - https://www.amazon.co.jp/dp/B0G44D7Z1M
+    - これの商品画像の最初のものを参考にしてくだささい。この斜めアングルで大丈夫です。これにたて糸を張って、シャトルを通してください。
+  - 参考画像
+    - https://ja.wikipedia.org/wiki/%E3%82%B7%E3%83%A3%E3%83%88%E3%83%AB_(%E7%B9%94%E7%89%A9)#/media/%E3%83%95%E3%82%A1%E3%82%A4%E3%83%AB:Weaving_shuttle_0027.jpg
+    - シャトルの画像です。大きく見えますが、手でもてる程度のサイズです。これを左から右、右から左へとたて糸に絡ませてよこ糸とします。
 
 ---
 
