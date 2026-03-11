@@ -86,10 +86,12 @@ export class ChunkRenderer {
         // 描画範囲より 1 タイル広い範囲を取得して、端タイルの近傍参照に備える
         for (let col = -CHUNK_RENDER_MARGIN - 1; col < this.tilePerChunk + CHUNK_RENDER_MARGIN + 1; col++) {
             for (let row = -CHUNK_RENDER_MARGIN - 1; row < this.tilePerChunk + CHUNK_RENDER_MARGIN + 1; row++) {
-                const pos = voxelMap.getSurfacePosition({ x: Math.floor(world.x) + row, y: 0, z: Math.floor(world.z) + col });
+                const worldPos = { x: Math.floor(world.x) + row, y: 0, z: Math.floor(world.z) + col };
+                const surfacePos = voxelMap.getSurfacePosition(worldPos);
+                const groundPos = voxelMap.getGroundSurfacePosition(worldPos);
                 const idx = this.lookupIndex(row, col);
-                this.positionLookup[idx] = pos;
-                this.voxelLookup[idx] = voxelMap.get(pos);
+                this.positionLookup[idx] = groundPos;
+                this.voxelLookup[idx] = voxelMap.get(surfacePos);
             }
         }
 

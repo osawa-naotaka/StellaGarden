@@ -13,7 +13,7 @@ function isFlat3x3(voxelMap: IVoxelWriter, centerX: number, centerZ: number, cen
             if (nx < 0 || nx >= voxelMap.width || nz < 0 || nz >= voxelMap.depth) {
                 return false;
             }
-            if (voxelMap.getSurfacePosition({ x: nx, y: 0, z: nz }).y !== centerY) {
+            if (voxelMap.getGroundSurfacePosition({ x: nx, y: 0, z: nz }).y !== centerY) {
                 return false;
             }
         }
@@ -24,7 +24,7 @@ function isFlat3x3(voxelMap: IVoxelWriter, centerX: number, centerZ: number, cen
 /** 中心を削った後（y - 1）でも、3x3 範囲の各セルとの高さ差が 1 以下に収まるか返す。
  *  範囲外タイルが含まれる場合は false。 */
 function isSafeToRemove3x3(voxelMap: IVoxelWriter, centerX: number, centerZ: number): boolean {
-    const centerY = voxelMap.getSurfacePosition({ x: centerX, y: 0, z: centerZ }).y;
+    const centerY = voxelMap.getGroundSurfacePosition({ x: centerX, y: 0, z: centerZ }).y;
     const newCenterY = centerY - 1;
     for (let dz = -1; dz <= 1; dz++) {
         for (let dx = -1; dx <= 1; dx++) {
@@ -34,7 +34,7 @@ function isSafeToRemove3x3(voxelMap: IVoxelWriter, centerX: number, centerZ: num
             if (nx < 0 || nx >= voxelMap.width || nz < 0 || nz >= voxelMap.depth) {
                 return false;
             }
-            const y = voxelMap.getSurfacePosition({ x: nx, y: 0, z: nz }).y;
+            const y = voxelMap.getGroundSurfacePosition({ x: nx, y: 0, z: nz }).y;
             if (Math.abs(newCenterY - y) > 1) return false;
         }
     }
@@ -44,7 +44,7 @@ function isSafeToRemove3x3(voxelMap: IVoxelWriter, centerX: number, centerZ: num
 /** 中心に土を盛った後（y + 1）でも、3x3 範囲の各セルとの高さ差が 1 以下に収まるか返す。
  *  範囲外タイルが含まれる場合は false。 */
 function isSafeToAdd3x3(voxelMap: IVoxelWriter, centerX: number, centerZ: number): boolean {
-    const centerY = voxelMap.getSurfacePosition({ x: centerX, y: 0, z: centerZ }).y;
+    const centerY = voxelMap.getGroundSurfacePosition({ x: centerX, y: 0, z: centerZ }).y;
     const newCenterY = centerY + 1;
     for (let dz = -1; dz <= 1; dz++) {
         for (let dx = -1; dx <= 1; dx++) {
@@ -54,7 +54,7 @@ function isSafeToAdd3x3(voxelMap: IVoxelWriter, centerX: number, centerZ: number
             if (nx < 0 || nx >= voxelMap.width || nz < 0 || nz >= voxelMap.depth) {
                 return false;
             }
-            const y = voxelMap.getSurfacePosition({ x: nx, y: 0, z: nz }).y;
+            const y = voxelMap.getGroundSurfacePosition({ x: nx, y: 0, z: nz }).y;
             if (Math.abs(newCenterY - y) > 1) return false;
         }
     }
@@ -68,7 +68,7 @@ function revertNearbyInvalidTerrain(voxelMap: IVoxelWriter, cx: number, cz: numb
             const nx = cx + dx;
             const nz = cz + dz;
             if (nx < 0 || nx >= voxelMap.width || nz < 0 || nz >= voxelMap.depth) continue;
-            const pos = voxelMap.getSurfacePosition({ x: nx, y: 0, z: nz });
+            const pos = voxelMap.getGroundSurfacePosition({ x: nx, y: 0, z: nz });
             const terrain = getTerrainTypeFromVoxel(voxelMap.get(pos));
             if (isFlat3x3(voxelMap, nx, nz, pos.y)) continue;
             if (terrain === TERRAIN_TYPES.soil || terrain === TERRAIN_TYPES.wetSoil) {
@@ -210,19 +210,23 @@ export function createInteractionHandler(
                 }
                 break;
             }
-            case "dirt":
-                // 高さ差1以下なら盛れる。水タイルの上にも盛れる（堤防として機能）
+            case "dirt": {
+                // 水タイルを無視して地面の高さを取得し、地面の1つ上にdirtを配置する
+                const groundPos = voxelMap.getGroundSurfacePosition({ x: packet.pos.x, y: 0, z: packet.pos.z });
+                const groundVoxel = voxelMap.get(groundPos);
+                const groundTerrainType = getTerrainTypeFromVoxel(groundVoxel);
                 if (
-                    (terrainType === TERRAIN_TYPES.water || terrainType === TERRAIN_TYPES.grass || terrainType === TERRAIN_TYPES.dirt) &&
-                    surfacePos.y + 1 < voxelMap.height &&
+                    (groundTerrainType === TERRAIN_TYPES.grass || groundTerrainType === TERRAIN_TYPES.dirt) &&
+                    groundPos.y + 1 < voxelMap.height &&
                     isSafeToAdd3x3(voxelMap, packet.pos.x, packet.pos.z) &&
                     inventory.consumeSelectedItem(1)
                 ) {
-                    voxelMap.set(TERRAIN_TYPES.dirt, { x: surfacePos.x, y: surfacePos.y + 1, z: surfacePos.z });
+                    voxelMap.set(TERRAIN_TYPES.dirt, { x: groundPos.x, y: groundPos.y + 1, z: groundPos.z });
                     revertNearbyInvalidTerrain(voxelMap, packet.pos.x, packet.pos.z);
                     onTerrainModified?.();
                 }
                 break;
+            }
         }
     });
 }

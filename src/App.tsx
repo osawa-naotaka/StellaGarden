@@ -54,7 +54,7 @@ function useGameEngine(worldSize: Pos2D, chunkPerViewport: Pos2D) {
             const worldContainer = new Container();
             pixiApp.stage.addChild(worldContainer);
 
-            const voxelMap = generateTerrain({ width: worldSize.x, height: 12, depth: worldSize.z, horizontalHeight: 4 });
+            const voxelMap = generateTerrain({ width: worldSize.x, height: 12, depth: worldSize.z, horizontalHeight: 3 });
             voxelMap.setEventBroker(eventBroker);
 
             const topView = new TopView(voxelMap, pixiApp, {

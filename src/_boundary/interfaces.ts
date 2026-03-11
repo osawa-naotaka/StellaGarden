@@ -49,6 +49,8 @@ export interface IVoxelReader {
     get(pos: Pos3D): number;
     getSurface(pos: Pos3D): number;
     getSurfacePosition(pos: Pos3D): Pos3D;
+    /** 水タイルを無視して、最上層の地面（dirt/grass/soil 等）の位置を返す。 */
+    getGroundSurfacePosition(pos: Pos3D): Pos3D;
 }
 
 /**

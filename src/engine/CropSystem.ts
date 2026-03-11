@@ -26,11 +26,9 @@ const MAX_GROWTH_STAGE = 3;
  * - ゲーム内1日が経過するたびに呼び出す（day_changed イベントを受けて App.tsx が呼ぶ）
  */
 export function dryWetSoil(voxelMap: IVoxelWriter): void {
-    const horizon = voxelMap.horizonHeight;
-
     for (let x = 0; x < voxelMap.width; x++) {
         for (let z = 0; z < voxelMap.depth; z++) {
-            const pos = { x, y: horizon, z };
+            const pos = voxelMap.getGroundSurfacePosition({ x, y: 0, z });
             const voxel = voxelMap.get(pos);
 
             if (getTerrainTypeFromVoxel(voxel) !== TERRAIN_TYPES.wetSoil) continue;
