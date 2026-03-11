@@ -1,6 +1,7 @@
 import type { GameEventMap } from "../_boundary/events";
 import type { IInventoryWriter, IVoxelWriter } from "../_boundary/interfaces";
 import { ENTITY_TYPES, getCropGrowthStageFromVoxel, getEntityTypeFromVoxel, getTerrainTypeFromVoxel, TERRAIN_TYPES } from "../engine/TerrainDefs";
+import { floodFillWater } from "../engine/WaterSystem";
 import type { EventBroker } from "../lib/Event";
 
 /** 中心座標を含む 3x3 範囲の表面 y がすべて同じかどうかを返す。範囲外タイルが含まれる場合は false。 */
@@ -117,16 +118,11 @@ export function createInteractionHandler(
                     getEntityTypeFromVoxel(voxel) === ENTITY_TYPES.none &&
                     isSafeToRemove3x3(voxelMap, packet.pos.x, packet.pos.z)
                 ) {
-                    if (surfacePos.y === 1) {
+                    if (surfacePos.y >= 1) {
                         if (inventory.addItem("dirt", 1)) {
                             voxelMap.remove(surfacePos);
                             revertNearbyInvalidTerrain(voxelMap, packet.pos.x, packet.pos.z);
-                            onTerrainModified?.();
-                        }
-                    } else if (surfacePos.y > 1) {
-                        if (inventory.addItem("dirt", 1)) {
-                            voxelMap.remove(surfacePos);
-                            revertNearbyInvalidTerrain(voxelMap, packet.pos.x, packet.pos.z);
+                            floodFillWater(voxelMap, packet.pos.x, packet.pos.z);
                             onTerrainModified?.();
                         }
                     }
