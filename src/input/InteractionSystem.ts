@@ -98,13 +98,7 @@ export function createInteractionHandler(
 
         switch (tool) {
             case "hand":
-                if (getEntityTypeFromVoxel(voxel) === ENTITY_TYPES.potato && getCropGrowthStageFromVoxel(voxel) === 3) {
-                    const harvestCount = 2 + Math.floor(Math.random() * 3); // 2〜4個
-                    if (inventory.addItem("potato", harvestCount)) {
-                        voxelMap.set(TERRAIN_TYPES.dirt, surfacePos);
-                        eventBroker.publish("crop_harvested", { pos: { x: packet.pos.x, z: packet.pos.z }, itemId: "potato", count: harvestCount });
-                    }
-                }
+
                 break;
             case "watering_can":
                 if (getTerrainTypeFromVoxel(voxel) === TERRAIN_TYPES.soil) {
@@ -126,12 +120,28 @@ export function createInteractionHandler(
                             onTerrainModified?.();
                         }
                     }
+                } else if (getEntityTypeFromVoxel(voxel) === ENTITY_TYPES.flax && getCropGrowthStageFromVoxel(voxel) === 3) {
+                    const harvestCount = 2 + Math.floor(Math.random() * 3); // 2〜4個
+                    if (inventory.addItem("flaxseed", harvestCount)) {
+                        inventory.addItem("flax_stalk", harvestCount);
+                        inventory.addItem("stem", harvestCount);
+                        voxelMap.set(TERRAIN_TYPES.dirt, surfacePos);
+                        eventBroker.publish("crop_harvested", { pos: { x: packet.pos.x, z: packet.pos.z }, itemId: "flax", count: harvestCount });
+                    }
+                } else if (getEntityTypeFromVoxel(voxel) === ENTITY_TYPES.potato && getCropGrowthStageFromVoxel(voxel) === 3) {
+                    const harvestCount = 2 + Math.floor(Math.random() * 3); // 2〜4個
+                    if (inventory.addItem("potato", harvestCount)) {
+                        inventory.addItem("stem", harvestCount);
+                        voxelMap.set(TERRAIN_TYPES.dirt, surfacePos);
+                        eventBroker.publish("crop_harvested", { pos: { x: packet.pos.x, z: packet.pos.z }, itemId: "potato", count: harvestCount });
+                    }
                 }
                 break;
             case "axe":
                 if (getEntityTypeFromVoxel(voxel) === ENTITY_TYPES.tree) {
                     // インベントリが満杯の場合はキャンセル
-                    if (inventory.addItem("wood", 1)) {
+                    if (inventory.addItem("trunk", 1)) {
+                        inventory.addItem("leaves", 2 + Math.floor(Math.random() * 3)); // 2〜4個
                         voxelMap.set(voxel & 0x000000ff, surfacePos);
                     }
                 }
@@ -139,15 +149,10 @@ export function createInteractionHandler(
             case "sickle": {
                 if (getEntityTypeFromVoxel(voxel) === ENTITY_TYPES.soy && getCropGrowthStageFromVoxel(voxel) === 3) {
                     const harvestCount = 2 + Math.floor(Math.random() * 3); // 2〜4個
-                    if (inventory.addItem("soy", harvestCount)) {
+                    if (inventory.addItem("soybeans", harvestCount)) {
+                        inventory.addItem("stem", harvestCount);
                         voxelMap.set(TERRAIN_TYPES.dirt, surfacePos);
                         eventBroker.publish("crop_harvested", { pos: { x: packet.pos.x, z: packet.pos.z }, itemId: "soy", count: harvestCount });
-                    }
-                } else if (getEntityTypeFromVoxel(voxel) === ENTITY_TYPES.flax && getCropGrowthStageFromVoxel(voxel) === 3) {
-                    const harvestCount = 2 + Math.floor(Math.random() * 3); // 2〜4個
-                    if (inventory.addItem("flax", harvestCount)) {
-                        voxelMap.set(TERRAIN_TYPES.dirt, surfacePos);
-                        eventBroker.publish("crop_harvested", { pos: { x: packet.pos.x, z: packet.pos.z }, itemId: "flax", count: harvestCount });
                     }
                 }
                 break;
@@ -180,7 +185,7 @@ export function createInteractionHandler(
                 }
                 break;
             }
-            case "soy": {
+            case "soybeans": {
                 const soyTerrainType = getTerrainTypeFromVoxel(voxel);
                 if (
                     (soyTerrainType === TERRAIN_TYPES.soil || soyTerrainType === TERRAIN_TYPES.wetSoil) &&
@@ -193,7 +198,7 @@ export function createInteractionHandler(
                 }
                 break;
             }
-            case "flax": {
+            case "flaxseed": {
                 const flaxTerrainType = getTerrainTypeFromVoxel(voxel);
                 if (
                     (flaxTerrainType === TERRAIN_TYPES.soil || flaxTerrainType === TERRAIN_TYPES.wetSoil) &&
@@ -203,6 +208,32 @@ export function createInteractionHandler(
                     // 地形タイプ（soil or wetSoil）を保持してエンティティを追加
                     voxelMap.set(flaxTerrainType | (ENTITY_TYPES.flax << 8), surfacePos);
                     eventBroker.publish("crop_planted", { pos: { x: packet.pos.x, z: packet.pos.z }, cropType: "flax" });
+                }
+                break;
+            }
+            case "sunflower_seed": {
+                const sunflowerTerrainType = getTerrainTypeFromVoxel(voxel);
+                if (
+                    (sunflowerTerrainType === TERRAIN_TYPES.soil || sunflowerTerrainType === TERRAIN_TYPES.wetSoil) &&
+                    getEntityTypeFromVoxel(voxel) === ENTITY_TYPES.none &&
+                    inventory.consumeSelectedItem(1)
+                ) {
+                    // 地形タイプ（soil or wetSoil）を保持してエンティティを追加
+                    voxelMap.set(sunflowerTerrainType | (ENTITY_TYPES.sunflower << 8), surfacePos);
+                    eventBroker.publish("crop_planted", { pos: { x: packet.pos.x, z: packet.pos.z }, cropType: "sunflower" });
+                }
+                break;
+            }
+            case "nuts": {
+                const nutsTerrainType = getTerrainTypeFromVoxel(voxel);
+                if (
+                    (nutsTerrainType === TERRAIN_TYPES.soil || nutsTerrainType === TERRAIN_TYPES.wetSoil) &&
+                    getEntityTypeFromVoxel(voxel) === ENTITY_TYPES.none &&
+                    inventory.consumeSelectedItem(1)
+                ) {
+                    // 地形タイプ（soil or wetSoil）を保持してエンティティを追加
+                    voxelMap.set(nutsTerrainType | (ENTITY_TYPES.tree << 8), surfacePos);
+                    eventBroker.publish("crop_planted", { pos: { x: packet.pos.x, z: packet.pos.z }, cropType: "nuts" });
                 }
                 break;
             }

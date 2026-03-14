@@ -16,8 +16,28 @@ const DEFAULT_TOOLBAR_ITEMS: readonly (DefaultItem | null)[] = [
 ];
 const DEFAULT_INVENTORY_ITEMS: readonly (DefaultItem | null)[] = [
     { itemId: "potato", count: 64 },
-    { itemId: "soy", count: 64 },
-    { itemId: "flax", count: 64 },
+    { itemId: "soybeans", count: 64 },
+    { itemId: "flaxseed", count: 64 },
+    { itemId: "workbench", count: 1 },
+    { itemId: "stem", count: 64 },
+    { itemId: "leaves", count: 64 },
+    { itemId: "crop_residue", count: 64 },
+    { itemId: "pods", count: 64 },
+    { itemId: "soybean_oil", count: 64 },
+    { itemId: "bagged_soybeans", count: 64 },
+    { itemId: "flax_stalk", count: 64 },
+    { itemId: "flax_fiber", count: 64 },
+    { itemId: "thread", count: 64 },
+    { itemId: "rope", count: 64 },
+    { itemId: "cloth", count: 64 },
+    { itemId: "bag", count: 64 },
+    { itemId: "flaxseed_oil", count: 64 },
+    { itemId: "sunflower_seed", count: 64 },
+    { itemId: "trunk", count: 64 },
+    { itemId: "nuts", count: 64 },
+    { itemId: "compost", count: 64 },
+    { itemId: "plant_ashes", count: 64 },
+    { itemId: "oil_cake", count: 64 },
 ];
 
 /** プレイヤーのツールバーと 8×8 インベントリグリッドを管理する。 */

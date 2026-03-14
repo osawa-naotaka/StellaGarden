@@ -124,14 +124,12 @@ function setupTerrainTile(tile: Tile, voxels: number[], positions: Pos3D[], hori
 }
 
 function setupEntityTile(tile: Tile, voxels: number[], positions: Pos3D[], pointerPos: Pos2D): void {
-    const info = getEntitySpriteNameFromVoxel(voxels[4]);
-    if (info) {
-        tile.sprites[0].texture = Texture.from(info.spriteName);
-        tile.sprites[0].visible = true;
-        tile.sprites[0].anchor.set(info.anchor.x, info.anchor.y);
+    const infos = getEntitySpriteNameFromVoxel(voxels[4]);
+    for (let i = 0; i < infos.length; i++) {
+        tile.sprites[i].texture = Texture.from(infos[i].spriteName);
+        tile.sprites[i].visible = true;
+        tile.sprites[i].anchor.set(infos[i].anchor.x, infos[i].anchor.y);
         const isHovered = Math.floor(pointerPos.x) === positions[4].x && Math.floor(pointerPos.z) === positions[4].z;
-        tile.sprites[0].filters = isHovered ? [hoverFilter] : [];
-    } else {
-        tile.sprites[0].visible = false;
+        tile.sprites[i].filters = isHovered ? [hoverFilter] : [];
     }
 }

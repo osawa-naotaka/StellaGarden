@@ -184,13 +184,16 @@ export function getTerrainSpriteNamesFromVoxel(voxel: number[], pos: Pos3D[], ho
         case TERRAIN_TYPES.waterSource:
             return ["water_grass_normal_0_5_9"];
         case TERRAIN_TYPES.soil:
-            return soilSpriteName(pos, pos[4].y, horizonHeight, voxel);
+            return ["ss_sprite_048.png"];
+            // return soilSpriteName(pos, pos[4].y, horizonHeight, voxel);
         case TERRAIN_TYPES.wetSoil:
-            return wetSoilSpriteName(pos, pos[4].y, horizonHeight, voxel);
+            return ["ss_sprite_049.png"];
+            // return wetSoilSpriteName(pos, pos[4].y, horizonHeight, voxel);
         case TERRAIN_TYPES.grass:
             return grassSpritesName(pos, pos[4].y, horizonHeight);
         case TERRAIN_TYPES.dirt:
-            return dirtSpriteName(pos, pos[4].y, horizonHeight, voxel);
+            return ["ss_sprite_047.png"];
+            // return dirtSpriteName(pos, pos[4].y, horizonHeight, voxel);
         default:
             throw new Error(`Unknown voxel type: ${type}`);
     }
@@ -207,30 +210,43 @@ const ENTITY_ANCHORS: Record<number, { x: number; y: number }> = {
     [ENTITY_TYPES.potato]: { x: 0, y: 0.25 }, // potato_1: 現状値を維持
     [ENTITY_TYPES.soy]: { x: 0, y: 0.25 },
     [ENTITY_TYPES.flax]: { x: 0, y: 0.25 },
+    [ENTITY_TYPES.sunflower]: { x: 0, y: 0.25 },
 };
 
-/** ボクセル値からエンティティタイルのスプライト情報を返す。エンティティなしの場合は null。 */
-export function getEntitySpriteNameFromVoxel(voxel: number): EntitySpriteInfo | null {
+/** ボクセル値からエンティティタイルのスプライト情報を返す。 */
+export function getEntitySpriteNameFromVoxel(voxel: number): EntitySpriteInfo[] {
     const type = getEntityTypeFromVoxel(voxel);
     switch (type) {
         case ENTITY_TYPES.none:
-            return null;
+            return [];
         case ENTITY_TYPES.tree:
-            return { spriteName: "birch_tree_sapling", anchor: ENTITY_ANCHORS[type] };
+            const stage = getCropGrowthStageFromVoxel(voxel);
+            const spriteNames = ["ss_sprite_008.png", "ss_sprite_038.png", "ss_sprite_039.png", "ss_sprite_040.png"];
+            if(stage === 3) {
+                return [{ spriteName: "ss_sprite_040.png", anchor: ENTITY_ANCHORS[type]}, { spriteName: "ss_sprite_041.png", anchor: { x: 0, y: 0.0 }} ];
+            } else {
+                return [{ spriteName: spriteNames[stage] ?? "ss_sprite_008.png", anchor: ENTITY_ANCHORS[type] }];
+            }
+            // const spriteNames = ["ss_sprite_008.png", "birch_tree_bud", "birch_tree_sapling", "birch_tree"];
         case ENTITY_TYPES.potato: {
             const stage = getCropGrowthStageFromVoxel(voxel);
             const spriteNames = ["ss_sprite_008.png", "ss_sprite_010.png", "ss_sprite_011.png", "ss_sprite_012.png"];
-            return { spriteName: spriteNames[stage] ?? "potato_seed", anchor: ENTITY_ANCHORS[type] };
+            return [{ spriteName: spriteNames[stage] ?? "ss_sprite_008.png", anchor: ENTITY_ANCHORS[type] }];
         }
         case ENTITY_TYPES.soy: {
             const stage = getCropGrowthStageFromVoxel(voxel);
             const spriteNames = ["ss_sprite_008.png", "ss_sprite_018.png", "ss_sprite_019.png", "ss_sprite_020.png"];
-            return { spriteName: spriteNames[stage] ?? "potato_seed", anchor: ENTITY_ANCHORS[type] };
+            return [{ spriteName: spriteNames[stage] ?? "ss_sprite_008.png", anchor: ENTITY_ANCHORS[type] }];
         }
         case ENTITY_TYPES.flax: {
             const stage = getCropGrowthStageFromVoxel(voxel);
             const spriteNames = ["ss_sprite_008.png", "ss_sprite_029.png", "ss_sprite_030.png", "ss_sprite_031.png"];
-            return { spriteName: spriteNames[stage] ?? "potato_seed", anchor: ENTITY_ANCHORS[type] };
+            return [{ spriteName: spriteNames[stage] ?? "ss_sprite_008.png", anchor: ENTITY_ANCHORS[type] }];
+        }
+        case ENTITY_TYPES.sunflower: {
+            const stage = getCropGrowthStageFromVoxel(voxel);
+            const spriteNames = ["ss_sprite_008.png", "ss_sprite_033.png", "ss_sprite_034.png", "ss_sprite_035.png"];
+            return [{ spriteName: spriteNames[stage] ?? "ss_sprite_008.png", anchor: ENTITY_ANCHORS[type] }];
         }
         default:
             throw new Error(`Unknown entity type: ${type}`);

@@ -16,6 +16,7 @@ export const ENTITY_TYPES = {
     potato: 2,
     soy: 3,
     flax: 4,
+    sunflower: 5,
 } as const;
 
 /** ボクセル値から地形タイプを取り出す。 */

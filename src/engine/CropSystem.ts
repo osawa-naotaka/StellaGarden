@@ -48,7 +48,9 @@ export function advanceDayAllCrops(voxelMap: IVoxelWriter): void {
             if (
                 getEntityTypeFromVoxel(voxel) !== ENTITY_TYPES.potato &&
                 getEntityTypeFromVoxel(voxel) !== ENTITY_TYPES.soy &&
-                getEntityTypeFromVoxel(voxel) !== ENTITY_TYPES.flax
+                getEntityTypeFromVoxel(voxel) !== ENTITY_TYPES.flax &&
+                getEntityTypeFromVoxel(voxel) !== ENTITY_TYPES.sunflower &&
+                getEntityTypeFromVoxel(voxel) !== ENTITY_TYPES.tree
             )
                 continue;
 
