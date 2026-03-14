@@ -154,6 +154,13 @@ export function createInteractionHandler(
                         voxelMap.set(TERRAIN_TYPES.dirt, surfacePos);
                         eventBroker.publish("crop_harvested", { pos: { x: packet.pos.x, z: packet.pos.z }, itemId: "soy", count: harvestCount });
                     }
+                } else if (getEntityTypeFromVoxel(voxel) === ENTITY_TYPES.sunflower && getCropGrowthStageFromVoxel(voxel) === 3) {
+                    const harvestCount = 2 + Math.floor(Math.random() * 3); // 2〜4個
+                    if (inventory.addItem("sunflower_seed", harvestCount)) {
+                        inventory.addItem("stem", harvestCount);
+                        voxelMap.set(TERRAIN_TYPES.dirt, surfacePos);
+                        eventBroker.publish("crop_harvested", { pos: { x: packet.pos.x, z: packet.pos.z }, itemId: "sunflower", count: harvestCount });
+                    }
                 }
                 break;
             }
