@@ -1,6 +1,7 @@
 import { type Application, Container, Graphics, RenderTexture, type Texture } from "pixi.js";
 import type { IVoxelReader, Pos2D, Pos3D } from "../_boundary/interfaces";
 import { Tile } from "../view/Tile";
+import { DEBUG } from "./debugFlag";
 
 export const CHUNK_RENDER_MARGIN = 2;
 
@@ -47,7 +48,7 @@ export class ChunkRenderer {
 
         for (let i = 0; i < drawEdge * drawEdge; i++) {
             const tile = new Tile();
-            tile.setDebugFrame(this.pixelPerTile, 0x0000ff);
+            if (DEBUG) tile.setDebugFrame(this.pixelPerTile, 0x0000ff);
             this.chunkContainer.addChild(tile.top);
             this.tilePool.push(tile);
         }
@@ -68,7 +69,7 @@ export class ChunkRenderer {
         const debugFrame = new Graphics();
         debugFrame.rect(0, 0, this.pixelPerTile * this.tilePerChunk, this.pixelPerTile * this.tilePerChunk);
         debugFrame.stroke({ width: 2, color: 0xff0000 });
-        this.chunkContainer.addChild(debugFrame);
+        if (DEBUG) this.chunkContainer.addChild(debugFrame);
     }
 
     /**

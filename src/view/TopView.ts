@@ -3,6 +3,7 @@ import type { IVoxelReader, Pos2D, Pos3D } from "../_boundary/interfaces";
 import { ChunkRenderer } from "../lib/ChunkRenderer";
 import { getEntitySpriteNameFromVoxel, getTerrainSpriteNamesFromVoxel } from "./renderer/TerrainSpriteResolver";
 import type { Tile } from "./Tile";
+import { DEBUG } from "../lib/debugFlag";
 
 // ホバー時のブライトネスフィルター（モジュールで一度だけ生成して使い回す）
 const hoverFilter = new ColorMatrixFilter();
@@ -120,7 +121,7 @@ function setupTerrainTile(tile: Tile, voxels: number[], positions: Pos3D[], hori
         tile.sprites[i].filters = isHovered ? [hoverFilter] : [];
     }
 
-    tile.setDebugYLabel(positions[4].y, pixelPerTile);
+    if (DEBUG) tile.setDebugYLabel(positions[4].y, pixelPerTile);
 }
 
 function setupEntityTile(tile: Tile, voxels: number[], positions: Pos3D[], pointerPos: Pos2D): void {

@@ -15,6 +15,7 @@ import { InventoryView } from "./view/InventoryView";
 import { loadSprite } from "./view/Sprite";
 import { Toolbar } from "./view/Toolbar";
 import { TopView } from "./view/TopView";
+import { DEBUG } from "./lib/debugFlag";
 
 function useGameEngine(worldSize: Pos2D, chunkPerViewport: Pos2D) {
     const containerRef = useRef<HTMLDivElement>(null);
@@ -126,8 +127,10 @@ function useGameEngine(worldSize: Pos2D, chunkPerViewport: Pos2D) {
             const inputHandler = new InputHandler(topView.top, playerState, eventBroker);
             disposers.push(inputHandler.setListeners());
 
-            const debugText = new DebugText(playerState, gameTime);
-            pixiApp.stage.addChild(debugText.textView);
+            const debugText = DEBUG ? new DebugText(playerState, gameTime) : null;
+            if (debugText) {
+                pixiApp.stage.addChild(debugText.textView);
+            }
 
             // ゲームループ
             pixiApp.ticker.add((ticker) => {
@@ -139,7 +142,7 @@ function useGameEngine(worldSize: Pos2D, chunkPerViewport: Pos2D) {
                 topView.updateViewport(playerState.posInWorld, playerState.pointerPosInWorld);
                 worldContainer.scale.set(playerState.zoomLevel);
 
-                debugText.update();
+                if (debugText) debugText.update();
                 toolbar.tick();
                 inventoryView.tick();
             });
