@@ -207,10 +207,10 @@ export type EntitySpriteInfo = {
 // エンティティタイプごとの暫定anchor値。ユーザーが調整する想定。
 const ENTITY_ANCHORS: Record<number, { x: number; y: number }> = {
     [ENTITY_TYPES.tree]: { x: 0.25, y: 0.75 }, // birch_tree_sapling: 底部を地面に合わせる
-    [ENTITY_TYPES.potato]: { x: 0, y: 0.25 }, // potato_1: 現状値を維持
-    [ENTITY_TYPES.soy]: { x: 0, y: 0.25 },
-    [ENTITY_TYPES.flax]: { x: 0, y: 0.25 },
-    [ENTITY_TYPES.sunflower]: { x: 0, y: 0.25 },
+    [ENTITY_TYPES.potato]: { x: 0, y: 0.55 }, // potato_1: 現状値を維持
+    [ENTITY_TYPES.soy]: { x: 0, y: 0.55 },
+    [ENTITY_TYPES.flax]: { x: 0, y: 0.55 },
+    [ENTITY_TYPES.sunflower]: { x: 0, y: 0.55 },
 };
 
 /** ボクセル値からエンティティタイルのスプライト情報を返す。 */
