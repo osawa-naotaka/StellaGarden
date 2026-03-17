@@ -1,6 +1,7 @@
 import type { GameEventMap } from "../_boundary/events";
 import type { IInventoryWriter, IVoxelWriter } from "../_boundary/interfaces";
 import { ENTITY_TYPES, getCropGrowthStageFromVoxel, getEntityTypeFromVoxel, getTerrainTypeFromVoxel, TERRAIN_TYPES } from "../engine/TerrainDefs";
+import { findFacilityAnchor, type ItemDef } from "../engine/ItemDefs";
 import { floodFillWater } from "../engine/WaterSystem";
 import type { EventBroker } from "../lib/Event";
 
@@ -79,6 +80,30 @@ function revertNearbyInvalidTerrain(voxelMap: IVoxelWriter, cx: number, cz: numb
     }
 }
 
+/** 施設を撤去してインベントリに回収する。成功時 true。 */
+function removeFacility(
+    voxelMap: IVoxelWriter,
+    inventory: IInventoryWriter,
+    anchorX: number,
+    anchorZ: number,
+    def: ItemDef,
+): boolean {
+    // インベントリに追加（満杯なら中止）
+    if (!inventory.addItem(def.id, 1)) return false;
+
+    const { w, h } = def.entitySize ?? { w: 1, h: 1 };
+    // アンカーから entitySize の範囲を走査し、各タイルのエンティティビットをクリア
+    for (let dz = 0; dz < h; dz++) {
+        for (let dx = 0; dx < w; dx++) {
+            const pos = voxelMap.getSurfacePosition({ x: anchorX + dx, y: 0, z: anchorZ + dz });
+            const v = voxelMap.get(pos);
+            // 地形ビット（下位 8bit）のみ残し、エンティティビット以上をクリア
+            voxelMap.set(v & 0xff, pos);
+        }
+    }
+    return true;
+}
+
 /** 選択中のツールに応じてタイルを操作するハンドラを EventBroker に登録し、解除用の dispose 関数を返す。
  * onTerrainModified が指定された場合、地形変更操作（掘る・盛る）の後に呼び出される。 */
 export function createInteractionHandler(
@@ -137,15 +162,31 @@ export function createInteractionHandler(
                     }
                 }
                 break;
-            case "axe":
-                if (getEntityTypeFromVoxel(voxel) === ENTITY_TYPES.tree) {
-                    // インベントリが満杯の場合はキャンセル
+            case "axe": {
+                const entityType = getEntityTypeFromVoxel(voxel);
+                if (entityType === ENTITY_TYPES.tree) {
+                    // 既存の tree 伐採ロジック
                     if (inventory.addItem("trunk", 1)) {
                         inventory.addItem("leaves", 2 + Math.floor(Math.random() * 3)); // 2〜4個
                         voxelMap.set(voxel & 0x000000ff, surfacePos);
                     }
+                } else {
+                    // 施設撤去（forge 以外の施設 + facility_part）
+                    const anchor = findFacilityAnchor(voxelMap, packet.pos.x, packet.pos.z);
+                    if (anchor && anchor.def.entityType !== ENTITY_TYPES.forge) {
+                        removeFacility(voxelMap, inventory, anchor.anchorX, anchor.anchorZ, anchor.def);
+                    }
                 }
                 break;
+            }
+            case "pickaxe": {
+                // forge の撤去
+                const anchor = findFacilityAnchor(voxelMap, packet.pos.x, packet.pos.z);
+                if (anchor && anchor.def.entityType === ENTITY_TYPES.forge) {
+                    removeFacility(voxelMap, inventory, anchor.anchorX, anchor.anchorZ, anchor.def);
+                }
+                break;
+            }
             case "sickle": {
                 if (getEntityTypeFromVoxel(voxel) === ENTITY_TYPES.soy && getCropGrowthStageFromVoxel(voxel) === 3) {
                     const harvestCount = 2 + Math.floor(Math.random() * 3); // 2〜4個

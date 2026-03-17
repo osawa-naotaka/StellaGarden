@@ -1,3 +1,6 @@
+import type { IVoxelReader } from "../_boundary/interfaces";
+import { ENTITY_TYPES, getEntityTypeFromVoxel } from "./TerrainDefs";
+
 /** インベントリに配置できるアイテムの ID 型。 */
 export type ItemId =
     | "hand"
@@ -100,3 +103,63 @@ export const ITEM_DEFS: Record<ItemId, ItemDef> = {
     spinning_wheel: { id: "spinning_wheel", spriteName: "ss_sprite_058.png", maxStack: 1, placeable: true, entitySize: { w: 2, h: 1 }, entityType: 14, fieldSpriteName: "ss_sprite_058.png" },
     loom: { id: "loom", spriteName: "ss_sprite_059.png", maxStack: 1, placeable: true, entitySize: { w: 2, h: 2 }, entityType: 15, fieldSpriteName: "ss_sprite_059.png" },
 };
+
+/** entityType から ItemId への逆引きマップ。モジュールロード時に1回だけ構築。 */
+export const ENTITY_TYPE_TO_ITEM_ID: ReadonlyMap<number, ItemId> = new Map(
+    Object.values(ITEM_DEFS)
+        .filter((def): def is ItemDef & { entityType: number } => def.entityType != null)
+        .map((def) => [def.entityType, def.id]),
+);
+
+/**
+ * 指定座標が施設（アンカーまたは facility_part）の場合、
+ * アンカーの位置と ItemDef を返す。施設でなければ null。
+ *
+ * アンカータイル: entityType が ENTITY_TYPE_TO_ITEM_ID に存在する → そのまま返す
+ * facility_part: 近傍を探索してアンカーを見つける（最大施設サイズ 3x1, 2x2 を考慮）
+ */
+export function findFacilityAnchor(
+    voxelMap: IVoxelReader,
+    x: number,
+    z: number,
+): { anchorX: number; anchorZ: number; def: ItemDef } | null {
+    const surfacePos = voxelMap.getSurfacePosition({ x, y: 0, z });
+    const voxel = voxelMap.get(surfacePos);
+    const entityType = getEntityTypeFromVoxel(voxel);
+
+    // アンカータイルの場合: 直接返す
+    const itemId = ENTITY_TYPE_TO_ITEM_ID.get(entityType);
+    if (itemId) {
+        return { anchorX: x, anchorZ: z, def: ITEM_DEFS[itemId] };
+    }
+
+    // facility_part の場合: 近傍を探索してアンカーを見つける
+    if (entityType !== ENTITY_TYPES.facility_part) {
+        return null;
+    }
+
+    // 最大施設サイズを考慮して探索（左に最大2、上に最大1）
+    for (let dz = 0; dz >= -1; dz--) {
+        for (let dx = 0; dx >= -2; dx--) {
+            if (dx === 0 && dz === 0) continue;
+            const nx = x + dx;
+            const nz = z + dz;
+            if (nx < 0 || nz < 0 || nx >= voxelMap.width || nz >= voxelMap.depth) continue;
+
+            const nSurfacePos = voxelMap.getSurfacePosition({ x: nx, y: 0, z: nz });
+            const nVoxel = voxelMap.get(nSurfacePos);
+            const nEntityType = getEntityTypeFromVoxel(nVoxel);
+            const nItemId = ENTITY_TYPE_TO_ITEM_ID.get(nEntityType);
+            if (!nItemId) continue;
+
+            // このアンカーの entitySize が (x, z) を包含するか確認
+            const def = ITEM_DEFS[nItemId];
+            const size = def.entitySize ?? { w: 1, h: 1 };
+            if (x >= nx && x < nx + size.w && z >= nz && z < nz + size.h) {
+                return { anchorX: nx, anchorZ: nz, def };
+            }
+        }
+    }
+
+    return null;
+}
