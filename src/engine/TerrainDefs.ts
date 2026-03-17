@@ -19,6 +19,14 @@ export const ENTITY_TYPES = {
     sunflower: 5,
     workbench: 6,
     facility_part: 7,
+    forge: 8,
+    compost_bin: 9,
+    threshing_machine: 10,
+    screw_presses: 11,
+    soaking_basket: 12,
+    scutching_board: 13,
+    spinning_wheel: 14,
+    loom: 15,
 } as const;
 
 /** ボクセル値から地形タイプを取り出す。 */

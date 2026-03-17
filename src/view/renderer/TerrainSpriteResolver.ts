@@ -251,6 +251,22 @@ export function getEntitySpriteNameFromVoxel(voxel: number): EntitySpriteInfo[] 
         case ENTITY_TYPES.workbench:
             // 32x16 横長スプライト。anchor (0,0) でタイル左上に配置し、右に 16px はみ出す。
             return [{ spriteName: "ss_sprite_004.png", anchor: { x: 0, y: 0 } }];
+        case ENTITY_TYPES.forge:        // 16x16
+            return [{ spriteName: "ss_sprite_052.png", anchor: { x: 0, y: 0 } }];
+        case ENTITY_TYPES.compost_bin:   // 32x32
+            return [{ spriteName: "ss_sprite_053_3.png", anchor: { x: 0, y: 0 } }];
+        case ENTITY_TYPES.threshing_machine:  // 32x16
+            return [{ spriteName: "ss_sprite_054.png", anchor: { x: 0, y: 0 } }];
+        case ENTITY_TYPES.screw_presses:  // 32x32
+            return [{ spriteName: "ss_sprite_055.png", anchor: { x: 0, y: 0 } }];
+        case ENTITY_TYPES.soaking_basket:  // 48x16
+            return [{ spriteName: "ss_sprite_056.png", anchor: { x: 0, y: 0 } }];
+        case ENTITY_TYPES.scutching_board:  // 16x16
+            return [{ spriteName: "ss_sprite_057.png", anchor: { x: 0, y: 0 } }];
+        case ENTITY_TYPES.spinning_wheel:  // 32x16
+            return [{ spriteName: "ss_sprite_058.png", anchor: { x: 0, y: 0 } }];
+        case ENTITY_TYPES.loom:  // 32x32
+            return [{ spriteName: "ss_sprite_059.png", anchor: { x: 0, y: 0 } }];
         case ENTITY_TYPES.facility_part:
             // 描画はアンカータイル（workbench）が担当するため、このタイルでは描画しない。
             return [];

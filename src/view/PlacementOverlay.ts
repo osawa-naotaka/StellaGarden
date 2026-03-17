@@ -17,6 +17,7 @@ export class PlacementOverlay {
     private voxelMap: IVoxelReader;
     private valid = false;
     private snappedPos: Pos2D = { x: 0, z: 0 };
+    private entitySize: { w: number; h: number } = { w: 1, h: 1 };
 
     private onConfirmCallback: ((pos: Pos2D) => void) | null = null;
     private onCancelCallback: (() => void) | null = null;
@@ -29,10 +30,10 @@ export class PlacementOverlay {
         this.container = new Container();
         this.container.visible = false;
 
-        // 32x16 の半透明プレビュースプライト
-        this.previewSprite = new Sprite(Texture.from("ss_sprite_004.png"));
-        this.previewSprite.width = PIXEL_PER_TILE * 2; // 2タイル分 = 32px
-        this.previewSprite.height = PIXEL_PER_TILE;    // 1タイル分 = 16px
+        // 初期テクスチャは空。show() で設定される。
+        this.previewSprite = new Sprite(Texture.EMPTY);
+        this.previewSprite.width = PIXEL_PER_TILE;
+        this.previewSprite.height = PIXEL_PER_TILE;
         this.previewSprite.alpha = 0.5;
         this.container.addChild(this.previewSprite);
 
@@ -49,7 +50,16 @@ export class PlacementOverlay {
     }
 
     /** 配置モードを開始する。確定・キャンセル時のコールバックを登録し、オーバーレイを表示する。 */
-    show(onConfirm: (pos: Pos2D) => void, onCancel: () => void): void {
+    show(
+        config: { entitySize: { w: number; h: number }; fieldSpriteName: string },
+        onConfirm: (pos: Pos2D) => void,
+        onCancel: () => void,
+    ): void {
+        this.entitySize = config.entitySize;
+        this.previewSprite.texture = Texture.from(config.fieldSpriteName);
+        this.previewSprite.width = PIXEL_PER_TILE * config.entitySize.w;
+        this.previewSprite.height = PIXEL_PER_TILE * config.entitySize.h;
+
         this.onConfirmCallback = onConfirm;
         this.onCancelCallback = onCancel;
         this.container.visible = true;
@@ -86,7 +96,7 @@ export class PlacementOverlay {
 
         // 配置可否に応じてオーバーレイ色を更新
         this.tintOverlay.clear();
-        this.tintOverlay.rect(0, 0, PIXEL_PER_TILE * 2, PIXEL_PER_TILE);
+        this.tintOverlay.rect(0, 0, PIXEL_PER_TILE * this.entitySize.w, PIXEL_PER_TILE * this.entitySize.h);
         if (this.valid) {
             this.tintOverlay.fill({ color: 0x00ff00, alpha: 0.3 });
         } else {
@@ -94,38 +104,32 @@ export class PlacementOverlay {
         }
     }
 
-    /**
-     * 2x1 の配置判定（作業台固定）。
-     * 将来的に entitySize を受け取る拡張の余地を残す。
-     */
+    /** entitySize に基づく矩形範囲の配置判定。 */
     private canPlace(x: number, z: number): boolean {
         const map = this.voxelMap;
+        const { w, h } = this.entitySize;
 
-        // マップ範囲チェック（2タイル分）
-        if (x < 0 || x + 1 >= map.width || z < 0 || z >= map.depth) {
+        // マップ範囲チェック
+        if (x < 0 || x + w > map.width || z < 0 || z + h > map.depth) {
             return false;
         }
 
-        // 両タイルの表面高さを取得
-        const surfaceLeft = map.getSurfacePosition({ x, y: 0, z });
-        const surfaceRight = map.getSurfacePosition({ x: x + 1, y: 0, z });
+        // 基準タイルの表面高さ
+        const baseY = map.getSurfacePosition({ x, y: 0, z }).y;
 
-        // 表面高さが一致しなければ配置不可
-        if (surfaceLeft.y !== surfaceRight.y) {
-            return false;
-        }
+        // 全タイルをチェック
+        for (let dz = 0; dz < h; dz++) {
+            for (let dx = 0; dx < w; dx++) {
+                const tilePos = { x: x + dx, y: 0, z: z + dz };
+                const surfacePos = map.getSurfacePosition(tilePos);
+                if (surfacePos.y !== baseY) return false;
 
-        // 両タイルの地形・エンティティをチェック
-        for (const tileX of [x, x + 1]) {
-            const voxel = map.getSurface({ x: tileX, y: 0, z });
-            const terrain = getTerrainTypeFromVoxel(voxel);
-            const entity = getEntityTypeFromVoxel(voxel);
+                const voxel = map.getSurface(tilePos);
+                const terrain = getTerrainTypeFromVoxel(voxel);
+                const entity = getEntityTypeFromVoxel(voxel);
 
-            if (!PLACEABLE_TERRAINS.has(terrain)) {
-                return false;
-            }
-            if (entity !== ENTITY_TYPES.none) {
-                return false;
+                if (!PLACEABLE_TERRAINS.has(terrain)) return false;
+                if (entity !== ENTITY_TYPES.none) return false;
             }
         }
 

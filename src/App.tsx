@@ -6,6 +6,7 @@ import type { ItemId, SlotRef } from "./_boundary/interfaces";
 import { advanceDayAllCrops, dryWetSoil } from "./engine/CropSystem";
 import { GameTime } from "./engine/GameTime";
 import { PlayerState } from "./engine/PlayerState";
+import { ITEM_DEFS } from "./engine/ItemDefs";
 import { ENTITY_TYPES, getTerrainTypeFromVoxel } from "./engine/TerrainDefs";
 import { generateTerrain } from "./engine/TerrainGenerator";
 import { InputHandler } from "./input/InputHandler";
@@ -106,14 +107,18 @@ function useGameEngine(worldSize: Pos2D, chunkPerViewport: Pos2D) {
 
             const handlePlacementConfirm = (pos: Pos2D) => {
                 if (!placementMode) return;
-                // アンカータイル(左): workbench エンティティを配置
-                const surfaceLeft = voxelMap.getSurfacePosition({ x: pos.x, y: 0, z: pos.z });
-                const terrainLeft = getTerrainTypeFromVoxel(voxelMap.get(surfaceLeft));
-                voxelMap.set(terrainLeft | (ENTITY_TYPES.workbench << 8), surfaceLeft);
-                // 右タイル: facility_part エンティティを配置
-                const surfaceRight = voxelMap.getSurfacePosition({ x: pos.x + 1, y: 0, z: pos.z });
-                const terrainRight = getTerrainTypeFromVoxel(voxelMap.get(surfaceRight));
-                voxelMap.set(terrainRight | (ENTITY_TYPES.facility_part << 8), surfaceRight);
+                const def = ITEM_DEFS[placementMode.itemId];
+                const entityType = def.entityType ?? 0;
+                const { w, h } = def.entitySize ?? { w: 1, h: 1 };
+                for (let dz = 0; dz < h; dz++) {
+                    for (let dx = 0; dx < w; dx++) {
+                        const surfacePos = voxelMap.getSurfacePosition({ x: pos.x + dx, y: 0, z: pos.z + dz });
+                        const terrain = getTerrainTypeFromVoxel(voxelMap.get(surfacePos));
+                        // アンカータイル(0,0)には施設エンティティ、それ以外は facility_part
+                        const entity = (dx === 0 && dz === 0) ? entityType : ENTITY_TYPES.facility_part;
+                        voxelMap.set(terrain | (entity << 8), surfacePos);
+                    }
+                }
                 exitPlacementMode();
             };
 
@@ -133,7 +138,12 @@ function useGameEngine(worldSize: Pos2D, chunkPerViewport: Pos2D) {
                 // 配置モード開始
                 placementMode = { itemId, sourceSlot };
                 toolbar.top.visible = false;
-                placementOverlay.show(handlePlacementConfirm, handlePlacementCancel);
+                const def = ITEM_DEFS[itemId];
+                placementOverlay.show(
+                    { entitySize: def.entitySize ?? { w: 1, h: 1 }, fieldSpriteName: def.fieldSpriteName ?? "" },
+                    handlePlacementConfirm,
+                    handlePlacementCancel,
+                );
                 // 配置モード中は interact_world を無効化
                 if (interactionDisposer) {
                     interactionDisposer();
