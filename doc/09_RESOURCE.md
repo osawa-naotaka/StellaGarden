@@ -310,10 +310,14 @@ pngフォーマットで、RGBA8888。
   - 石を円形に並べた焚き火台。中央に薪が積まれ、炎が上がっている。シンプルな野外の焚き火。木材を投入して草木灰を生産する。
 
 - [ ] 063 **炭焼き窯**（16x16）
-  - 粘土で覆われた小さなドーム状の構造物。上部に煙が出る穴がある。内部で木材を蒸し焼きにして木炭を生産する。素朴な伏焼き法のイメージ。
+  - 粘土で覆われた小さなドーム状の構造物。内部で木材を蒸し焼きにして木炭を生産する。素朴な伏焼き法のイメージ。
+  - 参考画像: https://en.wikipedia.org/wiki/Charcoal_pile#/media/File:Meiler_10.JPG - 火がついていない状態
+  - 参考: [炭焼き (Wikipedia)](https://ja.wikipedia.org/wiki/%E7%82%AD%E7%84%BC%E3%81%8D) — 日本の伝統的な炭窯の写真
 
 - [ ] 064 **石の金床**（16x16）
   - 大きく平らな石が据え付けられた台。石の表面は滑らかに磨かれている。加熱した金属をこの上に載せてハンマーで叩いて成形する。
+  - 参考画像: https://commons.wikimedia.org/wiki/File:The_Anvil_Stone_-_geograph.org.uk_-_1761231.jpg - 石の金床
+  - 参考画像: https://en.wikipedia.org/wiki/Anvil#/media/File:2011-09-17._%D0%9A%D1%83%D0%B7%D0%BD%D0%B5%D1%87%D0%BD%D1%8B%D0%B9_%D1%84%D0%B5%D1%81%D1%82%D0%B8%D0%B2%D0%B0%D0%BB%D1%8C_%D0%B2_%D0%94%D0%BE%D0%BD%D0%B5%D1%86%D0%BA%D0%B5_286.jpg - 一般的な金属の金床
 
 ---
 
@@ -327,6 +331,9 @@ pngフォーマットで、RGBA8888。
     - "Farm RPG - Tiny Asset Pack - (All in One)\Icons\Weapons\14.png"
   - [ ] 067 隕鉄
     - 黒っぽい灰色のゴツゴツした石。表面に金属光沢のある銀白色の斑点。通常の石と区別がつくよう、やや光っている。
+    - 参考画像: https://upload.wikimedia.org/wikipedia/commons/3/34/M%C3%A9t%C3%A9orite_La_Caille%2C_exposition_M%C3%A9t%C3%A9orites%2C_Mus%C3%A9um_national_d%27histoire_naturelle_de_Paris_08.jpg
+    - 参考: [Category:Iron meteorites (Wikimedia Commons)](https://commons.wikimedia.org/wiki/Category:Iron_meteorites) — 各種隕鉄の写真
+    - 参考: [Category:Widmanstätten pattern (Wikimedia Commons)](https://commons.wikimedia.org/wiki/Category:Widmanst%C3%A4tten_pattern) — 隕鉄断面の特徴的な結晶模様
   - [ ] 068 木炭
     - 黒い多孔質の炭の欠片。1個。木目が残った黒い塊。軽そうな質感。
   - [ ] 069 鉄塊
@@ -334,10 +341,14 @@ pngフォーマットで、RGBA8888。
   - [ ] 070 板
     - 木目の見える薄い板。長方形で、割り刀で割ったため木目が通っている。明るい茶色。
 - 地図上のエンティティスプライト
-  - [ ] 071 粘土パッチ（16x16）
+  - [ ] 071 粘土（16x16）
     - 川辺の地面に露出した灰茶色の粘土質の土。周囲の草地より暗く、湿った質感。
-  - [ ] 072 隕鉄（16x16）
-    - フィールド上に落ちている黒っぽい石。表面に銀白色の金属光沢がかすかに光る。周囲の石と区別がつくよう、小さなキラキラエフェクトを加えても良い。
+    - 参考画像: https://ja.wikipedia.org/wiki/%E7%B2%98%E5%9C%9F#/media/%E3%83%95%E3%82%A1%E3%82%A4%E3%83%AB:Clay-ss-2005.jpg
+    - 参考: https://ja.wikipedia.org/wiki/%E7%B2%98%E5%9C%9F
+  - [ ] 072 隕鉄（32x32）
+    - 地表に半分埋まった大きな黒っぽい岩。表面に銀白色の金属光沢が点在し、通常の岩と明確に区別がつく。ピッケルで砕いて欠片（隕鉄アイテム）を回収する。風化せず残った巨岩のイメージ。キラキラエフェクトを加えても良い。
+    - 参考画像: https://commons.wikimedia.org/wiki/Category:Hoba_meteorite#/media/File:Hoba_meteorite_(15062762703).jpg
+    - 参考: [Category:Hoba meteorite (Wikimedia Commons)](https://commons.wikimedia.org/wiki/Category:Hoba_meteorite) — 世界最大の隕鉄（60トン）が地表に半分埋まった状態の写真。上の画像もここから取得した。
 
 ---
 
@@ -348,6 +359,9 @@ pngフォーマットで、RGBA8888。
     - 石を木の柄に括り付けたシンプルなハンマー。柄は縦、石の頭部が横向き。紐で縛っている。
   - [ ] 074 割り刀（フロー）
     - L字型の鉄の刃物。横向きの幅広い刃と、直角に立ち上がった木の柄で構成。刃は鉄の暗い銀色、柄は明るい茶色。
+    - 参考画像: https://en.wikipedia.org/wiki/Froe#/media/File:Schindelmesser-1900.jpg
+    - 参考画像: https://en.wikipedia.org/wiki/Froe#/media/File:Froe.jpg - 使い方
+    - 参考: [Froe (Wikipedia)](https://en.wikipedia.org/wiki/Froe) — L字型の刃と柄の構造、使用方法の写真・図解
   - [ ] 075 木のトング
     - V字型に曲げた生木の火ばさみ。先端で物を挟む形。薄い茶色〜黄緑色（生木の色）。
 
@@ -360,7 +374,7 @@ pngフォーマットで、RGBA8888。
 横長のエンティティスプライトはそのままインベントリアイコンに流用できないため、別途16x16のアイコンを用意する。
 
 - [ ] 076 脱穀機アイコン（16x16）
-  - 054の脱穀機（32x16）を正面寄りの構図で16x16に収めたもの。硬木の歯の部分が目立つように描く。
+  - 054の脱穀機（32x16）を（正面寄りの構図で、もしくはそのままの構図で）16x16に収めたもの。硬木の歯の部分が目立つように描く。
 - [ ] 077 浸漬槽アイコン（16x16）
   - 056の浸漬槽（48x16）を短縮した構図。木製の水槽に水が張られているイメージ。青みがかった水面が見える。
 - [ ] 078 紡ぎ車アイコン（16x16）
@@ -376,6 +390,7 @@ pngフォーマットで、RGBA8888。
   - 石を円形に並べた焚き火台。炎はなく、灰と消えかけの薪が残っている状態。設置直後・燃焼完了後の姿。062との違いは炎の有無。
 - [ ] 082 炭焼き窯（稼働中）（16x16）
   - 粘土で覆われたドーム状の構造物。上部の穴から白い煙が立ち上っている。063との違いは煙の有無。
+  - 参考画像: https://en.wikipedia.org/wiki/Charcoal_pile#/media/File:SI_Netphen-Walpersdorf_Kohlenmeiler_01.jpg - 煙が出ている状態
 
 ### 素材のフィールドスプライト（追加分）
 
