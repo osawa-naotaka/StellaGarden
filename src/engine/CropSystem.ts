@@ -9,7 +9,7 @@ import {
 } from "./TerrainDefs";
 
 /** 作物の最終育成段階（potato_5）。これを超えてはならない。 */
-const MAX_GROWTH_STAGE = 3;
+const MAX_GROWTH_STAGE = 7;
 
 /**
  * VoxelMap 全体を走査して、芋エンティティが載っているボクセルの

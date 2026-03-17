@@ -150,14 +150,14 @@ export function createInteractionHandler(
                     if (inventory.addItem("flaxseed", harvestCount)) {
                         inventory.addItem("flax_stalk", harvestCount);
                         inventory.addItem("stem", harvestCount);
-                        voxelMap.set(TERRAIN_TYPES.dirt, surfacePos);
+                        voxelMap.set(TERRAIN_TYPES.disorderedSoil, surfacePos);
                         eventBroker.publish("crop_harvested", { pos: { x: packet.pos.x, z: packet.pos.z }, itemId: "flax", count: harvestCount });
                     }
                 } else if (getEntityTypeFromVoxel(voxel) === ENTITY_TYPES.potato && getCropGrowthStageFromVoxel(voxel) === 3) {
                     const harvestCount = 2 + Math.floor(Math.random() * 3); // 2〜4個
                     if (inventory.addItem("potato", harvestCount)) {
                         inventory.addItem("stem", harvestCount);
-                        voxelMap.set(TERRAIN_TYPES.dirt, surfacePos);
+                        voxelMap.set(TERRAIN_TYPES.soil, surfacePos);
                         eventBroker.publish("crop_harvested", { pos: { x: packet.pos.x, z: packet.pos.z }, itemId: "potato", count: harvestCount });
                     }
                 }

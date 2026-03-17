@@ -189,6 +189,8 @@ export function getTerrainSpriteNamesFromVoxel(voxel: number[], pos: Pos3D[], ho
         case TERRAIN_TYPES.wetSoil:
             return ["ss_sprite_049.png"];
             // return wetSoilSpriteName(pos, pos[4].y, horizonHeight, voxel);
+        case TERRAIN_TYPES.disorderedSoil:
+            return ["ss_sprite_051.png"];
         case TERRAIN_TYPES.grass:
             return grassSpritesName(pos, pos[4].y, horizonHeight);
         case TERRAIN_TYPES.dirt:
@@ -222,7 +224,7 @@ export function getEntitySpriteNameFromVoxel(voxel: number): EntitySpriteInfo[] 
         case ENTITY_TYPES.tree:
             const stage = getCropGrowthStageFromVoxel(voxel);
             const spriteNames = ["ss_sprite_008.png", "ss_sprite_038.png", "ss_sprite_039.png", "ss_sprite_040.png"];
-            if(stage === 3) {
+            if(stage >= 3) {
                 return [{ spriteName: "ss_sprite_040.png", anchor: ENTITY_ANCHORS[type]}, { spriteName: "ss_sprite_041.png", anchor: { x: 0, y: 0.0 }} ];
             } else {
                 return [{ spriteName: spriteNames[stage] ?? "ss_sprite_008.png", anchor: ENTITY_ANCHORS[type] }];
@@ -231,22 +233,34 @@ export function getEntitySpriteNameFromVoxel(voxel: number): EntitySpriteInfo[] 
         case ENTITY_TYPES.potato: {
             const stage = getCropGrowthStageFromVoxel(voxel);
             const spriteNames = ["ss_sprite_008.png", "ss_sprite_010.png", "ss_sprite_011.png", "ss_sprite_012.png"];
-            return [{ spriteName: spriteNames[stage] ?? "ss_sprite_008.png", anchor: ENTITY_ANCHORS[type] }];
+            return stage === 7 ? [{ spriteName: "ss_sprite_013.png", anchor: ENTITY_ANCHORS[type] }] :
+            stage >= 5 ? [{ spriteName: "ss_sprite_012.png", anchor: ENTITY_ANCHORS[type] }] :
+            stage >= 3 ? [{ spriteName: "ss_sprite_012.png", anchor: ENTITY_ANCHORS[type] }, { spriteName: "ss_sprite_060.png", anchor: ENTITY_ANCHORS[type] }] : 
+            [{ spriteName: spriteNames[stage] ?? "ss_sprite_008.png", anchor: ENTITY_ANCHORS[type] }];
         }
         case ENTITY_TYPES.soy: {
             const stage = getCropGrowthStageFromVoxel(voxel);
             const spriteNames = ["ss_sprite_008.png", "ss_sprite_018.png", "ss_sprite_019.png", "ss_sprite_020.png"];
-            return [{ spriteName: spriteNames[stage] ?? "ss_sprite_008.png", anchor: ENTITY_ANCHORS[type] }];
+            return stage === 7 ? [{ spriteName: "ss_sprite_061.png", anchor: ENTITY_ANCHORS[type] }] :
+            stage >= 5 ? [{ spriteName: "ss_sprite_020.png", anchor: ENTITY_ANCHORS[type] }] :
+            stage >= 3 ? [{ spriteName: "ss_sprite_020.png", anchor: ENTITY_ANCHORS[type] }, { spriteName: "ss_sprite_060.png", anchor: ENTITY_ANCHORS[type] }] : 
+            [{ spriteName: spriteNames[stage] ?? "ss_sprite_008.png", anchor: ENTITY_ANCHORS[type] }];
         }
         case ENTITY_TYPES.flax: {
             const stage = getCropGrowthStageFromVoxel(voxel);
             const spriteNames = ["ss_sprite_008.png", "ss_sprite_029.png", "ss_sprite_030.png", "ss_sprite_031.png"];
-            return [{ spriteName: spriteNames[stage] ?? "ss_sprite_008.png", anchor: ENTITY_ANCHORS[type] }];
+            return stage === 7 ? [{ spriteName: "ss_sprite_061.png", anchor: ENTITY_ANCHORS[type] }] :
+            stage >= 5 ? [{ spriteName: "ss_sprite_031.png", anchor: ENTITY_ANCHORS[type] }] :
+            stage >= 3 ? [{ spriteName: "ss_sprite_031.png", anchor: ENTITY_ANCHORS[type] }, { spriteName: "ss_sprite_060.png", anchor: ENTITY_ANCHORS[type] }] : 
+            [{ spriteName: spriteNames[stage] ?? "ss_sprite_008.png", anchor: ENTITY_ANCHORS[type] }];
         }
         case ENTITY_TYPES.sunflower: {
             const stage = getCropGrowthStageFromVoxel(voxel);
             const spriteNames = ["ss_sprite_008.png", "ss_sprite_033.png", "ss_sprite_034.png", "ss_sprite_035.png"];
-            return [{ spriteName: spriteNames[stage] ?? "ss_sprite_008.png", anchor: ENTITY_ANCHORS[type] }];
+            return stage === 7 ? [{ spriteName: "ss_sprite_061.png", anchor: { x: 0, y: 0 } }] :
+            stage >= 5 ? [{ spriteName: "ss_sprite_035.png", anchor: ENTITY_ANCHORS[type] }] :
+            stage >= 3 ? [{ spriteName: "ss_sprite_035.png", anchor: ENTITY_ANCHORS[type] }] : 
+            [{ spriteName: spriteNames[stage] ?? "ss_sprite_008.png", anchor: ENTITY_ANCHORS[type] }];
         }
         case ENTITY_TYPES.workbench:
             // 32x16 横長スプライト。anchor (0,0) でタイル左上に配置し、右に 16px はみ出す。
