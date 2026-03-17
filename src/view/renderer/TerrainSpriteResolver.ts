@@ -107,7 +107,7 @@ export function soilSpriteName(pos: Pos3D[], centerHight: number, horizonHeight:
     return [...base, resolveSoilOverlay(voxel, isSoil, "soil_normal")];
 }
 
-function dirtSpriteName(pos: Pos3D[], centerHight: number, horizonHeight: number, voxel: number[]): string[] {
+export function dirtSpriteName(pos: Pos3D[], centerHight: number, horizonHeight: number, voxel: number[]): string[] {
     const heights = new Set(pos.map((p) => p.y));
 
     let isEdge: boolean;
@@ -136,7 +136,7 @@ function dirtSpriteName(pos: Pos3D[], centerHight: number, horizonHeight: number
     return [...base, `dirt_grass_normal_${suffix}`];
 }
 
-function wetSoilSpriteName(pos: Pos3D[], centerHight: number, horizonHeight: number, voxel: number[]): string[] {
+export function wetSoilSpriteName(pos: Pos3D[], centerHight: number, horizonHeight: number, voxel: number[]): string[] {
     const base = soilSpriteName(pos, centerHight, horizonHeight, voxel);
     const isWetSoil = (v: number) => getTerrainTypeFromVoxel(v) === TERRAIN_TYPES.wetSoil;
     return [...base, resolveSoilOverlay(voxel, isWetSoil, "soil_wet")];
@@ -248,6 +248,12 @@ export function getEntitySpriteNameFromVoxel(voxel: number): EntitySpriteInfo[] 
             const spriteNames = ["ss_sprite_008.png", "ss_sprite_033.png", "ss_sprite_034.png", "ss_sprite_035.png"];
             return [{ spriteName: spriteNames[stage] ?? "ss_sprite_008.png", anchor: ENTITY_ANCHORS[type] }];
         }
+        case ENTITY_TYPES.workbench:
+            // 32x16 横長スプライト。anchor (0,0) でタイル左上に配置し、右に 16px はみ出す。
+            return [{ spriteName: "ss_sprite_004.png", anchor: { x: 0, y: 0 } }];
+        case ENTITY_TYPES.facility_part:
+            // 描画はアンカータイル（workbench）が担当するため、このタイルでは描画しない。
+            return [];
         default:
             throw new Error(`Unknown entity type: ${type}`);
     }

@@ -49,6 +49,10 @@ export interface ItemDef {
     readonly placeholderColor?: number;
     /** スタック上限数。ツール類は 1。 */
     readonly maxStack: number;
+    /** フィールドに配置可能かどうか。 */
+    readonly placeable?: boolean;
+    /** 配置時のタイルサイズ（w=横タイル数, h=縦タイル数）。placeable が true のときのみ有効。 */
+    readonly entitySize?: { readonly w: number; readonly h: number };
 }
 
 export const ITEM_DEFS: Record<ItemId, ItemDef> = {
@@ -63,7 +67,7 @@ export const ITEM_DEFS: Record<ItemId, ItemDef> = {
     soybeans: { id: "soybeans", spriteName: "ss_sprite_015.png", maxStack: 64 },
     flaxseed: { id: "flaxseed", spriteName: "ss_sprite_021.png", maxStack: 64 },
     dirt: { id: "dirt", spriteName: "ss_sprite_046.png", maxStack: 64 },
-    workbench: { id: "workbench", spriteName: "ss_sprite_003.png", maxStack: 1 },
+    workbench: { id: "workbench", spriteName: "ss_sprite_003.png", maxStack: 1, placeable: true, entitySize: { w: 2, h: 1 } },
     stem: { id: "stem", spriteName: "ss_sprite_005.png", maxStack: 64 },
     leaves: { id: "leaves", spriteName: "ss_sprite_006.png", maxStack: 64 },
     crop_residue: { id: "crop_residue", spriteName: "ss_sprite_007.png", maxStack: 64 },

@@ -1,5 +1,5 @@
 import { BitmapText, Container, type FederatedPointerEvent, Graphics, Rectangle, Sprite, Texture } from "pixi.js";
-import type { IInventoryWriter, ItemStack, SlotRef } from "../_boundary/interfaces";
+import type { IInventoryWriter, ItemId, ItemStack, SlotRef } from "../_boundary/interfaces";
 import { ITEM_DEFS } from "../engine/ItemDefs";
 
 const CELL_SIZE = 40;
@@ -81,10 +81,12 @@ function createSlotIcon(container: Container, cellSize: number): SlotIcon {
 
 /** Eキーで開閉できる 8×8 インベントリウィンドウ。
  *  画面中央に表示し、ウィンドウ下部にツールバースロットも表示する。
- *  スロット間のアイテム移動（左クリック全交換・右クリック1個移動）をサポートする。 */
+ *  スロット間のアイテム移動（左クリック全交換・右クリック1個移動）をサポートする。
+ *  placeable アイテムを右クリックすると onRequestPlacement コールバックを呼び、配置モードへ遷移する。 */
 export class InventoryView {
     private container: Container;
     private inventory: IInventoryWriter;
+    private onRequestPlacement: ((itemId: ItemId, sourceSlot: SlotRef) => void) | undefined;
 
     private invSlotContainers: Container[] = [];
     private tbSlotContainers: Container[] = [];
@@ -105,8 +107,12 @@ export class InventoryView {
     private onMouseMoveBound: (e: MouseEvent) => void;
     private onKeyDownBound: (e: KeyboardEvent) => void;
 
-    constructor(inventory: IInventoryWriter) {
+    constructor(
+        inventory: IInventoryWriter,
+        onRequestPlacement?: (itemId: ItemId, sourceSlot: SlotRef) => void,
+    ) {
         this.inventory = inventory;
+        this.onRequestPlacement = onRequestPlacement;
         this.container = new Container();
         this.container.visible = false;
 
@@ -253,6 +259,13 @@ export class InventoryView {
         if (!this.pickedUp) {
             const stack = this.inventory.getSlot(ref);
             if (!stack) return;
+
+            // 配置可能アイテムの場合は配置モードへ遷移する
+            const def = ITEM_DEFS[stack.itemId];
+            if (def.placeable && this.onRequestPlacement) {
+                this.onRequestPlacement(stack.itemId, ref);
+                return;
+            }
 
             const taken: ItemStack = { itemId: stack.itemId, count: 1 };
             if (stack.count === 1) {
