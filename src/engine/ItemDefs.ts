@@ -31,6 +31,14 @@ export type ItemId =
     | "compost"
     | "plant_ashes"
     | "oil_cake"
+    | "forge"
+    | "compost_bin"
+    | "threshing_machine"
+    | "screw_presses"
+    | "soaking_basket"
+    | "scutching_board"
+    | "spinning_wheel"
+    | "loom"
     ;
 
 export interface ItemDef {
@@ -75,4 +83,12 @@ export const ITEM_DEFS: Record<ItemId, ItemDef> = {
     compost: { id: "compost", spriteName: "ss_sprite_042.png", maxStack: 64 },
     plant_ashes: { id: "plant_ashes", spriteName: "ss_sprite_043.png", maxStack: 64 },
     oil_cake: { id: "oil_cake", spriteName: "ss_sprite_044.png", maxStack: 64 },
+    forge: { id: "forge", spriteName: "ss_sprite_052.png", maxStack: 1 },
+    compost_bin: { id: "compost_bin", spriteName: "ss_sprite_053_3.png", maxStack: 1 },
+    threshing_machine: { id: "threshing_machine", spriteName: "ss_sprite_054.png", maxStack: 1 },
+    screw_presses: { id: "screw_presses", spriteName: "ss_sprite_055.png", maxStack: 1 },
+    soaking_basket: { id: "soaking_basket", spriteName: "ss_sprite_056.png", maxStack: 1 },
+    scutching_board: { id: "scutching_board", spriteName: "ss_sprite_057.png", maxStack: 1 },
+    spinning_wheel: { id: "spinning_wheel", spriteName: "ss_sprite_058.png", maxStack: 1 },
+    loom: { id: "loom", spriteName: "ss_sprite_059.png", maxStack: 1 },
 };

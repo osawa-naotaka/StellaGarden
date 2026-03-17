@@ -38,6 +38,14 @@ const DEFAULT_INVENTORY_ITEMS: readonly (DefaultItem | null)[] = [
     { itemId: "compost", count: 64 },
     { itemId: "plant_ashes", count: 64 },
     { itemId: "oil_cake", count: 64 },
+    { itemId: "forge", count: 1 },
+    { itemId: "compost_bin", count: 1 },
+    { itemId: "threshing_machine", count: 1 },
+    { itemId: "screw_presses", count: 1 },
+    { itemId: "soaking_basket", count: 1 },
+    { itemId: "scutching_board", count: 1 },
+    { itemId: "spinning_wheel", count: 1 },
+    { itemId: "loom", count: 1 },
 ];
 
 /** プレイヤーのツールバーと 8×8 インベントリグリッドを管理する。 */
