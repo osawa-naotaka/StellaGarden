@@ -34,36 +34,97 @@ function calcId9FromVoxel(voxelIsSoil: number[]): number {
 /** 9近傍パターン → サフィックス。両端・角の情報が必要なケース。 */
 const TRANSITION_ID9: ReadonlyMap<number, string> = new Map([
     [calcId9FromHights([0, 0, 0, 0, 1, 1, 0, 1, 0]), "0_3_0"],
+    [calcId9FromHights([0, 0, 1, 0, 1, 1, 1, 1, 0]), "0_3_0"],
+    [calcId9FromHights([0, 0, 1, 0, 1, 1, 0, 1, 0]), "0_3_0"],
+    [calcId9FromHights([0, 0, 0, 0, 1, 1, 1, 1, 0]), "0_3_0"],
+    [calcId9FromHights([1, 0, 0, 0, 1, 1, 0, 1, 0]), "0_3_0"],
+    [calcId9FromHights([1, 0, 1, 0, 1, 1, 0, 1, 0]), "0_3_0"],
+    [calcId9FromHights([1, 0, 0, 0, 1, 1, 1, 1, 0]), "0_3_0"],
+    [calcId9FromHights([1, 0, 1, 0, 1, 1, 1, 1, 0]), "0_3_0"],
     [calcId9FromHights([0, 0, 0, 1, 1, 1, 0, 1, 0]), "0_3_1"],
+    [calcId9FromHights([1, 0, 0, 1, 1, 1, 0, 1, 0]), "0_3_1"],
+    [calcId9FromHights([0, 0, 1, 1, 1, 1, 0, 1, 0]), "0_3_1"],
+    [calcId9FromHights([1, 0, 1, 1, 1, 1, 0, 1, 0]), "0_3_1"],
     [calcId9FromHights([0, 0, 0, 1, 1, 0, 0, 1, 0]), "0_3_2"],
+    [calcId9FromHights([1, 0, 0, 1, 1, 0, 0, 1, 1]), "0_3_2"],
+    [calcId9FromHights([1, 0, 0, 1, 1, 0, 0, 1, 0]), "0_3_2"],
+    [calcId9FromHights([0, 0, 0, 1, 1, 0, 0, 1, 1]), "0_3_2"],
+    [calcId9FromHights([0, 0, 1, 1, 1, 0, 0, 1, 0]), "0_3_2"],
+    [calcId9FromHights([1, 0, 1, 1, 1, 0, 0, 1, 0]), "0_3_2"],
+    [calcId9FromHights([1, 0, 1, 1, 1, 0, 0, 1, 1]), "0_3_2"],
+    [calcId9FromHights([0, 0, 1, 1, 1, 0, 0, 1, 1]), "0_3_2"],
     [calcId9FromHights([0, 1, 0, 0, 1, 1, 0, 1, 0]), "0_3_3"],
+    [calcId9FromHights([1, 1, 0, 0, 1, 1, 0, 1, 0]), "0_3_3"],
+    [calcId9FromHights([0, 1, 0, 0, 1, 1, 1, 1, 0]), "0_3_3"],
+    [calcId9FromHights([1, 1, 0, 0, 1, 1, 1, 1, 0]), "0_3_3"],
     [calcId9FromHights([0, 1, 0, 1, 1, 1, 0, 1, 0]), "0_3_4"],
     [calcId9FromHights([0, 1, 0, 1, 1, 0, 0, 1, 0]), "0_3_5"],
+    [calcId9FromHights([0, 1, 0, 1, 1, 0, 0, 1, 1]), "0_3_5"],
+    [calcId9FromHights([0, 1, 1, 1, 1, 0, 0, 1, 0]), "0_3_5"],
     [calcId9FromHights([0, 1, 0, 0, 1, 1, 0, 0, 0]), "0_3_6"],
+    [calcId9FromHights([1, 1, 0, 0, 1, 1, 0, 0, 1]), "0_3_6"],
+    [calcId9FromHights([1, 1, 0, 0, 1, 1, 0, 0, 0]), "0_3_6"],
+    [calcId9FromHights([1, 1, 0, 0, 1, 1, 1, 0, 0]), "0_3_6"],
+    [calcId9FromHights([0, 1, 0, 0, 1, 1, 1, 0, 0]), "0_3_6"],
+    [calcId9FromHights([0, 1, 0, 0, 1, 1, 0, 0, 1]), "0_3_6"],
+    [calcId9FromHights([0, 1, 0, 0, 1, 1, 1, 0, 1]), "0_3_6"],
+    [calcId9FromHights([1, 1, 0, 0, 1, 1, 1, 0, 1]), "0_3_6"],
     [calcId9FromHights([0, 1, 0, 1, 1, 1, 0, 0, 0]), "0_3_7"],
+    [calcId9FromHights([0, 1, 0, 1, 1, 1, 1, 0, 0]), "0_3_7"],
+    [calcId9FromHights([0, 1, 0, 1, 1, 1, 0, 0, 1]), "0_3_7"],
+    [calcId9FromHights([0, 1, 0, 1, 1, 1, 1, 0, 1]), "0_3_7"],
+    [calcId9FromHights([0, 1, 1, 1, 1, 0, 0, 0, 0]), "0_3_8"],
+    [calcId9FromHights([0, 1, 0, 1, 1, 0, 1, 0, 0]), "0_3_8"],
     [calcId9FromHights([0, 1, 0, 1, 1, 0, 0, 0, 0]), "0_3_8"],
+    [calcId9FromHights([0, 1, 1, 1, 1, 0, 1, 0, 0]), "0_3_8"],
+    [calcId9FromHights([0, 1, 1, 1, 1, 0, 0, 0, 1]), "0_3_8"],
+    [calcId9FromHights([0, 1, 0, 1, 1, 0, 0, 0, 1]), "0_3_8"],
+    [calcId9FromHights([0, 1, 0, 1, 1, 0, 1, 0, 1]), "0_3_8"],
+    [calcId9FromHights([0, 1, 1, 1, 1, 0, 1, 0, 1]), "0_3_8"],
     [calcId9FromHights([1, 1, 0, 1, 1, 1, 0, 1, 0]), "0_4_0"],
     [calcId9FromHights([0, 0, 0, 1, 1, 1, 0, 1, 1]), "0_4_1"],
+    [calcId9FromHights([0, 0, 1, 1, 1, 1, 0, 1, 1]), "0_4_1"],
+    [calcId9FromHights([1, 0, 0, 1, 1, 1, 0, 1, 1]), "0_4_1"],
+    [calcId9FromHights([1, 0, 1, 1, 1, 1, 0, 1, 1]), "0_4_1"],
     [calcId9FromHights([0, 0, 0, 1, 1, 1, 1, 1, 0]), "0_4_2"],
+    [calcId9FromHights([0, 0, 1, 1, 1, 1, 1, 1, 0]), "0_4_2"],
+    [calcId9FromHights([1, 0, 0, 1, 1, 1, 1, 1, 0]), "0_4_2"],
+    [calcId9FromHights([1, 0, 1, 1, 1, 1, 1, 1, 0]), "0_4_2"],
     [calcId9FromHights([0, 1, 1, 1, 1, 1, 0, 1, 0]), "0_4_3"],
     [calcId9FromHights([0, 1, 0, 0, 1, 1, 0, 1, 1]), "0_4_4"],
+    [calcId9FromHights([0, 1, 0, 0, 1, 1, 1, 1, 1]), "0_4_4"],
+    [calcId9FromHights([1, 1, 0, 0, 1, 1, 0, 1, 1]), "0_4_4"],
+    [calcId9FromHights([1, 1, 0, 0, 1, 1, 1, 1, 1]), "0_4_4"],
     [calcId9FromHights([0, 1, 1, 1, 1, 1, 1, 1, 1]), "0_4_5"],
     [calcId9FromHights([1, 1, 0, 1, 1, 1, 1, 1, 1]), "0_4_6"],
     [calcId9FromHights([0, 1, 0, 1, 1, 0, 1, 1, 0]), "0_4_7"],
-    // ★ 2 パターンを同一サフィックスに統合（soil のみ片方が欠損していたバグを修正）
+    [calcId9FromHights([0, 1, 1, 1, 1, 0, 1, 1, 1]), "0_4_7"],
+    [calcId9FromHights([0, 1, 1, 1, 1, 0, 1, 1, 0]), "0_4_7"],
+    [calcId9FromHights([0, 1, 0, 1, 1, 0, 1, 1, 1]), "0_4_7"],
     [calcId9FromHights([0, 1, 1, 0, 1, 1, 0, 1, 0]), "0_4_8"],
     [calcId9FromHights([1, 1, 1, 0, 1, 1, 0, 1, 0]), "0_4_8"],
+    [calcId9FromHights([0, 1, 1, 0, 1, 1, 1, 1, 0]), "0_4_8"],
+    [calcId9FromHights([1, 1, 1, 0, 1, 1, 1, 1, 0]), "0_4_8"],
     [calcId9FromHights([1, 1, 1, 1, 1, 1, 0, 1, 1]), "0_4_9"],
     [calcId9FromHights([1, 1, 1, 1, 1, 1, 1, 1, 0]), "0_4_10"],
     [calcId9FromHights([1, 1, 0, 1, 1, 0, 0, 1, 0]), "0_4_11"],
+    [calcId9FromHights([1, 1, 0, 1, 1, 0, 0, 1, 1]), "0_4_11"],
+    [calcId9FromHights([1, 1, 0, 1, 1, 0, 0, 1, 0]), "0_4_11"],
+    [calcId9FromHights([1, 1, 1, 1, 1, 0, 0, 1, 1]), "0_4_11"],
+    [calcId9FromHights([1, 1, 1, 1, 1, 0, 0, 1, 0]), "0_4_11"],
     [calcId9FromHights([0, 1, 0, 1, 1, 1, 1, 1, 0]), "0_4_12"],
     [calcId9FromHights([0, 1, 1, 1, 1, 1, 0, 0, 0]), "0_4_13"],
+    [calcId9FromHights([0, 1, 1, 1, 1, 1, 0, 0, 1]), "0_4_13"],
+    [calcId9FromHights([0, 1, 1, 1, 1, 1, 1, 0, 0]), "0_4_13"],
+    [calcId9FromHights([0, 1, 1, 1, 1, 1, 1, 0, 1]), "0_4_13"],
     [calcId9FromHights([1, 1, 0, 1, 1, 1, 0, 0, 0]), "0_4_14"],
+    [calcId9FromHights([1, 1, 0, 1, 1, 1, 0, 0, 1]), "0_4_14"],
+    [calcId9FromHights([1, 1, 0, 1, 1, 1, 1, 0, 0]), "0_4_14"],
+    [calcId9FromHights([1, 1, 0, 1, 1, 1, 1, 0, 1]), "0_4_14"],
     [calcId9FromHights([0, 1, 0, 1, 1, 1, 0, 1, 1]), "0_4_15"],
     [calcId9FromHights([0, 1, 0, 1, 1, 1, 1, 1, 1]), "0_5_1"],
     [calcId9FromHights([0, 1, 1, 1, 1, 1, 1, 1, 0]), "0_5_5"],
     [calcId9FromHights([1, 1, 0, 1, 1, 1, 1, 1, 0]), "0_5_7"],
-    // ★ soil では "0_5_9" になっていたが草を正として "0_5_8" に統一（バグ修正）
     [calcId9FromHights([0, 1, 1, 1, 1, 1, 0, 1, 1]), "0_5_8"],
     [calcId9FromHights([1, 1, 0, 1, 1, 1, 0, 1, 1]), "0_5_10"],
     [calcId9FromHights([1, 1, 1, 1, 1, 1, 0, 1, 0]), "0_5_14"],
@@ -185,23 +246,23 @@ export function getTerrainSpriteNamesFromVoxel(voxel: number[], pos: Pos3D[], ho
             return ["water_grass_normal_0_5_9"];
         case TERRAIN_TYPES.soil: {
             const sprites = ["ss_sprite_048.png"];
+            // const sprites = soilSpriteName(pos, pos[4].y, horizonHeight, voxel);
             if (getFertilizedFromVoxel(voxel[4])) sprites.push("ss_sprite_050.png");
             return sprites;
-            // return soilSpriteName(pos, pos[4].y, horizonHeight, voxel);
         }
         case TERRAIN_TYPES.wetSoil: {
             const sprites = ["ss_sprite_049.png"];
+            // const sprites = wetSoilSpriteName(pos, pos[4].y, horizonHeight, voxel);
             if (getFertilizedFromVoxel(voxel[4])) sprites.push("ss_sprite_050.png");
             return sprites;
-            // return wetSoilSpriteName(pos, pos[4].y, horizonHeight, voxel);
         }
         case TERRAIN_TYPES.disorderedSoil:
             return ["ss_sprite_051.png"];
         case TERRAIN_TYPES.grass:
             return grassSpritesName(pos, pos[4].y, horizonHeight);
         case TERRAIN_TYPES.dirt:
-            return ["ss_sprite_047.png"];
             // return dirtSpriteName(pos, pos[4].y, horizonHeight, voxel);
+            return ["ss_sprite_047.png"];
         default:
             throw new Error(`Unknown voxel type: ${type}`);
     }
@@ -232,6 +293,8 @@ export function getEntitySpriteNameFromVoxel(voxel: number): EntitySpriteInfo[] 
             const spriteNames = ["ss_sprite_008.png", "ss_sprite_038.png", "ss_sprite_039.png", "ss_sprite_040.png"];
             if(stage >= 3) {
                 return [{ spriteName: "ss_sprite_040.png", anchor: ENTITY_ANCHORS[type]}, { spriteName: "ss_sprite_041.png", anchor: { x: 0, y: 0.0 }} ];
+            } else if (stage === 0) {
+                return [{ spriteName: "ss_sprite_008.png", anchor: { x: 0, y: 0 } }];
             } else {
                 return [{ spriteName: spriteNames[stage] ?? "ss_sprite_008.png", anchor: ENTITY_ANCHORS[type] }];
             }
@@ -242,30 +305,34 @@ export function getEntitySpriteNameFromVoxel(voxel: number): EntitySpriteInfo[] 
             return stage === 7 ? [{ spriteName: "ss_sprite_013.png", anchor: ENTITY_ANCHORS[type] }] :
             stage >= 5 ? [{ spriteName: "ss_sprite_012.png", anchor: ENTITY_ANCHORS[type] }] :
             stage >= 3 ? [{ spriteName: "ss_sprite_012.png", anchor: ENTITY_ANCHORS[type] }, { spriteName: "ss_sprite_060.png", anchor: ENTITY_ANCHORS[type] }] : 
+            stage === 0 ? [{ spriteName: "ss_sprite_008.png", anchor: { x: 0, y: 0 } }] :
             [{ spriteName: spriteNames[stage] ?? "ss_sprite_008.png", anchor: ENTITY_ANCHORS[type] }];
         }
         case ENTITY_TYPES.soy: {
             const stage = getCropGrowthStageFromVoxel(voxel);
             const spriteNames = ["ss_sprite_008.png", "ss_sprite_018.png", "ss_sprite_019.png", "ss_sprite_020.png"];
-            return stage === 7 ? [{ spriteName: "ss_sprite_061.png", anchor: { x: 0, y: 0 } }] :
+            return stage === 7 ? [{ spriteName: "ss_sprite_061.png", anchor: ENTITY_ANCHORS[type] }] :
             stage >= 5 ? [{ spriteName: "ss_sprite_020.png", anchor: ENTITY_ANCHORS[type] }] :
             stage >= 3 ? [{ spriteName: "ss_sprite_020.png", anchor: ENTITY_ANCHORS[type] }, { spriteName: "ss_sprite_060.png", anchor: ENTITY_ANCHORS[type] }] : 
+            stage === 0 ? [{ spriteName: "ss_sprite_008.png", anchor: { x: 0, y: 0 } }] :
             [{ spriteName: spriteNames[stage] ?? "ss_sprite_008.png", anchor: ENTITY_ANCHORS[type] }];
         }
         case ENTITY_TYPES.flax: {
             const stage = getCropGrowthStageFromVoxel(voxel);
             const spriteNames = ["ss_sprite_008.png", "ss_sprite_029.png", "ss_sprite_030.png", "ss_sprite_031.png"];
-            return stage === 7 ? [{ spriteName: "ss_sprite_061.png", anchor: { x: 0, y: 0 } }] :
+            return stage === 7 ? [{ spriteName: "ss_sprite_061.png", anchor: ENTITY_ANCHORS[type] }] :
             stage >= 5 ? [{ spriteName: "ss_sprite_031.png", anchor: ENTITY_ANCHORS[type] }] :
             stage >= 3 ? [{ spriteName: "ss_sprite_031.png", anchor: ENTITY_ANCHORS[type] }, { spriteName: "ss_sprite_060.png", anchor: ENTITY_ANCHORS[type] }] : 
+            stage === 0 ? [{ spriteName: "ss_sprite_008.png", anchor: { x: 0, y: 0 } }] :
             [{ spriteName: spriteNames[stage] ?? "ss_sprite_008.png", anchor: ENTITY_ANCHORS[type] }];
         }
         case ENTITY_TYPES.sunflower: {
             const stage = getCropGrowthStageFromVoxel(voxel);
             const spriteNames = ["ss_sprite_008.png", "ss_sprite_033.png", "ss_sprite_034.png", "ss_sprite_035.png"];
-            return stage === 7 ? [{ spriteName: "ss_sprite_061.png", anchor: { x: 0, y: 0 } }] :
+            return stage === 7 ? [{ spriteName: "ss_sprite_061.png", anchor: ENTITY_ANCHORS[type] }] :
             stage >= 5 ? [{ spriteName: "ss_sprite_035.png", anchor: ENTITY_ANCHORS[type] }] :
             stage >= 3 ? [{ spriteName: "ss_sprite_035.png", anchor: ENTITY_ANCHORS[type] }] : 
+            stage === 0 ? [{ spriteName: "ss_sprite_008.png", anchor: { x: 0, y: 0 } }] :
             [{ spriteName: spriteNames[stage] ?? "ss_sprite_008.png", anchor: ENTITY_ANCHORS[type] }];
         }
         case ENTITY_TYPES.workbench:

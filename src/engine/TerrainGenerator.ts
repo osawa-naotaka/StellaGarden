@@ -25,6 +25,36 @@ export function generateTerrain(opt: GenerateTerrainOptions): VoxelMap {
     return map;
 }
 
+export function generateTestTerrain(opt: GenerateTerrainOptions): VoxelMap {
+    const hm = new Int8Array(opt.width * opt.depth).fill(opt.horizontalHeight);
+
+    let bin = 0;
+    for (let h = 0; h < 16; h++) {
+        for (let w = 0; w < 16; w++) {
+            const base = h * 4 * opt.width + w * 4;
+
+            // center
+            hm[base + 1 * opt.width + 1] = opt.horizontalHeight + 1;
+
+            if (bin & 1) hm[base + 0 * opt.width + 0] = opt.horizontalHeight + 1;
+            if (bin & 2) hm[base + 0 * opt.width + 1] = opt.horizontalHeight + 1;
+            if (bin & 4) hm[base + 0 * opt.width + 2] = opt.horizontalHeight + 1;
+            if (bin & 8) hm[base + 1 * opt.width + 0] = opt.horizontalHeight + 1;
+            if (bin & 16) hm[base + 1 * opt.width + 2] = opt.horizontalHeight + 1;
+            if (bin & 32) hm[base + 2 * opt.width + 0] = opt.horizontalHeight + 1;
+            if (bin & 64) hm[base + 2 * opt.width + 1] = opt.horizontalHeight + 1;
+            if (bin & 128) hm[base + 2 * opt.width + 2] = opt.horizontalHeight + 1;
+
+
+            bin++;
+        }
+    }
+
+
+    const map = createVoxelMap(hm, opt);
+    return map;
+}
+
 function elodeRiverside(hm: Int8Array, rivers: River[], opt: GenerateTerrainOptions): Int8Array {
     const SLOPE_INTERVAL = 2; // Nタイルごとに高さ+1（大きいほど緩やかな傾斜）
 
