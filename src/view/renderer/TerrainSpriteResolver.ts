@@ -247,7 +247,7 @@ export function getEntitySpriteNameFromVoxel(voxel: number): EntitySpriteInfo[] 
         case ENTITY_TYPES.soy: {
             const stage = getCropGrowthStageFromVoxel(voxel);
             const spriteNames = ["ss_sprite_008.png", "ss_sprite_018.png", "ss_sprite_019.png", "ss_sprite_020.png"];
-            return stage === 7 ? [{ spriteName: "ss_sprite_061.png", anchor: ENTITY_ANCHORS[type] }] :
+            return stage === 7 ? [{ spriteName: "ss_sprite_061.png", anchor: { x: 0, y: 0 } }] :
             stage >= 5 ? [{ spriteName: "ss_sprite_020.png", anchor: ENTITY_ANCHORS[type] }] :
             stage >= 3 ? [{ spriteName: "ss_sprite_020.png", anchor: ENTITY_ANCHORS[type] }, { spriteName: "ss_sprite_060.png", anchor: ENTITY_ANCHORS[type] }] : 
             [{ spriteName: spriteNames[stage] ?? "ss_sprite_008.png", anchor: ENTITY_ANCHORS[type] }];
@@ -255,7 +255,7 @@ export function getEntitySpriteNameFromVoxel(voxel: number): EntitySpriteInfo[] 
         case ENTITY_TYPES.flax: {
             const stage = getCropGrowthStageFromVoxel(voxel);
             const spriteNames = ["ss_sprite_008.png", "ss_sprite_029.png", "ss_sprite_030.png", "ss_sprite_031.png"];
-            return stage === 7 ? [{ spriteName: "ss_sprite_061.png", anchor: ENTITY_ANCHORS[type] }] :
+            return stage === 7 ? [{ spriteName: "ss_sprite_061.png", anchor: { x: 0, y: 0 } }] :
             stage >= 5 ? [{ spriteName: "ss_sprite_031.png", anchor: ENTITY_ANCHORS[type] }] :
             stage >= 3 ? [{ spriteName: "ss_sprite_031.png", anchor: ENTITY_ANCHORS[type] }, { spriteName: "ss_sprite_060.png", anchor: ENTITY_ANCHORS[type] }] : 
             [{ spriteName: spriteNames[stage] ?? "ss_sprite_008.png", anchor: ENTITY_ANCHORS[type] }];

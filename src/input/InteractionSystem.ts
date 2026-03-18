@@ -145,7 +145,7 @@ export function createInteractionHandler(
                             onTerrainModified?.();
                         }
                     }
-                } else if (getEntityTypeFromVoxel(voxel) === ENTITY_TYPES.flax && getCropGrowthStageFromVoxel(voxel) === 3) {
+                } else if (getEntityTypeFromVoxel(voxel) === ENTITY_TYPES.flax && getCropGrowthStageFromVoxel(voxel) >= 3 && getCropGrowthStageFromVoxel(voxel) < 7) {
                     const harvestCount = 2 + Math.floor(Math.random() * 3); // 2〜4個
                     if (inventory.addItem("flaxseed", harvestCount)) {
                         inventory.addItem("flax_stalk", harvestCount);
@@ -153,7 +153,7 @@ export function createInteractionHandler(
                         voxelMap.set(TERRAIN_TYPES.disorderedSoil, surfacePos);
                         eventBroker.publish("crop_harvested", { pos: { x: packet.pos.x, z: packet.pos.z }, itemId: "flax", count: harvestCount });
                     }
-                } else if (getEntityTypeFromVoxel(voxel) === ENTITY_TYPES.potato && getCropGrowthStageFromVoxel(voxel) === 3) {
+                } else if (getEntityTypeFromVoxel(voxel) === ENTITY_TYPES.potato && getCropGrowthStageFromVoxel(voxel) >= 3 && getCropGrowthStageFromVoxel(voxel) < 7) {
                     const harvestCount = 2 + Math.floor(Math.random() * 3); // 2〜4個
                     if (inventory.addItem("potato", harvestCount)) {
                         inventory.addItem("stem", harvestCount);
@@ -188,14 +188,14 @@ export function createInteractionHandler(
                 break;
             }
             case "sickle": {
-                if (getEntityTypeFromVoxel(voxel) === ENTITY_TYPES.soy && getCropGrowthStageFromVoxel(voxel) === 3) {
+                if (getEntityTypeFromVoxel(voxel) === ENTITY_TYPES.soy && getCropGrowthStageFromVoxel(voxel) >= 3 && getCropGrowthStageFromVoxel(voxel) < 7) {
                     const harvestCount = 2 + Math.floor(Math.random() * 3); // 2〜4個
                     if (inventory.addItem("soybeans", harvestCount)) {
                         inventory.addItem("stem", harvestCount);
                         voxelMap.set(TERRAIN_TYPES.dirt, surfacePos);
                         eventBroker.publish("crop_harvested", { pos: { x: packet.pos.x, z: packet.pos.z }, itemId: "soy", count: harvestCount });
                     }
-                } else if (getEntityTypeFromVoxel(voxel) === ENTITY_TYPES.sunflower && getCropGrowthStageFromVoxel(voxel) === 3) {
+                } else if (getEntityTypeFromVoxel(voxel) === ENTITY_TYPES.sunflower && getCropGrowthStageFromVoxel(voxel) >= 3 && getCropGrowthStageFromVoxel(voxel) < 7) {
                     const harvestCount = 2 + Math.floor(Math.random() * 3); // 2〜4個
                     if (inventory.addItem("sunflower_seed", harvestCount)) {
                         inventory.addItem("stem", harvestCount);
