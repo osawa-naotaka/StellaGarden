@@ -3,8 +3,10 @@ import {
     ENTITY_TYPES,
     getCropGrowthStageFromVoxel,
     getEntityTypeFromVoxel,
+    getFertilizedFromVoxel,
     getTerrainTypeFromVoxel,
     setCropGrowthStageInVoxel,
+    setFertilizedInVoxel,
     TERRAIN_TYPES,
 } from "./TerrainDefs";
 
@@ -35,6 +37,25 @@ export function dryWetSoil(voxelMap: IVoxelWriter): void {
 
             // 地形タイプのみ soil に変更（エンティティ・growthStage は保持）
             voxelMap.set((voxel & ~0xff) | TERRAIN_TYPES.soil, pos);
+        }
+    }
+}
+
+/**
+ * VoxelMap 全体を走査して、施肥フラグが立っているボクセルのフラグをクリアする。
+ *
+ * - ゲーム内1日が経過するたびに呼び出す（day_changed イベントを受けて App.tsx が呼ぶ）
+ * - 地表層のみを走査する
+ */
+export function clearFertilized(voxelMap: IVoxelWriter): void {
+    for (let x = 0; x < voxelMap.width; x++) {
+        for (let z = 0; z < voxelMap.depth; z++) {
+            const pos = voxelMap.getGroundSurfacePosition({ x, y: 0, z });
+            const voxel = voxelMap.get(pos);
+
+            if (!getFertilizedFromVoxel(voxel)) continue;
+
+            voxelMap.set(setFertilizedInVoxel(voxel, false), pos);
         }
     }
 }

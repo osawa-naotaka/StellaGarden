@@ -1,6 +1,6 @@
 import type { GameEventMap } from "../_boundary/events";
 import type { IInventoryWriter, IVoxelWriter } from "../_boundary/interfaces";
-import { ENTITY_TYPES, getCropGrowthStageFromVoxel, getEntityTypeFromVoxel, getTerrainTypeFromVoxel, TERRAIN_TYPES } from "../engine/TerrainDefs";
+import { ENTITY_TYPES, getCropGrowthStageFromVoxel, getEntityTypeFromVoxel, getFertilizedFromVoxel, getTerrainTypeFromVoxel, setFertilizedInVoxel, TERRAIN_TYPES } from "../engine/TerrainDefs";
 import { findFacilityAnchor, type ItemDef } from "../engine/ItemDefs";
 import { floodFillWater } from "../engine/WaterSystem";
 import type { EventBroker } from "../lib/Event";
@@ -282,6 +282,19 @@ export function createInteractionHandler(
                     // 地形タイプ（soil or wetSoil）を保持してエンティティを追加
                     voxelMap.set(nutsTerrainType | (ENTITY_TYPES.tree << 8), surfacePos);
                     eventBroker.publish("crop_planted", { pos: { x: packet.pos.x, z: packet.pos.z }, cropType: "nuts" });
+                }
+                break;
+            }
+            case "compost":
+            case "plant_ashes":
+            case "oil_cake": {
+                const fertTerrainType = getTerrainTypeFromVoxel(voxel);
+                if (
+                    (fertTerrainType === TERRAIN_TYPES.soil || fertTerrainType === TERRAIN_TYPES.wetSoil) &&
+                    !getFertilizedFromVoxel(voxel) &&
+                    inventory.consumeSelectedItem(1)
+                ) {
+                    voxelMap.set(setFertilizedInVoxel(voxel, true), surfacePos);
                 }
                 break;
             }

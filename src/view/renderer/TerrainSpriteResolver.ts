@@ -1,4 +1,4 @@
-import { ENTITY_TYPES, getCropGrowthStageFromVoxel, getEntityTypeFromVoxel, getTerrainTypeFromVoxel, TERRAIN_TYPES } from "../../engine/TerrainDefs";
+import { ENTITY_TYPES, getCropGrowthStageFromVoxel, getEntityTypeFromVoxel, getFertilizedFromVoxel, getTerrainTypeFromVoxel, TERRAIN_TYPES } from "../../engine/TerrainDefs";
 import type { Pos3D } from "../../lib/VoxelMap";
 
 // -----------------------------------------------------------------------------
@@ -183,12 +183,18 @@ export function getTerrainSpriteNamesFromVoxel(voxel: number[], pos: Pos3D[], ho
         case TERRAIN_TYPES.water:
         case TERRAIN_TYPES.waterSource:
             return ["water_grass_normal_0_5_9"];
-        case TERRAIN_TYPES.soil:
-            return ["ss_sprite_048.png"];
+        case TERRAIN_TYPES.soil: {
+            const sprites = ["ss_sprite_048.png"];
+            if (getFertilizedFromVoxel(voxel[4])) sprites.push("ss_sprite_050.png");
+            return sprites;
             // return soilSpriteName(pos, pos[4].y, horizonHeight, voxel);
-        case TERRAIN_TYPES.wetSoil:
-            return ["ss_sprite_049.png"];
+        }
+        case TERRAIN_TYPES.wetSoil: {
+            const sprites = ["ss_sprite_049.png"];
+            if (getFertilizedFromVoxel(voxel[4])) sprites.push("ss_sprite_050.png");
+            return sprites;
             // return wetSoilSpriteName(pos, pos[4].y, horizonHeight, voxel);
+        }
         case TERRAIN_TYPES.disorderedSoil:
             return ["ss_sprite_051.png"];
         case TERRAIN_TYPES.grass:

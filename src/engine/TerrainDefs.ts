@@ -55,3 +55,22 @@ export function getCropGrowthStageFromVoxel(voxel: number): number {
 export function setCropGrowthStageInVoxel(voxel: number, stage: number): number {
     return (voxel & ~(0x7 << 16)) | ((stage & 0x7) << 16);
 }
+
+/**
+ * ボクセル値から施肥フラグを取り出す（bit 19）。
+ * true = 施肥済み、false = 未施肥。
+ */
+export function getFertilizedFromVoxel(voxel: number): boolean {
+    return ((voxel >> 19) & 0x1) === 1;
+}
+
+/**
+ * ボクセル値に施肥フラグを書き込んだ新しい値を返す（bit 19）。
+ * 元の値は変更しない（純粋関数）。
+ */
+export function setFertilizedInVoxel(voxel: number, fertilized: boolean): number {
+    if (fertilized) {
+        return voxel | (1 << 19);
+    }
+    return voxel & ~(1 << 19);
+}

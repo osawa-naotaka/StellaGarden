@@ -3,7 +3,7 @@ import { useEffect, useRef } from "react";
 import { PIXEL_PER_TILE, TILE_PER_CHUNK } from "./_boundary/constants";
 import type { GameEventMap } from "./_boundary/events";
 import type { ItemId, SlotRef } from "./_boundary/interfaces";
-import { advanceDayAllCrops, dryWetSoil } from "./engine/CropSystem";
+import { advanceDayAllCrops, clearFertilized, dryWetSoil } from "./engine/CropSystem";
 import { GameTime } from "./engine/GameTime";
 import { PlayerState } from "./engine/PlayerState";
 import { ITEM_DEFS } from "./engine/ItemDefs";
@@ -167,6 +167,7 @@ function useGameEngine(worldSize: Pos2D, chunkPerViewport: Pos2D) {
             disposers.push(
                 eventBroker.subscribe("day_changed", () => {
                     dryWetSoil(voxelMap);
+                    clearFertilized(voxelMap);
                     advanceDayAllCrops(voxelMap);
                 }),
             );
