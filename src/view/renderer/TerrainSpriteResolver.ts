@@ -1,4 +1,11 @@
-import { ENTITY_TYPES, getCropGrowthStageFromVoxel, getEntityTypeFromVoxel, getFertilizedFromVoxel, getTerrainTypeFromVoxel, TERRAIN_TYPES } from "../../engine/TerrainDefs";
+import {
+    ENTITY_TYPES,
+    getCropGrowthStageFromVoxel,
+    getEntityTypeFromVoxel,
+    getFertilizedFromVoxel,
+    getTerrainTypeFromVoxel,
+    TERRAIN_TYPES,
+} from "../../engine/TerrainDefs";
 import type { Pos3D } from "../../lib/VoxelMap";
 
 // -----------------------------------------------------------------------------
@@ -271,11 +278,12 @@ export function getTerrainSpriteNamesFromVoxel(voxel: number[], pos: Pos3D[], ho
 export type EntitySpriteInfo = {
     spriteName: string;
     anchor: { x: number; y: number };
+    offset?: { x: number; y: number };
 };
 
 // エンティティタイプごとの暫定anchor値。ユーザーが調整する想定。
 const ENTITY_ANCHORS: Record<number, { x: number; y: number }> = {
-    [ENTITY_TYPES.tree]: { x: 0.25, y: 0.75 }, // birch_tree_sapling: 底部を地面に合わせる
+    [ENTITY_TYPES.tree]: { x: 0.25, y: 0.5 }, // birch_tree_sapling: 底部を地面に合わせる
     [ENTITY_TYPES.potato]: { x: 0, y: 0.55 }, // potato_1: 現状値を維持
     [ENTITY_TYPES.soy]: { x: 0, y: 0.55 },
     [ENTITY_TYPES.flax]: { x: 0, y: 0.55 },
@@ -288,71 +296,224 @@ export function getEntitySpriteNameFromVoxel(voxel: number): EntitySpriteInfo[] 
     switch (type) {
         case ENTITY_TYPES.none:
             return [];
-        case ENTITY_TYPES.tree:
+        case ENTITY_TYPES.tree: {
             const stage = getCropGrowthStageFromVoxel(voxel);
             const spriteNames = ["ss_sprite_008.png", "ss_sprite_038.png", "ss_sprite_039.png", "ss_sprite_040.png"];
-            if(stage >= 3) {
-                return [{ spriteName: "ss_sprite_040.png", anchor: ENTITY_ANCHORS[type]}, { spriteName: "ss_sprite_041.png", anchor: { x: 0, y: 0.0 }} ];
+            if (stage >= 3) {
+                return [
+                    {
+                        spriteName: "ss_sprite_040.png",
+                        anchor: ENTITY_ANCHORS[type],
+                    },
+                    {
+                        spriteName: "ss_sprite_041.png",
+                        anchor: { x: 0, y: 0 },
+                        offset: { x: 0, y: 8 },
+                    },
+                ];
             } else if (stage === 0) {
                 return [{ spriteName: "ss_sprite_008.png", anchor: { x: 0, y: 0 } }];
+            } else if (stage === 1) {
+                return [{ spriteName: "ss_sprite_038.png", anchor: { x: 0, y: 0 } }];
+            } else if (stage === 2) {
+                return [
+                    {
+                        spriteName: "ss_sprite_039.png",
+                        anchor: { x: 0, y: 0.5 },
+                    },
+                ];
             } else {
-                return [{ spriteName: spriteNames[stage] ?? "ss_sprite_008.png", anchor: ENTITY_ANCHORS[type] }];
+                return [
+                    {
+                        spriteName: spriteNames[stage] ?? "ss_sprite_008.png",
+                        anchor: ENTITY_ANCHORS[type],
+                    },
+                ];
             }
-            // const spriteNames = ["ss_sprite_008.png", "birch_tree_bud", "birch_tree_sapling", "birch_tree"];
+        }
+        // const spriteNames = ["ss_sprite_008.png", "birch_tree_bud", "birch_tree_sapling", "birch_tree"];
         case ENTITY_TYPES.potato: {
             const stage = getCropGrowthStageFromVoxel(voxel);
             const spriteNames = ["ss_sprite_008.png", "ss_sprite_010.png", "ss_sprite_011.png", "ss_sprite_012.png"];
-            return stage === 7 ? [{ spriteName: "ss_sprite_013.png", anchor: ENTITY_ANCHORS[type] }] :
-            stage >= 5 ? [{ spriteName: "ss_sprite_012.png", anchor: ENTITY_ANCHORS[type] }] :
-            stage >= 3 ? [{ spriteName: "ss_sprite_012.png", anchor: ENTITY_ANCHORS[type] }, { spriteName: "ss_sprite_060.png", anchor: ENTITY_ANCHORS[type] }] : 
-            stage === 0 ? [{ spriteName: "ss_sprite_008.png", anchor: { x: 0, y: 0 } }] :
-            [{ spriteName: spriteNames[stage] ?? "ss_sprite_008.png", anchor: ENTITY_ANCHORS[type] }];
+            return stage === 7
+                ? [
+                      {
+                          spriteName: "ss_sprite_013.png",
+                          anchor: ENTITY_ANCHORS[type],
+                      },
+                  ]
+                : stage >= 5
+                  ? [
+                        {
+                            spriteName: "ss_sprite_012.png",
+                            anchor: ENTITY_ANCHORS[type],
+                        },
+                    ]
+                  : stage >= 3
+                    ? [
+                          {
+                              spriteName: "ss_sprite_012.png",
+                              anchor: ENTITY_ANCHORS[type],
+                          },
+                          {
+                              spriteName: "ss_sprite_060.png",
+                              anchor: ENTITY_ANCHORS[type],
+                          },
+                      ]
+                    : stage === 0
+                      ? [
+                            {
+                                spriteName: "ss_sprite_008.png",
+                                anchor: { x: 0, y: 0 },
+                            },
+                        ]
+                      : [
+                            {
+                                spriteName: spriteNames[stage] ?? "ss_sprite_008.png",
+                                anchor: ENTITY_ANCHORS[type],
+                            },
+                        ];
         }
         case ENTITY_TYPES.soy: {
             const stage = getCropGrowthStageFromVoxel(voxel);
             const spriteNames = ["ss_sprite_008.png", "ss_sprite_018.png", "ss_sprite_019.png", "ss_sprite_020.png"];
-            return stage === 7 ? [{ spriteName: "ss_sprite_061.png", anchor: ENTITY_ANCHORS[type] }] :
-            stage >= 5 ? [{ spriteName: "ss_sprite_020.png", anchor: ENTITY_ANCHORS[type] }] :
-            stage >= 3 ? [{ spriteName: "ss_sprite_020.png", anchor: ENTITY_ANCHORS[type] }, { spriteName: "ss_sprite_060.png", anchor: ENTITY_ANCHORS[type] }] : 
-            stage === 0 ? [{ spriteName: "ss_sprite_008.png", anchor: { x: 0, y: 0 } }] :
-            [{ spriteName: spriteNames[stage] ?? "ss_sprite_008.png", anchor: ENTITY_ANCHORS[type] }];
+            return stage === 7
+                ? [
+                      {
+                          spriteName: "ss_sprite_061.png",
+                          anchor: ENTITY_ANCHORS[type],
+                      },
+                  ]
+                : stage >= 5
+                  ? [
+                        {
+                            spriteName: "ss_sprite_020.png",
+                            anchor: ENTITY_ANCHORS[type],
+                        },
+                    ]
+                  : stage >= 3
+                    ? [
+                          {
+                              spriteName: "ss_sprite_020.png",
+                              anchor: ENTITY_ANCHORS[type],
+                          },
+                          {
+                              spriteName: "ss_sprite_060.png",
+                              anchor: ENTITY_ANCHORS[type],
+                          },
+                      ]
+                    : stage === 0
+                      ? [
+                            {
+                                spriteName: "ss_sprite_008.png",
+                                anchor: { x: 0, y: 0 },
+                            },
+                        ]
+                      : [
+                            {
+                                spriteName: spriteNames[stage] ?? "ss_sprite_008.png",
+                                anchor: ENTITY_ANCHORS[type],
+                            },
+                        ];
         }
         case ENTITY_TYPES.flax: {
             const stage = getCropGrowthStageFromVoxel(voxel);
             const spriteNames = ["ss_sprite_008.png", "ss_sprite_029.png", "ss_sprite_030.png", "ss_sprite_031.png"];
-            return stage === 7 ? [{ spriteName: "ss_sprite_061.png", anchor: ENTITY_ANCHORS[type] }] :
-            stage >= 5 ? [{ spriteName: "ss_sprite_031.png", anchor: ENTITY_ANCHORS[type] }] :
-            stage >= 3 ? [{ spriteName: "ss_sprite_031.png", anchor: ENTITY_ANCHORS[type] }, { spriteName: "ss_sprite_060.png", anchor: ENTITY_ANCHORS[type] }] : 
-            stage === 0 ? [{ spriteName: "ss_sprite_008.png", anchor: { x: 0, y: 0 } }] :
-            [{ spriteName: spriteNames[stage] ?? "ss_sprite_008.png", anchor: ENTITY_ANCHORS[type] }];
+            return stage === 7
+                ? [
+                      {
+                          spriteName: "ss_sprite_061.png",
+                          anchor: ENTITY_ANCHORS[type],
+                      },
+                  ]
+                : stage >= 5
+                  ? [
+                        {
+                            spriteName: "ss_sprite_031.png",
+                            anchor: ENTITY_ANCHORS[type],
+                        },
+                    ]
+                  : stage >= 3
+                    ? [
+                          {
+                              spriteName: "ss_sprite_031.png",
+                              anchor: ENTITY_ANCHORS[type],
+                          },
+                          {
+                              spriteName: "ss_sprite_060.png",
+                              anchor: ENTITY_ANCHORS[type],
+                          },
+                      ]
+                    : stage === 0
+                      ? [
+                            {
+                                spriteName: "ss_sprite_008.png",
+                                anchor: { x: 0, y: 0 },
+                            },
+                        ]
+                      : [
+                            {
+                                spriteName: spriteNames[stage] ?? "ss_sprite_008.png",
+                                anchor: ENTITY_ANCHORS[type],
+                            },
+                        ];
         }
         case ENTITY_TYPES.sunflower: {
             const stage = getCropGrowthStageFromVoxel(voxel);
             const spriteNames = ["ss_sprite_008.png", "ss_sprite_033.png", "ss_sprite_034.png", "ss_sprite_035.png"];
-            return stage === 7 ? [{ spriteName: "ss_sprite_061.png", anchor: ENTITY_ANCHORS[type] }] :
-            stage >= 5 ? [{ spriteName: "ss_sprite_035.png", anchor: ENTITY_ANCHORS[type] }] :
-            stage >= 3 ? [{ spriteName: "ss_sprite_035.png", anchor: ENTITY_ANCHORS[type] }] : 
-            stage === 0 ? [{ spriteName: "ss_sprite_008.png", anchor: { x: 0, y: 0 } }] :
-            [{ spriteName: spriteNames[stage] ?? "ss_sprite_008.png", anchor: ENTITY_ANCHORS[type] }];
+            return stage === 7
+                ? [
+                      {
+                          spriteName: "ss_sprite_061.png",
+                          anchor: ENTITY_ANCHORS[type],
+                      },
+                  ]
+                : stage >= 5
+                  ? [
+                        {
+                            spriteName: "ss_sprite_035.png",
+                            anchor: ENTITY_ANCHORS[type],
+                        },
+                    ]
+                  : stage >= 3
+                    ? [
+                          {
+                              spriteName: "ss_sprite_035.png",
+                              anchor: ENTITY_ANCHORS[type],
+                          },
+                      ]
+                    : stage === 0
+                      ? [
+                            {
+                                spriteName: "ss_sprite_008.png",
+                                anchor: { x: 0, y: 0 },
+                            },
+                        ]
+                      : [
+                            {
+                                spriteName: spriteNames[stage] ?? "ss_sprite_008.png",
+                                anchor: ENTITY_ANCHORS[type],
+                            },
+                        ];
         }
         case ENTITY_TYPES.workbench:
             // 32x16 横長スプライト。anchor (0,0) でタイル左上に配置し、右に 16px はみ出す。
             return [{ spriteName: "ss_sprite_004.png", anchor: { x: 0, y: 0 } }];
-        case ENTITY_TYPES.forge:        // 16x16
+        case ENTITY_TYPES.forge: // 16x16
             return [{ spriteName: "ss_sprite_052.png", anchor: { x: 0, y: 0 } }];
-        case ENTITY_TYPES.compost_bin:   // 32x32
+        case ENTITY_TYPES.compost_bin: // 32x32
             return [{ spriteName: "ss_sprite_053_3.png", anchor: { x: 0, y: 0 } }];
-        case ENTITY_TYPES.threshing_machine:  // 32x16
+        case ENTITY_TYPES.threshing_machine: // 32x16
             return [{ spriteName: "ss_sprite_054.png", anchor: { x: 0, y: 0 } }];
-        case ENTITY_TYPES.screw_presses:  // 32x32
+        case ENTITY_TYPES.screw_presses: // 32x32
             return [{ spriteName: "ss_sprite_055.png", anchor: { x: 0, y: 0 } }];
-        case ENTITY_TYPES.soaking_basket:  // 48x16
+        case ENTITY_TYPES.soaking_basket: // 48x16
             return [{ spriteName: "ss_sprite_056.png", anchor: { x: 0, y: 0 } }];
-        case ENTITY_TYPES.scutching_board:  // 16x16
+        case ENTITY_TYPES.scutching_board: // 16x16
             return [{ spriteName: "ss_sprite_057.png", anchor: { x: 0, y: 0 } }];
-        case ENTITY_TYPES.spinning_wheel:  // 32x16
+        case ENTITY_TYPES.spinning_wheel: // 32x16
             return [{ spriteName: "ss_sprite_058.png", anchor: { x: 0, y: 0 } }];
-        case ENTITY_TYPES.loom:  // 32x32
+        case ENTITY_TYPES.loom: // 32x32
             return [{ spriteName: "ss_sprite_059.png", anchor: { x: 0, y: 0 } }];
         case ENTITY_TYPES.facility_part:
             // 描画はアンカータイル（workbench）が担当するため、このタイルでは描画しない。

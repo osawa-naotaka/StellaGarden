@@ -41,8 +41,7 @@ export type ItemId =
     | "soaking_basket"
     | "scutching_board"
     | "spinning_wheel"
-    | "loom"
-    ;
+    | "loom";
 
 export interface ItemDef {
     readonly id: ItemId;
@@ -74,7 +73,15 @@ export const ITEM_DEFS: Record<ItemId, ItemDef> = {
     soybeans: { id: "soybeans", spriteName: "ss_sprite_015.png", maxStack: 64 },
     flaxseed: { id: "flaxseed", spriteName: "ss_sprite_021.png", maxStack: 64 },
     dirt: { id: "dirt", spriteName: "ss_sprite_046.png", maxStack: 64 },
-    workbench: { id: "workbench", spriteName: "ss_sprite_003.png", maxStack: 1, placeable: true, entitySize: { w: 2, h: 1 }, entityType: 6, fieldSpriteName: "ss_sprite_004.png" },
+    workbench: {
+        id: "workbench",
+        spriteName: "ss_sprite_003.png",
+        maxStack: 1,
+        placeable: true,
+        entitySize: { w: 2, h: 1 },
+        entityType: 6,
+        fieldSpriteName: "ss_sprite_004.png",
+    },
     stem: { id: "stem", spriteName: "ss_sprite_005.png", maxStack: 64 },
     leaves: { id: "leaves", spriteName: "ss_sprite_006.png", maxStack: 64 },
     crop_residue: { id: "crop_residue", spriteName: "ss_sprite_007.png", maxStack: 64 },
@@ -94,14 +101,78 @@ export const ITEM_DEFS: Record<ItemId, ItemDef> = {
     compost: { id: "compost", spriteName: "ss_sprite_042.png", maxStack: 64 },
     plant_ashes: { id: "plant_ashes", spriteName: "ss_sprite_043.png", maxStack: 64 },
     oil_cake: { id: "oil_cake", spriteName: "ss_sprite_044.png", maxStack: 64 },
-    forge: { id: "forge", spriteName: "ss_sprite_052.png", maxStack: 1, placeable: true, entitySize: { w: 1, h: 1 }, entityType: 8, fieldSpriteName: "ss_sprite_052.png" },
-    compost_bin: { id: "compost_bin", spriteName: "ss_sprite_053_3.png", maxStack: 1, placeable: true, entitySize: { w: 2, h: 2 }, entityType: 9, fieldSpriteName: "ss_sprite_053_3.png" },
-    threshing_machine: { id: "threshing_machine", spriteName: "ss_sprite_054.png", maxStack: 1, placeable: true, entitySize: { w: 2, h: 1 }, entityType: 10, fieldSpriteName: "ss_sprite_054.png" },
-    screw_presses: { id: "screw_presses", spriteName: "ss_sprite_055.png", maxStack: 1, placeable: true, entitySize: { w: 2, h: 2 }, entityType: 11, fieldSpriteName: "ss_sprite_055.png" },
-    soaking_basket: { id: "soaking_basket", spriteName: "ss_sprite_056.png", maxStack: 1, placeable: true, entitySize: { w: 3, h: 1 }, entityType: 12, fieldSpriteName: "ss_sprite_056.png" },
-    scutching_board: { id: "scutching_board", spriteName: "ss_sprite_057.png", maxStack: 1, placeable: true, entitySize: { w: 1, h: 1 }, entityType: 13, fieldSpriteName: "ss_sprite_057.png" },
-    spinning_wheel: { id: "spinning_wheel", spriteName: "ss_sprite_058.png", maxStack: 1, placeable: true, entitySize: { w: 2, h: 1 }, entityType: 14, fieldSpriteName: "ss_sprite_058.png" },
-    loom: { id: "loom", spriteName: "ss_sprite_059.png", maxStack: 1, placeable: true, entitySize: { w: 2, h: 2 }, entityType: 15, fieldSpriteName: "ss_sprite_059.png" },
+    forge: {
+        id: "forge",
+        spriteName: "ss_sprite_052.png",
+        maxStack: 1,
+        placeable: true,
+        entitySize: { w: 1, h: 1 },
+        entityType: 8,
+        fieldSpriteName: "ss_sprite_052.png",
+    },
+    compost_bin: {
+        id: "compost_bin",
+        spriteName: "ss_sprite_053_3.png",
+        maxStack: 1,
+        placeable: true,
+        entitySize: { w: 2, h: 2 },
+        entityType: 9,
+        fieldSpriteName: "ss_sprite_053_3.png",
+    },
+    threshing_machine: {
+        id: "threshing_machine",
+        spriteName: "ss_sprite_054.png",
+        maxStack: 1,
+        placeable: true,
+        entitySize: { w: 2, h: 1 },
+        entityType: 10,
+        fieldSpriteName: "ss_sprite_054.png",
+    },
+    screw_presses: {
+        id: "screw_presses",
+        spriteName: "ss_sprite_055.png",
+        maxStack: 1,
+        placeable: true,
+        entitySize: { w: 2, h: 2 },
+        entityType: 11,
+        fieldSpriteName: "ss_sprite_055.png",
+    },
+    soaking_basket: {
+        id: "soaking_basket",
+        spriteName: "ss_sprite_056.png",
+        maxStack: 1,
+        placeable: true,
+        entitySize: { w: 3, h: 1 },
+        entityType: 12,
+        fieldSpriteName: "ss_sprite_056.png",
+    },
+    scutching_board: {
+        id: "scutching_board",
+        spriteName: "ss_sprite_057.png",
+        maxStack: 1,
+        placeable: true,
+        entitySize: { w: 1, h: 1 },
+        entityType: 13,
+        fieldSpriteName: "ss_sprite_057.png",
+    },
+    spinning_wheel: {
+        id: "spinning_wheel",
+        spriteName: "ss_sprite_058.png",
+        maxStack: 1,
+        placeable: true,
+        entitySize: { w: 2, h: 1 },
+        entityType: 14,
+        fieldSpriteName: "ss_sprite_058.png",
+    },
+    loom: {
+        id: "loom",
+        spriteName: "ss_sprite_059.png",
+        maxStack: 1,
+        placeable: true,
+        entitySize: { w: 2, h: 2 },
+        entityType: 15,
+        fieldSpriteName: "ss_sprite_059.png",
+    },
 };
 
 /** entityType から ItemId への逆引きマップ。モジュールロード時に1回だけ構築。 */
@@ -118,11 +189,7 @@ export const ENTITY_TYPE_TO_ITEM_ID: ReadonlyMap<number, ItemId> = new Map(
  * アンカータイル: entityType が ENTITY_TYPE_TO_ITEM_ID に存在する → そのまま返す
  * facility_part: 近傍を探索してアンカーを見つける（最大施設サイズ 3x1, 2x2 を考慮）
  */
-export function findFacilityAnchor(
-    voxelMap: IVoxelReader,
-    x: number,
-    z: number,
-): { anchorX: number; anchorZ: number; def: ItemDef } | null {
+export function findFacilityAnchor(voxelMap: IVoxelReader, x: number, z: number): { anchorX: number; anchorZ: number; def: ItemDef } | null {
     const surfacePos = voxelMap.getSurfacePosition({ x, y: 0, z });
     const voxel = voxelMap.get(surfacePos);
     const entityType = getEntityTypeFromVoxel(voxel);

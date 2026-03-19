@@ -1,7 +1,15 @@
 import type { GameEventMap } from "../_boundary/events";
 import type { IInventoryWriter, IVoxelWriter } from "../_boundary/interfaces";
-import { ENTITY_TYPES, getCropGrowthStageFromVoxel, getEntityTypeFromVoxel, getFertilizedFromVoxel, getTerrainTypeFromVoxel, setFertilizedInVoxel, TERRAIN_TYPES } from "../engine/TerrainDefs";
 import { findFacilityAnchor, type ItemDef } from "../engine/ItemDefs";
+import {
+    ENTITY_TYPES,
+    getCropGrowthStageFromVoxel,
+    getEntityTypeFromVoxel,
+    getFertilizedFromVoxel,
+    getTerrainTypeFromVoxel,
+    setFertilizedInVoxel,
+    TERRAIN_TYPES,
+} from "../engine/TerrainDefs";
 import { floodFillWater } from "../engine/WaterSystem";
 import type { EventBroker } from "../lib/Event";
 
@@ -81,13 +89,7 @@ function revertNearbyInvalidTerrain(voxelMap: IVoxelWriter, cx: number, cz: numb
 }
 
 /** 施設を撤去してインベントリに回収する。成功時 true。 */
-function removeFacility(
-    voxelMap: IVoxelWriter,
-    inventory: IInventoryWriter,
-    anchorX: number,
-    anchorZ: number,
-    def: ItemDef,
-): boolean {
+function removeFacility(voxelMap: IVoxelWriter, inventory: IInventoryWriter, anchorX: number, anchorZ: number, def: ItemDef): boolean {
     // インベントリに追加（満杯なら中止）
     if (!inventory.addItem(def.id, 1)) return false;
 
@@ -123,7 +125,6 @@ export function createInteractionHandler(
 
         switch (tool) {
             case "hand":
-
                 break;
             case "watering_can":
                 if (getTerrainTypeFromVoxel(voxel) === TERRAIN_TYPES.soil) {
@@ -145,7 +146,11 @@ export function createInteractionHandler(
                             onTerrainModified?.();
                         }
                     }
-                } else if (getEntityTypeFromVoxel(voxel) === ENTITY_TYPES.flax && getCropGrowthStageFromVoxel(voxel) >= 3 && getCropGrowthStageFromVoxel(voxel) < 7) {
+                } else if (
+                    getEntityTypeFromVoxel(voxel) === ENTITY_TYPES.flax &&
+                    getCropGrowthStageFromVoxel(voxel) >= 3 &&
+                    getCropGrowthStageFromVoxel(voxel) < 7
+                ) {
                     const harvestCount = 2 + Math.floor(Math.random() * 3); // 2〜4個
                     if (inventory.addItem("flaxseed", harvestCount)) {
                         inventory.addItem("flax_stalk", harvestCount);
@@ -153,7 +158,11 @@ export function createInteractionHandler(
                         voxelMap.set(TERRAIN_TYPES.disorderedSoil, surfacePos);
                         eventBroker.publish("crop_harvested", { pos: { x: packet.pos.x, z: packet.pos.z }, itemId: "flax", count: harvestCount });
                     }
-                } else if (getEntityTypeFromVoxel(voxel) === ENTITY_TYPES.potato && getCropGrowthStageFromVoxel(voxel) >= 3 && getCropGrowthStageFromVoxel(voxel) < 7) {
+                } else if (
+                    getEntityTypeFromVoxel(voxel) === ENTITY_TYPES.potato &&
+                    getCropGrowthStageFromVoxel(voxel) >= 3 &&
+                    getCropGrowthStageFromVoxel(voxel) < 7
+                ) {
                     const harvestCount = 2 + Math.floor(Math.random() * 3); // 2〜4個
                     if (inventory.addItem("potato", harvestCount)) {
                         inventory.addItem("stem", harvestCount);
@@ -195,7 +204,11 @@ export function createInteractionHandler(
                         voxelMap.set(TERRAIN_TYPES.dirt, surfacePos);
                         eventBroker.publish("crop_harvested", { pos: { x: packet.pos.x, z: packet.pos.z }, itemId: "soy", count: harvestCount });
                     }
-                } else if (getEntityTypeFromVoxel(voxel) === ENTITY_TYPES.sunflower && getCropGrowthStageFromVoxel(voxel) >= 3 && getCropGrowthStageFromVoxel(voxel) < 7) {
+                } else if (
+                    getEntityTypeFromVoxel(voxel) === ENTITY_TYPES.sunflower &&
+                    getCropGrowthStageFromVoxel(voxel) >= 3 &&
+                    getCropGrowthStageFromVoxel(voxel) < 7
+                ) {
                     const harvestCount = 2 + Math.floor(Math.random() * 3); // 2〜4個
                     if (inventory.addItem("sunflower_seed", harvestCount)) {
                         inventory.addItem("stem", harvestCount);

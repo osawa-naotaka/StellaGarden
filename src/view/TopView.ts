@@ -1,9 +1,9 @@
 import { type Application, ColorMatrixFilter, Container, Sprite, Texture } from "pixi.js";
 import type { IVoxelReader, Pos2D, Pos3D } from "../_boundary/interfaces";
 import { ChunkRenderer } from "../lib/ChunkRenderer";
+import { DEBUG } from "../lib/debugFlag";
 import { getEntitySpriteNameFromVoxel, getTerrainSpriteNamesFromVoxel } from "./renderer/TerrainSpriteResolver";
 import type { Tile } from "./Tile";
-import { DEBUG } from "../lib/debugFlag";
 
 // ホバー時のブライトネスフィルター（モジュールで一度だけ生成して使い回す）
 const hoverFilter = new ColorMatrixFilter();
@@ -21,7 +21,15 @@ export class TopView {
     private readonly tilePerChunk: number;
     private readonly chunkPerViewport: Pos2D;
 
-    constructor(voxelMap: IVoxelReader, app: Application, opt: { pixelPerTile: number; tilePerChunk: number; chunkPerViewport: Pos2D }) {
+    constructor(
+        voxelMap: IVoxelReader,
+        app: Application,
+        opt: {
+            pixelPerTile: number;
+            tilePerChunk: number;
+            chunkPerViewport: Pos2D;
+        },
+    ) {
         this.voxelMap = voxelMap;
         this.pixelPerTile = opt.pixelPerTile;
         this.tilePerChunk = opt.tilePerChunk;
@@ -119,6 +127,7 @@ function setupTerrainTile(tile: Tile, voxels: number[], positions: Pos3D[], hori
         tile.sprites[i].visible = true;
         tile.sprites[i].anchor.set(0, 0);
         tile.sprites[i].filters = isHovered ? [hoverFilter] : [];
+        tile.sprites[i].position.set(0);
     }
 
     if (DEBUG) tile.setDebugYLabel(positions[4].y, pixelPerTile);
@@ -132,5 +141,11 @@ function setupEntityTile(tile: Tile, voxels: number[], positions: Pos3D[], point
         tile.sprites[i].anchor.set(infos[i].anchor.x, infos[i].anchor.y);
         const isHovered = Math.floor(pointerPos.x) === positions[4].x && Math.floor(pointerPos.z) === positions[4].z;
         tile.sprites[i].filters = isHovered ? [hoverFilter] : [];
+        const offset = infos[i].offset;
+        if (offset !== undefined) {
+            tile.sprites[i].position.set(offset.x, offset.y);
+        } else {
+            tile.sprites[i].position.set(0);
+        }
     }
 }

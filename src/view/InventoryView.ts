@@ -107,10 +107,7 @@ export class InventoryView {
     private onMouseMoveBound: (e: MouseEvent) => void;
     private onKeyDownBound: (e: KeyboardEvent) => void;
 
-    constructor(
-        inventory: IInventoryWriter,
-        onRequestPlacement?: (itemId: ItemId, sourceSlot: SlotRef) => void,
-    ) {
+    constructor(inventory: IInventoryWriter, onRequestPlacement?: (itemId: ItemId, sourceSlot: SlotRef) => void) {
         this.inventory = inventory;
         this.onRequestPlacement = onRequestPlacement;
         this.container = new Container();

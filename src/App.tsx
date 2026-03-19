@@ -5,12 +5,13 @@ import type { GameEventMap } from "./_boundary/events";
 import type { ItemId, SlotRef } from "./_boundary/interfaces";
 import { advanceDayAllCrops, clearFertilized, dryWetSoil } from "./engine/CropSystem";
 import { GameTime } from "./engine/GameTime";
-import { PlayerState } from "./engine/PlayerState";
 import { ITEM_DEFS } from "./engine/ItemDefs";
+import { PlayerState } from "./engine/PlayerState";
 import { ENTITY_TYPES, getTerrainTypeFromVoxel } from "./engine/TerrainDefs";
 import { generateTerrain } from "./engine/TerrainGenerator";
 import { InputHandler } from "./input/InputHandler";
 import { createInteractionHandler } from "./input/InteractionSystem";
+import { DEBUG } from "./lib/debugFlag";
 import { createEventBroker } from "./lib/Event";
 import type { Pos2D } from "./lib/VoxelMap";
 import { DebugText } from "./view/DebugText";
@@ -19,7 +20,6 @@ import { PlacementOverlay } from "./view/PlacementOverlay";
 import { loadSprite } from "./view/Sprite";
 import { Toolbar } from "./view/Toolbar";
 import { TopView } from "./view/TopView";
-import { DEBUG } from "./lib/debugFlag";
 
 function useGameEngine(worldSize: Pos2D, chunkPerViewport: Pos2D) {
     const containerRef = useRef<HTMLDivElement>(null);
@@ -116,7 +116,7 @@ function useGameEngine(worldSize: Pos2D, chunkPerViewport: Pos2D) {
                         const surfacePos = voxelMap.getSurfacePosition({ x: pos.x + dx, y: 0, z: pos.z + dz });
                         const terrain = getTerrainTypeFromVoxel(voxelMap.get(surfacePos));
                         // アンカータイル(0,0)には施設エンティティ、それ以外は facility_part
-                        const entity = (dx === 0 && dz === 0) ? entityType : ENTITY_TYPES.facility_part;
+                        const entity = dx === 0 && dz === 0 ? entityType : ENTITY_TYPES.facility_part;
                         voxelMap.set(terrain | (entity << 8), surfacePos);
                     }
                 }

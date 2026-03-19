@@ -45,11 +45,9 @@ export function generateTestTerrain(opt: GenerateTerrainOptions): VoxelMap {
             if (bin & 64) hm[base + 2 * opt.width + 1] = opt.horizontalHeight + 1;
             if (bin & 128) hm[base + 2 * opt.width + 2] = opt.horizontalHeight + 1;
 
-
             bin++;
         }
     }
-
 
     const map = createVoxelMap(hm, opt);
     return map;

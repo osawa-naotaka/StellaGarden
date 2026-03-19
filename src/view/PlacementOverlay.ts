@@ -50,11 +50,7 @@ export class PlacementOverlay {
     }
 
     /** 配置モードを開始する。確定・キャンセル時のコールバックを登録し、オーバーレイを表示する。 */
-    show(
-        config: { entitySize: { w: number; h: number }; fieldSpriteName: string },
-        onConfirm: (pos: Pos2D) => void,
-        onCancel: () => void,
-    ): void {
+    show(config: { entitySize: { w: number; h: number }; fieldSpriteName: string }, onConfirm: (pos: Pos2D) => void, onCancel: () => void): void {
         this.entitySize = config.entitySize;
         this.previewSprite.texture = Texture.from(config.fieldSpriteName);
         this.previewSprite.width = PIXEL_PER_TILE * config.entitySize.w;
