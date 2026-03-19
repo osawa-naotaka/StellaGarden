@@ -2,6 +2,7 @@ import { type Application, ColorMatrixFilter, Container, Sprite, Texture } from 
 import type { IVoxelReader, Pos2D, Pos3D } from "../_boundary/interfaces";
 import { ChunkRenderer } from "../lib/ChunkRenderer";
 import { DEBUG } from "../lib/debugFlag";
+import type { Size2D } from "../lib/VoxelMap";
 import { getEntitySpriteNameFromVoxel, getTerrainSpriteNamesFromVoxel } from "./renderer/TerrainSpriteResolver";
 import type { Tile } from "./Tile";
 
@@ -19,7 +20,7 @@ export class TopView {
 
     private readonly pixelPerTile: number;
     private readonly tilePerChunk: number;
-    private readonly chunkPerViewport: Pos2D;
+    private readonly chunkPerViewport: Size2D;
 
     constructor(
         voxelMap: IVoxelReader,
@@ -27,7 +28,7 @@ export class TopView {
         opt: {
             pixelPerTile: number;
             tilePerChunk: number;
-            chunkPerViewport: Pos2D;
+            chunkPerViewport: Size2D;
         },
     ) {
         this.voxelMap = voxelMap;
@@ -44,7 +45,7 @@ export class TopView {
         this.chunkRenderer = new ChunkRenderer(app, {
             pixelPerTile: opt.pixelPerTile,
             tilePerChunk: opt.tilePerChunk,
-            numRenderTextures: opt.chunkPerViewport.x * opt.chunkPerViewport.z * 2,
+            numRenderTextures: opt.chunkPerViewport.w * opt.chunkPerViewport.h * 2,
         });
     }
 
@@ -55,8 +56,8 @@ export class TopView {
     /** スプライトを初期化してビューポートに配置する。アセットロード完了後に呼ぶこと。 */
     initializeSprites() {
         for (const plane of [this.terrainPlane, this.entityPlane]) {
-            for (let y = 0; y < this.chunkPerViewport.z; y++) {
-                for (let x = 0; x < this.chunkPerViewport.x; x++) {
+            for (let y = 0; y < this.chunkPerViewport.h; y++) {
+                for (let x = 0; x < this.chunkPerViewport.w; x++) {
                     const sprite = new Sprite(Texture.EMPTY);
                     sprite.x = x * this.tilePerChunk * this.pixelPerTile;
                     sprite.y = y * this.tilePerChunk * this.pixelPerTile;
@@ -69,8 +70,8 @@ export class TopView {
 
     /** プレイヤー位置とポインタ位置を受け取り、ビューポートのスプライトを更新する。 */
     updateViewport(positionInWorld: Pos2D, pointerPos: Pos2D) {
-        const halfW = Math.floor((this.chunkPerViewport.x * this.tilePerChunk) / 2);
-        const halfH = Math.floor((this.chunkPerViewport.z * this.tilePerChunk) / 2);
+        const halfW = Math.floor((this.chunkPerViewport.w * this.tilePerChunk) / 2);
+        const halfH = Math.floor((this.chunkPerViewport.h * this.tilePerChunk) / 2);
         const viewportOrigin: Pos2D = {
             x: positionInWorld.x - halfW,
             z: positionInWorld.z - halfH,
@@ -79,8 +80,8 @@ export class TopView {
     }
 
     private renderChunks(viewportOrigin: Pos2D, pointerPos: Pos2D) {
-        for (let col = 0; col < this.chunkPerViewport.z; col++) {
-            for (let row = 0; row < this.chunkPerViewport.x; row++) {
+        for (let col = 0; col < this.chunkPerViewport.h; col++) {
+            for (let row = 0; row < this.chunkPerViewport.w; row++) {
                 const world: Pos2D = {
                     x: viewportOrigin.x + row * this.tilePerChunk,
                     z: viewportOrigin.z + col * this.tilePerChunk,
@@ -111,8 +112,8 @@ export class TopView {
     }
 
     private chunkIndex(col: number, row: number, isTerrain: boolean): number {
-        const planeOffset = isTerrain ? 0 : this.chunkPerViewport.x * this.chunkPerViewport.z;
-        return planeOffset + col * this.chunkPerViewport.x + row;
+        const planeOffset = isTerrain ? 0 : this.chunkPerViewport.w * this.chunkPerViewport.h;
+        return planeOffset + col * this.chunkPerViewport.w + row;
     }
 }
 

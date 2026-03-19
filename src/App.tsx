@@ -13,7 +13,7 @@ import { InputHandler } from "./input/InputHandler";
 import { createInteractionHandler } from "./input/InteractionSystem";
 import { DEBUG } from "./lib/debugFlag";
 import { createEventBroker } from "./lib/Event";
-import type { Pos2D } from "./lib/VoxelMap";
+import type { Pos2D, Size2D } from "./lib/VoxelMap";
 import { DebugText } from "./view/DebugText";
 import { InventoryView } from "./view/InventoryView";
 import { PlacementOverlay } from "./view/PlacementOverlay";
@@ -21,7 +21,7 @@ import { loadSprite } from "./view/Sprite";
 import { Toolbar } from "./view/Toolbar";
 import { TopView } from "./view/TopView";
 
-function useGameEngine(worldSize: Pos2D, chunkPerViewport: Pos2D) {
+function useGameEngine(worldSize: Size2D, chunkPerViewport: Size2D) {
     const containerRef = useRef<HTMLDivElement>(null);
 
     // biome-ignore lint/correctness/useExhaustiveDependencies: worldSize/chunkPerViewport は実質定数。PixiJS 初期化はマウント時一度だけ行う設計のため依存追加しない
@@ -61,7 +61,7 @@ function useGameEngine(worldSize: Pos2D, chunkPerViewport: Pos2D) {
             const worldContainer = new Container();
             pixiApp.stage.addChild(worldContainer);
 
-            const voxelMap = generateTerrain({ width: worldSize.x, height: 12, depth: worldSize.z, horizontalHeight: 3 });
+            const voxelMap = generateTerrain({ width: worldSize.w, height: 12, depth: worldSize.h, horizontalHeight: 3 });
             // const voxelMap = generateTestTerrain({ width: worldSize.x, height: 12, depth: worldSize.z, horizontalHeight: 3 });
             voxelMap.setEventBroker(eventBroker);
 
@@ -75,7 +75,7 @@ function useGameEngine(worldSize: Pos2D, chunkPerViewport: Pos2D) {
             const playerState = new PlayerState({
                 start: { x: 200, z: 200 },
                 worldSize,
-                tilePerViewport: { x: chunkPerViewport.x * TILE_PER_CHUNK, z: chunkPerViewport.z * TILE_PER_CHUNK },
+                tilePerViewport: { w: chunkPerViewport.w * TILE_PER_CHUNK, h: chunkPerViewport.h * TILE_PER_CHUNK },
             });
             playerState.setEventBroker(eventBroker);
             playerState.inventory.setEventBroker(eventBroker);
@@ -94,8 +94,8 @@ function useGameEngine(worldSize: Pos2D, chunkPerViewport: Pos2D) {
             let interactionDisposer: (() => void) | null = null;
 
             // ビューポート原点の計算用定数（TopView と同じ式）
-            const halfW = Math.floor((chunkPerViewport.x * TILE_PER_CHUNK) / 2);
-            const halfH = Math.floor((chunkPerViewport.z * TILE_PER_CHUNK) / 2);
+            const halfW = Math.floor((chunkPerViewport.w * TILE_PER_CHUNK) / 2);
+            const halfH = Math.floor((chunkPerViewport.h * TILE_PER_CHUNK) / 2);
 
             const exitPlacementMode = () => {
                 placementOverlay.hide();
@@ -255,6 +255,6 @@ function useGameEngine(worldSize: Pos2D, chunkPerViewport: Pos2D) {
 }
 
 export default function App() {
-    const containerRef = useGameEngine({ x: 400, z: 400 }, { x: 6, z: 4 });
+    const containerRef = useGameEngine({ w: 400, h: 400 }, { w: 6, h: 4 });
     return <div ref={containerRef} style={{ position: "fixed", inset: 0 }} />;
 }

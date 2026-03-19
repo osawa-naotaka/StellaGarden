@@ -5,6 +5,11 @@ export type Pos2D = {
     z: number;
 };
 
+export type Size2D = {
+    w: number;
+    h: number;
+};
+
 export type Pos3D = {
     x: number;
     y: number;

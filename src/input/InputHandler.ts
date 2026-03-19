@@ -98,8 +98,8 @@ export class InputHandler {
 
     private updatePointerPosInWorld(): void {
         const { posInWorld, tilePerViewport, zoomLevel } = this.playerState;
-        const x = posInWorld.x - tilePerViewport.x / 2 + (this.pointerPosInGlobal.x / (this.target.width * zoomLevel)) * tilePerViewport.x;
-        const z = posInWorld.z - tilePerViewport.z / 2 + (this.pointerPosInGlobal.z / (this.target.height * zoomLevel)) * tilePerViewport.z;
+        const x = posInWorld.x - tilePerViewport.w / 2 + (this.pointerPosInGlobal.x / (this.target.width * zoomLevel)) * tilePerViewport.w;
+        const z = posInWorld.z - tilePerViewport.h / 2 + (this.pointerPosInGlobal.z / (this.target.height * zoomLevel)) * tilePerViewport.h;
         this.playerState.setPointerPosInWorld(x, z);
     }
 }

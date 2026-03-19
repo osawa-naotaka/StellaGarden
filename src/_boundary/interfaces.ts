@@ -10,7 +10,7 @@
 
 import type { ItemId } from "../engine/ItemDefs";
 import type { EventBroker } from "../lib/Event";
-import type { Pos2D, Pos3D } from "../lib/VoxelMap";
+import type { Pos2D, Pos3D, Size2D } from "../lib/VoxelMap";
 import type { GameEventMap } from "./events";
 
 // ─── ItemId の再エクスポート ──────────────────────────────────────────────────
@@ -99,8 +99,8 @@ export interface IPlayerStateReader {
     readonly posInWorld: Pos2D;
     readonly pointerPosInWorld: Pos2D;
     readonly zoomLevel: number;
-    readonly worldSize: Pos2D;
-    readonly tilePerViewport: Pos2D;
+    readonly worldSize: Size2D;
+    readonly tilePerViewport: Size2D;
     readonly inventory: IInventoryReader;
 }
 
