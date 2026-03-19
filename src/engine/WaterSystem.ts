@@ -48,8 +48,8 @@ export function floodFillWater(voxelMap: IVoxelWriter, startX: number, startZ: n
     const queue: [number, number][] = [[startX, startZ]];
     visited.add(key(startX, startZ));
 
-    while (queue.length > 0) {
-        const [x, z] = queue.shift()!;
+    for (let pos = queue.shift(); pos; pos = queue.shift()) {
+        const [x, z] = pos;
 
         // 地面の高さを取得
         const groundPos = voxelMap.getGroundSurfacePosition({ x, y: 0, z });
