@@ -6,6 +6,7 @@ import {
     getTerrainTypeFromVoxel,
     TERRAIN_TYPES,
 } from "../../engine/TerrainDefs";
+import { getVisualStage } from "../../engine/CropDefs";
 import type { Pos3D } from "../../lib/VoxelMap";
 
 // -----------------------------------------------------------------------------
@@ -317,23 +318,25 @@ const treeSpriteInfo: EntitySpriteInfo[][] = [
 /** ボクセル値からエンティティタイルのスプライト情報を返す。 */
 export function getEntitySpriteNameFromVoxel(voxel: number): EntitySpriteInfo[] {
     const type = getEntityTypeFromVoxel(voxel);
-    const stage = getCropGrowthStageFromVoxel(voxel);
+    const dayCounter = getCropGrowthStageFromVoxel(voxel);
 
     switch (type) {
         case ENTITY_TYPES.none:
             return [];
         case ENTITY_TYPES.tree: {
-            if (stage >= 3) {
+            if (dayCounter >= 3) {
                 return treeSpriteInfo[3];
             } else {
-                return treeSpriteInfo[stage] ?? treeSpriteInfo[0];
+                return treeSpriteInfo[dayCounter] ?? treeSpriteInfo[0];
             }
         }
         case ENTITY_TYPES.potato:
         case ENTITY_TYPES.soy:
         case ENTITY_TYPES.flax:
-        case ENTITY_TYPES.sunflower:
-            return cropSprites[type]?.[stage] ?? cropSprites[type][0];
+        case ENTITY_TYPES.sunflower: {
+            const visualStage = getVisualStage(type, dayCounter);
+            return cropSprites[type]?.[visualStage] ?? cropSprites[type][0];
+        }
         case ENTITY_TYPES.workbench:
             // 32x16 横長スプライト。タイル左上に配置し、右に 16px はみ出す。
             return [["ss_sprite_004.png", 0, 0]];

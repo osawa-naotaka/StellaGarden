@@ -2,83 +2,117 @@ import type { IVoxelWriter } from "../_boundary/interfaces";
 import {
     ENTITY_TYPES,
     getCropGrowthStageFromVoxel,
+    getDroughtCounterFromVoxel,
     getEntityTypeFromVoxel,
-    getFertilizedFromVoxel,
     getTerrainTypeFromVoxel,
     setCropGrowthStageInVoxel,
-    setFertilizedInVoxel,
+    setDroughtCounterInVoxel,
     TERRAIN_TYPES,
 } from "./TerrainDefs";
+import { CROP_DEFS } from "./CropDefs";
 
-/** 作物の最終育成段階（potato_5）。これを超えてはならない。 */
-const MAX_GROWTH_STAGE = 7;
+/** CROP_DEFS に含まれない entity type（tree 等）に適用するフォールバック上限。 */
+const FALLBACK_MAX_GROWTH_STAGE = 7;
 
-/**
- * VoxelMap 全体を走査して、芋エンティティが載っているボクセルの
- * 育成カウンタを1インクリメントする。
- *
- * - ゲーム内1日が経過するたびに呼び出す（day_changed イベントを受けて App.tsx が呼ぶ）
- * - 育成カウンタが MAX_GROWTH_STAGE（5）に達しているタイルは更新しない
- * - y = horizonHeight の地表層のみを走査する
- */
-/**
- * VoxelMap 全体を走査して、wet soil を soil に変更する。
- * 作物エンティティが存在する場合はエンティティと growthStage を保持したまま地形タイプのみ変更する。
- *
- * - ゲーム内1日が経過するたびに呼び出す（day_changed イベントを受けて App.tsx が呼ぶ）
- */
-export function dryWetSoil(voxelMap: IVoxelWriter): void {
-    for (let x = 0; x < voxelMap.width; x++) {
-        for (let z = 0; z < voxelMap.depth; z++) {
-            const pos = voxelMap.getGroundSurfacePosition({ x, y: 0, z });
-            const voxel = voxelMap.get(pos);
-
-            if (getTerrainTypeFromVoxel(voxel) !== TERRAIN_TYPES.wetSoil) continue;
-
-            // 地形タイプのみ soil に変更（エンティティ・growthStage は保持）
-            voxelMap.set((voxel & ~0xff) | TERRAIN_TYPES.soil, pos);
-        }
-    }
-}
+/** 水切れ枯死の閾値。この日数連続で水切れすると枯死する。 */
+const DROUGHT_DEATH_THRESHOLD = 3;
 
 /**
- * VoxelMap 全体を走査して、施肥フラグが立っているボクセルのフラグをクリアする。
+ * ゲーム内1日が経過するたびに呼び出す統合日次処理。
  *
- * - ゲーム内1日が経過するたびに呼び出す（day_changed イベントを受けて App.tsx が呼ぶ）
- * - 地表層のみを走査する
+ * 旧 dryWetSoil + clearFertilized + advanceDayAllCrops を統合。
+ * 処理順序が重要: 水やり判定を先に行い、その後乾燥する。
+ *
+ * - 作物なしの wetSoil → soil に乾燥
+ * - 水やり必須作物 (needsWater=true):
+ *   - wetSoil → 成長 + drought=0 + 乾燥
+ *   - soil → 成長停止 + drought+=1 → drought>=3 で枯死
+ * - ジャガイモ (needsWater=false):
+ *   - wetSoil → 成長 + droughtCounter+=1 (水やり回数カウント) + 乾燥
+ *   - soil → 成長（水なしでも育つ）
+ * - tree・施設等 (CROP_DEFS 外):
+ *   - 従来通り常に成長、フォールバック上限使用
  */
-export function clearFertilized(voxelMap: IVoxelWriter): void {
-    for (let x = 0; x < voxelMap.width; x++) {
-        for (let z = 0; z < voxelMap.depth; z++) {
-            const pos = voxelMap.getGroundSurfacePosition({ x, y: 0, z });
-            const voxel = voxelMap.get(pos);
-
-            if (!getFertilizedFromVoxel(voxel)) continue;
-
-            voxelMap.set(setFertilizedInVoxel(voxel, false), pos);
-        }
-    }
-}
-
-export function advanceDayAllCrops(voxelMap: IVoxelWriter): void {
+export function processDailyTick(voxelMap: IVoxelWriter): void {
     for (let x = 0; x < voxelMap.width; x++) {
         for (let z = 0; z < voxelMap.depth; z++) {
             const pos = voxelMap.getSurfacePosition({ x, y: 0, z });
-            const voxel = voxelMap.get(pos);
+            let voxel = voxelMap.get(pos);
 
-            if (
-                getEntityTypeFromVoxel(voxel) !== ENTITY_TYPES.potato &&
-                getEntityTypeFromVoxel(voxel) !== ENTITY_TYPES.soy &&
-                getEntityTypeFromVoxel(voxel) !== ENTITY_TYPES.flax &&
-                getEntityTypeFromVoxel(voxel) !== ENTITY_TYPES.sunflower &&
-                getEntityTypeFromVoxel(voxel) !== ENTITY_TYPES.tree
-            )
+            const entityType = getEntityTypeFromVoxel(voxel);
+            const terrainType = getTerrainTypeFromVoxel(voxel);
+            const isWet = terrainType === TERRAIN_TYPES.wetSoil;
+
+            // --- エンティティなし: 乾燥のみ ---
+            if (entityType === ENTITY_TYPES.none) {
+                if (isWet) {
+                    voxelMap.set((voxel & ~0xff) | TERRAIN_TYPES.soil, pos);
+                }
                 continue;
+            }
 
-            const stage = getCropGrowthStageFromVoxel(voxel);
-            if (stage >= MAX_GROWTH_STAGE) continue;
+            const cropDef = CROP_DEFS[entityType];
 
-            voxelMap.set(setCropGrowthStageInVoxel(voxel, stage + 1), pos);
+            // --- CROP_DEFS 外（tree・施設等）: 従来ロジック ---
+            if (cropDef === undefined) {
+                const stage = getCropGrowthStageFromVoxel(voxel);
+                if (stage < FALLBACK_MAX_GROWTH_STAGE) {
+                    voxel = setCropGrowthStageInVoxel(voxel, stage + 1);
+                }
+                // wetSoil があれば乾燥
+                if (isWet) {
+                    voxel = (voxel & ~0xff) | TERRAIN_TYPES.soil;
+                }
+                voxelMap.set(voxel, pos);
+                continue;
+            }
+
+            // --- CROP_DEFS 内の作物 ---
+            const dayCounter = getCropGrowthStageFromVoxel(voxel);
+
+            // 既に枯死済みならスキップ（乾燥のみ）
+            if (dayCounter >= cropDef.witherDay) {
+                if (isWet) {
+                    voxelMap.set((voxel & ~0xff) | TERRAIN_TYPES.soil, pos);
+                }
+                continue;
+            }
+
+            if (cropDef.needsWater) {
+                // --- 水やり必須作物 ---
+                if (isWet) {
+                    // 水やり済み: 成長 + drought リセット + 乾燥
+                    voxel = setCropGrowthStageInVoxel(voxel, dayCounter + 1);
+                    voxel = setDroughtCounterInVoxel(voxel, 0);
+                    voxel = (voxel & ~0xff) | TERRAIN_TYPES.soil;
+                } else {
+                    // 水切れ: 成長停止 + drought インクリメント
+                    const drought = getDroughtCounterFromVoxel(voxel);
+                    const newDrought = drought + 1;
+                    if (newDrought >= DROUGHT_DEATH_THRESHOLD) {
+                        // 枯死: エンティティは残し、dayCounter を witherDay に設定して枯死スプライトを表示
+                        voxel = setCropGrowthStageInVoxel(voxel, cropDef.witherDay);
+                        voxel = setDroughtCounterInVoxel(voxel, 0);
+                    } else {
+                        voxel = setDroughtCounterInVoxel(voxel, newDrought);
+                    }
+                }
+            } else {
+                // --- ジャガイモ等（水やり不要）: 常に成長 ---
+                voxel = setCropGrowthStageInVoxel(voxel, dayCounter + 1);
+
+                if (isWet) {
+                    // 水やりされていたら watered count をインクリメント（drought bits を流用）
+                    const wateredCount = getDroughtCounterFromVoxel(voxel);
+                    if (wateredCount < 3) {
+                        voxel = setDroughtCounterInVoxel(voxel, wateredCount + 1);
+                    }
+                    // 乾燥
+                    voxel = (voxel & ~0xff) | TERRAIN_TYPES.soil;
+                }
+            }
+
+            voxelMap.set(voxel, pos);
         }
     }
 }

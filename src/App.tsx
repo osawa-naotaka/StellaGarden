@@ -3,7 +3,7 @@ import { useEffect, useRef } from "react";
 import { PIXEL_PER_TILE, TILE_PER_CHUNK } from "./_boundary/constants";
 import type { GameEventMap } from "./_boundary/events";
 import type { ItemId, SlotRef } from "./_boundary/interfaces";
-import { advanceDayAllCrops, clearFertilized, dryWetSoil } from "./engine/CropSystem";
+import { processDailyTick } from "./engine/CropSystem";
 import { GameTime } from "./engine/GameTime";
 import { ITEM_DEFS } from "./engine/ItemDefs";
 import { PlayerState } from "./engine/PlayerState";
@@ -163,13 +163,11 @@ function useGameEngine(worldSize: Size2D, chunkPerViewport: Size2D) {
             interactionDisposer = createInteractionHandler(voxelMap, playerState.inventory, eventBroker, () => {});
             interactionDisposerRef = interactionDisposer;
 
-            // day_changed: ゲーム内1日が経過するたびに全作物の育成カウンタをインクリメント
+            // day_changed: ゲーム内1日が経過するたびに日次処理を実行
             const gameTime = new GameTime();
             disposers.push(
                 eventBroker.subscribe("day_changed", () => {
-                    dryWetSoil(voxelMap);
-                    clearFertilized(voxelMap);
-                    advanceDayAllCrops(voxelMap);
+                    processDailyTick(voxelMap);
                 }),
             );
 
