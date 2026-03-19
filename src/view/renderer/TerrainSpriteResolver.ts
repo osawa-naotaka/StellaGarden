@@ -1,3 +1,4 @@
+import { getVisualStage } from "../../engine/CropDefs";
 import {
     ENTITY_TYPES,
     getCropGrowthStageFromVoxel,
@@ -6,7 +7,6 @@ import {
     getTerrainTypeFromVoxel,
     TERRAIN_TYPES,
 } from "../../engine/TerrainDefs";
-import { getVisualStage } from "../../engine/CropDefs";
 import type { Pos3D } from "../../lib/VoxelMap";
 
 // -----------------------------------------------------------------------------

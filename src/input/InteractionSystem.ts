@@ -399,9 +399,7 @@ export function createInteractionHandler(
                     inventory.consumeSelectedItem(1)
                 ) {
                     const fertType =
-                        tool === "compost" ? FERTILIZER_TYPES.compost :
-                        tool === "plant_ashes" ? FERTILIZER_TYPES.plant_ashes :
-                        FERTILIZER_TYPES.oil_cake;
+                        tool === "compost" ? FERTILIZER_TYPES.compost : tool === "plant_ashes" ? FERTILIZER_TYPES.plant_ashes : FERTILIZER_TYPES.oil_cake;
                     voxelMap.set(setFertilizerTypeInVoxel(voxel, fertType), surfacePos);
                 }
                 break;

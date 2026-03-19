@@ -1,7 +1,6 @@
 import { type Application, ColorMatrixFilter, Container, Sprite, Texture } from "pixi.js";
 import type { IVoxelReader, Pos2D, Pos3D } from "../_boundary/interfaces";
 import { ChunkRenderer } from "../lib/ChunkRenderer";
-import { DEBUG } from "../lib/debugFlag";
 import type { Size2D } from "../lib/VoxelMap";
 import { getEntitySpriteNameFromVoxel, getTerrainSpriteNamesFromVoxel } from "./renderer/TerrainSpriteResolver";
 import type { Tile } from "./Tile";
@@ -95,9 +94,8 @@ export class TopView {
     private renderTerrainChunk(world: Pos2D, col: number, row: number, pointerPos: Pos2D) {
         const idx = this.chunkIndex(col, row, true);
         const sprite = this.chunkSpritePool[idx];
-        const ppt = this.pixelPerTile;
         sprite.texture = this.chunkRenderer.renderChunk(this.voxelMap, world, idx, (tile, voxels, positions) =>
-            setupTerrainTile(tile, voxels, positions, this.voxelMap.horizonHeight, pointerPos, ppt),
+            setupTerrainTile(tile, voxels, positions, this.voxelMap.horizonHeight, pointerPos),
         );
         sprite.visible = true;
     }
@@ -117,7 +115,7 @@ export class TopView {
     }
 }
 
-function setupTerrainTile(tile: Tile, voxels: number[], positions: Pos3D[], horizonHeight: number, pointerPos: Pos2D, pixelPerTile: number): void {
+function setupTerrainTile(tile: Tile, voxels: number[], positions: Pos3D[], horizonHeight: number, pointerPos: Pos2D): void {
     const spriteNames = getTerrainSpriteNamesFromVoxel(voxels, positions, horizonHeight);
     tile.useNSprites(spriteNames.length);
 

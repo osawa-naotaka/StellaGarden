@@ -1,4 +1,5 @@
 import type { IVoxelWriter } from "../_boundary/interfaces";
+import { CROP_DEFS } from "./CropDefs";
 import {
     ENTITY_TYPES,
     getCropGrowthStageFromVoxel,
@@ -9,7 +10,6 @@ import {
     setDroughtCounterInVoxel,
     TERRAIN_TYPES,
 } from "./TerrainDefs";
-import { CROP_DEFS } from "./CropDefs";
 
 /** CROP_DEFS に含まれない entity type（tree 等）に適用するフォールバック上限。 */
 const FALLBACK_MAX_GROWTH_STAGE = 7;
