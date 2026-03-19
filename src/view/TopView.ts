@@ -130,8 +130,6 @@ function setupTerrainTile(tile: Tile, voxels: number[], positions: Pos3D[], hori
         tile.sprites[i].filters = isHovered ? [hoverFilter] : [];
         tile.sprites[i].position.set(0);
     }
-
-    if (DEBUG) tile.setDebugYLabel(positions[4].y, pixelPerTile);
 }
 
 function setupEntityTile(tile: Tile, voxels: number[], positions: Pos3D[], pointerPos: Pos2D): void {

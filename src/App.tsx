@@ -203,7 +203,7 @@ function useGameEngine(worldSize: Size2D, chunkPerViewport: Size2D) {
             const inputHandler = new InputHandler(topView.top, playerState, eventBroker);
             disposers.push(inputHandler.setListeners());
 
-            const debugText = DEBUG ? new DebugText(playerState, gameTime) : null;
+            const debugText = DEBUG ? new DebugText(playerState, gameTime, voxelMap) : null;
             if (debugText) {
                 pixiApp.stage.addChild(debugText.textView);
             }
