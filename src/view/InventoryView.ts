@@ -1,11 +1,12 @@
 import { BitmapText, Container, type FederatedPointerEvent, Graphics, Rectangle, Sprite, Texture } from "pixi.js";
-import type { IInventoryWriter, ItemId, ItemStack, SlotRef } from "../_boundary/interfaces";
+import type { CraftStation, ICraftSystem, IInventoryWriter, ItemId, ItemStack, SlotRef } from "../_boundary/interfaces";
 import { ITEM_DEFS } from "../engine/ItemDefs";
+import { CraftPane } from "./CraftPane";
 
 const CELL_SIZE = 40;
 const ICON_SIZE = 32;
 const PADDING = 10;
-const TITLE_HEIGHT = 28;
+const TAB_HEIGHT = 32;
 const SEPARATOR_HEIGHT = 14;
 const INVENTORY_COLS = 8;
 const INVENTORY_ROWS = 8;
@@ -82,7 +83,8 @@ function createSlotIcon(container: Container, cellSize: number): SlotIcon {
 /** Eキーで開閉できる 8×8 インベントリウィンドウ。
  *  画面中央に表示し、ウィンドウ下部にツールバースロットも表示する。
  *  スロット間のアイテム移動（左クリック全交換・右クリック1個移動）をサポートする。
- *  placeable アイテムを右クリックすると onRequestPlacement コールバックを呼び、配置モードへ遷移する。 */
+ *  placeable アイテムを右クリックすると onRequestPlacement コールバックを呼び、配置モードへ遷移する。
+ *  「Inventory」「Craft」の2つのタブを持ち、クラフトタブではレシピ選択とクラフト実行が可能。 */
 export class InventoryView {
     private container: Container;
     private inventory: IInventoryWriter;
@@ -104,20 +106,34 @@ export class InventoryView {
     private windowWidth: number;
     private windowHeight: number;
 
+    /** タブ管理 */
+    private activeTab: "inventory" | "craft" = "inventory";
+    private craftPane: CraftPane;
+
+    /** タブボタン（背景 Graphics）への参照。switchTab で色を更新する。 */
+    private tabBgInventory: Graphics;
+    private tabBgCraft: Graphics;
+
     private onMouseMoveBound: (e: MouseEvent) => void;
     private onKeyDownBound: (e: KeyboardEvent) => void;
 
-    constructor(inventory: IInventoryWriter, onRequestPlacement?: (itemId: ItemId, sourceSlot: SlotRef) => void) {
+    constructor(inventory: IInventoryWriter, craftSystem: ICraftSystem, onRequestPlacement?: (itemId: ItemId, sourceSlot: SlotRef) => void) {
         this.inventory = inventory;
         this.onRequestPlacement = onRequestPlacement;
         this.container = new Container();
         this.container.visible = false;
 
+        // 左ペイン幅（インベントリグリッドとツールバーの広い方）
         const invWidth = INVENTORY_COLS * CELL_SIZE;
         const tbWidth = TOOLBAR_COLS * CELL_SIZE;
-        const contentWidth = Math.max(invWidth, tbWidth);
-        const contentHeight = TITLE_HEIGHT + INVENTORY_ROWS * CELL_SIZE + SEPARATOR_HEIGHT + CELL_SIZE;
-        this.windowWidth = contentWidth + PADDING * 2;
+        const leftPaneWidth = Math.max(invWidth, tbWidth) + PADDING * 2;
+
+        // 右ペイン幅（CraftPane の幅）
+        const rightPaneWidth = 200; // CraftPane の PANE_WIDTH
+        const totalWidth = leftPaneWidth + rightPaneWidth + PADDING;
+
+        const contentHeight = TAB_HEIGHT + INVENTORY_ROWS * CELL_SIZE + SEPARATOR_HEIGHT + CELL_SIZE;
+        this.windowWidth = totalWidth;
         this.windowHeight = contentHeight + PADDING * 2;
 
         this.cursorContainer = new Container();
@@ -127,11 +143,18 @@ export class InventoryView {
         this.onMouseMoveBound = this.onMouseMove.bind(this);
         this.onKeyDownBound = this.onKeyDown.bind(this);
 
-        this.buildUI(contentWidth);
+        // CraftPane を事前生成
+        this.craftPane = new CraftPane(craftSystem, "hand");
+
+        // タブボタン用プレースホルダー（buildUI 内で上書きされる）
+        this.tabBgInventory = new Graphics();
+        this.tabBgCraft = new Graphics();
+
+        this.buildUI(leftPaneWidth, rightPaneWidth);
         this.updateWindowPosition();
     }
 
-    private buildUI(contentWidth: number): void {
+    private buildUI(leftPaneWidth: number, rightPaneWidth: number): void {
         // 背景
         const bg = new Graphics();
         bg.rect(0, 0, this.windowWidth, this.windowHeight);
@@ -141,19 +164,60 @@ export class InventoryView {
         bg.on("pointerdown", (e) => e.stopPropagation());
         this.container.addChild(bg);
 
-        // タイトル
-        const title = new BitmapText({
-            text: "Inventory",
-            style: { fontFamily: "Roboto", fontSize: 20, fill: 0xdddddd },
-        });
-        title.x = PADDING;
-        title.y = PADDING;
-        this.container.addChild(title);
+        // ─── タブバー ───────────────────────────────────────────────────────────
+        const TAB_WIDTH = 100;
+        const TAB_INNER_WIDTH = TAB_WIDTH - 2;
 
+        // Inventory タブ
+        this.tabBgInventory = new Graphics();
+        this.tabBgInventory.rect(0, 0, TAB_INNER_WIDTH, TAB_HEIGHT - 4);
+        this.tabBgInventory.fill({ color: 0x444444 }); // 初期は選択状態
+        this.tabBgInventory.x = PADDING;
+        this.tabBgInventory.y = PADDING;
+        this.tabBgInventory.interactive = true;
+        this.tabBgInventory.cursor = "pointer";
+        this.tabBgInventory.on("pointerdown", (e: FederatedPointerEvent) => {
+            e.stopPropagation();
+            this.switchTab("inventory");
+        });
+        this.container.addChild(this.tabBgInventory);
+
+        const tabLabelInventory = new BitmapText({
+            text: "Inventory",
+            style: { fontFamily: "Roboto", fontSize: 14, fill: 0xdddddd },
+        });
+        tabLabelInventory.x = PADDING + 8;
+        tabLabelInventory.y = PADDING + (TAB_HEIGHT - 4 - 14) / 2;
+        this.container.addChild(tabLabelInventory);
+
+        // Craft タブ
+        this.tabBgCraft = new Graphics();
+        this.tabBgCraft.rect(0, 0, TAB_INNER_WIDTH, TAB_HEIGHT - 4);
+        this.tabBgCraft.fill({ color: 0x333333 }); // 初期は非選択状態
+        this.tabBgCraft.x = PADDING + TAB_WIDTH;
+        this.tabBgCraft.y = PADDING;
+        this.tabBgCraft.interactive = true;
+        this.tabBgCraft.cursor = "pointer";
+        this.tabBgCraft.on("pointerdown", (e: FederatedPointerEvent) => {
+            e.stopPropagation();
+            this.switchTab("craft");
+        });
+        this.container.addChild(this.tabBgCraft);
+
+        const tabLabelCraft = new BitmapText({
+            text: "Craft",
+            style: { fontFamily: "Roboto", fontSize: 14, fill: 0xdddddd },
+        });
+        tabLabelCraft.x = PADDING + TAB_WIDTH + 8;
+        tabLabelCraft.y = PADDING + (TAB_HEIGHT - 4 - 14) / 2;
+        this.container.addChild(tabLabelCraft);
+
+        // ─── 左ペイン（インベントリグリッド + ツールバー）──────────────────────
         const invWidth = INVENTORY_COLS * CELL_SIZE;
         const tbWidth = TOOLBAR_COLS * CELL_SIZE;
+        const contentWidth = Math.max(invWidth, tbWidth);
         const invOffsetX = PADDING + (contentWidth - invWidth) / 2;
-        const invOffsetY = PADDING + TITLE_HEIGHT;
+        const invOffsetY = PADDING + TAB_HEIGHT;
 
         // インベントリ 8×8 グリッド
         for (let row = 0; row < INVENTORY_ROWS; row++) {
@@ -190,8 +254,25 @@ export class InventoryView {
             this.tbSlotIcons.push(createSlotIcon(slotContainer, CELL_SIZE));
         }
 
-        // カーソル追従コンテナ（最前面）
+        // ─── 右ペイン（CraftPane）──────────────────────────────────────────────
+        const rightPaneX = leftPaneWidth;
+        this.craftPane.top.x = rightPaneX;
+        this.craftPane.top.y = PADDING + TAB_HEIGHT;
+        this.craftPane.top.visible = false; // 初期は非表示
+        this.container.addChild(this.craftPane.top);
+
+        // ─── カーソル追従コンテナ（最前面）────────────────────────────────────
         this.container.addChild(this.cursorContainer);
+
+        // 右ペインの背景を調整（CraftPane の背景を上書き）
+        const craftBg = new Graphics();
+        craftBg.rect(0, 0, rightPaneWidth, this.windowHeight - PADDING - TAB_HEIGHT - PADDING);
+        craftBg.fill({ color: 0x222222, alpha: 0.0 });
+        craftBg.stroke({ width: 1, color: 0x666666, alpha: 0.5 });
+        craftBg.x = rightPaneX;
+        craftBg.y = PADDING + TAB_HEIGHT;
+        // craftBg は CraftPane の背面に挿入済みのコンテナより前に来るが、
+        // CraftPane 自体に背景があるためここでは不要。省略する。
     }
 
     private createSlotContainer(ref: SlotRef): Container {
@@ -309,6 +390,23 @@ export class InventoryView {
         }
     }
 
+    /** アクティブなタブを切り替え、タブボタンの見た目と CraftPane の表示を更新する。 */
+    private switchTab(tab: "inventory" | "craft"): void {
+        this.activeTab = tab;
+
+        // タブボタンの背景色を更新
+        this.tabBgInventory.clear();
+        this.tabBgInventory.rect(0, 0, 98, 28);
+        this.tabBgInventory.fill({ color: tab === "inventory" ? 0x444444 : 0x333333 });
+
+        this.tabBgCraft.clear();
+        this.tabBgCraft.rect(0, 0, 98, 28);
+        this.tabBgCraft.fill({ color: tab === "craft" ? 0x444444 : 0x333333 });
+
+        // CraftPane の表示/非表示を切り替え
+        this.craftPane.top.visible = tab === "craft";
+    }
+
     private updateWindowPosition(): void {
         this.container.x = (window.innerWidth - this.windowWidth) / 2;
         this.container.y = (window.innerHeight - this.windowHeight) / 2;
@@ -335,10 +433,18 @@ export class InventoryView {
         } else {
             this.cursorContainer.visible = false;
         }
+
+        if (this.activeTab === "craft") {
+            this.craftPane.tick();
+        }
     }
 
-    /** インベントリウィンドウを表示する。 */
-    show(): void {
+    /** インベントリウィンドウを表示する。
+     *  defaultTab でどのタブを最初に表示するかを指定できる。
+     *  station はクラフトタブで使用する作業台の種類。 */
+    show(defaultTab: "inventory" | "craft" = "inventory", station: CraftStation = "hand"): void {
+        this.craftPane.update(station);
+        this.switchTab(defaultTab);
         this.updateWindowPosition();
         this.container.visible = true;
         window.addEventListener("mousemove", this.onMouseMoveBound);

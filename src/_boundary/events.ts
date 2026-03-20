@@ -15,6 +15,9 @@ export type GameEventMap = {
     select_slot: { slotIndex: number };
     /** インベントリ開閉トグル（E キー）。view/ が subscribe する唯一の UI イベント。 */
     toggle_inventory: Record<string, never>;
+    /** 作業台を右クリックしてクラフトUIを開く。
+     *  発行: InteractionSystem（作業台エンティティ検出時）。購読: App.tsx → InventoryView.show("craft")。 */
+    open_craft_ui: { pos: Pos2D };
 
     // ─── input → engine（Phase 3 以降で使用） ───────────────────────────────
     /** プレイヤー移動要求。移動量が 0 でない場合のみ発行すること。

@@ -127,6 +127,44 @@ export interface IGameTimeReader {
     readonly dayCount: number;
 }
 
+// ─── CraftSystem インターフェース ────────────────────────────────────────────
+
+/** クラフトの作成場所。hand = 素手、workbench = 作業台。 */
+export type CraftStation = "hand" | "workbench";
+
+/** レシピの素材1種。 */
+export type RecipeIngredient = { readonly itemId: ItemId; readonly count: number };
+
+/** クラフトレシピ定義。engine/RecipeDefs.ts で具体値を保持する。 */
+export interface RecipeDef {
+    readonly id: string;
+    readonly station: CraftStation;
+    readonly ingredients: readonly RecipeIngredient[];
+    readonly result: { readonly itemId: ItemId; readonly count: number };
+}
+
+/**
+ * クラフトシステムの読み取りインターフェース。
+ * view/ が tick() でレシピ一覧とクラフト可否を参照する。
+ */
+export interface ICraftSystemReader {
+    /** 指定ステーションで利用可能なレシピ一覧を返す。
+     *  hand → 素手レシピのみ、workbench → 全レシピ。 */
+    getAvailableRecipes(station: CraftStation): readonly RecipeDef[];
+    /** 指定レシピの素材がインベントリに足りているか判定する。 */
+    canCraft(recipe: RecipeDef): boolean;
+}
+
+/**
+ * クラフトシステムの書き込みインターフェース。
+ * view/ がクラフト実行時に呼ぶ。
+ */
+export interface ICraftSystem extends ICraftSystemReader {
+    /** レシピを実行する。素材をインベントリから消費し、成果物を追加する。
+     *  成功時 true、素材不足またはインベントリ満杯時 false。 */
+    craft(recipe: RecipeDef): boolean;
+}
+
 // ─── EventBroker インターフェース ────────────────────────────────────────────
 
 /**

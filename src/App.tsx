@@ -4,6 +4,7 @@ import { PIXEL_PER_TILE, TILE_PER_CHUNK } from "./_boundary/constants";
 import type { GameEventMap } from "./_boundary/events";
 import type { ItemId, SlotRef } from "./_boundary/interfaces";
 import { processDailyTick } from "./engine/CropSystem";
+import { CraftSystem } from "./engine/CraftSystem";
 import { GameTime } from "./engine/GameTime";
 import { ITEM_DEFS } from "./engine/ItemDefs";
 import { PlayerState } from "./engine/PlayerState";
@@ -130,7 +131,9 @@ function useGameEngine(worldSize: Size2D, chunkPerViewport: Size2D) {
                 exitPlacementMode();
             };
 
-            const inventoryView = new InventoryView(playerState.inventory, (itemId, sourceSlot) => {
+            const craftSystem = new CraftSystem(playerState.inventory);
+
+            const inventoryView = new InventoryView(playerState.inventory, craftSystem, (itemId, sourceSlot) => {
                 // インベントリからアイテムを取り出し
                 playerState.inventory.setSlot(sourceSlot, null);
                 // インベントリを閉じる
@@ -192,11 +195,22 @@ function useGameEngine(worldSize: Size2D, chunkPerViewport: Size2D) {
                     inventoryOpen = !inventoryOpen;
                     if (inventoryOpen) {
                         toolbar.top.visible = false;
-                        inventoryView.show();
+                        inventoryView.show("inventory");
                     } else {
                         inventoryView.hide();
                         toolbar.top.visible = true;
                     }
+                }),
+            );
+
+            // クラフトUIを開く（作業台右クリック）
+            disposers.push(
+                eventBroker.subscribe("open_craft_ui", () => {
+                    if (!pixiApp) return;
+                    if (placementMode) return;
+                    inventoryOpen = true;
+                    toolbar.top.visible = false;
+                    inventoryView.show("craft", "workbench");
                 }),
             );
 

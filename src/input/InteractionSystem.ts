@@ -130,6 +130,18 @@ export function createInteractionHandler(
         // 水源ブロックは操作対象外（破壊不能）
         if (terrainType === TERRAIN_TYPES.waterSource) return;
 
+        // 作業台エンティティの検出: axe/pickaxe（撤去ツール）以外で作業台を右クリック → クラフトUI を開く
+        const entityType = getEntityTypeFromVoxel(voxel);
+        if (
+            entityType === ENTITY_TYPES.workbench ||
+            (entityType === ENTITY_TYPES.facility_part && findFacilityAnchor(voxelMap, packet.pos.x, packet.pos.z)?.def.id === "workbench")
+        ) {
+            if (tool !== "axe" && tool !== "pickaxe") {
+                eventBroker.publish("open_craft_ui", { pos: packet.pos });
+                return;
+            }
+        }
+
         switch (tool) {
             case "hand":
                 break;
