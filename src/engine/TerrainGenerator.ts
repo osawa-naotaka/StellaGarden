@@ -20,7 +20,7 @@ export function generateTerrain(opt: GenerateTerrainOptions): VoxelMap {
     const rivers = generateRivers(hightMap.hm, hightMap.hmf, opt);
     const hm = elodeRiverside(hightMap.hm, rivers, opt); // 渓谷カービングで高さマップを掘り下げる
     const map = createVoxelMap(hm, opt);
-    placeForestTrees(map);
+    placeEntities(map);
 
     return map;
 }
@@ -367,25 +367,38 @@ function generateRivers(hm: Int8Array, hmf: Float32Array, opt: GenerateTerrainOp
     return [...majorRivers, ...tributaries];
 }
 
-function placeForestTrees(map: VoxelMap): void {
+function placeEntities(map: VoxelMap): void {
     const forestNoise = createNoise2D(alea("forest"));
     const treeNoise = createNoise2D(alea("tree"));
     const forestScale = 0.025; // 森バイオームの周波数（低周波 = 大きなまとまり）
-    const treeScale = 0.15; // 個別の木の配置周波数（高周波 = 細かい分布）
+    const treeScale = 10; // 個別の木の配置周波数（高周波 = 細かい分布）
 
+    const stoneNoise = createNoise2D(alea("stone"));
+    const stoneScale = 10; // 個別の石の配置周波数（高周波 = 細かい分布）    
+    
     for (let z = 0; z < map.depth; z++) {
         for (let x = 0; x < map.width; x++) {
             const isForestBiome = forestNoise(x * forestScale, z * forestScale) > 0.2;
-            const shouldPlaceTree = isForestBiome && treeNoise(x * treeScale, z * treeScale) > 0.3;
+            const shouldPlaceTree = isForestBiome && treeNoise(x * treeScale, z * treeScale) > 0.4;
+            const shouldPlaceStone = stoneNoise(x * stoneScale, z * stoneScale) > 0.9;
 
-            if (!shouldPlaceTree) continue;
+            if (!shouldPlaceTree && !shouldPlaceStone) continue;
 
-            const pos = map.getSurfacePosition({ x, y: 0, z });
-            const terrain = map.get(pos);
+            if (shouldPlaceStone) {
+                const pos = map.getSurfacePosition({ x, y: 0, z });
+                const terrain = map.get(pos);
 
-            if (terrain === TERRAIN_TYPES.soil || terrain === TERRAIN_TYPES.grass) {
-                map.set(terrain | (ENTITY_TYPES.tree << 8), pos);
-            }
-        }
+                if (terrain === TERRAIN_TYPES.soil || terrain === TERRAIN_TYPES.grass) {
+                    map.set(terrain | (ENTITY_TYPES.stone << 8), pos);
+                }
+            } else if (shouldPlaceTree) {
+              const pos = map.getSurfacePosition({ x, y: 0, z });
+              const terrain = map.get(pos);
+  
+              if (terrain === TERRAIN_TYPES.soil || terrain === TERRAIN_TYPES.grass) {
+                  map.set(terrain | (ENTITY_TYPES.tree << 8), pos);
+              }                
+            } 
+          }
     }
 }

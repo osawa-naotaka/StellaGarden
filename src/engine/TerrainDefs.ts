@@ -28,6 +28,7 @@ export const ENTITY_TYPES = {
     scutching_board: 13,
     spinning_wheel: 14,
     loom: 15,
+    stone: 16,
 } as const;
 
 // ---------------------------------------------------------------------------

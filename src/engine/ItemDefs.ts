@@ -41,7 +41,8 @@ export type ItemId =
     | "soaking_basket"
     | "scutching_board"
     | "spinning_wheel"
-    | "loom";
+    | "loom"
+    | "stone";
 
 export interface ItemDef {
     readonly id: ItemId;
@@ -172,6 +173,11 @@ export const ITEM_DEFS: Record<ItemId, ItemDef> = {
         entitySize: { w: 2, h: 2 },
         entityType: 15,
         fieldSpriteName: "ss_sprite_059.png",
+    },
+    stone: {
+        id: "stone",
+        spriteName: "stone-icon.png",
+        maxStack: 64,
     },
 };
 

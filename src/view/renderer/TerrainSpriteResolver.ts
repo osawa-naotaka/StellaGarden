@@ -356,6 +356,8 @@ export function getEntitySpriteNameFromVoxel(voxel: number): EntitySpriteInfo[] 
             return [["ss_sprite_058.png", 0, 0]];
         case ENTITY_TYPES.loom: // 32x32
             return [["ss_sprite_059.png", 0, 0]];
+        case ENTITY_TYPES.stone: // 16x16
+            return [["stone1.png", 0, 0]];
         case ENTITY_TYPES.facility_part:
             // 描画はアンカータイル（workbench）が担当するため、このタイルでは描画しない。
             return [];

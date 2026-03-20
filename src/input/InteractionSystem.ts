@@ -228,6 +228,11 @@ export function createInteractionHandler(
                 const anchor = findFacilityAnchor(voxelMap, packet.pos.x, packet.pos.z);
                 if (anchor && anchor.def.entityType === ENTITY_TYPES.forge) {
                     removeFacility(voxelMap, inventory, anchor.anchorX, anchor.anchorZ, anchor.def);
+                } else if(getEntityTypeFromVoxel(voxel) === ENTITY_TYPES.stone) {
+                    const pos = voxelMap.getSurfacePosition({ x: packet.pos.x, y: 0, z: packet.pos.z });
+                    const afterVoxel = TERRAIN_TYPES.dirt;
+                    voxelMap.set(afterVoxel, pos);
+                    inventory.addItem("stone", 1);
                 }
                 break;
             }
