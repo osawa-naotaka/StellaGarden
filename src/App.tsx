@@ -133,6 +133,10 @@ function useGameEngine(worldSize: Size2D, chunkPerViewport: Size2D) {
 
             const craftSystem = new CraftSystem(playerState.inventory);
 
+            await loadSprite();
+            // loadSprite の await 中にクリーンアップが走った場合は中断する
+            if (!pixiApp) return;            
+            
             const inventoryView = new InventoryView(playerState.inventory, craftSystem, (itemId, sourceSlot) => {
                 // インベントリからアイテムを取り出し
                 playerState.inventory.setSlot(sourceSlot, null);
@@ -156,10 +160,6 @@ function useGameEngine(worldSize: Size2D, chunkPerViewport: Size2D) {
                 }
             });
             pixiApp.stage.addChild(inventoryView.top);
-
-            await loadSprite();
-            // loadSprite の await 中にクリーンアップが走った場合は中断する
-            if (!pixiApp) return;
 
             topView.initializeSprites();
 
