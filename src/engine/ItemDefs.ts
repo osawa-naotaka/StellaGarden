@@ -63,11 +63,11 @@ export interface ItemDef {
 
 export const ITEM_DEFS: Record<ItemId, ItemDef> = {
     hand: { id: "hand", spriteName: "ss_sprite_002.png", maxStack: 1 },
-    watering_can: { id: "watering_can", spriteName: "watering_can", maxStack: 1 },
-    pickaxe: { id: "pickaxe", spriteName: "pickaxe", maxStack: 1 },
-    axe: { id: "axe", spriteName: "axe", maxStack: 1 },
-    sickle: { id: "sickle", spriteName: "sickle", maxStack: 1 },
-    shovel: { id: "shovel", spriteName: "shovel", maxStack: 1 },
+    watering_can: { id: "watering_can", spriteName: "water_can.png", maxStack: 1 },
+    pickaxe: { id: "pickaxe", spriteName: "pickaxe.png", maxStack: 1 },
+    axe: { id: "axe", spriteName: "axe.png", maxStack: 1 },
+    sickle: { id: "sickle", spriteName: "sickle.png", maxStack: 1 },
+    shovel: { id: "shovel", spriteName: "shovel.png", maxStack: 1 },
     hoes: { id: "hoes", spriteName: "ss_sprite_001.png", maxStack: 1 },
     potato: { id: "potato", spriteName: "ss_sprite_009.png", maxStack: 64 },
     soybeans: { id: "soybeans", spriteName: "ss_sprite_015.png", maxStack: 64 },
