@@ -6,6 +6,7 @@ import {
     TERRAIN_TYPES,
 } from "../../engine/TerrainDefs";
 import { registerEntity, type EntitySpriteInfo, type InteractionContext } from "../EntityRegistry";
+import { registerItem } from "../ItemRegistry";
 
 // ── スプライト定義 ──
 
@@ -23,7 +24,6 @@ const sprites: EntitySpriteInfo[][] = [
 
 registerEntity({
     entityType: ENTITY_TYPES.tree,
-    itemId: "nuts",
 
     getSprites(voxel: number): EntitySpriteInfo[] {
         const dayCounter = getCropGrowthStageFromVoxel(voxel);
@@ -43,8 +43,11 @@ registerEntity({
         return true;
     },
 
+});
+
+registerItem({
+    itemId: "nuts",
     onItemUse(ctx: InteractionContext): boolean {
-        // 植え付け: nuts アイテムを soil/wetSoil に使用
         const voxel = ctx.voxel;
         const terrainType = getTerrainTypeFromVoxel(voxel);
         if (

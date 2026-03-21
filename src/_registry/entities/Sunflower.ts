@@ -13,6 +13,7 @@ import {
     TERRAIN_TYPES,
 } from "../../engine/TerrainDefs";
 import { registerEntity, type EntitySpriteInfo, type InteractionContext } from "../EntityRegistry";
+import { registerItem } from "../ItemRegistry";
 
 // ── スプライト定義 ──
 
@@ -38,7 +39,6 @@ const sprites: EntitySpriteInfo[][] = [
 
 registerEntity({
     entityType: ENTITY_TYPES.sunflower,
-    itemId: "sunflower_seed",
 
     getSprites(voxel: number): EntitySpriteInfo[] {
         const dayCounter = getCropGrowthStageFromVoxel(voxel);
@@ -78,8 +78,11 @@ registerEntity({
         return true;
     },
 
+});
+
+registerItem({
+    itemId: "sunflower_seed",
     onItemUse(ctx: InteractionContext): boolean {
-        // 植え付け: sunflower_seed アイテムを soil/wetSoil に使用
         const voxel = ctx.voxel;
         const terrainType = getTerrainTypeFromVoxel(voxel);
         if (

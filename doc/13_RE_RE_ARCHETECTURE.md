@@ -69,19 +69,17 @@ src/
 
 | Registry | 管理対象 | キー | 主な責務 |
 |---|---|---|---|
-| EntityRegistry | 地図上のエンティティ（作物・施設・木・石） | `entityType` / `itemId` | スプライト解決 + onInteract（対象が自分の時） + onItemUse（自分を道具として使う時） |
-| ItemRegistry | エンティティに対応しないアイテム（肥料・水やり等） | `itemId` | onItemUse（アイテムをワールドに使用する時） |
+| EntityRegistry | 地図上のエンティティ（作物・施設・木・石） | `entityType` | スプライト解決 + onInteract（対象が自分の時） |
+| ItemRegistry | ワールドに使用するアイテム（植え付け・肥料・水やり等） | `itemId` | onItemUse（アイテムをワールドに使用する時） |
 | TerrainRegistry | 地形タイプに対する操作（掘る・耕す等） | `terrainType` | onInteract（この地形タイプが操作対象の時） |
 
-**ディスパッチ順序（4パス）:**
+**ディスパッチ順序（3パス）:**
 ```
 パス1: EntityRegistry — エンティティベース（entityType で引く）
   → 例: 成熟した potato を shovel で収穫、workbench を右クリックでクラフトUI
-パス2: EntityRegistry — アイテムベース（tool の itemId で引く）
-  → 例: potato アイテムで soil に植え付け
-パス3: ItemRegistry — アイテムベース（tool の itemId で引く）
-  → 例: compost で soil に施肥、watering_can で soil を wetSoil に
-パス4: TerrainRegistry — 地形ベース（terrainType で引く）
+パス2: ItemRegistry — アイテムベース（tool の itemId で引く）
+  → 例: potato アイテムで soil に植え付け、compost で施肥、watering_can で水やり
+パス3: TerrainRegistry — 地形ベース（terrainType で引く）
   → 例: shovel で grass/dirt を掘削、hoes で grass → soil
 ```
 
@@ -115,7 +113,6 @@ export interface InteractionContext {
 
 export interface EntityDef {
     readonly entityType: number;
-    readonly itemId?: ItemId;
 
     /** voxel からスプライト情報を返す */
     getSprites(voxel: number): EntitySpriteInfo[];
@@ -123,31 +120,33 @@ export interface EntityDef {
     /** このエンティティが対象地点に存在する時に呼ばれる（例: 収穫）。
      *  true を返すと処理済みとしてフォールバックをスキップする。 */
     onInteract?(ctx: InteractionContext): boolean;
-
-    /** このエンティティに対応するアイテムをツールとして使用した時に呼ばれる（例: 植え付け）。
-     *  true を返すと処理済みとしてフォールバックをスキップする。 */
-    onItemUse?(ctx: InteractionContext): boolean;
 }
+```
+
+アイテム使用（植え付け等）は `ItemRegistry` に `registerItem()` で登録する。
+1つのファイル内で `registerEntity()` と `registerItem()` の両方を呼ぶことで、
+エンティティの全側面を1ファイルに集約する原則は維持される。
+
+```typescript
+// 例: Potato.ts
+registerEntity({ entityType: ENTITY_TYPES.potato, getSprites(...) { ... }, onInteract(...) { ... } });
+registerItem({ itemId: "potato", onItemUse(...) { ... } });
 ```
 
 ### ディスパッチ
 
-InteractionSystem でのインタラクション処理は4段階で行う。各パスのハンドラが `true` を返した場合、後続パスはスキップされる。`false` を返した（または未定義の）場合、次のパスに進む。
+InteractionSystem でのインタラクション処理は3段階で行う。各パスのハンドラが `true` を返した場合、後続パスはスキップされる。`false` を返した（または未定義の）場合、次のパスに進む。
 
 ```
 パス1: EntityRegistry — エンティティベース
   getEntityDef(entityType)?.onInteract(ctx)
   → 例: 成熟した potato を shovel で収穫、workbench をクリックでクラフトUI
 
-パス2: EntityRegistry — アイテムベース
-  getEntityDefByItemId(tool)?.onItemUse(ctx)
-  → 例: potato アイテムを soil に植え付け
-
-パス3: ItemRegistry — アイテムベース
+パス2: ItemRegistry — アイテムベース
   getItemDef(tool)?.onItemUse(ctx)
-  → 例: compost で soil に施肥、watering_can で soil → wetSoil
+  → 例: potato アイテムで植え付け、compost で施肥、watering_can で水やり
 
-パス4: TerrainRegistry — 地形ベース
+パス3: TerrainRegistry — 地形ベース
   getTerrainDef(terrainType)?.onInteract(ctx)
   → 例: shovel で grass/dirt を掘削、hoes で grass → soil
 ```
@@ -159,14 +158,14 @@ InteractionSystem でのインタラクション処理は4段階で行う。各�
 | ツール | 対象 | 操作 | ディスパッチ |
 |---|---|---|---|
 | shovel | potato（成熟） | 収穫 | パス1（EntityRegistry） |
-| shovel | grass/dirt 地面 | 掘削 | パス4（TerrainRegistry） |
-| potato | 空の耕地 | 植え付け | パス2（EntityRegistry） |
-| watering_can | soil | 水やり | パス3（ItemRegistry） |
-| compost | soil/wetSoil | 施肥 | パス3（ItemRegistry） |
+| shovel | grass/dirt 地面 | 掘削 | パス3（TerrainRegistry） |
+| potato | 空の耕地 | 植え付け | パス2（ItemRegistry） |
+| watering_can | soil | 水やり | パス2（ItemRegistry） |
+| compost | soil/wetSoil | 施肥 | パス2（ItemRegistry） |
 | axe | tree | 伐採 | パス1（EntityRegistry） |
 | axe | 施設 | 撤去 | パス1（EntityRegistry） |
-| hoes | grass | 耕作 | パス4（TerrainRegistry） |
-| dirt | grass/dirt | 土盛り | パス3（ItemRegistry） |
+| hoes | grass | 耕作 | パス3（TerrainRegistry） |
+| dirt | grass/dirt | 土盛り | パス2（ItemRegistry） |
 
 ---
 

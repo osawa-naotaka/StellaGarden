@@ -1,6 +1,6 @@
 import type { GameEventMap } from "../_boundary/events";
 import type { IInventoryWriter, IVoxelWriter } from "../_boundary/interfaces";
-import { getEntityDef, getEntityDefByItemId, type InteractionContext } from "../_registry/EntityRegistry";
+import { getEntityDef, type InteractionContext } from "../_registry/EntityRegistry";
 import { getItemDef } from "../_registry/ItemRegistry";
 import { getTerrainDef } from "../_registry/TerrainRegistry";
 import { findFacilityAnchor } from "../engine/ItemDefs";
@@ -40,19 +40,13 @@ export function createInteractionHandler(
         const entityDef = getEntityDef(entityType);
         if (entityDef?.onInteract?.(ctx)) return;
 
-        // パス2: EntityRegistry — アイテムベース（例: 植え付け）
-        if (tool) {
-            const entityItemDef = getEntityDefByItemId(tool);
-            if (entityItemDef?.onItemUse?.(ctx)) return;
-        }
-
-        // パス3: ItemRegistry — アイテムベース（例: 肥料・水やり・土盛り）
+        // パス2: ItemRegistry — アイテムベース（例: 植え付け・肥料・水やり・土盛り）
         if (tool) {
             const itemDef = getItemDef(tool);
             if (itemDef?.onItemUse?.(ctx)) return;
         }
 
-        // パス4: TerrainRegistry — 地形ベース（例: 掘削・耕作）
+        // パス3: TerrainRegistry — 地形ベース（例: 掘削・耕作）
         const terrainDef = getTerrainDef(terrainType);
         if (terrainDef?.onInteract?.(ctx)) return;
     });
