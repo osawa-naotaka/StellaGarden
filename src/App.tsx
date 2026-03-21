@@ -16,6 +16,7 @@ import "./_registry/entities/Flax";
 import "./_registry/entities/Potato";
 import "./_registry/entities/Soy";
 import "./_registry/entities/Sunflower";
+import "./_registry/entities/Tree";
 import { DEBUG } from "./lib/debugFlag";
 import { createEventBroker } from "./lib/Event";
 import type { Pos2D, Size2D } from "./lib/VoxelMap";

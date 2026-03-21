@@ -175,19 +175,10 @@ export function createInteractionHandler(
                 }
                 break;
             case "axe": {
-                const entityType = getEntityTypeFromVoxel(voxel);
-                if (entityType === ENTITY_TYPES.tree) {
-                    // 既存の tree 伐採ロジック
-                    if (inventory.addItem("trunk", 1)) {
-                        inventory.addItem("leaves", 2 + Math.floor(Math.random() * 3)); // 2〜4個
-                        voxelMap.set(voxel & 0x000000ff, surfacePos);
-                    }
-                } else {
-                    // 施設撤去（forge 以外の施設 + facility_part）
-                    const anchor = findFacilityAnchor(voxelMap, packet.pos.x, packet.pos.z);
-                    if (anchor && anchor.def.entityType !== ENTITY_TYPES.forge) {
-                        removeFacility(voxelMap, inventory, anchor.anchorX, anchor.anchorZ, anchor.def);
-                    }
+                // 施設撤去（forge 以外の施設 + facility_part）。tree 伐採は Registry（パス1）で処理済み。
+                const anchor = findFacilityAnchor(voxelMap, packet.pos.x, packet.pos.z);
+                if (anchor && anchor.def.entityType !== ENTITY_TYPES.forge) {
+                    removeFacility(voxelMap, inventory, anchor.anchorX, anchor.anchorZ, anchor.def);
                 }
                 break;
             }
@@ -216,19 +207,6 @@ export function createInteractionHandler(
                     isFlat3x3(voxelMap, packet.pos.x, packet.pos.z, surfacePos.y)
                 ) {
                     voxelMap.set(TERRAIN_TYPES.soil, surfacePos);
-                }
-                break;
-            }
-            case "nuts": {
-                const nutsTerrainType = getTerrainTypeFromVoxel(voxel);
-                if (
-                    (nutsTerrainType === TERRAIN_TYPES.soil || nutsTerrainType === TERRAIN_TYPES.wetSoil) &&
-                    getEntityTypeFromVoxel(voxel) === ENTITY_TYPES.none &&
-                    inventory.consumeSelectedItem(1)
-                ) {
-                    // 地形タイプ（soil or wetSoil）を保持してエンティティを追加
-                    voxelMap.set(nutsTerrainType | (ENTITY_TYPES.tree << 8), surfacePos);
-                    eventBroker.publish("crop_planted", { pos: { x: packet.pos.x, z: packet.pos.z }, cropType: "nuts" });
                 }
                 break;
             }

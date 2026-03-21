@@ -1,6 +1,5 @@
 import {
     ENTITY_TYPES,
-    getCropGrowthStageFromVoxel,
     getEntityTypeFromVoxel,
     getFertilizedFromVoxel,
     getTerrainTypeFromVoxel,
@@ -279,35 +278,15 @@ export function getTerrainSpriteNamesFromVoxel(voxel: number[], pos: Pos3D[], ho
 // EntitySpriteInfo は _registry/EntityRegistry.ts が正規定義。後方互換のため re-export。
 export type { EntitySpriteInfo } from "../../_registry/EntityRegistry";
 
-const treeSpriteInfo: EntitySpriteInfo[][] = [
-    [["ss_sprite_008.png", 0, -2]],
-    [["ss_sprite_038.png", 0, 0]],
-    [["ss_sprite_039.png", 0, -16]],
-    [
-        ["ss_sprite_040.png", -8, -16],
-        ["ss_sprite_041.png", 0, 8],
-    ],
-];
-[5];
 /** ボクセル値からエンティティタイルのスプライト情報を返す。 */
 export function getEntitySpriteNameFromVoxel(voxel: number): EntitySpriteInfo[] {
     const type = getEntityTypeFromVoxel(voxel);
-    const dayCounter = getCropGrowthStageFromVoxel(voxel);
 
     switch (type) {
         case ENTITY_TYPES.none:
             return [];
-        case ENTITY_TYPES.tree: {
-            if (dayCounter >= 3) {
-                return treeSpriteInfo[3];
-            } else {
-                return treeSpriteInfo[dayCounter] ?? treeSpriteInfo[0];
-            }
-        }
-        case ENTITY_TYPES.potato: {
-            const def = getEntityDef(ENTITY_TYPES.potato);
-            return def ? def.getSprites(voxel) : [];
-        }
+        case ENTITY_TYPES.tree:
+        case ENTITY_TYPES.potato:
         case ENTITY_TYPES.soy:
         case ENTITY_TYPES.flax:
         case ENTITY_TYPES.sunflower: {
