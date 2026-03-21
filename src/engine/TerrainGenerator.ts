@@ -7,7 +7,7 @@ export type GenerateTerrainOptions = {
     width: number;
     height: number;
     depth: number;
-    horizontalHeight: number;
+    horizonHeight: number;
 };
 
 type River = {
@@ -26,7 +26,7 @@ export function generateTerrain(opt: GenerateTerrainOptions): VoxelMap {
 }
 
 export function generateTestTerrain(opt: GenerateTerrainOptions): VoxelMap {
-    const hm = new Int8Array(opt.width * opt.depth).fill(opt.horizontalHeight);
+    const hm = new Int8Array(opt.width * opt.depth).fill(opt.horizonHeight);
 
     let bin = 0;
     for (let h = 0; h < 16; h++) {
@@ -34,16 +34,16 @@ export function generateTestTerrain(opt: GenerateTerrainOptions): VoxelMap {
             const base = h * 4 * opt.width + w * 4;
 
             // center
-            hm[base + 1 * opt.width + 1] = opt.horizontalHeight + 1;
+            hm[base + 1 * opt.width + 1] = opt.horizonHeight + 1;
 
-            if (bin & 1) hm[base + 0 * opt.width + 0] = opt.horizontalHeight + 1;
-            if (bin & 2) hm[base + 0 * opt.width + 1] = opt.horizontalHeight + 1;
-            if (bin & 4) hm[base + 0 * opt.width + 2] = opt.horizontalHeight + 1;
-            if (bin & 8) hm[base + 1 * opt.width + 0] = opt.horizontalHeight + 1;
-            if (bin & 16) hm[base + 1 * opt.width + 2] = opt.horizontalHeight + 1;
-            if (bin & 32) hm[base + 2 * opt.width + 0] = opt.horizontalHeight + 1;
-            if (bin & 64) hm[base + 2 * opt.width + 1] = opt.horizontalHeight + 1;
-            if (bin & 128) hm[base + 2 * opt.width + 2] = opt.horizontalHeight + 1;
+            if (bin & 1) hm[base + 0 * opt.width + 0] = opt.horizonHeight + 1;
+            if (bin & 2) hm[base + 0 * opt.width + 1] = opt.horizonHeight + 1;
+            if (bin & 4) hm[base + 0 * opt.width + 2] = opt.horizonHeight + 1;
+            if (bin & 8) hm[base + 1 * opt.width + 0] = opt.horizonHeight + 1;
+            if (bin & 16) hm[base + 1 * opt.width + 2] = opt.horizonHeight + 1;
+            if (bin & 32) hm[base + 2 * opt.width + 0] = opt.horizonHeight + 1;
+            if (bin & 64) hm[base + 2 * opt.width + 1] = opt.horizonHeight + 1;
+            if (bin & 128) hm[base + 2 * opt.width + 2] = opt.horizonHeight + 1;
 
             bin++;
         }
@@ -58,7 +58,7 @@ function elodeRiverside(hm: Int8Array, rivers: River[], opt: GenerateTerrainOpti
 
     for (const river of rivers) {
         for (const idx of river.path) {
-            hm[idx] = opt.horizontalHeight - 1; // 海面直下まで掘り下げ
+            hm[idx] = opt.horizonHeight - 1; // 海面直下まで掘り下げ
         }
     }
 
@@ -71,7 +71,7 @@ function elodeRiverside(hm: Int8Array, rivers: River[], opt: GenerateTerrainOpti
     ];
     const W = opt.width;
     const D = opt.depth;
-    const riverH = opt.horizontalHeight - 1;
+    const riverH = opt.horizonHeight - 1;
 
     const dist = new Int32Array(W * D).fill(-1);
     const queue: number[] = [];
@@ -147,15 +147,15 @@ function computeHeightmap(width: number, depth: number, maxHeight: number): { hm
 
 /** 高さマップを VoxelMap に書き込む。高さ < horizonHeight のタイルは水になる。 */
 function createVoxelMap(hm: Int8Array, opt: GenerateTerrainOptions): VoxelMap {
-    const map = new VoxelMap(opt.width, opt.height, opt.depth, opt.horizontalHeight);
+    const map = new VoxelMap(opt.width, opt.height, opt.depth, opt.horizonHeight);
 
     for (let z = 0; z < opt.depth; z++) {
         for (let x = 0; x < opt.width; x++) {
             const idx = z * opt.width + x;
             const h = hm[idx];
-            if (h < opt.horizontalHeight) {
+            if (h < opt.horizonHeight) {
                 for (let y = 0; y <= h; y++) map.set(TERRAIN_TYPES.dirt, { x, y, z });
-                for (let y = h + 1; y <= opt.horizontalHeight; y++) map.set(TERRAIN_TYPES.water, { x, y, z });
+                for (let y = h + 1; y <= opt.horizonHeight; y++) map.set(TERRAIN_TYPES.water, { x, y, z });
             } else {
                 for (let y = 0; y < h; y++) map.set(TERRAIN_TYPES.dirt, { x, y, z });
                 map.set(TERRAIN_TYPES.grass, { x, y: h, z });
@@ -257,7 +257,7 @@ function generateRivers(hm: Int8Array, hmf: Float32Array, opt: GenerateTerrainOp
     for (let z = 0; z < D; z++) {
         for (let x = 0; x < W; x++) {
             const idx = z * W + x;
-            if (hm[idx] < opt.horizontalHeight || majorPathSet.has(idx)) {
+            if (hm[idx] < opt.horizonHeight || majorPathSet.has(idx)) {
                 distToTarget[idx] = 0;
                 bfsQueue.push(idx);
             }
@@ -299,7 +299,7 @@ function generateRivers(hm: Int8Array, hmf: Float32Array, opt: GenerateTerrainOp
 
     const landByHeight: number[] = [];
     for (let i = 0; i < W * D; i++) {
-        if (hm[i] >= opt.horizontalHeight) landByHeight.push(i);
+        if (hm[i] >= opt.horizonHeight) landByHeight.push(i);
     }
     landByHeight.sort((a, b) => hmf[b] - hmf[a]);
 
@@ -341,7 +341,7 @@ function generateRivers(hm: Int8Array, hmf: Float32Array, opt: GenerateTerrainOp
             visited[current] = 1;
             path[i++] = current;
             // 大河タイルまたは海岸に到達したら終了
-            if (hm[current] < opt.horizontalHeight || majorPathSet.has(current)) break;
+            if (hm[current] < opt.horizonHeight || majorPathSet.has(current)) break;
             const { x: cx, z: cz } = idxToPos(current, W);
             let bestScore = Infinity;
             let bestIdx = -1;
