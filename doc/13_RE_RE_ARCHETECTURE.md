@@ -198,10 +198,29 @@ InteractionSystem でのインタラクション処理は3段階で行う。各�
 | 11 | GrassDirt（shovel 掘削 + hoes 耕作） | 完了 |
 | 12 | SoilWetSoil（hoes エンティティ削除） | 完了 |
 
+### 配置モードの分離（次フェーズ）
+
+| 段階 | 対象 | 内容 |
+|---|---|---|
+| 13 | ItemDef に `placement` フィールド追加 | `PlacementInfo` 型（entityType, entitySize, fieldSpriteName, onPlace） |
+| 14 | facilityUtil.ts に `placeFacility` 追加 | 共通の施設配置 voxel 書き込みロジック |
+| 15 | 施設エンティティファイルに placement 登録 | Workbench, Forge, facilities.ts の registerItem に placement 追加 |
+| 16 | `findFacilityAnchor` を ItemRegistry 依存に変更 | engine/ItemDefs.ts から _registry/facilityUtil.ts に移動 |
+| 17 | App.tsx の配置ロジック簡素化 | onPlace 呼び出しに統一、ITEM_DEFS の配置関連参照を除去 |
+| 18 | InventoryView.ts の placeable 判定変更 | ITEM_DEFS.placeable → ItemRegistry.isPlaceable() |
+| 19 | engine/ItemDefs.ts から配置フィールド除去 | placeable, entitySize, entityType, fieldSpriteName を削除 |
+
+**設計方針:**
+- `ItemDef.placement?` に配置情報（entityType, entitySize, fieldSpriteName, onPlace）を集約
+- `onPlace(voxelMap, pos)` で配置時の voxel 書き込みを行う。施設共通の書き込みは `placeFacility()` ユーティリティを使う
+- App.tsx は UI 制御（PlacementOverlay の show/hide、Toolbar の表示切替）のみ担当し、voxel 操作を知らない
+- `findFacilityAnchor` を ItemRegistry 依存に移行し、`ENTITY_TYPE_TO_ITEM_ID` の二重管理を解消
+
 ### 保留
 
 - **CropSystem.ts**: `processDailyTick` は全タイル走査ループ（400x400 = 160,000回）のため、現時点では Registry 化しない。`CROP_DEFS` テーブルによる汎用ロジックを維持する。将来、エンティティ固有の日次処理が必要になった時点で、パフォーマンス設計を含めて検討する。
 - **地形スプライト**: TerrainSpriteResolver.ts に残す（近傍依存・相互依存のため）。
+- **ITEM_DEFS の spriteName / maxStack**: 配置フィールド除去後も残る。view（Toolbar, InventoryView, CraftPane）と engine（Inventory）が参照しているため、別フェーズで検討する。
 
 ---
 

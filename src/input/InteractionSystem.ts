@@ -3,7 +3,7 @@ import type { IInventoryWriter, IVoxelWriter } from "../_boundary/interfaces";
 import { getEntityDef, type InteractionContext } from "../_registry/EntityRegistry";
 import { getItemDef } from "../_registry/ItemRegistry";
 import { getTerrainDef } from "../_registry/TerrainRegistry";
-import { findFacilityAnchor } from "../engine/ItemDefs";
+import { findFacilityAnchor } from "../_registry/facilityUtil";
 import {
     ENTITY_TYPES,
     getEntityTypeFromVoxel,
@@ -33,7 +33,7 @@ export function createInteractionHandler(
         let entityType = getEntityTypeFromVoxel(voxel);
         if (entityType === ENTITY_TYPES.facility_part) {
             const anchor = findFacilityAnchor(voxelMap, packet.pos.x, packet.pos.z);
-            if (anchor?.def.entityType != null) entityType = anchor.def.entityType;
+            if (anchor) entityType = anchor.entityType;
         }
 
         // パス1: EntityRegistry — エンティティベース（例: 収穫・撤去・クラフトUI）

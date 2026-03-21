@@ -3,12 +3,11 @@ import { useEffect, useRef } from "react";
 import { PIXEL_PER_TILE, TILE_PER_CHUNK } from "./_boundary/constants";
 import type { GameEventMap } from "./_boundary/events";
 import type { ItemId, SlotRef } from "./_boundary/interfaces";
+import { getPlacementInfo } from "./_registry/ItemRegistry";
 import { CraftSystem } from "./engine/CraftSystem";
 import { processDailyTick } from "./engine/CropSystem";
 import { GameTime } from "./engine/GameTime";
-import { ITEM_DEFS } from "./engine/ItemDefs";
 import { PlayerState } from "./engine/PlayerState";
-import { ENTITY_TYPES, getTerrainTypeFromVoxel } from "./engine/TerrainDefs";
 import { generateTerrain } from "./engine/TerrainGenerator";
 import { InputHandler } from "./input/InputHandler";
 import { createInteractionHandler } from "./input/InteractionSystem";
@@ -123,18 +122,8 @@ function useGameEngine(worldSize: Size2D, chunkPerViewport: Size2D) {
 
             const handlePlacementConfirm = (pos: Pos2D) => {
                 if (!placementMode) return;
-                const def = ITEM_DEFS[placementMode.itemId];
-                const entityType = def.entityType ?? 0;
-                const { w, h } = def.entitySize ?? { w: 1, h: 1 };
-                for (let dz = 0; dz < h; dz++) {
-                    for (let dx = 0; dx < w; dx++) {
-                        const surfacePos = voxelMap.getSurfacePosition({ x: pos.x + dx, y: 0, z: pos.z + dz });
-                        const terrain = getTerrainTypeFromVoxel(voxelMap.get(surfacePos));
-                        // アンカータイル(0,0)には施設エンティティ、それ以外は facility_part
-                        const entity = dx === 0 && dz === 0 ? entityType : ENTITY_TYPES.facility_part;
-                        voxelMap.set(terrain | (entity << 8), surfacePos);
-                    }
-                }
+                const info = getPlacementInfo(placementMode.itemId);
+                if (info) info.onPlace(voxelMap, pos);
                 exitPlacementMode();
             };
 
@@ -152,6 +141,8 @@ function useGameEngine(worldSize: Size2D, chunkPerViewport: Size2D) {
             if (!pixiApp) return;            
             
             const inventoryView = new InventoryView(playerState.inventory, craftSystem, (itemId, sourceSlot) => {
+                const info = getPlacementInfo(itemId);
+                if (!info) return;
                 // インベントリからアイテムを取り出し
                 playerState.inventory.setSlot(sourceSlot, null);
                 // インベントリを閉じる
@@ -160,9 +151,8 @@ function useGameEngine(worldSize: Size2D, chunkPerViewport: Size2D) {
                 // 配置モード開始
                 placementMode = { itemId, sourceSlot };
                 toolbar.top.visible = false;
-                const def = ITEM_DEFS[itemId];
                 placementOverlay.show(
-                    { entitySize: def.entitySize ?? { w: 1, h: 1 }, fieldSpriteName: def.fieldSpriteName ?? "" },
+                    { entitySize: info.entitySize, fieldSpriteName: info.fieldSpriteName },
                     handlePlacementConfirm,
                     handlePlacementCancel,
                 );

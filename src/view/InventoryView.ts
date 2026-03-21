@@ -1,5 +1,6 @@
 import { BitmapText, Container, type FederatedPointerEvent, Graphics, Rectangle, Sprite, Texture } from "pixi.js";
 import type { CraftStation, ICraftSystem, IInventoryWriter, ItemId, ItemStack, SlotRef } from "../_boundary/interfaces";
+import { isPlaceable } from "../_registry/ItemRegistry";
 import { ITEM_DEFS } from "../engine/ItemDefs";
 import { CraftPane } from "./CraftPane";
 
@@ -339,8 +340,7 @@ export class InventoryView {
             if (!stack) return;
 
             // 配置可能アイテムの場合は配置モードへ遷移する
-            const def = ITEM_DEFS[stack.itemId];
-            if (def.placeable && this.onRequestPlacement) {
+            if (isPlaceable(stack.itemId) && this.onRequestPlacement) {
                 this.onRequestPlacement(stack.itemId, ref);
                 return;
             }
