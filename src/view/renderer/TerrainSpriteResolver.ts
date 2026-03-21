@@ -284,30 +284,8 @@ export function getEntitySpriteNameFromVoxel(voxel: number): EntitySpriteInfo[] 
 
     switch (type) {
         case ENTITY_TYPES.none:
-            return [];
-        case ENTITY_TYPES.tree:
-        case ENTITY_TYPES.potato:
-        case ENTITY_TYPES.soy:
-        case ENTITY_TYPES.flax:
-        case ENTITY_TYPES.sunflower: {
-            const def = getEntityDef(type);
-            return def ? def.getSprites(voxel) : [];
-        }
-        case ENTITY_TYPES.workbench:
-        case ENTITY_TYPES.forge:
-        case ENTITY_TYPES.compost_bin:
-        case ENTITY_TYPES.threshing_machine:
-        case ENTITY_TYPES.screw_presses:
-        case ENTITY_TYPES.soaking_basket:
-        case ENTITY_TYPES.scutching_board:
-        case ENTITY_TYPES.spinning_wheel:
-        case ENTITY_TYPES.loom:
-        case ENTITY_TYPES.stone: {
-            const def = getEntityDef(type);
-            return def ? def.getSprites(voxel) : [];
-        }
         case ENTITY_TYPES.facility_part:
-            // 描画はアンカータイルが担当するため、このタイルでは描画しない。
+        // 描画はアンカータイルが担当するため、このタイルでは描画しない。
             return [];
         default: {
             // Registry に登録済みなら委譲、未登録なら空配列

@@ -1,23 +1,27 @@
 # Registry パターン設計書
 
 > **目的**: エンティティ・アイテム・地形の振る舞いをそれぞれ1定義1ファイルに集約し、メンテナンス性を向上させる。
-> **ステータス**: EntityRegistry 移行完了。ItemRegistry / TerrainRegistry 設計中
+> **ステータス**: 全 Registry 移行完了（EntityRegistry / ItemRegistry / TerrainRegistry）
 
 ---
 
 ## 背景と課題
 
-### 現状の問題点
+### 移行前の問題点
 
-エンティティの振る舞いが複数ファイルの巨大 switch 文に分散している:
+エンティティの振る舞いが複数ファイルの巨大 switch 文に分散していた:
 
 | ファイル | 責務 | 問題 |
 |---|---|---|
-| `input/InteractionSystem.ts` | インタラクション（植え付け・収穫・伐採等） | ~440行の switch。作物ごとにほぼ同一のロジックがコピペされている |
-| `view/renderer/TerrainSpriteResolver.ts` | スプライト解決 | エンティティ追加のたびに case が増える |
+| `input/InteractionSystem.ts` | インタラクション（植え付け・収穫・伐採等） | ~440行の switch。作物ごとにほぼ同一のロジックがコピペされていた |
+| `view/renderer/TerrainSpriteResolver.ts` | スプライト解決 | エンティティ追加のたびに case が増えていた |
 | `engine/CropSystem.ts` | 日次処理（成長・水切れ・枯死） | 汎用ロジックだが、将来エンティティ固有の日次処理が必要になる |
 
-新エンティティ追加時に3箇所以上を修正する必要があり、修正漏れのリスクが高い。
+### 移行後の成果
+
+- `InteractionSystem.ts`: **~440行 → 58行**。switch 文を完全除去し、4パスディスパッチのみに
+- `TerrainSpriteResolver.ts`: エンティティスプライトは全て EntityRegistry 経由。個別 case は Registry 呼び出しに統合
+- 新要素追加は `_registry/` に1ファイル追加 + App.tsx で import するだけ
 
 ### 将来の要件
 
@@ -49,7 +53,7 @@ src/
     items/              ← 各アイテム使用の定義ファイル
       Fertilizers.ts, Dirt.ts, WateringCan.ts, ...
     terrains/           ← 各地形インタラクションの定義ファイル
-      Shovel.ts, Hoes.ts, ...
+      GrassDirt.ts, SoilWetSoil.ts, ...
   engine/
   view/
   input/
@@ -178,22 +182,22 @@ InteractionSystem でのインタラクション処理は4段階で行う。各�
 | 4 | 施設（Workbench, Forge, 他7施設） | 完了 |
 | 5 | Stone | 完了 |
 
-### ItemRegistry（次フェーズ）
+### ItemRegistry（完了）
 
-| 段階 | 対象 | 内容 |
+| 段階 | 対象 | 状態 |
 |---|---|---|
-| 6 | ItemRegistry.ts 作成 | ItemDef 型 + registerItem / getItemDef API |
-| 7 | Fertilizers（compost, plant_ashes, oil_cake） | 肥料適用ロジックを移行 |
-| 8 | WateringCan | soil → wetSoil 変換を移行 |
-| 9 | Dirt | 土盛りロジックを移行 |
+| 6 | ItemRegistry.ts 作成 | 完了 |
+| 7 | Fertilizers（compost, plant_ashes, oil_cake） | 完了 |
+| 8 | WateringCan | 完了 |
+| 9 | Dirt | 完了 |
 
-### TerrainRegistry（その次）
+### TerrainRegistry（完了）
 
-| 段階 | 対象 | 内容 |
+| 段階 | 対象 | 状態 |
 |---|---|---|
-| 10 | TerrainRegistry.ts 作成 | TerrainDef 型 + registerTerrain / getTerrainDef API |
-| 11 | Shovel（掘削） | grass/dirt の掘削ロジック + isFlat3x3 等のヘルパーを移行 |
-| 12 | Hoes（耕作） | 作物削除 + grass → soil 変換を移行 |
+| 10 | TerrainRegistry.ts 作成 | 完了 |
+| 11 | GrassDirt（shovel 掘削 + hoes 耕作） | 完了 |
+| 12 | SoilWetSoil（hoes エンティティ削除） | 完了 |
 
 ### 保留
 
