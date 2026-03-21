@@ -37,8 +37,8 @@ registerEntity({
         // 伐採: axe で tree を右クリック
         if (ctx.tool !== "axe") return false;
 
-        if (!ctx.inventory.addItem("trunk", 1)) return false;
-        ctx.inventory.addItem("leaves", 2 + Math.floor(Math.random() * 3)); // 2-4
+        const leavesCount = 2 + Math.floor(Math.random() * 3); // 2-4
+        if (!ctx.inventory.addItems([{ itemId: "trunk", count: 1 }, { itemId: "leaves", count: leavesCount }])) return false;
         ctx.voxelMap.set(ctx.voxel & 0x000000ff, ctx.surfacePos);
         return true;
     },

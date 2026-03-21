@@ -71,7 +71,7 @@ function onGrassDirtInteract(ctx: import("../EntityRegistry").InteractionContext
         ) {
             return false;
         }
-        if (surfacePos.y >= 1 && inventory.addItem("dirt", 1)) {
+        if (surfacePos.y >= 1 && inventory.addItems([{ itemId: "dirt", count: 1 }])) {
             voxelMap.remove(surfacePos);
             revertNearbyInvalidTerrain(voxelMap, surfacePos.x, surfacePos.z);
             floodFillWater(voxelMap, surfacePos.x, surfacePos.z);

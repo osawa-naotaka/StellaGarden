@@ -130,19 +130,41 @@ export class Inventory implements IInventoryWriter {
         this.setSlot(b, slotA);
     }
 
-    /** アイテムをインベントリに追加する。
-     *  既存スタックに積み（インベントリ→ツールバーの順）、満杯なら空きスロットに新規作成する。
-     *  全数追加できた場合は true、インベントリが満杯で追加しきれなかった場合は false を返す。 */
-    addItem(itemId: ItemId, count: number): boolean {
+    /** 複数種類のアイテムをアトミックに追加する。
+     *  全アイテムが追加可能な場合のみ追加し true を返す。
+     *  1つでも入りきらない場合は何も変更せず false を返す。 */
+    addItems(items: ReadonlyArray<{ itemId: ItemId; count: number }>): boolean {
+        // スナップショットを作成してシミュレーション
+        const invSnapshot = this.inventorySlots_.map((s) => (s ? { ...s } : null));
+        const tbSnapshot = this.toolbarSlots_.map((s) => (s ? { ...s } : null));
+
+        for (const { itemId, count } of items) {
+            if (!Inventory.tryAdd(invSnapshot, tbSnapshot, itemId, count)) {
+                return false; // シミュレーション失敗 → 何も変更しない
+            }
+        }
+
+        // シミュレーション成功 → スナップショットを実スロットに適用
+        for (let i = 0; i < invSnapshot.length; i++) this.inventorySlots_[i] = invSnapshot[i];
+        for (let i = 0; i < tbSnapshot.length; i++) this.toolbarSlots_[i] = tbSnapshot[i];
+        return true;
+    }
+
+    /** スナップショット上でアイテム追加を試行する。成功時 true（スナップショットを変更）。 */
+    private static tryAdd(
+        invSlots: (ItemStack | null)[],
+        tbSlots: (ItemStack | null)[],
+        itemId: ItemId,
+        count: number,
+    ): boolean {
         const maxStack = getItemDef(itemId)?.maxStack ?? 64;
         let remaining = count;
 
-        // Phase 1: 既存スタックに積む（インベントリ→ツールバーの順）
-        for (const slots of [this.inventorySlots_, this.toolbarSlots_]) {
+        // Phase 1: 既存スタックに積む
+        for (const slots of [invSlots, tbSlots]) {
             for (const slot of slots) {
                 if (slot && slot.itemId === itemId && slot.count < maxStack) {
-                    const canAdd = maxStack - slot.count;
-                    const adding = Math.min(canAdd, remaining);
+                    const adding = Math.min(maxStack - slot.count, remaining);
                     slot.count += adding;
                     remaining -= adding;
                     if (remaining === 0) return true;
@@ -150,8 +172,8 @@ export class Inventory implements IInventoryWriter {
             }
         }
 
-        // Phase 2: 空きスロットに新規作成（インベントリ→ツールバーの順）
-        for (const slots of [this.inventorySlots_, this.toolbarSlots_]) {
+        // Phase 2: 空きスロットに新規作成
+        for (const slots of [invSlots, tbSlots]) {
             for (let i = 0; i < slots.length && remaining > 0; i++) {
                 if (!slots[i]) {
                     const adding = Math.min(maxStack, remaining);

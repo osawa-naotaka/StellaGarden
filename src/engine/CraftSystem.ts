@@ -78,7 +78,7 @@ export class CraftSystem implements ICraftSystem {
             }
         }
 
-        this.inventory.addItem(recipe.result.itemId, recipe.result.count);
+        this.inventory.addItems([{ itemId: recipe.result.itemId, count: recipe.result.count }]);
         return true;
     }
 }

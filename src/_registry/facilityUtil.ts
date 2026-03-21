@@ -5,7 +5,7 @@ import { getItemDefByEntityType, type ItemDef } from "./ItemRegistry";
 /** 施設を撤去してインベントリに回収する。成功時 true。 */
 export function removeFacility(voxelMap: IVoxelWriter, inventory: IInventoryWriter, anchorX: number, anchorZ: number, def: ItemDef): boolean {
     if (!def.placement) return false;
-    if (!inventory.addItem(def.itemId as ItemId, 1)) return false;
+    if (!inventory.addItems([{ itemId: def.itemId as ItemId, count: 1 }])) return false;
 
     const { w, h } = def.placement.entitySize;
     for (let dz = 0; dz < h; dz++) {

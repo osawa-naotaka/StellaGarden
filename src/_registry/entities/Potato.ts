@@ -65,8 +65,7 @@ registerEntity({
         const fatigueMultiplier = fatigue === 0 ? 1.0 : fatigue === 1 ? 0.7 : 0.4;
         const harvestCount = Math.max(1, Math.floor(baseCount * fertMultiplier * waterBonus * fatigueMultiplier));
 
-        if (!ctx.inventory.addItem("potato", harvestCount)) return false;
-        ctx.inventory.addItem("stem", harvestCount);
+        if (!ctx.inventory.addItems([{ itemId: "potato", count: harvestCount }, { itemId: "stem", count: harvestCount }])) return false;
 
         let afterVoxel: number = TERRAIN_TYPES.soil;
         afterVoxel = setLastCropInVoxel(afterVoxel, ENTITY_TYPES.potato);

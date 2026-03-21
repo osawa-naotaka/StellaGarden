@@ -80,7 +80,7 @@ export interface IInventoryReader {
  * engine/ のみが使う。
  */
 export interface IInventoryWriter extends IInventoryReader {
-    addItem(itemId: ItemId, count: number): boolean;
+    addItems(items: ReadonlyArray<{ itemId: ItemId; count: number }>): boolean;
     selectSlot(index: number): void;
     getSlot(ref: SlotRef): ItemStack | null;
     setSlot(ref: SlotRef, stack: ItemStack | null): void;

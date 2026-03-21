@@ -62,8 +62,7 @@ registerEntity({
         const fatigueMultiplier = fatigue === 0 ? 1.0 : fatigue === 1 ? 0.7 : 0.4;
         const harvestCount = Math.max(1, Math.floor(baseCount * fertMultiplier * fatigueMultiplier));
 
-        if (!ctx.inventory.addItem("sunflower_seed", harvestCount)) return false;
-        ctx.inventory.addItem("stem", harvestCount);
+        if (!ctx.inventory.addItems([{ itemId: "sunflower_seed", count: harvestCount }, { itemId: "stem", count: harvestCount }])) return false;
 
         let afterVoxel: number = TERRAIN_TYPES.dirt;
         afterVoxel = setLastCropInVoxel(afterVoxel, ENTITY_TYPES.sunflower);
