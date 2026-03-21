@@ -43,7 +43,12 @@ export class CraftSystem implements ICraftSystem {
             return false;
         }
 
-        // 各素材を消費: toolbarSlots → inventorySlots の順に走査
+        // 成果物が追加可能か先に確認（アトミック: 入らなければ素材も消費しない）
+        if (!this.inventory.addItems([{ itemId: recipe.result.itemId, count: recipe.result.count }])) {
+            return false;
+        }
+
+        // 成果物の追加が成功したので、素材を消費する
         for (const ingredient of recipe.ingredients) {
             let remaining = ingredient.count;
 
@@ -78,7 +83,6 @@ export class CraftSystem implements ICraftSystem {
             }
         }
 
-        this.inventory.addItems([{ itemId: recipe.result.itemId, count: recipe.result.count }]);
         return true;
     }
 }
