@@ -11,14 +11,18 @@ import {
     TERRAIN_TYPES,
 } from "../engine/TerrainDefs";
 import type { EventBroker } from "../lib/Event";
+import type { UIState } from "../view/UIState";
 
 /** 選択中のツールに応じてタイルを操作するハンドラを EventBroker に登録し、解除用の dispose 関数を返す。 */
 export function createInteractionHandler(
     voxelMap: IVoxelWriter,
     inventory: IInventoryWriter,
     eventBroker: EventBroker<GameEventMap>,
+    uiState: UIState,
 ): () => void {
     return eventBroker.subscribe("interact_world", (packet) => {
+        // 配置モード中はインタラクションを無視
+        if (uiState.mode === "placement") return;
         const surfacePos = voxelMap.getSurfacePosition({ x: packet.pos.x, y: 0, z: packet.pos.z });
         const voxel = voxelMap.get(surfacePos);
         const terrainType = getTerrainTypeFromVoxel(voxel);

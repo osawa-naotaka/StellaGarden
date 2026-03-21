@@ -1,25 +1,8 @@
 import { Application, Container, TextureSource } from "pixi.js";
 import { useEffect, useRef } from "react";
 import { PIXEL_PER_TILE, TILE_PER_CHUNK } from "./_boundary/constants";
-import type { GameEventMap } from "./_boundary/events";
-import type { ItemId, SlotRef } from "./_boundary/interfaces";
-import { getPlacementInfo } from "./_registry/ItemRegistry";
-import { CraftSystem } from "./engine/CraftSystem";
-import { processDailyTick } from "./engine/CropSystem";
-import { GameTime } from "./engine/GameTime";
-import { PlayerState } from "./engine/PlayerState";
-import { generateTerrain } from "./engine/TerrainGenerator";
-import { InputHandler } from "./input/InputHandler";
-import { createInteractionHandler } from "./input/InteractionSystem";
 import "./_registry/entities/facilities";
 import "./_registry/entities/Flax";
-import "./_registry/items/Dirt";
-import "./_registry/items/Fertilizers";
-import "./_registry/items/Materials";
-import "./_registry/items/Tools";
-import "./_registry/items/WateringCan";
-import "./_registry/terrains/GrassDirt";
-import "./_registry/terrains/SoilWetSoil";
 import "./_registry/entities/Forge";
 import "./_registry/entities/Potato";
 import "./_registry/entities/Soy";
@@ -27,8 +10,23 @@ import "./_registry/entities/Stone";
 import "./_registry/entities/Sunflower";
 import "./_registry/entities/Tree";
 import "./_registry/entities/Workbench";
+import "./_registry/items/Dirt";
+import "./_registry/items/Fertilizers";
+import "./_registry/items/Materials";
+import "./_registry/items/Tools";
+import "./_registry/items/WateringCan";
+import "./_registry/terrains/GrassDirt";
+import "./_registry/terrains/SoilWetSoil";
+import { CraftSystem } from "./engine/CraftSystem";
+import { processDailyTick } from "./engine/CropSystem";
+import { GameTime } from "./engine/GameTime";
+import { PlayerState } from "./engine/PlayerState";
+import { generateTerrain } from "./engine/TerrainGenerator";
+import { InputHandler } from "./input/InputHandler";
+import { createInteractionHandler } from "./input/InteractionSystem";
 import { DEBUG } from "./lib/debugFlag";
 import { createEventBroker } from "./lib/Event";
+import type { GameEventMap } from "./_boundary/events";
 import type { Pos2D, Size2D } from "./lib/VoxelMap";
 import { DebugText } from "./view/DebugText";
 import { InventoryView } from "./view/InventoryView";
@@ -36,6 +34,7 @@ import { PlacementOverlay } from "./view/PlacementOverlay";
 import { loadSprite } from "./view/Sprite";
 import { Toolbar } from "./view/Toolbar";
 import { TopView } from "./view/TopView";
+import { UIState } from "./view/UIState";
 
 function useGameEngine(worldSize: Size2D, chunkPerViewport: Size2D) {
     const containerRef = useRef<HTMLDivElement>(null);
@@ -53,20 +52,16 @@ function useGameEngine(worldSize: Size2D, chunkPerViewport: Size2D) {
         let cancelled = false;
         let pixiApp: Application | null = null;
         const disposers: (() => void)[] = [];
-        let interactionDisposerRef: (() => void) | null = null;
-        let placementOverlayRef: PlacementOverlay | null = null;
 
         async function init() {
             TextureSource.defaultOptions.scaleMode = "nearest";
             TextureSource.defaultOptions.wrapMode = "clamp-to-edge";
 
-            // EventBroker を最初に生成 — 全モジュールへの DI 起点
             const eventBroker = createEventBroker<GameEventMap>();
 
             const app = new Application();
             await app.init({ background: "#1099bb", resizeTo: window });
 
-            // app.init の await 中にクリーンアップが走った場合は破棄して終了
             if (cancelled) {
                 app.destroy(true, { children: true });
                 return;
@@ -78,7 +73,6 @@ function useGameEngine(worldSize: Size2D, chunkPerViewport: Size2D) {
             pixiApp.stage.addChild(worldContainer);
 
             const voxelMap = generateTerrain({ width: worldSize.w, height: 12, depth: worldSize.h, horizontalHeight: 3 });
-            // const voxelMap = generateTestTerrain({ width: worldSize.x, height: 12, depth: worldSize.z, horizontalHeight: 3 });
             voxelMap.setEventBroker(eventBroker);
 
             const topView = new TopView(voxelMap, pixiApp, {
@@ -96,115 +90,36 @@ function useGameEngine(worldSize: Size2D, chunkPerViewport: Size2D) {
             disposers.push(playerState.setEventBroker(eventBroker));
             playerState.inventory.setEventBroker(eventBroker);
 
-            const toolbar = new Toolbar(playerState.inventory);
-            pixiApp.stage.addChild(toolbar.top);
-
-            // 配置モード用オーバーレイ（worldContainer 内に配置してズーム・パンに連動）
+            // UIState: UI モード管理（インベントリ・クラフト・配置）
+            const uiState = new UIState();
             const placementOverlay = new PlacementOverlay(voxelMap);
-            placementOverlayRef = placementOverlay;
             worldContainer.addChild(placementOverlay.top);
+            disposers.push(uiState.init({
+                broker: eventBroker,
+                inventory: playerState.inventory,
+                voxelMap,
+                placementOverlay,
+            }));
 
-            // ── 配置モード状態管理 ──────────────────────────────────────────────
-            let inventoryOpen = false;
-            let placementMode: { itemId: ItemId; sourceSlot: SlotRef } | null = null;
-            let interactionDisposer: (() => void) | null = null;
-
-            // ビューポート原点の計算用定数（TopView と同じ式）
-            const halfW = Math.floor((chunkPerViewport.w * TILE_PER_CHUNK) / 2);
-            const halfH = Math.floor((chunkPerViewport.h * TILE_PER_CHUNK) / 2);
-
-            const exitPlacementMode = () => {
-                placementOverlay.hide();
-                toolbar.top.visible = true;
-                placementMode = null;
-                // InteractionSystem を再登録
-                interactionDisposer = createInteractionHandler(voxelMap, playerState.inventory, eventBroker);
-                interactionDisposerRef = interactionDisposer;
-            };
-
-            const handlePlacementConfirm = (pos: Pos2D) => {
-                if (!placementMode) return;
-                const info = getPlacementInfo(placementMode.itemId);
-                if (info) info.onPlace(voxelMap, pos);
-                exitPlacementMode();
-            };
-
-            const handlePlacementCancel = () => {
-                if (!placementMode) return;
-                // アイテムを元スロットに戻す
-                playerState.inventory.setSlot(placementMode.sourceSlot, { itemId: placementMode.itemId, count: 1 });
-                exitPlacementMode();
-            };
+            const toolbar = new Toolbar(playerState.inventory, uiState);
+            pixiApp.stage.addChild(toolbar.top);
 
             const craftSystem = new CraftSystem(playerState.inventory);
 
             await loadSprite();
-            // loadSprite の await 中にクリーンアップが走った場合は中断する
-            if (!pixiApp) return;            
-            
-            const inventoryView = new InventoryView(playerState.inventory, craftSystem, (itemId, sourceSlot) => {
-                const info = getPlacementInfo(itemId);
-                if (!info) return;
-                // インベントリからアイテムを取り出し
-                playerState.inventory.setSlot(sourceSlot, null);
-                // インベントリを閉じる
-                inventoryOpen = false;
-                inventoryView.hide();
-                // 配置モード開始
-                placementMode = { itemId, sourceSlot };
-                toolbar.top.visible = false;
-                placementOverlay.show(
-                    { entitySize: info.entitySize, fieldSpriteName: info.fieldSpriteName },
-                    handlePlacementConfirm,
-                    handlePlacementCancel,
-                );
-                // 配置モード中は interact_world を無効化
-                if (interactionDisposer) {
-                    interactionDisposer();
-                    interactionDisposer = null;
-                    interactionDisposerRef = null;
-                }
-            });
+            if (!pixiApp) return;
+
+            const inventoryView = new InventoryView(playerState.inventory, craftSystem, uiState);
             pixiApp.stage.addChild(inventoryView.top);
 
             topView.initializeSprites();
 
-            interactionDisposer = createInteractionHandler(voxelMap, playerState.inventory, eventBroker);
-            interactionDisposerRef = interactionDisposer;
+            disposers.push(createInteractionHandler(voxelMap, playerState.inventory, eventBroker, uiState));
 
-            // day_changed: ゲーム内1日が経過するたびに日次処理を実行
             const gameTime = new GameTime();
             disposers.push(
                 eventBroker.subscribe("day_changed", () => {
                     processDailyTick(voxelMap);
-                }),
-            );
-
-            // インベントリトグル（Eキー）
-            disposers.push(
-                eventBroker.subscribe("toggle_inventory", () => {
-                    if (!pixiApp) return;
-                    // 配置モード中は Eキーでインベントリを開かない
-                    if (placementMode) return;
-                    inventoryOpen = !inventoryOpen;
-                    if (inventoryOpen) {
-                        toolbar.top.visible = false;
-                        inventoryView.show("inventory");
-                    } else {
-                        inventoryView.hide();
-                        toolbar.top.visible = true;
-                    }
-                }),
-            );
-
-            // クラフトUIを開く（作業台右クリック）
-            disposers.push(
-                eventBroker.subscribe("open_craft_ui", () => {
-                    if (!pixiApp) return;
-                    if (placementMode) return;
-                    inventoryOpen = true;
-                    toolbar.top.visible = false;
-                    inventoryView.show("craft", "workbench");
                 }),
             );
 
@@ -216,6 +131,10 @@ function useGameEngine(worldSize: Size2D, chunkPerViewport: Size2D) {
                 pixiApp.stage.addChild(debugText.textView);
             }
 
+            // ビューポート原点の計算用定数
+            const halfW = Math.floor((chunkPerViewport.w * TILE_PER_CHUNK) / 2);
+            const halfH = Math.floor((chunkPerViewport.h * TILE_PER_CHUNK) / 2);
+
             // ゲームループ
             pixiApp.ticker.add((ticker) => {
                 if (!pixiApp) return;
@@ -226,7 +145,6 @@ function useGameEngine(worldSize: Size2D, chunkPerViewport: Size2D) {
                 topView.updateViewport(playerState.posInWorld, playerState.pointerPosInWorld);
                 worldContainer.scale.set(playerState.zoomLevel);
 
-                // 配置モードのオーバーレイ更新
                 const viewportOrigin: Pos2D = {
                     x: playerState.posInWorld.x - halfW,
                     z: playerState.posInWorld.z - halfH,
@@ -241,18 +159,13 @@ function useGameEngine(worldSize: Size2D, chunkPerViewport: Size2D) {
 
         init();
 
-        // クリーンアップ
         return () => {
             cancelled = true;
             container.removeEventListener("contextmenu", preventContextMenu);
             if (pixiApp) {
-                disposers.forEach((d) => {
-                    d();
-                });
-                interactionDisposerRef?.();
-                placementOverlayRef?.hide();
+                disposers.forEach((d) => d());
                 pixiApp.destroy(true, { children: true });
-                pixiApp = null; // init() 内の !pixiApp チェックで二重破棄を防ぐ
+                pixiApp = null;
             }
         };
     }, []);

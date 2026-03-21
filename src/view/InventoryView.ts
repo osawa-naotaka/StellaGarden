@@ -1,6 +1,7 @@
 import { BitmapText, Container, type FederatedPointerEvent, Graphics, Rectangle, Sprite, Texture } from "pixi.js";
-import type { CraftStation, ICraftSystem, IInventoryWriter, ItemId, ItemStack, SlotRef } from "../_boundary/interfaces";
+import type { CraftStation, ICraftSystem, IInventoryWriter, ItemStack, SlotRef } from "../_boundary/interfaces";
 import { getItemDef, isPlaceable } from "../_registry/ItemRegistry";
+import type { UIMode, UIState } from "./UIState";
 import { CraftPane } from "./CraftPane";
 
 const CELL_SIZE = 40;
@@ -89,7 +90,8 @@ function createSlotIcon(container: Container, cellSize: number): SlotIcon {
 export class InventoryView {
     private container: Container;
     private inventory: IInventoryWriter;
-    private onRequestPlacement: ((itemId: ItemId, sourceSlot: SlotRef) => void) | undefined;
+    private uiState: UIState;
+    private prevMode: UIMode = "normal";
 
     private invSlotContainers: Container[] = [];
     private tbSlotContainers: Container[] = [];
@@ -118,9 +120,9 @@ export class InventoryView {
     private onMouseMoveBound: (e: MouseEvent) => void;
     private onKeyDownBound: (e: KeyboardEvent) => void;
 
-    constructor(inventory: IInventoryWriter, craftSystem: ICraftSystem, onRequestPlacement?: (itemId: ItemId, sourceSlot: SlotRef) => void) {
+    constructor(inventory: IInventoryWriter, craftSystem: ICraftSystem, uiState: UIState) {
         this.inventory = inventory;
-        this.onRequestPlacement = onRequestPlacement;
+        this.uiState = uiState;
         this.container = new Container();
         this.container.visible = false;
 
@@ -340,8 +342,8 @@ export class InventoryView {
             if (!stack) return;
 
             // 配置可能アイテムの場合は配置モードへ遷移する
-            if (isPlaceable(stack.itemId) && this.onRequestPlacement) {
-                this.onRequestPlacement(stack.itemId, ref);
+            if (isPlaceable(stack.itemId)) {
+                this.uiState.enterPlacementMode(stack.itemId, ref);
                 return;
             }
 
@@ -418,6 +420,18 @@ export class InventoryView {
 
     /** ゲームループから毎 tick 呼ぶ。表示中のみ全スロットを状態から再描画する。 */
     tick(): void {
+        const mode = this.uiState.mode;
+        // mode 変化時に show/hide を呼ぶ（リスナー登録/解除のため毎 tick ではなく遷移時のみ）
+        if (mode !== this.prevMode) {
+            if (mode === "inventory") {
+                this.show("inventory");
+            } else if (mode === "craft") {
+                this.show("craft", this.uiState.craftStation);
+            } else if (this.prevMode === "inventory" || this.prevMode === "craft") {
+                this.hide();
+            }
+            this.prevMode = mode;
+        }
         if (!this.container.visible) return;
 
         for (let i = 0; i < INVENTORY_ROWS * INVENTORY_COLS; i++) {

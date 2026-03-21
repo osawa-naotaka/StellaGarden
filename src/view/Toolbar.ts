@@ -1,6 +1,7 @@
 import { BitmapText, Container, Graphics, Rectangle, Sprite, Texture } from "pixi.js";
 import type { IInventoryWriter, ItemStack } from "../_boundary/interfaces";
 import { getItemDef } from "../_registry/ItemRegistry";
+import type { UIState } from "./UIState";
 
 const CELL_SIZE = 40;
 const TOOLBAR_HEIGHT = CELL_SIZE;
@@ -54,9 +55,11 @@ export class Toolbar {
     private slotIcons: SlotIcon[] = [];
     private selectedBorder: Graphics;
     private toolbarWidth: number;
+    private uiState: UIState;
 
-    constructor(inventory: IInventoryWriter) {
+    constructor(inventory: IInventoryWriter, uiState: UIState) {
         this.inventory = inventory;
+        this.uiState = uiState;
         this.toolbarWidth = CELL_SIZE * inventory.toolbarSlots.length;
         this.toolbar = this.createToolbarContainer();
 
@@ -152,6 +155,9 @@ export class Toolbar {
 
     /** ゲームループから毎 tick 呼ぶ。全スロットを状態から再描画し、位置もウィンドウサイズに追従させる。 */
     tick(): void {
+        this.toolbar.visible = this.uiState.mode === "normal";
+        if (!this.toolbar.visible) return;
+
         this.toolbar.x = (window.innerWidth - this.toolbarWidth) / 2;
         this.toolbar.y = window.innerHeight - TOOLBAR_HEIGHT - 20;
 

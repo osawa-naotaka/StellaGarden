@@ -198,29 +198,64 @@ InteractionSystem でのインタラクション処理は3段階で行う。各�
 | 11 | GrassDirt（shovel 掘削 + hoes 耕作） | 完了 |
 | 12 | SoilWetSoil（hoes エンティティ削除） | 完了 |
 
-### 配置モードの分離（次フェーズ）
+### 配置モード + ITEM_DEFS 分離（完了）
+
+| 段階 | 対象 | 状態 |
+|---|---|---|
+| 13-19 | ItemDef に placement 統合、App.tsx 簡素化、ITEM_DEFS 配置フィールド除去 | 完了 |
+| 20 | ITEM_DEFS の spriteName / maxStack を ItemRegistry に統合、ITEM_DEFS 廃止 | 完了 |
+| 21 | PlayerState.setEventBroker() に player_move / zoom_change 購読を統合 | 完了 |
+
+### UIState 導入（次フェーズ）
+
+App.tsx の UI 状態管理（インベントリ開閉、配置モード、クラフトUI）を UIState クラスに集約する。
+
+**設計原則: 「イベント → UIState 更新 → view は tick で UIState を読む」**
+
+これはゲームロジック側で採用済みの「イベント → エンジン状態更新 → view は tick で状態を読む」と同じパターンの UI 版。
+
+```
+toggle_inventory / open_craft_ui イベント
+       ↓
+  UIState.mode を更新
+       ↓
+  各 view は tick() で UIState.mode を読んで表示制御
+  （Toolbar: mode=normal で visible、InventoryView: mode=inventory/craft で表示、等）
+```
+
+**UIState の型:**
+```typescript
+type UIMode = "normal" | "inventory" | "craft" | "placement";
+
+class UIState {
+    mode: UIMode = "normal";
+    craftStation: CraftStation = "hand";
+    placementItemId: ItemId | null = null;
+    placementSourceSlot: SlotRef | null = null;
+
+    subscribeEvents(broker, deps): () => void;
+    enterPlacementMode(itemId, sourceSlot, info): void;
+    confirmPlacement(pos): void;
+    cancelPlacement(): void;
+}
+```
+
+**InteractionSystem の配置モード対応:**
+- 現在の「配置モード中は InteractionSystem を dispose して再生成」パターンを廃止
+- InteractionSystem 内で `uiState.mode === "placement"` なら早期 return する
+- InteractionSystem は常に active
 
 | 段階 | 対象 | 内容 |
 |---|---|---|
-| 13 | ItemDef に `placement` フィールド追加 | `PlacementInfo` 型（entityType, entitySize, fieldSpriteName, onPlace） |
-| 14 | facilityUtil.ts に `placeFacility` 追加 | 共通の施設配置 voxel 書き込みロジック |
-| 15 | 施設エンティティファイルに placement 登録 | Workbench, Forge, facilities.ts の registerItem に placement 追加 |
-| 16 | `findFacilityAnchor` を ItemRegistry 依存に変更 | engine/ItemDefs.ts から _registry/facilityUtil.ts に移動 |
-| 17 | App.tsx の配置ロジック簡素化 | onPlace 呼び出しに統一、ITEM_DEFS の配置関連参照を除去 |
-| 18 | InventoryView.ts の placeable 判定変更 | ITEM_DEFS.placeable → ItemRegistry.isPlaceable() |
-| 19 | engine/ItemDefs.ts から配置フィールド除去 | placeable, entitySize, entityType, fieldSpriteName を削除 |
-
-**設計方針:**
-- `ItemDef.placement?` に配置情報（entityType, entitySize, fieldSpriteName, onPlace）を集約
-- `onPlace(voxelMap, pos)` で配置時の voxel 書き込みを行う。施設共通の書き込みは `placeFacility()` ユーティリティを使う
-- App.tsx は UI 制御（PlacementOverlay の show/hide、Toolbar の表示切替）のみ担当し、voxel 操作を知らない
-- `findFacilityAnchor` を ItemRegistry 依存に移行し、`ENTITY_TYPE_TO_ITEM_ID` の二重管理を解消
+| 22 | UIState クラスを作成 | `src/view/UIState.ts` にモード管理 + イベント購読 + 配置モードロジック |
+| 23 | Toolbar / InventoryView に UIState を DI | tick() で mode に応じて表示制御 |
+| 24 | InteractionSystem に UIState を DI | placement 中は早期 return。dispose/再生成を廃止 |
+| 25 | App.tsx を簡素化 | ローカル状態変数・イベント購読・配置関数を除去 |
 
 ### 保留
 
-- **CropSystem.ts**: `processDailyTick` は全タイル走査ループ（400x400 = 160,000回）のため、現時点では Registry 化しない。`CROP_DEFS` テーブルによる汎用ロジックを維持する。将来、エンティティ固有の日次処理が必要になった時点で、パフォーマンス設計を含めて検討する。
+- **CropSystem.ts**: `processDailyTick` は全タイル走査ループ（400x400 = 160,000回）のため、現時点では Registry 化しない。`CROP_DEFS` テーブルによる汎用ロジックを維持する。
 - **地形スプライト**: TerrainSpriteResolver.ts に残す（近傍依存・相互依存のため）。
-- **ITEM_DEFS の spriteName / maxStack**: 配置フィールド除去後も残る。view（Toolbar, InventoryView, CraftPane）と engine（Inventory）が参照しているため、別フェーズで検討する。
 
 ---
 
