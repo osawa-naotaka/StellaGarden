@@ -12,6 +12,7 @@ import { ENTITY_TYPES, getTerrainTypeFromVoxel } from "./engine/TerrainDefs";
 import { generateTerrain } from "./engine/TerrainGenerator";
 import { InputHandler } from "./input/InputHandler";
 import { createInteractionHandler } from "./input/InteractionSystem";
+import "./_registry/entities/Potato"; // Potato エンティティを Registry に登録
 import { DEBUG } from "./lib/debugFlag";
 import { createEventBroker } from "./lib/Event";
 import type { Pos2D, Size2D } from "./lib/VoxelMap";

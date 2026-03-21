@@ -8,6 +8,7 @@ import {
     TERRAIN_TYPES,
 } from "../../engine/TerrainDefs";
 import type { Pos3D } from "../../lib/VoxelMap";
+import { getEntityDef, type EntitySpriteInfo } from "../../_registry/EntityRegistry";
 
 // -----------------------------------------------------------------------------
 // 内部ヘルパー: 高さ配列 ↔ ID の変換
@@ -276,7 +277,8 @@ export function getTerrainSpriteNamesFromVoxel(voxel: number[], pos: Pos3D[], ho
     }
 }
 
-export type EntitySpriteInfo = [string, number, number]; // [spriteName, offset-x, offset-y]
+// EntitySpriteInfo は _registry/EntityRegistry.ts が正規定義。後方互換のため re-export。
+export type { EntitySpriteInfo } from "../../_registry/EntityRegistry";
 
 const seedSprite: EntitySpriteInfo[] = [["ss_sprite_008.png", 0, -2]];
 const starSprite: EntitySpriteInfo[] = [["ss_sprite_060.png", 0, -4]];
@@ -299,7 +301,7 @@ function cropSpriteOf(sprites: string[]): EntitySpriteInfo[][] {
 }
 
 const cropSprites: Record<number, EntitySpriteInfo[][]> = {
-    [ENTITY_TYPES.potato]: cropSpriteOf(["ss_sprite_010.png", "ss_sprite_011.png", "ss_sprite_012.png"]),
+    // potato は _registry/entities/Potato.ts に移動済み
     [ENTITY_TYPES.soy]: cropSpriteOf(["ss_sprite_018.png", "ss_sprite_019.png", "ss_sprite_020.png"]),
     [ENTITY_TYPES.flax]: cropSpriteOf(["ss_sprite_029.png", "ss_sprite_030.png", "ss_sprite_031.png"]),
     [ENTITY_TYPES.sunflower]: cropSpriteOf(["ss_sprite_033.png", "ss_sprite_034.png", "ss_sprite_035.png"]),
@@ -330,7 +332,10 @@ export function getEntitySpriteNameFromVoxel(voxel: number): EntitySpriteInfo[] 
                 return treeSpriteInfo[dayCounter] ?? treeSpriteInfo[0];
             }
         }
-        case ENTITY_TYPES.potato:
+        case ENTITY_TYPES.potato: {
+            const def = getEntityDef(ENTITY_TYPES.potato);
+            return def ? def.getSprites(voxel) : [];
+        }
         case ENTITY_TYPES.soy:
         case ENTITY_TYPES.flax:
         case ENTITY_TYPES.sunflower: {
