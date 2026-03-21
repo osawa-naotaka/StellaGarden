@@ -53,14 +53,18 @@ export class InputHandler {
         this.target.on("pointermove", onPointerMove);
 
         const onPointerDown = (e: FederatedPointerEvent) => {
-            if (e.button === 2) {
-                // 右クリック
-                this.pointerPosInGlobal.x = e.global.x;
-                this.pointerPosInGlobal.z = e.global.y;
-                this.updatePointerPosInWorld();
+            this.pointerPosInGlobal.x = e.global.x;
+            this.pointerPosInGlobal.z = e.global.y;
+            this.updatePointerPosInWorld();
 
-                const x = Math.floor(this.playerState.pointerPosInWorld.x);
-                const z = Math.floor(this.playerState.pointerPosInWorld.z);
+            const x = Math.floor(this.playerState.pointerPosInWorld.x);
+            const z = Math.floor(this.playerState.pointerPosInWorld.z);
+
+            if (e.button === 0) {
+                // 左クリック: 施設UIの起動等
+                this.eventBroker.publish("interact_primary", { pos: { x, z } });
+            } else if (e.button === 2) {
+                // 右クリック: ツール使用
                 this.eventBroker.publish("interact_world", { pos: { x, z } });
             }
         };

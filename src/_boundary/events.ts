@@ -18,14 +18,18 @@ export type GameEventMap = {
     /** 作業台を右クリックしてクラフトUIを開く。
      *  発行: InteractionSystem（作業台エンティティ検出時）。購読: App.tsx → InventoryView.show("craft")。 */
     open_craft_ui: { pos: Pos2D };
+    /** チェストを右クリックしてチェストUIを開く。 */
+    open_chest_ui: { pos: Pos2D };
 
     // ─── input → engine（Phase 3 以降で使用） ───────────────────────────────
     /** プレイヤー移動要求。移動量が 0 でない場合のみ発行すること。
      *  dx, dz は正規化済みの方向ベクトル、deltaMS はフレーム時間(ms)。
      *  engine サブスクライバーは moveBy(dx, dz, deltaMS) を呼んで座標を更新する。 */
     player_move: { dx: number; dz: number; deltaMS: number };
-    /** ワールドへのインタラクション（右クリック）— interact の後継 */
+    /** ワールドへのインタラクション（右クリック）— ツール使用 */
     interact_world: { pos: Pos2D };
+    /** ワールドへの左クリック — 施設UIの起動等 */
+    interact_primary: { pos: Pos2D };
     /** ズーム変更 */
     zoom_change: { delta: number };
 

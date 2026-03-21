@@ -29,6 +29,7 @@ export const ENTITY_TYPES = {
     spinning_wheel: 14,
     loom: 15,
     stone: 16,
+    chest: 17,
 } as const;
 
 // ---------------------------------------------------------------------------

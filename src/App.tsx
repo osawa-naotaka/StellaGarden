@@ -1,6 +1,7 @@
 import { Application, Container, TextureSource } from "pixi.js";
 import { useEffect, useRef } from "react";
 import { PIXEL_PER_TILE, TILE_PER_CHUNK } from "./_boundary/constants";
+import "./_registry/entities/Chest";
 import "./_registry/entities/facilities";
 import "./_registry/entities/Flax";
 import "./_registry/entities/Forge";
@@ -17,6 +18,8 @@ import "./_registry/items/Tools";
 import "./_registry/items/WateringCan";
 import "./_registry/terrains/GrassDirt";
 import "./_registry/terrains/SoilWetSoil";
+import { setChestStorage } from "./_registry/entities/Chest";
+import { ChestStorage } from "./engine/ChestStorage";
 import { CraftSystem } from "./engine/CraftSystem";
 import { processDailyTick } from "./engine/CropSystem";
 import { GameTime } from "./engine/GameTime";
@@ -28,6 +31,7 @@ import { DEBUG } from "./lib/debugFlag";
 import { createEventBroker } from "./lib/Event";
 import type { GameEventMap } from "./_boundary/events";
 import type { Pos2D, Size2D } from "./lib/VoxelMap";
+import { ChestView } from "./view/ChestView";
 import { DebugText } from "./view/DebugText";
 import { InventoryView } from "./view/InventoryView";
 import { PlacementOverlay } from "./view/PlacementOverlay";
@@ -100,6 +104,9 @@ function useGameEngine(worldSize: Size2D, chunkPerViewport: Size2D) {
             const toolbar = new Toolbar(playerState.inventory, uiState);
             pixiApp.stage.addChild(toolbar.top);
 
+            const chestStorage = new ChestStorage();
+            setChestStorage(chestStorage);
+
             const craftSystem = new CraftSystem(playerState.inventory);
 
             await loadSprite();
@@ -107,6 +114,9 @@ function useGameEngine(worldSize: Size2D, chunkPerViewport: Size2D) {
 
             const inventoryView = new InventoryView(playerState.inventory, craftSystem, uiState);
             pixiApp.stage.addChild(inventoryView.top);
+
+            const chestView = new ChestView(playerState.inventory, chestStorage, uiState);
+            pixiApp.stage.addChild(chestView.top);
 
             topView.initializeSprites();
 
@@ -150,6 +160,7 @@ function useGameEngine(worldSize: Size2D, chunkPerViewport: Size2D) {
                 if (debugText) debugText.update();
                 toolbar.tick();
                 inventoryView.tick();
+                chestView.tick();
             });
         }
 

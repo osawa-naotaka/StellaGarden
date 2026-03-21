@@ -39,4 +39,5 @@ export type ItemId =
     | "scutching_board"
     | "spinning_wheel"
     | "loom"
-    | "stone";
+    | "stone"
+    | "chest";

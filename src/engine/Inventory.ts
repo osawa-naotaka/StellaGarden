@@ -47,6 +47,7 @@ const DEFAULT_INVENTORY_ITEMS: readonly (DefaultItem | null)[] = [
     { itemId: "scutching_board", count: 1 },
     { itemId: "spinning_wheel", count: 1 },
     { itemId: "loom", count: 1 },
+    { itemId: "chest", count: 64 },
 ];
 
 /** プレイヤーのツールバーと 8×8 インベントリグリッドを管理する。 */

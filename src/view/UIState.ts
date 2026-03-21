@@ -1,6 +1,6 @@
-import type { CraftStation, IEventBroker, ItemId, SlotRef } from "../_boundary/interfaces";
+import type { CraftStation, IEventBroker, ItemId, Pos2D, SlotRef } from "../_boundary/interfaces";
 
-export type UIMode = "normal" | "inventory" | "craft" | "placement";
+export type UIMode = "normal" | "inventory" | "craft" | "placement" | "chest";
 
 /**
  * UI の状態を一元管理する純粋データクラス。
@@ -12,12 +12,18 @@ export class UIState {
     craftStation: CraftStation = "hand";
     placementItemId: ItemId | null = null;
     placementSourceSlot: SlotRef | null = null;
+    chestPos: Pos2D | null = null;
 
     /** EventBroker を購読して mode を更新する。dispose 関数を返す。 */
     subscribeEvents(broker: IEventBroker): () => void {
         const d1 = broker.subscribe("toggle_inventory", () => {
             if (this.mode === "placement") return;
-            this.mode = this.mode === "normal" ? "inventory" : "normal";
+            if (this.mode === "normal") {
+                this.mode = "inventory";
+            } else {
+                this.mode = "normal";
+                this.chestPos = null;
+            }
         });
 
         const d2 = broker.subscribe("open_craft_ui", () => {
@@ -26,7 +32,13 @@ export class UIState {
             this.craftStation = "workbench";
         });
 
-        return () => { d1(); d2(); };
+        const d3 = broker.subscribe("open_chest_ui", ({ pos }) => {
+            if (this.mode === "placement") return;
+            this.mode = "chest";
+            this.chestPos = pos;
+        });
+
+        return () => { d1(); d2(); d3(); };
     }
 
     /** 配置モードに入る（フィールド変更のみ、副作用なし）。 */

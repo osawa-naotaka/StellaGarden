@@ -24,9 +24,13 @@ export interface EntityDef {
     /** voxel 値からスプライト情報を返す */
     getSprites(voxel: number): EntitySpriteInfo[];
 
-    /** このエンティティが対象地点に存在する時に呼ばれる（例: 収穫）。
+    /** 右クリック: このエンティティが対象地点に存在する時に呼ばれる（例: 収穫・撤去）。
      *  true = 処理済み（後続パスをスキップ）、false = 未処理（後続パスへ進む）。 */
     onInteract?(ctx: InteractionContext): boolean;
+
+    /** 左クリック: このエンティティが対象地点に存在する時に呼ばれる（例: 施設UIの起動）。
+     *  true = 処理済み、false = 未処理。 */
+    onPrimaryInteract?(ctx: InteractionContext): boolean;
 }
 
 // ── 内部ストレージ ──

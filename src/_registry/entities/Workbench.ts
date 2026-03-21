@@ -14,7 +14,10 @@ registerEntity({
         if (ctx.tool === "axe") {
             return removeFacilityAtPos(ctx.voxelMap, ctx.inventory, ctx.surfacePos.x, ctx.surfacePos.z, ENTITY_TYPES.workbench);
         }
-        if (ctx.tool === "pickaxe") return false;
+        return false;
+    },
+
+    onPrimaryInteract(ctx: InteractionContext): boolean {
         ctx.eventBroker.publish("open_craft_ui", { pos: { x: ctx.surfacePos.x, z: ctx.surfacePos.z } });
         return true;
     },
