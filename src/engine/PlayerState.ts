@@ -18,9 +18,17 @@ export class PlayerState implements IPlayerStateWriter {
     private zoomLevel_ = 2.0;
     private broker: IEventBroker | null = null;
 
-    /** ゲームプレイ開始後に EventBroker を注入する。 */
-    setEventBroker(broker: IEventBroker): void {
+    /** ゲームプレイ開始後に EventBroker を注入し、イベント購読を登録する。
+     *  返り値の dispose 関数で購読を解除する。 */
+    setEventBroker(broker: IEventBroker): () => void {
         this.broker = broker;
+        const d1 = broker.subscribe("player_move", ({ dx, dz, deltaMS }) => {
+            this.moveBy(dx, dz, deltaMS);
+        });
+        const d2 = broker.subscribe("zoom_change", ({ delta }) => {
+            this.adjustZoom(delta);
+        });
+        return () => { d1(); d2(); };
     }
 
     constructor(opt: {

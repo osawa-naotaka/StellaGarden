@@ -93,7 +93,7 @@ function useGameEngine(worldSize: Size2D, chunkPerViewport: Size2D) {
                 worldSize,
                 tilePerViewport: { w: chunkPerViewport.w * TILE_PER_CHUNK, h: chunkPerViewport.h * TILE_PER_CHUNK },
             });
-            playerState.setEventBroker(eventBroker);
+            disposers.push(playerState.setEventBroker(eventBroker));
             playerState.inventory.setEventBroker(eventBroker);
 
             const toolbar = new Toolbar(playerState.inventory);
@@ -177,18 +177,6 @@ function useGameEngine(worldSize: Size2D, chunkPerViewport: Size2D) {
             disposers.push(
                 eventBroker.subscribe("day_changed", () => {
                     processDailyTick(voxelMap);
-                }),
-            );
-
-            // input → engine: player_move / zoom_change を購読して PlayerState を更新
-            disposers.push(
-                eventBroker.subscribe("player_move", ({ dx, dz, deltaMS }) => {
-                    playerState.moveBy(dx, dz, deltaMS);
-                }),
-            );
-            disposers.push(
-                eventBroker.subscribe("zoom_change", ({ delta }) => {
-                    playerState.adjustZoom(delta);
                 }),
             );
 
