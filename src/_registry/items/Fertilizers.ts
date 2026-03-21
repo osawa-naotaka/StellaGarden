@@ -1,0 +1,30 @@
+import {
+    FERTILIZER_TYPES,
+    getFertilizerTypeFromVoxel,
+    getTerrainTypeFromVoxel,
+    setFertilizerTypeInVoxel,
+    TERRAIN_TYPES,
+} from "../../engine/TerrainDefs";
+import { registerItem } from "../ItemRegistry";
+
+function registerFertilizer(itemId: string, fertType: number): void {
+    registerItem({
+        itemId,
+        onItemUse(ctx) {
+            const terrainType = getTerrainTypeFromVoxel(ctx.voxel);
+            if (
+                (terrainType === TERRAIN_TYPES.soil || terrainType === TERRAIN_TYPES.wetSoil) &&
+                getFertilizerTypeFromVoxel(ctx.voxel) === 0 &&
+                ctx.inventory.consumeSelectedItem(1)
+            ) {
+                ctx.voxelMap.set(setFertilizerTypeInVoxel(ctx.voxel, fertType), ctx.surfacePos);
+                return true;
+            }
+            return false;
+        },
+    });
+}
+
+registerFertilizer("compost", FERTILIZER_TYPES.compost);
+registerFertilizer("plant_ashes", FERTILIZER_TYPES.plant_ashes);
+registerFertilizer("oil_cake", FERTILIZER_TYPES.oil_cake);

@@ -1,7 +1,7 @@
-# Entity Registry パターン設計書
+# Registry パターン設計書
 
-> **目的**: エンティティの振る舞い（スプライト・インタラクション・日次処理）を1エンティティ1ファイルに集約し、メンテナンス性を向上させる。
-> **ステータス**: 設計完了、Potato で検証中
+> **目的**: エンティティ・アイテム・地形の振る舞いをそれぞれ1定義1ファイルに集約し、メンテナンス性を向上させる。
+> **ステータス**: EntityRegistry 移行完了。ItemRegistry / TerrainRegistry 設計中
 
 ---
 
@@ -37,14 +37,19 @@
 
 ```
 src/
-  _boundary/          ← モジュール間インターフェース定義（既存）
-  _registry/          ← エンティティ定義の集約（新規）
-    EntityRegistry.ts ← 型定義 + 登録/取得 API
-    entities/         ← 各エンティティの定義ファイル
-      Potato.ts
-      Tree.ts         （将来）
-      Workbench.ts    （将来）
-      ...
+  _boundary/            ← モジュール間インターフェース定義（既存）
+  _registry/            ← 振る舞い定義の集約
+    EntityRegistry.ts   ← エンティティ定義の型 + 登録/取得 API
+    ItemRegistry.ts     ← アイテム使用定義の型 + 登録/取得 API
+    TerrainRegistry.ts  ← 地形インタラクション定義の型 + 登録/取得 API
+    facilityUtil.ts     ← 施設撤去の共有ユーティリティ
+    entities/           ← 各エンティティの定義ファイル
+      Potato.ts, Tree.ts, Workbench.ts, Forge.ts, Stone.ts, ...
+      facilities.ts     ← axe 撤去のみの施設を一括登録
+    items/              ← 各アイテム使用の定義ファイル
+      Fertilizers.ts, Dirt.ts, WateringCan.ts, ...
+    terrains/           ← 各地形インタラクションの定義ファイル
+      Shovel.ts, Hoes.ts, ...
   engine/
   view/
   input/
@@ -54,7 +59,41 @@ src/
 `_registry/` は `_boundary/` と同格の共有領域であり、全モジュールから参照可能。
 
 - `_boundary/` = モジュール間の **通信インターフェース**（型・イベント・定数）
-- `_registry/` = エンティティの **振る舞い定義**（スプライト・ロジック・パラメータ）
+- `_registry/` = エンティティ・アイテム・地形の **振る舞い定義**（スプライト・ロジック・パラメータ）
+
+### 3つの Registry の役割分担
+
+| Registry | 管理対象 | キー | 主な責務 |
+|---|---|---|---|
+| EntityRegistry | 地図上のエンティティ（作物・施設・木・石） | `entityType` / `itemId` | スプライト解決 + onInteract（対象が自分の時） + onItemUse（自分を道具として使う時） |
+| ItemRegistry | エンティティに対応しないアイテム（肥料・水やり等） | `itemId` | onItemUse（アイテムをワールドに使用する時） |
+| TerrainRegistry | 地形タイプに対する操作（掘る・耕す等） | `terrainType` | onInteract（この地形タイプが操作対象の時） |
+
+**ディスパッチ順序（4パス）:**
+```
+パス1: EntityRegistry — エンティティベース（entityType で引く）
+  → 例: 成熟した potato を shovel で収穫、workbench を右クリックでクラフトUI
+パス2: EntityRegistry — アイテムベース（tool の itemId で引く）
+  → 例: potato アイテムで soil に植え付け
+パス3: ItemRegistry — アイテムベース（tool の itemId で引く）
+  → 例: compost で soil に施肥、watering_can で soil を wetSoil に
+パス4: TerrainRegistry — 地形ベース（terrainType で引く）
+  → 例: shovel で grass/dirt を掘削、hoes で grass → soil
+```
+
+**同名の区別:**
+- `TERRAIN_TYPES.dirt` = 地形としての土（TerrainRegistry が管理）
+- `ItemId "dirt"` = インベントリアイテムとしての土ブロック（ItemRegistry が管理）
+- これらは別概念であり、異なる Registry に登録される
+
+### スプライト解決の責務分離
+
+| 対象 | スプライト解決 | 理由 |
+|---|---|---|
+| エンティティ | EntityRegistry（`getSprites`） | 中心1タイルの voxel → スプライト。シンプル |
+| 地形 | TerrainSpriteResolver.ts に残す | 近傍9タイルの高さパターン + 遷移テーブル依存。地形タイプ間で相互依存あり（soil は grass ベース + オーバーレイ等）。Registry 化すると共有ロジックの配置が複雑化する |
+
+地形スプライトは将来スプライトシステム自体をリファクタリングする際に改めて検討する。
 
 ### EntityDef 型設計
 
@@ -87,64 +126,89 @@ export interface EntityDef {
 }
 ```
 
-### 2パスディスパッチ
+### ディスパッチ
 
-InteractionSystem でのインタラクション処理は3段階で行う:
+InteractionSystem でのインタラクション処理は4段階で行う。各パスのハンドラが `true` を返した場合、後続パスはスキップされる。`false` を返した（または未定義の）場合、次のパスに進む。
 
 ```
-パス1: エンティティベース
-  getEntityDef(対象地点のentityType)?.onInteract(ctx)
-  → 例: 成熟したじゃがいもを shovel で収穫
+パス1: EntityRegistry — エンティティベース
+  getEntityDef(entityType)?.onInteract(ctx)
+  → 例: 成熟した potato を shovel で収穫、workbench をクリックでクラフトUI
 
-パス2: アイテムベース
-  getEntityDefByItemId(手持ちツールのitemId)?.onItemUse(ctx)
+パス2: EntityRegistry — アイテムベース
+  getEntityDefByItemId(tool)?.onItemUse(ctx)
   → 例: potato アイテムを soil に植え付け
 
-パス3: フォールバック（既存 switch 文）
-  → 未移行エンティティ、ツール固有の地形操作（掘る・耕す等）
+パス3: ItemRegistry — アイテムベース
+  getItemDef(tool)?.onItemUse(ctx)
+  → 例: compost で soil に施肥、watering_can で soil → wetSoil
+
+パス4: TerrainRegistry — 地形ベース
+  getTerrainDef(terrainType)?.onInteract(ctx)
+  → 例: shovel で grass/dirt を掘削、hoes で grass → soil
 ```
 
-各パスのハンドラが `true` を返した場合、後続パスはスキップされる。
-`false` を返した（または未定義の）場合、次のパスに進む。
+**注**: facility_part はパス1の前にアンカーの entityType に解決される。
 
-### ツールとエンティティの関係
+### ツール・エンティティ・地形の関係
 
-ツールとエンティティは多対多の関係:
-
-| ツール | 対象エンティティ | 操作 | ディスパッチ |
+| ツール | 対象 | 操作 | ディスパッチ |
 |---|---|---|---|
-| shovel | potato（成熟） | 収穫 | パス1（エンティティベース） |
-| shovel | 地面 | 掘削 | パス3（フォールバック） |
-| potato | なし（空の耕地） | 植え付け | パス2（アイテムベース） |
-| watering_can | なし（soil） | 水やり | パス3（フォールバック） |
-| axe | tree | 伐採 | パス1（エンティティベース）※将来 |
-
-**原則**: エンティティ固有の操作（収穫・植え付け等）は Registry に委譲し、地形に対する汎用操作（掘る・耕す・水やり等）はフォールバックの switch に残す。
+| shovel | potato（成熟） | 収穫 | パス1（EntityRegistry） |
+| shovel | grass/dirt 地面 | 掘削 | パス4（TerrainRegistry） |
+| potato | 空の耕地 | 植え付け | パス2（EntityRegistry） |
+| watering_can | soil | 水やり | パス3（ItemRegistry） |
+| compost | soil/wetSoil | 施肥 | パス3（ItemRegistry） |
+| axe | tree | 伐採 | パス1（EntityRegistry） |
+| axe | 施設 | 撤去 | パス1（EntityRegistry） |
+| hoes | grass | 耕作 | パス4（TerrainRegistry） |
+| dirt | grass/dirt | 土盛り | パス3（ItemRegistry） |
 
 ---
 
 ## 移行計画
 
-段階的にエンティティを Registry に移行する。各段階でビルド確認を行う。
+### EntityRegistry（完了）
+
+| 段階 | 対象 | 状態 |
+|---|---|---|
+| 1 | Potato | 完了 |
+| 2 | Soy, Flax, Sunflower | 完了 |
+| 3 | Tree | 完了 |
+| 4 | 施設（Workbench, Forge, 他7施設） | 完了 |
+| 5 | Stone | 完了 |
+
+### ItemRegistry（次フェーズ）
 
 | 段階 | 対象 | 内容 |
 |---|---|---|
-| 1（本タスク） | Potato | スプライト + 植え付け + 収穫 |
-| 2 | Soy, Flax, Sunflower | 他の作物を同様に移行 |
-| 3 | Tree | 伐採ロジックの移行 |
-| 4 | 施設（Workbench, Forge 等） | 施設固有ロジックの移行 |
-| 5 | Stone | 採掘ロジックの移行 |
+| 6 | ItemRegistry.ts 作成 | ItemDef 型 + registerItem / getItemDef API |
+| 7 | Fertilizers（compost, plant_ashes, oil_cake） | 肥料適用ロジックを移行 |
+| 8 | WateringCan | soil → wetSoil 変換を移行 |
+| 9 | Dirt | 土盛りロジックを移行 |
 
-### CropSystem.ts の扱い
+### TerrainRegistry（その次）
 
-`processDailyTick` は全タイル走査ループ（400x400 = 160,000回）のため、現時点では Registry 化しない。`CROP_DEFS` テーブルによる汎用ロジックを維持する。将来、エンティティ固有の日次処理が必要になった時点で、パフォーマンス設計を含めて検討する。
+| 段階 | 対象 | 内容 |
+|---|---|---|
+| 10 | TerrainRegistry.ts 作成 | TerrainDef 型 + registerTerrain / getTerrainDef API |
+| 11 | Shovel（掘削） | grass/dirt の掘削ロジック + isFlat3x3 等のヘルパーを移行 |
+| 12 | Hoes（耕作） | 作物削除 + grass → soil 変換を移行 |
+
+### 保留
+
+- **CropSystem.ts**: `processDailyTick` は全タイル走査ループ（400x400 = 160,000回）のため、現時点では Registry 化しない。`CROP_DEFS` テーブルによる汎用ロジックを維持する。将来、エンティティ固有の日次処理が必要になった時点で、パフォーマンス設計を含めて検討する。
+- **地形スプライト**: TerrainSpriteResolver.ts に残す（近傍依存・相互依存のため）。
 
 ---
 
 ## コーディング規約（追加分）
 
 1. **新エンティティは `_registry/entities/` にファイルを作成し、`registerEntity()` で登録する**
-2. **エンティティファイルは1ファイルに全側面（スプライト・インタラクション・パラメータ）を含む**
-3. **`onInteract` / `onItemUse` は処理の成否を `boolean` で返す**
-4. **`_registry/EntityRegistry.ts` の型変更は全エンティティに影響するため慎重に行う**
-5. **`_registry/entities/` 内の個別ファイル変更は局所的であり、他エンティティに影響しない**
+2. **新アイテム使用は `_registry/items/` にファイルを作成し、`registerItem()` で登録する**
+3. **新地形インタラクションは `_registry/terrains/` にファイルを作成し、`registerTerrain()` で登録する**
+4. **定義ファイルは1ファイルに全側面（スプライト・インタラクション・パラメータ）を含む**
+5. **`onInteract` / `onItemUse` は処理の成否を `boolean` で返す**
+6. **Registry の型定義（`EntityRegistry.ts` 等）の変更は全登録済み定義に影響するため慎重に行う**
+7. **個別定義ファイルの変更は局所的であり、他の定義に影響しない**
+8. **同名の概念は Registry で分離する**: `TERRAIN_TYPES.dirt`（地形）と `ItemId "dirt"`（アイテム）は別の Registry に登録される

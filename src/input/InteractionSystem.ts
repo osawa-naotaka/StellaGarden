@@ -1,14 +1,12 @@
 import type { GameEventMap } from "../_boundary/events";
 import type { IInventoryWriter, IVoxelWriter } from "../_boundary/interfaces";
 import { getEntityDef, getEntityDefByItemId, type InteractionContext } from "../_registry/EntityRegistry";
+import { getItemDef } from "../_registry/ItemRegistry";
 import { findFacilityAnchor } from "../engine/ItemDefs";
 import {
     ENTITY_TYPES,
-    FERTILIZER_TYPES,
     getEntityTypeFromVoxel,
-    getFertilizerTypeFromVoxel,
     getTerrainTypeFromVoxel,
-    setFertilizerTypeInVoxel,
     TERRAIN_TYPES,
 } from "../engine/TerrainDefs";
 import { floodFillWater } from "../engine/WaterSystem";
@@ -37,26 +35,6 @@ function isFlat3x3(voxelMap: IVoxelWriter, centerX: number, centerZ: number, cen
 function isSafeToRemove3x3(voxelMap: IVoxelWriter, centerX: number, centerZ: number): boolean {
     const centerY = voxelMap.getGroundSurfacePosition({ x: centerX, y: 0, z: centerZ }).y;
     const newCenterY = centerY - 1;
-    for (let dz = -1; dz <= 1; dz++) {
-        for (let dx = -1; dx <= 1; dx++) {
-            if (dx === 0 && dz === 0) continue;
-            const nx = centerX + dx;
-            const nz = centerZ + dz;
-            if (nx < 0 || nx >= voxelMap.width || nz < 0 || nz >= voxelMap.depth) {
-                return false;
-            }
-            const y = voxelMap.getGroundSurfacePosition({ x: nx, y: 0, z: nz }).y;
-            if (Math.abs(newCenterY - y) > 1) return false;
-        }
-    }
-    return true;
-}
-
-/** 中心に土を盛った後（y + 1）でも、3x3 範囲の各セルとの高さ差が 1 以下に収まるか返す。
- *  範囲外タイルが含まれる場合は false。 */
-function isSafeToAdd3x3(voxelMap: IVoxelWriter, centerX: number, centerZ: number): boolean {
-    const centerY = voxelMap.getGroundSurfacePosition({ x: centerX, y: 0, z: centerZ }).y;
-    const newCenterY = centerY + 1;
     for (let dz = -1; dz <= 1; dz++) {
         for (let dx = -1; dx <= 1; dx++) {
             if (dx === 0 && dz === 0) continue;
@@ -119,22 +97,20 @@ export function createInteractionHandler(
         const entityDef = getEntityDef(entityType);
         if (entityDef?.onInteract?.(ctx)) return;
 
-        // パス2: アイテムベース — 手持ちアイテムに対応するエンティティに委譲（例: 植え付け）
+        // パス2: EntityRegistry — アイテムベース（例: 植え付け）
         if (tool) {
-            const itemDef = getEntityDefByItemId(tool);
+            const entityItemDef = getEntityDefByItemId(tool);
+            if (entityItemDef?.onItemUse?.(ctx)) return;
+        }
+
+        // パス3: ItemRegistry — アイテムベース（例: 肥料・水やり・土盛り）
+        if (tool) {
+            const itemDef = getItemDef(tool);
             if (itemDef?.onItemUse?.(ctx)) return;
         }
 
-        // パス3: フォールバック — 未移行エンティティ・ツール固有の地形操作
+        // パス4: フォールバック — 未移行の地形操作（将来 TerrainRegistry に移行）
         switch (tool) {
-            case "hand":
-                break;
-            case "watering_can":
-                if (getTerrainTypeFromVoxel(voxel) === TERRAIN_TYPES.soil) {
-                    // エンティティビットと growthStage を保持したまま地形タイプのみ wetSoil に変更
-                    voxelMap.set((voxel & ~0xff) | TERRAIN_TYPES.wetSoil, surfacePos);
-                }
-                break;
             case "shovel":
                 if (
                     (terrainType === TERRAIN_TYPES.grass || terrainType === TERRAIN_TYPES.dirt) &&
@@ -163,38 +139,6 @@ export function createInteractionHandler(
                     isFlat3x3(voxelMap, packet.pos.x, packet.pos.z, surfacePos.y)
                 ) {
                     voxelMap.set(TERRAIN_TYPES.soil, surfacePos);
-                }
-                break;
-            }
-            case "compost":
-            case "plant_ashes":
-            case "oil_cake": {
-                const fertTerrainType = getTerrainTypeFromVoxel(voxel);
-                if (
-                    (fertTerrainType === TERRAIN_TYPES.soil || fertTerrainType === TERRAIN_TYPES.wetSoil) &&
-                    getFertilizerTypeFromVoxel(voxel) === 0 &&
-                    inventory.consumeSelectedItem(1)
-                ) {
-                    const fertType =
-                        tool === "compost" ? FERTILIZER_TYPES.compost : tool === "plant_ashes" ? FERTILIZER_TYPES.plant_ashes : FERTILIZER_TYPES.oil_cake;
-                    voxelMap.set(setFertilizerTypeInVoxel(voxel, fertType), surfacePos);
-                }
-                break;
-            }
-            case "dirt": {
-                // 水タイルを無視して地面の高さを取得し、地面の1つ上にdirtを配置する
-                const groundPos = voxelMap.getGroundSurfacePosition({ x: packet.pos.x, y: 0, z: packet.pos.z });
-                const groundVoxel = voxelMap.get(groundPos);
-                const groundTerrainType = getTerrainTypeFromVoxel(groundVoxel);
-                if (
-                    (groundTerrainType === TERRAIN_TYPES.grass || groundTerrainType === TERRAIN_TYPES.dirt) &&
-                    groundPos.y + 1 < voxelMap.height &&
-                    isSafeToAdd3x3(voxelMap, packet.pos.x, packet.pos.z) &&
-                    inventory.consumeSelectedItem(1)
-                ) {
-                    voxelMap.set(TERRAIN_TYPES.dirt, { x: groundPos.x, y: groundPos.y + 1, z: groundPos.z });
-                    revertNearbyInvalidTerrain(voxelMap, packet.pos.x, packet.pos.z);
-                    onTerrainModified?.();
                 }
                 break;
             }

@@ -252,14 +252,14 @@ export function getTerrainSpriteNamesFromVoxel(voxel: number[], pos: Pos3D[], ho
         case TERRAIN_TYPES.waterSource:
             return ["water_grass_normal_0_5_9"];
         case TERRAIN_TYPES.soil: {
-            const sprites = ["ss_sprite_048.png"];
-            // const sprites = soilSpriteName(pos, pos[4].y, horizonHeight, voxel);
+            // const sprites = ["ss_sprite_048.png"];
+            const sprites = soilSpriteName(pos, pos[4].y, horizonHeight, voxel);
             if (getFertilizedFromVoxel(voxel[4])) sprites.push("ss_sprite_050.png");
             return sprites;
         }
         case TERRAIN_TYPES.wetSoil: {
-            const sprites = ["ss_sprite_049.png"];
-            // const sprites = wetSoilSpriteName(pos, pos[4].y, horizonHeight, voxel);
+            // const sprites = ["ss_sprite_049.png"];
+            const sprites = wetSoilSpriteName(pos, pos[4].y, horizonHeight, voxel);
             if (getFertilizedFromVoxel(voxel[4])) sprites.push("ss_sprite_050.png");
             return sprites;
         }
@@ -268,8 +268,8 @@ export function getTerrainSpriteNamesFromVoxel(voxel: number[], pos: Pos3D[], ho
         case TERRAIN_TYPES.grass:
             return grassSpritesName(pos, pos[4].y, horizonHeight);
         case TERRAIN_TYPES.dirt:
-            // return dirtSpriteName(pos, pos[4].y, horizonHeight, voxel);
-            return ["ss_sprite_047.png"];
+            return dirtSpriteName(pos, pos[4].y, horizonHeight, voxel);
+            // return ["ss_sprite_047.png"];
         default:
             throw new Error(`Unknown voxel type: ${type}`);
     }
