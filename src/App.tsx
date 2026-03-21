@@ -17,6 +17,8 @@ import "./_registry/entities/Flax";
 import "./_registry/items/Dirt";
 import "./_registry/items/Fertilizers";
 import "./_registry/items/WateringCan";
+import "./_registry/terrains/GrassDirt";
+import "./_registry/terrains/SoilWetSoil";
 import "./_registry/entities/Forge";
 import "./_registry/entities/Potato";
 import "./_registry/entities/Soy";
@@ -115,7 +117,7 @@ function useGameEngine(worldSize: Size2D, chunkPerViewport: Size2D) {
                 toolbar.top.visible = true;
                 placementMode = null;
                 // InteractionSystem を再登録
-                interactionDisposer = createInteractionHandler(voxelMap, playerState.inventory, eventBroker, () => {});
+                interactionDisposer = createInteractionHandler(voxelMap, playerState.inventory, eventBroker);
                 interactionDisposerRef = interactionDisposer;
             };
 
@@ -175,7 +177,7 @@ function useGameEngine(worldSize: Size2D, chunkPerViewport: Size2D) {
 
             topView.initializeSprites();
 
-            interactionDisposer = createInteractionHandler(voxelMap, playerState.inventory, eventBroker, () => {});
+            interactionDisposer = createInteractionHandler(voxelMap, playerState.inventory, eventBroker);
             interactionDisposerRef = interactionDisposer;
 
             // day_changed: ゲーム内1日が経過するたびに日次処理を実行
