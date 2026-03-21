@@ -1,5 +1,6 @@
 import { ENTITY_TYPES, TERRAIN_TYPES } from "../../engine/TerrainDefs";
 import { registerEntity, type EntitySpriteInfo, type InteractionContext } from "../EntityRegistry";
+import { registerItem } from "../ItemRegistry";
 
 registerEntity({
     entityType: ENTITY_TYPES.stone,
@@ -15,3 +16,5 @@ registerEntity({
         return true;
     },
 });
+
+registerItem({ itemId: "stone", spriteName: "stone-icon.png", maxStack: 64 });

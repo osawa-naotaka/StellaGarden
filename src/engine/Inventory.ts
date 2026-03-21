@@ -1,5 +1,6 @@
 import type { IEventBroker, IInventoryWriter, ItemStack, SlotRef } from "../_boundary/interfaces";
-import { ITEM_DEFS, type ItemId } from "./ItemDefs";
+import { getItemDef } from "../_registry/ItemRegistry";
+import type { ItemId } from "./ItemDefs";
 
 const TOOLBAR_SLOT_COUNT = 10;
 const INVENTORY_SLOT_COUNT = 64; // 8×8
@@ -133,7 +134,7 @@ export class Inventory implements IInventoryWriter {
      *  既存スタックに積み（インベントリ→ツールバーの順）、満杯なら空きスロットに新規作成する。
      *  全数追加できた場合は true、インベントリが満杯で追加しきれなかった場合は false を返す。 */
     addItem(itemId: ItemId, count: number): boolean {
-        const maxStack = ITEM_DEFS[itemId].maxStack;
+        const maxStack = getItemDef(itemId)?.maxStack ?? 64;
         let remaining = count;
 
         // Phase 1: 既存スタックに積む（インベントリ→ツールバーの順）

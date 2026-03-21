@@ -83,6 +83,8 @@ registerEntity({
 
 registerItem({
     itemId: "flaxseed",
+    spriteName: "ss_sprite_021.png",
+    maxStack: 64,
     onItemUse(ctx: InteractionContext): boolean {
         const voxel = ctx.voxel;
         const terrainType = getTerrainTypeFromVoxel(voxel);

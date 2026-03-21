@@ -7,9 +7,11 @@ import {
 } from "../../engine/TerrainDefs";
 import { registerItem } from "../ItemRegistry";
 
-function registerFertilizer(itemId: string, fertType: number): void {
+function registerFertilizer(itemId: string, fertType: number, spriteName: string): void {
     registerItem({
         itemId,
+        spriteName,
+        maxStack: 64,
         onItemUse(ctx) {
             const terrainType = getTerrainTypeFromVoxel(ctx.voxel);
             if (
@@ -25,6 +27,6 @@ function registerFertilizer(itemId: string, fertType: number): void {
     });
 }
 
-registerFertilizer("compost", FERTILIZER_TYPES.compost);
-registerFertilizer("plant_ashes", FERTILIZER_TYPES.plant_ashes);
-registerFertilizer("oil_cake", FERTILIZER_TYPES.oil_cake);
+registerFertilizer("compost", FERTILIZER_TYPES.compost, "ss_sprite_042.png");
+registerFertilizer("plant_ashes", FERTILIZER_TYPES.plant_ashes, "ss_sprite_043.png");
+registerFertilizer("oil_cake", FERTILIZER_TYPES.oil_cake, "ss_sprite_044.png");

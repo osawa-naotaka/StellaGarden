@@ -85,6 +85,8 @@ registerEntity({
 
 registerItem({
     itemId: "potato",
+    spriteName: "ss_sprite_009.png",
+    maxStack: 64,
     onItemUse(ctx: InteractionContext): boolean {
         // 植え付け: potato アイテムを soil/wetSoil に使用
         const voxel = ctx.voxel;

@@ -14,12 +14,18 @@ export interface PlacementInfo {
 }
 
 /**
- * アイテム使用定義。
- * 植え付け・肥料・水やり・土盛りなど、アイテムをワールドに使用する操作を登録する。
- * 配置可能アイテム（施設等）は placement フィールドで配置情報を持つ。
+ * アイテム定義。全アイテムの情報源。
+ * スプライト名・スタック上限・ワールド使用・配置情報を1つにまとめる。
  */
 export interface ItemDef {
     readonly itemId: string;
+
+    /** インベントリ表示用のスプライト名。null の場合は仮アイコン（Graphics）で代替する。 */
+    readonly spriteName: string | null;
+    /** spriteName が null のときに使う仮アイコンの色。 */
+    readonly placeholderColor?: number;
+    /** スタック上限数。ツール類は 1。 */
+    readonly maxStack: number;
 
     /** このアイテムをツールとして使用した時に呼ばれる。
      *  true = 処理済み、false = 未処理（次のパスへ）。 */

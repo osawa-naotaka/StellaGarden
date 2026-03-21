@@ -18,6 +18,8 @@ registerEntity({
 
 registerItem({
     itemId: "forge",
+    spriteName: "ss_sprite_052.png",
+    maxStack: 1,
     placement: {
         entityType: ENTITY_TYPES.forge,
         entitySize: { w: 1, h: 1 },

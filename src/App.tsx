@@ -15,6 +15,8 @@ import "./_registry/entities/facilities";
 import "./_registry/entities/Flax";
 import "./_registry/items/Dirt";
 import "./_registry/items/Fertilizers";
+import "./_registry/items/Materials";
+import "./_registry/items/Tools";
 import "./_registry/items/WateringCan";
 import "./_registry/terrains/GrassDirt";
 import "./_registry/terrains/SoilWetSoil";

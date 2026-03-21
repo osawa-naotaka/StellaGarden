@@ -1,6 +1,6 @@
 import { BitmapText, Container, Graphics, Rectangle, Sprite, Texture } from "pixi.js";
 import type { IInventoryWriter, ItemStack } from "../_boundary/interfaces";
-import { ITEM_DEFS } from "../engine/ItemDefs";
+import { getItemDef } from "../_registry/ItemRegistry";
 
 const CELL_SIZE = 40;
 const TOOLBAR_HEIGHT = CELL_SIZE;
@@ -22,7 +22,8 @@ function updateSlotIcon(icon: SlotIcon, stack: ItemStack | null): void {
         return;
     }
 
-    const def = ITEM_DEFS[stack.itemId];
+    const def = getItemDef(stack.itemId);
+    if (!def) return;
     const offset = (CELL_SIZE - ICON_SIZE) / 2;
 
     if (def.spriteName) {

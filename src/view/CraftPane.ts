@@ -1,6 +1,6 @@
 import { BitmapText, Container, type FederatedPointerEvent, Graphics, Rectangle, Sprite, Texture } from "pixi.js";
 import type { CraftStation, ICraftSystem, RecipeDef } from "../_boundary/interfaces";
-import { ITEM_DEFS } from "../engine/ItemDefs";
+import { getItemDef } from "../_registry/ItemRegistry";
 
 const RECIPE_CELL_SIZE = 40;
 const RECIPE_ICON_SIZE = 32;
@@ -165,7 +165,8 @@ export class CraftPane {
             }
 
             icon.container.interactive = true;
-            const def = ITEM_DEFS[recipe.result.itemId];
+            const def = getItemDef(recipe.result.itemId);
+            if (!def) continue;
             const iconOffset = (RECIPE_CELL_SIZE - RECIPE_ICON_SIZE) / 2;
 
             if (def.spriteName) {
@@ -256,7 +257,8 @@ export class CraftPane {
         for (let i = 0; i < ingredients.length && i < this.materialRows.length; i++) {
             const ingredient = ingredients[i];
             const row = this.materialRows[i];
-            const def = ITEM_DEFS[ingredient.itemId];
+            const def = getItemDef(ingredient.itemId);
+            if (!def) continue;
 
             row.container.y = i * MATERIAL_ROW_HEIGHT;
             row.container.visible = true;

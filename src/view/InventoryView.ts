@@ -1,7 +1,6 @@
 import { BitmapText, Container, type FederatedPointerEvent, Graphics, Rectangle, Sprite, Texture } from "pixi.js";
 import type { CraftStation, ICraftSystem, IInventoryWriter, ItemId, ItemStack, SlotRef } from "../_boundary/interfaces";
-import { isPlaceable } from "../_registry/ItemRegistry";
-import { ITEM_DEFS } from "../engine/ItemDefs";
+import { getItemDef, isPlaceable } from "../_registry/ItemRegistry";
 import { CraftPane } from "./CraftPane";
 
 const CELL_SIZE = 40;
@@ -29,7 +28,8 @@ function updateSlotIcon(icon: SlotIcon, stack: ItemStack | null, cellSize: numbe
         return;
     }
 
-    const def = ITEM_DEFS[stack.itemId];
+    const def = getItemDef(stack.itemId);
+    if (!def) return;
     const offset = (cellSize - ICON_SIZE) / 2;
 
     if (def.spriteName) {
@@ -358,7 +358,7 @@ export class InventoryView {
 
         // picked-up 状態で右クリック → 対象スロットに 1 個置く
         const targetStack = this.inventory.getSlot(ref);
-        const maxStack = ITEM_DEFS[this.pickedUp.stack.itemId].maxStack;
+        const maxStack = getItemDef(this.pickedUp.stack.itemId)?.maxStack ?? 64;
 
         if (!targetStack) {
             this.inventory.setSlot(ref, { itemId: this.pickedUp.stack.itemId, count: 1 });

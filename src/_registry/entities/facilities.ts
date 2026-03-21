@@ -13,6 +13,7 @@ function registerAxeRemovableFacility(
     itemId: ItemId,
     spriteName: string,
     entitySize: { w: number; h: number },
+    inventorySpriteName?: string,
 ): void {
     registerEntity({
         entityType,
@@ -29,6 +30,8 @@ function registerAxeRemovableFacility(
 
     registerItem({
         itemId,
+        spriteName: inventorySpriteName ?? spriteName,
+        maxStack: 1,
         placement: {
             entityType,
             entitySize,

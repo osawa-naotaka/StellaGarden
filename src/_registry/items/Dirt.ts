@@ -54,6 +54,8 @@ function isFlat3x3(voxelMap: IVoxelWriter, centerX: number, centerZ: number, cen
 
 registerItem({
     itemId: "dirt",
+    spriteName: "ss_sprite_046.png",
+    maxStack: 64,
     onItemUse(ctx) {
         // 水タイルを無視して地面の高さを取得し、地面の1つ上に dirt を配置する
         const groundPos = ctx.voxelMap.getGroundSurfacePosition({ x: ctx.surfacePos.x, y: 0, z: ctx.surfacePos.z });

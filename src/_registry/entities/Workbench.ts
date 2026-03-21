@@ -22,6 +22,8 @@ registerEntity({
 
 registerItem({
     itemId: "workbench",
+    spriteName: "ss_sprite_003.png",
+    maxStack: 1,
     placement: {
         entityType: ENTITY_TYPES.workbench,
         entitySize: { w: 2, h: 1 },

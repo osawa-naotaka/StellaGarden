@@ -82,6 +82,8 @@ registerEntity({
 
 registerItem({
     itemId: "sunflower_seed",
+    spriteName: "ss_sprite_032.png",
+    maxStack: 64,
     onItemUse(ctx: InteractionContext): boolean {
         const voxel = ctx.voxel;
         const terrainType = getTerrainTypeFromVoxel(voxel);
