@@ -90,16 +90,12 @@ function useGameEngine(worldSize: Size2D, chunkPerViewport: Size2D) {
             disposers.push(playerState.setEventBroker(eventBroker));
             playerState.inventory.setEventBroker(eventBroker);
 
-            // UIState: UI モード管理（インベントリ・クラフト・配置）
+            // UIState: UI モード管理（純粋データ、副作用なし）
             const uiState = new UIState();
-            const placementOverlay = new PlacementOverlay(voxelMap);
+            disposers.push(uiState.subscribeEvents(eventBroker));
+
+            const placementOverlay = new PlacementOverlay(voxelMap, playerState.inventory, uiState);
             worldContainer.addChild(placementOverlay.top);
-            disposers.push(uiState.init({
-                broker: eventBroker,
-                inventory: playerState.inventory,
-                voxelMap,
-                placementOverlay,
-            }));
 
             const toolbar = new Toolbar(playerState.inventory, uiState);
             pixiApp.stage.addChild(toolbar.top);

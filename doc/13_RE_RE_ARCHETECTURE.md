@@ -247,10 +247,11 @@ class UIState {
 
 | 段階 | 対象 | 内容 |
 |---|---|---|
-| 22 | UIState クラスを作成 | `src/view/UIState.ts` にモード管理 + イベント購読 + 配置モードロジック |
-| 23 | Toolbar / InventoryView に UIState を DI | tick() で mode に応じて表示制御 |
-| 24 | InteractionSystem に UIState を DI | placement 中は早期 return。dispose/再生成を廃止 |
-| 25 | App.tsx を簡素化 | ローカル状態変数・イベント購読・配置関数を除去 |
+| 22 | UIState クラスを作成 | 完了 |
+| 23 | Toolbar / InventoryView に UIState を DI | 完了 |
+| 24 | InteractionSystem に UIState を DI | 完了 |
+| 25 | App.tsx を簡素化 | 完了 |
+| 26 | UIState を純粋データ化 | 完了（Elm アーキテクチャ風。副作用は各 view が実行） |
 
 ### 保留
 
