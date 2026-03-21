@@ -1,7 +1,7 @@
 import type { GameEventMap } from "../_boundary/events";
 import type { IInventoryWriter, IVoxelWriter } from "../_boundary/interfaces";
 import { getEntityDef, getEntityDefByItemId, type InteractionContext } from "../_registry/EntityRegistry";
-import { findFacilityAnchor, type ItemDef } from "../engine/ItemDefs";
+import { findFacilityAnchor } from "../engine/ItemDefs";
 import {
     ENTITY_TYPES,
     FERTILIZER_TYPES,
@@ -89,24 +89,6 @@ function revertNearbyInvalidTerrain(voxelMap: IVoxelWriter, cx: number, cz: numb
     }
 }
 
-/** 施設を撤去してインベントリに回収する。成功時 true。 */
-function removeFacility(voxelMap: IVoxelWriter, inventory: IInventoryWriter, anchorX: number, anchorZ: number, def: ItemDef): boolean {
-    // インベントリに追加（満杯なら中止）
-    if (!inventory.addItem(def.id, 1)) return false;
-
-    const { w, h } = def.entitySize ?? { w: 1, h: 1 };
-    // アンカーから entitySize の範囲を走査し、各タイルのエンティティビットをクリア
-    for (let dz = 0; dz < h; dz++) {
-        for (let dx = 0; dx < w; dx++) {
-            const pos = voxelMap.getSurfacePosition({ x: anchorX + dx, y: 0, z: anchorZ + dz });
-            const v = voxelMap.get(pos);
-            // 地形ビット（下位 8bit）のみ残し、エンティティビット以上をクリア
-            voxelMap.set(v & 0xff, pos);
-        }
-    }
-    return true;
-}
-
 /** 選択中のツールに応じてタイルを操作するハンドラを EventBroker に登録し、解除用の dispose 関数を返す。
  * onTerrainModified が指定された場合、地形変更操作（掘る・盛る）の後に呼び出される。 */
 export function createInteractionHandler(
@@ -124,21 +106,16 @@ export function createInteractionHandler(
         // 水源ブロックは操作対象外（破壊不能）
         if (terrainType === TERRAIN_TYPES.waterSource) return;
 
-        // 作業台エンティティの検出: axe/pickaxe（撤去ツール）以外で作業台を右クリック → クラフトUI を開く
-        const entityType = getEntityTypeFromVoxel(voxel);
-        if (
-            entityType === ENTITY_TYPES.workbench ||
-            (entityType === ENTITY_TYPES.facility_part && findFacilityAnchor(voxelMap, packet.pos.x, packet.pos.z)?.def.id === "workbench")
-        ) {
-            if (tool !== "axe" && tool !== "pickaxe") {
-                eventBroker.publish("open_craft_ui", { pos: packet.pos });
-                return;
-            }
-        }
-
         const ctx: InteractionContext = { voxelMap, inventory, eventBroker, surfacePos, voxel, tool };
 
-        // パス1: エンティティベース — 対象地点のエンティティに委譲（例: 収穫）
+        // facility_part → アンカーの entityType に解決してからディスパッチ
+        let entityType = getEntityTypeFromVoxel(voxel);
+        if (entityType === ENTITY_TYPES.facility_part) {
+            const anchor = findFacilityAnchor(voxelMap, packet.pos.x, packet.pos.z);
+            if (anchor?.def.entityType != null) entityType = anchor.def.entityType;
+        }
+
+        // パス1: エンティティベース — 対象地点のエンティティに委譲（例: 収穫・撤去・クラフトUI）
         const entityDef = getEntityDef(entityType);
         if (entityDef?.onInteract?.(ctx)) return;
 
@@ -174,27 +151,6 @@ export function createInteractionHandler(
                     }
                 }
                 break;
-            case "axe": {
-                // 施設撤去（forge 以外の施設 + facility_part）。tree 伐採は Registry（パス1）で処理済み。
-                const anchor = findFacilityAnchor(voxelMap, packet.pos.x, packet.pos.z);
-                if (anchor && anchor.def.entityType !== ENTITY_TYPES.forge) {
-                    removeFacility(voxelMap, inventory, anchor.anchorX, anchor.anchorZ, anchor.def);
-                }
-                break;
-            }
-            case "pickaxe": {
-                // forge の撤去
-                const anchor = findFacilityAnchor(voxelMap, packet.pos.x, packet.pos.z);
-                if (anchor && anchor.def.entityType === ENTITY_TYPES.forge) {
-                    removeFacility(voxelMap, inventory, anchor.anchorX, anchor.anchorZ, anchor.def);
-                } else if(getEntityTypeFromVoxel(voxel) === ENTITY_TYPES.stone) {
-                    const pos = voxelMap.getSurfacePosition({ x: packet.pos.x, y: 0, z: packet.pos.z });
-                    const afterVoxel = TERRAIN_TYPES.dirt;
-                    voxelMap.set(afterVoxel, pos);
-                    inventory.addItem("stone", 1);
-                }
-                break;
-            }
             case "hoes": {
                 const terrainType = getTerrainTypeFromVoxel(voxel);
                 const entityType = getEntityTypeFromVoxel(voxel);

@@ -294,30 +294,25 @@ export function getEntitySpriteNameFromVoxel(voxel: number): EntitySpriteInfo[] 
             return def ? def.getSprites(voxel) : [];
         }
         case ENTITY_TYPES.workbench:
-            // 32x16 横長スプライト。タイル左上に配置し、右に 16px はみ出す。
-            return [["ss_sprite_004.png", 0, 0]];
-        case ENTITY_TYPES.forge: // 16x16
-            return [["ss_sprite_052.png", 0, 0]];
-        case ENTITY_TYPES.compost_bin: // 32x32
-            return [["ss_sprite_053_3.png", 0, 0]];
-        case ENTITY_TYPES.threshing_machine: // 32x16
-            return [["ss_sprite_054.png", 0, 0]];
-        case ENTITY_TYPES.screw_presses: // 32x32
-            return [["ss_sprite_055.png", 0, 0]];
-        case ENTITY_TYPES.soaking_basket: // 48x16
-            return [["ss_sprite_056.png", 0, 0]];
-        case ENTITY_TYPES.scutching_board: // 16x16
-            return [["ss_sprite_057.png", 0, 0]];
-        case ENTITY_TYPES.spinning_wheel: // 32x16
-            return [["ss_sprite_058.png", 0, 0]];
-        case ENTITY_TYPES.loom: // 32x32
-            return [["ss_sprite_059.png", 0, 0]];
-        case ENTITY_TYPES.stone: // 16x16
-            return [["stone1.png", 0, 0]];
+        case ENTITY_TYPES.forge:
+        case ENTITY_TYPES.compost_bin:
+        case ENTITY_TYPES.threshing_machine:
+        case ENTITY_TYPES.screw_presses:
+        case ENTITY_TYPES.soaking_basket:
+        case ENTITY_TYPES.scutching_board:
+        case ENTITY_TYPES.spinning_wheel:
+        case ENTITY_TYPES.loom:
+        case ENTITY_TYPES.stone: {
+            const def = getEntityDef(type);
+            return def ? def.getSprites(voxel) : [];
+        }
         case ENTITY_TYPES.facility_part:
-            // 描画はアンカータイル（workbench）が担当するため、このタイルでは描画しない。
+            // 描画はアンカータイルが担当するため、このタイルでは描画しない。
             return [];
-        default:
-            throw new Error(`Unknown entity type: ${type}`);
+        default: {
+            // Registry に登録済みなら委譲、未登録なら空配列
+            const def = getEntityDef(type);
+            return def ? def.getSprites(voxel) : [];
+        }
     }
 }
