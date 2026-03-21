@@ -1,4 +1,3 @@
-import { getVisualStage } from "../../engine/CropDefs";
 import {
     ENTITY_TYPES,
     getCropGrowthStageFromVoxel,
@@ -280,35 +279,8 @@ export function getTerrainSpriteNamesFromVoxel(voxel: number[], pos: Pos3D[], ho
 // EntitySpriteInfo は _registry/EntityRegistry.ts が正規定義。後方互換のため re-export。
 export type { EntitySpriteInfo } from "../../_registry/EntityRegistry";
 
-const seedSprite: EntitySpriteInfo[] = [["ss_sprite_008.png", 0, -2]];
-const starSprite: EntitySpriteInfo[] = [["ss_sprite_060.png", 0, -4]];
-
-function cropPositionOf(sprite: string): EntitySpriteInfo {
-    return [sprite, 0, -8];
-}
-
-function cropSpriteOf(sprites: string[]): EntitySpriteInfo[][] {
-    return [
-        seedSprite,
-        [cropPositionOf(sprites[0])],
-        [cropPositionOf(sprites[1])],
-        [cropPositionOf(sprites[2]), ...starSprite],
-        [cropPositionOf(sprites[2]), ...starSprite],
-        [cropPositionOf(sprites[2])],
-        [cropPositionOf(sprites[2])],
-        [cropPositionOf("ss_sprite_061.png")],
-    ];
-}
-
-const cropSprites: Record<number, EntitySpriteInfo[][]> = {
-    // potato は _registry/entities/Potato.ts に移動済み
-    [ENTITY_TYPES.soy]: cropSpriteOf(["ss_sprite_018.png", "ss_sprite_019.png", "ss_sprite_020.png"]),
-    [ENTITY_TYPES.flax]: cropSpriteOf(["ss_sprite_029.png", "ss_sprite_030.png", "ss_sprite_031.png"]),
-    [ENTITY_TYPES.sunflower]: cropSpriteOf(["ss_sprite_033.png", "ss_sprite_034.png", "ss_sprite_035.png"]),
-};
-
 const treeSpriteInfo: EntitySpriteInfo[][] = [
-    seedSprite,
+    [["ss_sprite_008.png", 0, -2]],
     [["ss_sprite_038.png", 0, 0]],
     [["ss_sprite_039.png", 0, -16]],
     [
@@ -339,8 +311,8 @@ export function getEntitySpriteNameFromVoxel(voxel: number): EntitySpriteInfo[] 
         case ENTITY_TYPES.soy:
         case ENTITY_TYPES.flax:
         case ENTITY_TYPES.sunflower: {
-            const visualStage = getVisualStage(type, dayCounter);
-            return cropSprites[type]?.[visualStage] ?? cropSprites[type][0];
+            const def = getEntityDef(type);
+            return def ? def.getSprites(voxel) : [];
         }
         case ENTITY_TYPES.workbench:
             // 32x16 横長スプライト。タイル左上に配置し、右に 16px はみ出す。
