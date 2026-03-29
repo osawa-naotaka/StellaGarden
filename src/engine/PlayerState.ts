@@ -6,7 +6,7 @@ import { TERRAIN_TYPES, ENTITY_TYPES, getTerrainTypeFromVoxel, getEntityTypeFrom
 
 const MIN_ZOOM = 0.5;
 const MAX_ZOOM = 4.0;
-const MOVE_SPEED = 10; // タイル/秒
+const MOVE_SPEED = 3; // タイル/秒
 
 /** プレイヤーの位置・カメラ状態を管理する純粋なデータクラス。PixiJS に依存しない。 */
 export class PlayerState implements IPlayerStateWriter {
