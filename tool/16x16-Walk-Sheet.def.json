@@ -1,0 +1,30 @@
+{
+  "meta": {
+    "image": "non-redis/16x16-Walk-Sheet.png",
+    "format": "RGBA8888",
+    "px": 20,
+    "py": 20
+  },
+  "displacements": {
+    "animation": {
+      "_0": [0,0],
+      "_1": [1,0],
+      "_2": [2,0],
+      "_3": [3,0]
+    }
+  },
+  "animations": {
+    "Walk_down": "animation",
+    "Walk_down_right": "animation",
+    "Walk_right": "animation",
+    "Walk_up_right": "animation",
+    "Walk_up": "animation"
+  },
+  "frames": {
+    "Walk_down": [0,0, "animation"],
+    "Walk_down_right": [0,1, "animation"],
+    "Walk_right": [0,2, "animation"],
+    "Walk_up_right": [0,3, "animation"],
+    "Walk_up": [0,4, "animation"]
+  }
+}

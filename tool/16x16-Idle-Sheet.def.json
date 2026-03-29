@@ -1,0 +1,30 @@
+{
+  "meta": {
+    "image": "non-redis/16x16-Idle-Sheet.png",
+    "format": "RGBA8888",
+    "px": 20,
+    "py": 20
+  },
+  "displacements": {
+    "animation": {
+      "_0": [0,0],
+      "_1": [1,0],
+      "_2": [2,0],
+      "_3": [3,0]
+    }
+  },
+  "animations": {
+    "Idle_down": "animation",
+    "Idle_down_right": "animation",
+    "Idle_right": "animation",
+    "Idle_up_right": "animation",
+    "Idle_up": "animation"
+  },
+  "frames": {
+    "Idle_down": [0,0, "animation"],
+    "Idle_down_right": [0,1, "animation"],
+    "Idle_right": [0,2, "animation"],
+    "Idle_up_right": [0,3, "animation"],
+    "Idle_up": [0,4, "animation"]
+  }
+}

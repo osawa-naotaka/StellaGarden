@@ -14,7 +14,7 @@ const spriteDefSchema = v.object({
     frames: v.record(v.string(), v.tuple([v.number(), v.number(), v.optional(v.string())])),
 });
 
-const src = ["tileset", "Idle", "Dash", "Jump", "walk", "icons-items", "BirchTree", "SpringCrops", "TilesetGrassWaterSpring", "TilesetGrassCliffTilesetSpring", "TilesetGrassSpring", "TilledSoilAndWetSoil", "16x16-All-Animations-Sheet"];
+const src = ["tileset", "Idle", "Dash", "Jump", "walk", "icons-items", "BirchTree", "SpringCrops", "TilesetGrassWaterSpring", "TilesetGrassCliffTilesetSpring", "TilesetGrassSpring", "TilledSoilAndWetSoil", "16x16-Idle-Sheet", "16x16-Walk-Sheet"];
 
 type Frame = {
     frame: { x: number; y: number; w: number; h: number };
