@@ -202,7 +202,7 @@ function useGameEngine(worldSize: Size2D) {
 
                 playerCharView.top.x = playerLocalX;
                 playerCharView.top.y = playerLocalZ;
-                playerCharView.tick(playerState.facing, false);
+                playerCharView.tick(playerState.facing, inputHandler.isMoving);
 
                 const viewportOrigin: Pos2D = {
                     x: playerState.posInWorld.x - chunkHalfW,

@@ -80,6 +80,14 @@ export class InputHandler {
         };
     }
 
+    /** 移動キーが押されているかどうか。 */
+    get isMoving(): boolean {
+        return this.keyPressState.a || this.keyPressState.arrowleft ||
+            this.keyPressState.d || this.keyPressState.arrowright ||
+            this.keyPressState.w || this.keyPressState.arrowup ||
+            this.keyPressState.s || this.keyPressState.arrowdown;
+    }
+
     /** ゲームループから毎フレーム呼ぶ。キー状態に基づいてプレイヤーを移動させる。 */
     tick(deltaMS: number): void {
         let dx = 0;

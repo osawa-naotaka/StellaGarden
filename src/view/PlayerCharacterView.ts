@@ -49,6 +49,9 @@ export class PlayerCharacterView {
               case "up_right":
                   animName = "Walk_up_right";
                   break;
+              case "up":
+                  animName = "Walk_up";
+                  break;
               case "up_left":
                   animName = "Walk_up_right";
                   scaleX = -1.0;
