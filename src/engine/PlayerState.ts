@@ -12,7 +12,7 @@ const MOVE_SPEED = 10; // タイル/秒
 export class PlayerState implements IPlayerStateWriter {
     readonly inventory: Inventory;
     readonly worldSize: Size2D;
-    readonly tilePerViewport: Size2D;
+    private tilePerViewport_: Size2D;
 
     private posInWorld_: Pos2D;
     private pointerPosInWorld_: Pos2D = { x: 0, z: 0 };
@@ -43,7 +43,7 @@ export class PlayerState implements IPlayerStateWriter {
         this.inventory = new Inventory();
         this.posInWorld_ = { x: opt.start.x, z: opt.start.z };
         this.worldSize = { w: opt.worldSize.w, h: opt.worldSize.h };
-        this.tilePerViewport = {
+        this.tilePerViewport_ = {
             w: opt.tilePerViewport.w,
             h: opt.tilePerViewport.h,
         };
@@ -64,6 +64,15 @@ export class PlayerState implements IPlayerStateWriter {
 
     get facing(): Direction8 {
         return this.facing_;
+    }
+
+    get tilePerViewport(): Size2D {
+        return this.tilePerViewport_;
+    }
+
+    setTilePerViewport(size: Size2D): void {
+        this.tilePerViewport_.w = size.w;
+        this.tilePerViewport_.h = size.h;
     }
 
     /** ゲームループから毎フレーム呼ぶ。キー状態に基づいた移動量を適用する。

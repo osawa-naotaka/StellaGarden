@@ -1,5 +1,6 @@
 import type { Container, FederatedPointerEvent } from "pixi.js";
 import type { GameEventMap } from "../_boundary/events";
+import { PIXEL_PER_TILE } from "../_boundary/constants";
 import type { IPlayerStateWriter } from "../_boundary/interfaces";
 import type { EventBroker } from "../lib/Event";
 
@@ -101,9 +102,11 @@ export class InputHandler {
     }
 
     private updatePointerPosInWorld(): void {
-        const { posInWorld, tilePerViewport, zoomLevel } = this.playerState;
-        const x = posInWorld.x - tilePerViewport.w / 2 + (this.pointerPosInGlobal.x / (this.target.width * zoomLevel)) * tilePerViewport.w;
-        const z = posInWorld.z - tilePerViewport.h / 2 + (this.pointerPosInGlobal.z / (this.target.height * zoomLevel)) * tilePerViewport.h;
+        const { posInWorld, zoomLevel } = this.playerState;
+        // worldContainer がプレイヤーを画面中央に配置するオフセットを持つため、
+        // スクリーン座標→ワールド座標の変換は画面中央からの相対位置で計算する
+        const x = posInWorld.x + (this.pointerPosInGlobal.x - window.innerWidth / 2) / (zoomLevel * PIXEL_PER_TILE);
+        const z = posInWorld.z + (this.pointerPosInGlobal.z - window.innerHeight / 2) / (zoomLevel * PIXEL_PER_TILE);
         this.playerState.setPointerPosInWorld(x, z);
     }
 }

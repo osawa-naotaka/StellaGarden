@@ -73,6 +73,21 @@ export class ChunkRenderer {
     }
 
     /**
+     * RenderTexture プールの容量を確保する。
+     * count が現在のプール数以下なら何もしない。不足分のみ追加する。
+     */
+    ensureCapacity(count: number): void {
+        while (this.renderTexturePool.length < count) {
+            this.renderTexturePool.push(
+                RenderTexture.create({
+                    width: this.tilePerChunk * this.pixelPerTile,
+                    height: this.tilePerChunk * this.pixelPerTile,
+                }),
+            );
+        }
+    }
+
+    /**
      * チャンク 1 枚を RenderTexture に描画して返す。
      * @param voxelMap ボクセルデータ
      * @param world チャンク左上のワールド座標（タイル単位、小数可）

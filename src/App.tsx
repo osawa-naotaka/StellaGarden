@@ -41,10 +41,27 @@ import { TopView } from "./view/TopView";
 import { PlayerCharacterView } from "./view/PlayerCharacterView";
 import { UIState } from "./view/UIState";
 
-function useGameEngine(worldSize: Size2D, chunkPerViewport: Size2D) {
+/** 画面サイズとズームレベルから必要なチャンク数を計算する。 */
+function calcChunkPerViewport(screenW: number, screenH: number, zoomLevel: number): Size2D {
+    const tilesW = screenW / (PIXEL_PER_TILE * zoomLevel);
+    const tilesH = screenH / (PIXEL_PER_TILE * zoomLevel);
+    return {
+        w: Math.ceil(tilesW / TILE_PER_CHUNK) + 2,
+        h: Math.ceil(tilesH / TILE_PER_CHUNK) + 2,
+    };
+}
+
+function calcTilePerViewport(screenW: number, screenH: number, zoomLevel: number): Size2D {
+    return {
+        w: screenW / (PIXEL_PER_TILE * zoomLevel),
+        h: screenH / (PIXEL_PER_TILE * zoomLevel),
+    };
+}
+
+function useGameEngine(worldSize: Size2D) {
     const containerRef = useRef<HTMLDivElement>(null);
 
-    // biome-ignore lint/correctness/useExhaustiveDependencies: worldSize/chunkPerViewport は実質定数。PixiJS 初期化はマウント時一度だけ行う設計のため依存追加しない
+    // biome-ignore lint/correctness/useExhaustiveDependencies: worldSize は実質定数。PixiJS 初期化はマウント時一度だけ行う設計のため依存追加しない
     useEffect(() => {
         if (!containerRef.current) return;
 
@@ -83,14 +100,17 @@ function useGameEngine(worldSize: Size2D, chunkPerViewport: Size2D) {
             const topView = new TopView(voxelMap, pixiApp, {
                 pixelPerTile: PIXEL_PER_TILE,
                 tilePerChunk: TILE_PER_CHUNK,
-                chunkPerViewport,
             });
             worldContainer.addChild(topView.top);
+
+            const initialZoom = 2.0;
+            const initialChunks = calcChunkPerViewport(pixiApp.screen.width, pixiApp.screen.height, initialZoom);
+            const initialTiles = calcTilePerViewport(pixiApp.screen.width, pixiApp.screen.height, initialZoom);
 
             const playerState = new PlayerState({
                 start: { x: 200, z: 200 },
                 worldSize,
-                tilePerViewport: { w: chunkPerViewport.w * TILE_PER_CHUNK, h: chunkPerViewport.h * TILE_PER_CHUNK },
+                tilePerViewport: initialTiles,
                 voxelMap,
             });
             disposers.push(playerState.setEventBroker(eventBroker));
@@ -120,7 +140,7 @@ function useGameEngine(worldSize: Size2D, chunkPerViewport: Size2D) {
             const chestView = new ChestView(playerState.inventory, chestStorage, uiState);
             pixiApp.stage.addChild(chestView.top);
 
-            topView.initializeSprites();
+            topView.resize(initialChunks);
 
             const playerCharView = new PlayerCharacterView();
             worldContainer.addChild(playerCharView.top);
@@ -142,9 +162,9 @@ function useGameEngine(worldSize: Size2D, chunkPerViewport: Size2D) {
                 pixiApp.stage.addChild(debugText.textView);
             }
 
-            // ビューポート原点の計算用定数
-            const halfW = Math.floor((chunkPerViewport.w * TILE_PER_CHUNK) / 2);
-            const halfH = Math.floor((chunkPerViewport.h * TILE_PER_CHUNK) / 2);
+            // 動的ビューポート: 前回のチャンク数を記憶してリサイズ判定に使う
+            let prevChunksW = initialChunks.w;
+            let prevChunksH = initialChunks.h;
 
             // ゲームループ
             pixiApp.ticker.add((ticker) => {
@@ -153,17 +173,41 @@ function useGameEngine(worldSize: Size2D, chunkPerViewport: Size2D) {
                 gameTime.tick(ticker.deltaMS, eventBroker);
                 inputHandler.tick(ticker.deltaMS);
 
-                topView.updateViewport(playerState.posInWorld, playerState.pointerPosInWorld);
-                worldContainer.scale.set(playerState.zoomLevel);
+                // 画面サイズ＋ズームから必要チャンク数を再計算
+                const screenW = pixiApp.screen.width;
+                const screenH = pixiApp.screen.height;
+                const zoom = playerState.zoomLevel;
+                const chunks = calcChunkPerViewport(screenW, screenH, zoom);
+                if (chunks.w !== prevChunksW || chunks.h !== prevChunksH) {
+                    topView.resize(chunks);
+                    prevChunksW = chunks.w;
+                    prevChunksH = chunks.h;
+                }
 
-                const viewportOrigin: Pos2D = {
-                    x: playerState.posInWorld.x - halfW,
-                    z: playerState.posInWorld.z - halfH,
-                };
-                playerCharView.top.x = (playerState.posInWorld.x - viewportOrigin.x) * PIXEL_PER_TILE;
-                playerCharView.top.y = (playerState.posInWorld.z - viewportOrigin.z) * PIXEL_PER_TILE;
+                // tilePerViewport を毎フレーム更新（clamping 用）
+                playerState.setTilePerViewport(calcTilePerViewport(screenW, screenH, zoom));
+
+                topView.updateViewport(playerState.posInWorld, playerState.pointerPosInWorld);
+
+                // TopView と同じチャンクベースの viewportOrigin を計算
+                const chunkHalfW = Math.floor(prevChunksW * TILE_PER_CHUNK / 2);
+                const chunkHalfH = Math.floor(prevChunksH * TILE_PER_CHUNK / 2);
+                const playerLocalX = chunkHalfW * PIXEL_PER_TILE;
+                const playerLocalZ = chunkHalfH * PIXEL_PER_TILE;
+
+                // worldContainer をオフセットし、プレイヤーが画面中央に来るようにする
+                worldContainer.scale.set(zoom);
+                worldContainer.x = screenW / 2 - playerLocalX * zoom;
+                worldContainer.y = screenH / 2 - playerLocalZ * zoom;
+
+                playerCharView.top.x = playerLocalX;
+                playerCharView.top.y = playerLocalZ;
                 playerCharView.tick(playerState.facing, false);
 
+                const viewportOrigin: Pos2D = {
+                    x: playerState.posInWorld.x - chunkHalfW,
+                    z: playerState.posInWorld.z - chunkHalfH,
+                };
                 placementOverlay.tick(playerState.pointerPosInWorld, viewportOrigin);
 
                 if (debugText) debugText.update();
@@ -190,6 +234,6 @@ function useGameEngine(worldSize: Size2D, chunkPerViewport: Size2D) {
 }
 
 export default function App() {
-    const containerRef = useGameEngine({ w: 400, h: 400 }, { w: 6, h: 4 });
+    const containerRef = useGameEngine({ w: 400, h: 400 });
     return <div ref={containerRef} style={{ position: "fixed", inset: 0 }} />;
 }
