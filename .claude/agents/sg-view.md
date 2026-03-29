@@ -35,6 +35,7 @@ StellaGarden は Vite + React 19 + TypeScript + PixiJS 8 で作られたチル�
 | `renderer/TerrainSpriteResolver.ts` | ボクセル値と近傍情報からスプライト名へのマッピングロジック。 |
 | `Tile.ts` | チャンク内タイル 1 枚を表す PixiJS Container のラッパー。スプライトの管理と再利用。 |
 | `PlacementOverlay.ts` | 配置モード中にマウスカーソルに追従する半透明プレビュー。`IVoxelReader` で配置可否を判定し、確定/キャンセルをコールバックで通知する。 |
+| `PlayerCharacterView.ts` | プレイヤーキャラクターの `AnimatedSprite` を管理。`Idle_down` アニメーションをループ再生。位置は呼び出し元が `top.x/y` を直接設定する。 |
 
 ## 描画の基本方針（最重要）
 

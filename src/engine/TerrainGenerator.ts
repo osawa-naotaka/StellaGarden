@@ -54,7 +54,7 @@ export function generateTestTerrain(opt: GenerateTerrainOptions): VoxelMap {
 }
 
 function elodeRiverside(hm: Int8Array, rivers: River[], opt: GenerateTerrainOptions): Int8Array {
-    const SLOPE_INTERVAL = 2; // Nタイルごとに高さ+1（大きいほど緩やかな傾斜）
+    const SLOPE_INTERVAL = 4; // Nタイルごとに高さ+1（大きいほど緩やかな傾斜）
 
     for (const river of rivers) {
         for (const idx of river.path) {

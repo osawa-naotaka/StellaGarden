@@ -1,7 +1,8 @@
-import type { IEventBroker, IPlayerStateWriter } from "../_boundary/interfaces";
+import type { Direction8, IEventBroker, IPlayerStateWriter, IVoxelReader } from "../_boundary/interfaces";
 import { CHUNK_RENDER_MARGIN } from "../lib/ChunkRenderer";
 import type { Pos2D, Size2D } from "../lib/VoxelMap";
 import { Inventory } from "./Inventory";
+import { TERRAIN_TYPES, ENTITY_TYPES, getTerrainTypeFromVoxel, getEntityTypeFromVoxel } from "./TerrainDefs";
 
 const MIN_ZOOM = 0.5;
 const MAX_ZOOM = 4.0;
@@ -16,7 +17,9 @@ export class PlayerState implements IPlayerStateWriter {
     private posInWorld_: Pos2D;
     private pointerPosInWorld_: Pos2D = { x: 0, z: 0 };
     private zoomLevel_ = 2.0;
+    private facing_: Direction8 = "down";
     private broker: IEventBroker | null = null;
+    private readonly voxelMap: IVoxelReader;
 
     /** ゲームプレイ開始後に EventBroker を注入し、イベント購読を登録する。
      *  返り値の dispose 関数で購読を解除する。 */
@@ -35,6 +38,7 @@ export class PlayerState implements IPlayerStateWriter {
         start: Pos2D;
         worldSize: Size2D;
         tilePerViewport: Size2D;
+        voxelMap: IVoxelReader;
     }) {
         this.inventory = new Inventory();
         this.posInWorld_ = { x: opt.start.x, z: opt.start.z };
@@ -43,6 +47,7 @@ export class PlayerState implements IPlayerStateWriter {
             w: opt.tilePerViewport.w,
             h: opt.tilePerViewport.h,
         };
+        this.voxelMap = opt.voxelMap;
     }
 
     get posInWorld(): Pos2D {
@@ -57,22 +62,74 @@ export class PlayerState implements IPlayerStateWriter {
         return this.zoomLevel_;
     }
 
+    get facing(): Direction8 {
+        return this.facing_;
+    }
+
     /** ゲームループから毎フレーム呼ぶ。キー状態に基づいた移動量を適用する。
      *  dx, dz はすでに正規化済みの値を渡すこと。 */
     moveBy(dx: number, dz: number, deltaMS: number): void {
+        if (dx !== 0 || dz !== 0) {
+            if (dx < 0 && dz === 0) this.facing_ = "left";
+            else if (dx > 0 && dz === 0) this.facing_ = "right";
+            else if (dx === 0 && dz < 0) this.facing_ = "up";
+            else if (dx === 0 && dz > 0) this.facing_ = "down";
+            else if (dx < 0 && dz < 0) this.facing_ = "up_left";
+            else if (dx > 0 && dz < 0) this.facing_ = "up_right";
+            else if (dx < 0 && dz > 0) this.facing_ = "down_left";
+            else if (dx > 0 && dz > 0) this.facing_ = "down_right";
+        }
+
         const dt = deltaMS / 1000;
-        this.posInWorld_.x = Math.max(
-            this.tilePerViewport.w / 2 + CHUNK_RENDER_MARGIN + 1,
-            Math.min(this.worldSize.w - 1 - this.tilePerViewport.w / 2 - CHUNK_RENDER_MARGIN - 1, this.posInWorld_.x + dx * MOVE_SPEED * dt),
-        );
-        this.posInWorld_.z = Math.max(
-            this.tilePerViewport.h / 2 + CHUNK_RENDER_MARGIN + 1,
-            Math.min(this.worldSize.h - 1 - this.tilePerViewport.h / 2 - CHUNK_RENDER_MARGIN - 1, this.posInWorld_.z + dz * MOVE_SPEED * dt),
-        );
+        const speed = MOVE_SPEED * dt;
+        const minX = this.tilePerViewport.w / 2 + CHUNK_RENDER_MARGIN + 1;
+        const maxX = this.worldSize.w - 1 - this.tilePerViewport.w / 2 - CHUNK_RENDER_MARGIN - 1;
+        const minZ = this.tilePerViewport.h / 2 + CHUNK_RENDER_MARGIN + 1;
+        const maxZ = this.worldSize.h - 1 - this.tilePerViewport.h / 2 - CHUNK_RENDER_MARGIN - 1;
+
+        // X軸の移動を試みる
+        const clampedX = Math.max(minX, Math.min(maxX, this.posInWorld_.x + dx * speed));
+        if (!this.isBlocked(Math.floor(clampedX), Math.floor(this.posInWorld_.z))) {
+            this.posInWorld_.x = clampedX;
+        }
+
+        // Z軸の移動を試みる（X軸の結果を反映した位置で判定）
+        const clampedZ = Math.max(minZ, Math.min(maxZ, this.posInWorld_.z + dz * speed));
+        if (!this.isBlocked(Math.floor(this.posInWorld_.x), Math.floor(clampedZ))) {
+            this.posInWorld_.z = clampedZ;
+        }
+
         this.broker?.publish("player_position_changed", {
             posInWorld: this.posInWorld_,
             zoomLevel: this.zoomLevel_,
         });
+    }
+
+    /** 指定タイルが移動不可かどうかを返す。 */
+    private isBlocked(tileX: number, tileZ: number): boolean {
+        // マップ範囲外はブロック
+        if (tileX < 0 || tileX >= this.worldSize.w || tileZ < 0 || tileZ >= this.worldSize.h) return true;
+
+        const surfacePos = this.voxelMap.getSurfacePosition({ x: tileX, y: 0, z: tileZ });
+        const voxel = this.voxelMap.get(surfacePos);
+        const terrainType = getTerrainTypeFromVoxel(voxel);
+        const entityType = getEntityTypeFromVoxel(voxel);
+
+        // 水タイルはブロック
+        if (terrainType === TERRAIN_TYPES.water || terrainType === TERRAIN_TYPES.waterSource) return true;
+
+        // 作物系エンティティ（potato, soy, flax, sunflower）は通過可能
+        if (
+            entityType === ENTITY_TYPES.potato ||
+            entityType === ENTITY_TYPES.soy ||
+            entityType === ENTITY_TYPES.flax ||
+            entityType === ENTITY_TYPES.sunflower
+        ) return false;
+
+        // その他のエンティティが存在すればブロック
+        if (entityType !== ENTITY_TYPES.none) return true;
+
+        return false;
     }
 
     /** ポインタのワールド座標を更新する。InputHandler から呼ぶ。 */

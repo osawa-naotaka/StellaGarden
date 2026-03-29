@@ -13,6 +13,10 @@ import type { EventBroker } from "../lib/Event";
 import type { Pos2D, Pos3D, Size2D } from "../lib/VoxelMap";
 import type { GameEventMap } from "./events";
 
+// ─── プレイヤーの向き ──────────────────────────────────────────────────────────
+/** プレイヤーキャラクターの8方向の向き。 */
+export type Direction8 = "down" | "up" | "left" | "right" | "down_left" | "down_right" | "up_left" | "up_right";
+
 // ─── ItemId の再エクスポート ──────────────────────────────────────────────────
 // アイテム ID の正規定義は engine/ItemDefs.ts。サブエージェントはここから取得する。
 export type { ItemId } from "../engine/ItemDefs";
@@ -102,6 +106,7 @@ export interface IPlayerStateReader {
     readonly worldSize: Size2D;
     readonly tilePerViewport: Size2D;
     readonly inventory: IInventoryReader;
+    readonly facing: Direction8;
 }
 
 /**

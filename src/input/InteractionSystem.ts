@@ -1,5 +1,5 @@
 import type { GameEventMap } from "../_boundary/events";
-import type { IInventoryWriter, IVoxelWriter } from "../_boundary/interfaces";
+import type { IInventoryWriter, IPlayerStateReader, IVoxelWriter } from "../_boundary/interfaces";
 import { getEntityDef, type InteractionContext } from "../_registry/EntityRegistry";
 import { getItemDef } from "../_registry/ItemRegistry";
 import { getTerrainDef } from "../_registry/TerrainRegistry";
@@ -29,10 +29,16 @@ export function createInteractionHandler(
     inventory: IInventoryWriter,
     eventBroker: EventBroker<GameEventMap>,
     uiState: UIState,
+    playerState: IPlayerStateReader,
 ): () => void {
+    const INTERACT_RANGE = 5; // タイル
+
     // 右クリック: ツール使用（収穫・撤去・植え付け・掘削等）
     const d1 = eventBroker.subscribe("interact_world", (packet) => {
         if (uiState.mode === "placement") return;
+        const distX = packet.pos.x - playerState.posInWorld.x;
+        const distZ = packet.pos.z - playerState.posInWorld.z;
+        if (Math.abs(distX) > INTERACT_RANGE || Math.abs(distZ) > INTERACT_RANGE) return;
         const surfacePos = voxelMap.getSurfacePosition({ x: packet.pos.x, y: 0, z: packet.pos.z });
         const voxel = voxelMap.get(surfacePos);
         const terrainType = getTerrainTypeFromVoxel(voxel);
@@ -61,6 +67,9 @@ export function createInteractionHandler(
     // 左クリック: 施設UIの起動等
     const d2 = eventBroker.subscribe("interact_primary", (packet) => {
         if (uiState.mode !== "normal") return;
+        const distX = packet.pos.x - playerState.posInWorld.x;
+        const distZ = packet.pos.z - playerState.posInWorld.z;
+        if (Math.abs(distX) > INTERACT_RANGE || Math.abs(distZ) > INTERACT_RANGE) return;
         const surfacePos = voxelMap.getSurfacePosition({ x: packet.pos.x, y: 0, z: packet.pos.z });
         const voxel = voxelMap.get(surfacePos);
         const terrainType = getTerrainTypeFromVoxel(voxel);

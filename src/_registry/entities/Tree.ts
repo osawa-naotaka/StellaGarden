@@ -16,7 +16,7 @@ const sprites: EntitySpriteInfo[][] = [
     [["ss_sprite_039.png", 0, -16]],
     [
         ["ss_sprite_040.png", -8, -16],
-        ["ss_sprite_041.png", 0, 8],
+        // ["ss_sprite_041.png", 0, 8],
     ],
 ];
 

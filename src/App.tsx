@@ -38,6 +38,7 @@ import { PlacementOverlay } from "./view/PlacementOverlay";
 import { loadSprite } from "./view/Sprite";
 import { Toolbar } from "./view/Toolbar";
 import { TopView } from "./view/TopView";
+import { PlayerCharacterView } from "./view/PlayerCharacterView";
 import { UIState } from "./view/UIState";
 
 function useGameEngine(worldSize: Size2D, chunkPerViewport: Size2D) {
@@ -90,6 +91,7 @@ function useGameEngine(worldSize: Size2D, chunkPerViewport: Size2D) {
                 start: { x: 200, z: 200 },
                 worldSize,
                 tilePerViewport: { w: chunkPerViewport.w * TILE_PER_CHUNK, h: chunkPerViewport.h * TILE_PER_CHUNK },
+                voxelMap,
             });
             disposers.push(playerState.setEventBroker(eventBroker));
             playerState.inventory.setEventBroker(eventBroker);
@@ -120,7 +122,10 @@ function useGameEngine(worldSize: Size2D, chunkPerViewport: Size2D) {
 
             topView.initializeSprites();
 
-            disposers.push(createInteractionHandler(voxelMap, playerState.inventory, eventBroker, uiState));
+            const playerCharView = new PlayerCharacterView();
+            worldContainer.addChild(playerCharView.top);
+
+            disposers.push(createInteractionHandler(voxelMap, playerState.inventory, eventBroker, uiState, playerState));
 
             const gameTime = new GameTime();
             disposers.push(
@@ -155,6 +160,10 @@ function useGameEngine(worldSize: Size2D, chunkPerViewport: Size2D) {
                     x: playerState.posInWorld.x - halfW,
                     z: playerState.posInWorld.z - halfH,
                 };
+                playerCharView.top.x = (playerState.posInWorld.x - viewportOrigin.x) * PIXEL_PER_TILE;
+                playerCharView.top.y = (playerState.posInWorld.z - viewportOrigin.z) * PIXEL_PER_TILE;
+                playerCharView.tick(playerState.facing, false);
+
                 placementOverlay.tick(playerState.pointerPosInWorld, viewportOrigin);
 
                 if (debugText) debugText.update();
