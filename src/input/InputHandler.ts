@@ -5,6 +5,13 @@ import type { IPlayerStateWriter } from "../_boundary/interfaces";
 import type { EventBroker } from "../lib/Event";
 
 const ZOOM_STEP = 0.1;
+const HOLD_DELAY = 300;    // 最初のインタラクトまでの遅延(ms)
+const HOLD_INTERVAL = 300; // 連続インタラクトの間隔(ms)
+
+/** ホールド操作が必要なツールのID集合 */
+const HOLD_TOOL_IDS: ReadonlySet<string> = new Set([
+    "axe", "hoes", "pickaxe", "sickle", "shovel", "watering_can",
+]);
 
 /** キーボード・マウスイベントを受け取り、PlayerState を更新する。
  *  インタラクションは EventBroker 経由で通知する。 */
@@ -15,6 +22,10 @@ export class InputHandler {
 
     private keyPressState: Record<string, boolean> = {};
     private pointerPosInGlobal = { x: 0, z: 0 };
+
+    private rightHeld_ = false;
+    private holdAccumulator_ = 0;
+    private holdFired_ = false;
 
     constructor(target: Container, playerState: IPlayerStateWriter, eventBroker: EventBroker<GameEventMap>) {
         this.target = target;
@@ -66,14 +77,31 @@ export class InputHandler {
                 this.eventBroker.publish("interact_primary", { pos: { x, z } });
             } else if (e.button === 2) {
                 // 右クリック: ツール使用
-                this.eventBroker.publish("interact_world", { pos: { x, z } });
+                const selectedTool = this.playerState.inventory.selectedTool;
+                if (selectedTool && HOLD_TOOL_IDS.has(selectedTool)) {
+                    // ホールドツール: tick で遅延発動
+                    this.rightHeld_ = true;
+                    this.holdAccumulator_ = 0;
+                    this.holdFired_ = false;
+                } else {
+                    // 非ホールドツール: 即時発動（従来通り）
+                    this.eventBroker.publish("interact_world", { pos: { x, z } });
+                }
             }
         };
         this.target.on("pointerdown", onPointerDown);
 
+        const onPointerUp = (e: PointerEvent) => {
+            if (e.button === 2) {
+                this.rightHeld_ = false;
+            }
+        };
+        window.addEventListener("pointerup", onPointerUp);
+
         return () => {
             window.removeEventListener("keydown", onKeyDown);
             window.removeEventListener("keyup", onKeyUp);
+            window.removeEventListener("pointerup", onPointerUp);
             this.target.off("wheel", onWheel);
             this.target.off("pointermove", onPointerMove);
             this.target.off("pointerdown", onPointerDown);
@@ -88,6 +116,11 @@ export class InputHandler {
             this.keyPressState.s || this.keyPressState.arrowdown;
     }
 
+    /** ツールホールド中かどうか。 */
+    get isHolding(): boolean {
+        return this.rightHeld_;
+    }
+
     /** ゲームループから毎フレーム呼ぶ。キー状態に基づいてプレイヤーを移動させる。 */
     tick(deltaMS: number): void {
         let dx = 0;
@@ -97,7 +130,7 @@ export class InputHandler {
         if (this.keyPressState.w || this.keyPressState.arrowup) dz -= 2;
         if (this.keyPressState.s || this.keyPressState.arrowdown) dz += 2;
 
-        if (dx !== 0 || dz !== 0) {
+        if ((dx !== 0 || dz !== 0) && !this.rightHeld_) {
             // 斜め移動を正規化
             if (dx !== 0 && dz !== 0) {
                 const norm = 1 / Math.sqrt(2);
@@ -107,6 +140,25 @@ export class InputHandler {
             this.eventBroker.publish("player_move", { dx, dz, deltaMS });
         }
         this.updatePointerPosInWorld();
+
+        // ホールド中のツール連続発動
+        if (this.rightHeld_) {
+            this.holdAccumulator_ += deltaMS;
+            if (!this.holdFired_ && this.holdAccumulator_ >= HOLD_DELAY) {
+                this.fireInteractWorld();
+                this.holdFired_ = true;
+                this.holdAccumulator_ = 0;
+            } else if (this.holdFired_ && this.holdAccumulator_ >= HOLD_INTERVAL) {
+                this.fireInteractWorld();
+                this.holdAccumulator_ -= HOLD_INTERVAL;
+            }
+        }
+    }
+
+    private fireInteractWorld(): void {
+        const x = Math.floor(this.playerState.pointerPosInWorld.x);
+        const z = Math.floor(this.playerState.pointerPosInWorld.z);
+        this.eventBroker.publish("interact_world", { pos: { x, z } });
     }
 
     private updatePointerPosInWorld(): void {

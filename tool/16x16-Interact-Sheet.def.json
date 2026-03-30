@@ -1,0 +1,30 @@
+{
+  "meta": {
+    "image": "non-redis/16x16-Interact-Sheet.png",
+    "format": "RGBA8888",
+    "px": 20,
+    "py": 20
+  },
+  "displacements": {
+    "animation": {
+      "_0": [0,0],
+      "_1": [1,0],
+      "_2": [2,0],
+      "_3": [3,0]
+    }
+  },
+  "animations": {
+    "Interact_down": "animation",
+    "Interact_down_right": "animation",
+    "Interact_right": "animation",
+    "Interact_up_right": "animation",
+    "Interact_up": "animation"
+  },
+  "frames": {
+    "Interact_down": [0,0, "animation"],
+    "Interact_down_right": [0,1, "animation"],
+    "Interact_right": [0,2, "animation"],
+    "Interact_up_right": [0,3, "animation"],
+    "Interact_up": [0,4, "animation"]
+  }
+}

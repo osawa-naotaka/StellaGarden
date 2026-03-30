@@ -1,4 +1,5 @@
 import { readFileSync, writeFileSync } from "node:fs";
+import { globSync } from "node:fs";
 import * as v from "valibot";
 import { decode } from "fast-png";
 
@@ -14,7 +15,8 @@ const spriteDefSchema = v.object({
     frames: v.record(v.string(), v.tuple([v.number(), v.number(), v.optional(v.string())])),
 });
 
-const src = ["tileset", "Idle", "Dash", "Jump", "walk", "icons-items", "BirchTree", "SpringCrops", "TilesetGrassWaterSpring", "TilesetGrassCliffTilesetSpring", "TilesetGrassSpring", "TilledSoilAndWetSoil", "16x16-Idle-Sheet", "16x16-Walk-Sheet"];
+const grob_src = globSync("*.def.json", { cwd: "tool" });
+const src = grob_src.map((f) => f.replace(".def.json", ""));
 
 type Frame = {
     frame: { x: number; y: number; w: number; h: number };
