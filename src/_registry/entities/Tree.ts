@@ -3,10 +3,13 @@ import {
     getCropGrowthStageFromVoxel,
     getEntityTypeFromVoxel,
     getTerrainTypeFromVoxel,
+    setCropGrowthStageInVoxel,
     TERRAIN_TYPES,
 } from "../../engine/TerrainDefs";
-import { registerEntity, type EntitySpriteInfo, type InteractionContext } from "../EntityRegistry";
+import { registerEntity, type DailyTickContext, type EntitySpriteInfo, type InteractionContext } from "../EntityRegistry";
 import { registerItem } from "../ItemRegistry";
+
+const TREE_MAX_GROWTH_STAGE = 7;
 
 // ── スプライト定義 ──
 
@@ -31,6 +34,19 @@ registerEntity({
             return sprites[3];
         }
         return sprites[dayCounter] ?? sprites[0];
+    },
+
+    onDailyTick(ctx: DailyTickContext): void {
+        const { voxelMap, pos, isWet } = ctx;
+        let voxel = ctx.voxel;
+        const stage = getCropGrowthStageFromVoxel(voxel);
+        if (stage < TREE_MAX_GROWTH_STAGE) {
+            voxel = setCropGrowthStageInVoxel(voxel, stage + 1);
+        }
+        if (isWet) {
+            voxel = (voxel & ~0xff) | TERRAIN_TYPES.soil;
+        }
+        voxelMap.set(voxel, pos);
     },
 
     onInteract(ctx: InteractionContext): boolean {

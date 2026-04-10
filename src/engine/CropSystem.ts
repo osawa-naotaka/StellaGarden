@@ -1,5 +1,5 @@
 import type { IVoxelWriter } from "../_boundary/interfaces";
-import { CROP_DEFS } from "./CropDefs";
+import type { CropDef } from "./CropDefs";
 import {
     ENTITY_TYPES,
     getCropGrowthStageFromVoxel,
@@ -10,119 +10,87 @@ import {
     setDroughtCounterInVoxel,
     TERRAIN_TYPES,
 } from "./TerrainDefs";
-
-/** CROP_DEFS に含まれない entity type（tree 等）に適用するフォールバック上限。 */
-const FALLBACK_MAX_GROWTH_STAGE = 7;
+import { getEntityDef, type DailyTickContext } from "../_registry/EntityRegistry";
 
 /** 水切れ枯死の閾値。この日数連続で水切れすると枯死する。 */
 const DROUGHT_DEATH_THRESHOLD = 3;
 
 /**
- * ゲーム内1日が経過するたびに呼び出す統合日次処理。
+ * 作物共通の1日次処理。各作物の onDailyTick から呼ぶ。
  *
- * 旧 dryWetSoil + clearFertilized + advanceDayAllCrops を統合。
- * 処理順序が重要: 水やり判定を先に行い、その後乾燥する。
- *
- * - 作物なしの wetSoil → soil に乾燥
  * - 水やり必須作物 (needsWater=true):
  *   - wetSoil → 成長 + drought=0 + 乾燥
  *   - soil → 成長停止 + drought+=1 → drought>=3 で枯死
- * - ジャガイモ (needsWater=false):
- *   - wetSoil → 成長 + droughtCounter+=1 (水やり回数カウント) + 乾燥
- *   - soil → 成長（水なしでも育つ）
- * - tree・施設等 (CROP_DEFS 外):
- *   - 従来通り常に成長、フォールバック上限使用
+ * - ジャガイモ等（needsWater=false）:
+ *   - 常に成長。wetSoil → watered count+=1 + 乾燥
+ */
+export function applyCropDailyTick(ctx: DailyTickContext, cropDef: CropDef): void {
+    const { voxelMap, pos, isWet } = ctx;
+    let voxel = ctx.voxel;
+    const dayCounter = getCropGrowthStageFromVoxel(voxel);
+
+    // 既に枯死済み: 乾燥のみ
+    if (dayCounter >= cropDef.witherDay) {
+        if (isWet) voxelMap.set((voxel & ~0xff) | TERRAIN_TYPES.soil, pos);
+        return;
+    }
+
+    if (cropDef.needsWater) {
+        // --- 水やり必須作物 ---
+        if (isWet) {
+            // 水やり済み: 成長 + drought リセット + 乾燥
+            voxel = setCropGrowthStageInVoxel(voxel, dayCounter + 1);
+            voxel = setDroughtCounterInVoxel(voxel, 0);
+            voxel = (voxel & ~0xff) | TERRAIN_TYPES.soil;
+        } else {
+            // 水切れ: 成長停止 + drought インクリメント
+            const drought = getDroughtCounterFromVoxel(voxel);
+            const newDrought = drought + 1;
+            if (newDrought >= DROUGHT_DEATH_THRESHOLD) {
+                // 枯死
+                voxel = setCropGrowthStageInVoxel(voxel, cropDef.witherDay);
+                voxel = setDroughtCounterInVoxel(voxel, 0);
+            } else {
+                voxel = setDroughtCounterInVoxel(voxel, newDrought);
+            }
+        }
+    } else {
+        // --- 水やり不要作物（ジャガイモ等）: 常に成長 ---
+        voxel = setCropGrowthStageInVoxel(voxel, dayCounter + 1);
+        if (isWet) {
+            // 水やり回数をカウント（drought bits を流用）
+            const wateredCount = getDroughtCounterFromVoxel(voxel);
+            if (wateredCount < 3) {
+                voxel = setDroughtCounterInVoxel(voxel, wateredCount + 1);
+            }
+            voxel = (voxel & ~0xff) | TERRAIN_TYPES.soil;
+        }
+    }
+
+    voxelMap.set(voxel, pos);
+}
+
+/**
+ * ゲーム内1日が経過するたびに呼び出す統合日次処理。
+ *
+ * 各タイルを走査し、エンティティのない wetSoil を乾燥させる。
+ * エンティティがあれば EntityRegistry の onDailyTick に委譲する。
  */
 export function processDailyTick(voxelMap: IVoxelWriter): void {
     for (let x = 0; x < voxelMap.width; x++) {
         for (let z = 0; z < voxelMap.depth; z++) {
             const pos = voxelMap.getSurfacePosition({ x, y: 0, z });
-            let voxel = voxelMap.get(pos);
-
+            const voxel = voxelMap.get(pos);
             const entityType = getEntityTypeFromVoxel(voxel);
-            const terrainType = getTerrainTypeFromVoxel(voxel);
-            const isWet = terrainType === TERRAIN_TYPES.wetSoil;
+            const isWet = getTerrainTypeFromVoxel(voxel) === TERRAIN_TYPES.wetSoil;
 
-            // --- エンティティなし: 乾燥のみ ---
             if (entityType === ENTITY_TYPES.none) {
-                if (isWet) {
-                    voxelMap.set((voxel & ~0xff) | TERRAIN_TYPES.soil, pos);
-                }
+                if (isWet) voxelMap.set((voxel & ~0xff) | TERRAIN_TYPES.soil, pos);
                 continue;
             }
 
-            const cropDef = CROP_DEFS[entityType];
-
-            // --- CROP_DEFS 外（tree・施設等）: 従来ロジック ---
-            if (cropDef === undefined) {
-                // 焚き火: 点火中 → 消火中
-                if (entityType === ENTITY_TYPES.bonfire_lit) {
-                    voxelMap.set((voxel & 0xff) | (ENTITY_TYPES.bonfire_done << 8), pos);
-                    continue;
-                }
-                // 焚き火: 消火中はそのまま
-                if (entityType === ENTITY_TYPES.bonfire_done) {
-                    continue;
-                }
-
-                const stage = getCropGrowthStageFromVoxel(voxel);
-                if (stage < FALLBACK_MAX_GROWTH_STAGE) {
-                    voxel = setCropGrowthStageInVoxel(voxel, stage + 1);
-                }
-                // wetSoil があれば乾燥
-                if (isWet) {
-                    voxel = (voxel & ~0xff) | TERRAIN_TYPES.soil;
-                }
-                voxelMap.set(voxel, pos);
-                continue;
-            }
-
-            // --- CROP_DEFS 内の作物 ---
-            const dayCounter = getCropGrowthStageFromVoxel(voxel);
-
-            // 既に枯死済みならスキップ（乾燥のみ）
-            if (dayCounter >= cropDef.witherDay) {
-                if (isWet) {
-                    voxelMap.set((voxel & ~0xff) | TERRAIN_TYPES.soil, pos);
-                }
-                continue;
-            }
-
-            if (cropDef.needsWater) {
-                // --- 水やり必須作物 ---
-                if (isWet) {
-                    // 水やり済み: 成長 + drought リセット + 乾燥
-                    voxel = setCropGrowthStageInVoxel(voxel, dayCounter + 1);
-                    voxel = setDroughtCounterInVoxel(voxel, 0);
-                    voxel = (voxel & ~0xff) | TERRAIN_TYPES.soil;
-                } else {
-                    // 水切れ: 成長停止 + drought インクリメント
-                    const drought = getDroughtCounterFromVoxel(voxel);
-                    const newDrought = drought + 1;
-                    if (newDrought >= DROUGHT_DEATH_THRESHOLD) {
-                        // 枯死: エンティティは残し、dayCounter を witherDay に設定して枯死スプライトを表示
-                        voxel = setCropGrowthStageInVoxel(voxel, cropDef.witherDay);
-                        voxel = setDroughtCounterInVoxel(voxel, 0);
-                    } else {
-                        voxel = setDroughtCounterInVoxel(voxel, newDrought);
-                    }
-                }
-            } else {
-                // --- ジャガイモ等（水やり不要）: 常に成長 ---
-                voxel = setCropGrowthStageInVoxel(voxel, dayCounter + 1);
-
-                if (isWet) {
-                    // 水やりされていたら watered count をインクリメント（drought bits を流用）
-                    const wateredCount = getDroughtCounterFromVoxel(voxel);
-                    if (wateredCount < 3) {
-                        voxel = setDroughtCounterInVoxel(voxel, wateredCount + 1);
-                    }
-                    // 乾燥
-                    voxel = (voxel & ~0xff) | TERRAIN_TYPES.soil;
-                }
-            }
-
-            voxelMap.set(voxel, pos);
+            const def = getEntityDef(entityType);
+            def?.onDailyTick?.({ voxelMap, pos, voxel, isWet });
         }
     }
 }

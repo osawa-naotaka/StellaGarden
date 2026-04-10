@@ -265,11 +265,13 @@ class UIState {
 1. **新エンティティは `_registry/entities/` にファイルを作成し、`registerEntity()` で登録する**
 2. **新アイテム使用は `_registry/items/` にファイルを作成し、`registerItem()` で登録する**
 3. **新地形インタラクションは `_registry/terrains/` にファイルを作成し、`registerTerrain()` で登録する**
-4. **定義ファイルは1ファイルに全側面（スプライト・インタラクション・パラメータ）を含む**
+4. **定義ファイルは1ファイルに全側面（スプライト・インタラクション・日次処理・パラメータ）を含む**
 5. **`onInteract` / `onItemUse` は処理の成否を `boolean` で返す**
-6. **Registry の型定義（`EntityRegistry.ts` 等）の変更は全登録済み定義に影響するため慎重に行う**
-7. **個別定義ファイルの変更は局所的であり、他の定義に影響しない**
-8. **同名の概念は Registry で分離する**: `TERRAIN_TYPES.dirt`（地形）と `ItemId "dirt"`（アイテム）は別の Registry に登録される
+6. **日次処理は `onDailyTick` に実装する。`engine/CropSystem.ts` は変更しない**
+7. **作物の日次処理は `applyCropDailyTick(ctx, CROP_DEFS[entityType])` を呼ぶだけでよい**
+8. **Registry の型定義（`EntityRegistry.ts` 等）の変更は全登録済み定義に影響するため慎重に行う**
+9. **個別定義ファイルの変更は局所的であり、他の定義に影響しない**
+10. **同名の概念は Registry で分離する**: `TERRAIN_TYPES.dirt`（地形）と `ItemId "dirt"`（アイテム）は別の Registry に登録される
 
 ---
 
@@ -388,6 +390,63 @@ export type ItemId =
 // Materials.ts への追記例
 registerItem({ itemId: "charcoal", spriteName: "ss_sprite_NNN.png", maxStack: 64 });
 ```
+
+---
+
+### エンティティの日次処理の追加
+
+ゲーム内1日経過時（`day_changed` イベント）に状態を変化させるエンティティは、`registerEntity()` に `onDailyTick` を実装する。`engine/CropSystem.ts` は変更不要。
+
+#### 作物型（CROP_DEFS を使う場合）
+
+水やり・連作疲労・枯死など作物共通のロジックは `applyCropDailyTick` として切り出されている。1行呼ぶだけでよい。
+
+```typescript
+import { CROP_DEFS } from "../../engine/CropDefs";
+import { applyCropDailyTick } from "../../engine/CropSystem";
+import { registerEntity, type DailyTickContext } from "../EntityRegistry";
+
+registerEntity({
+    entityType: ENTITY_TYPES.my_crop,
+    getSprites(voxel) { ... },
+
+    onDailyTick(ctx: DailyTickContext): void {
+        applyCropDailyTick(ctx, CROP_DEFS[ENTITY_TYPES.my_crop]);
+    },
+    // onInteract...
+});
+```
+
+`CROP_DEFS` に対応する `CropDef` エントリ（`maturityDay`, `witherDay`, `needsWater`, `fatigueThreshold`）を追加すれば、水やり・枯死・連作疲労が自動的に機能する。
+
+#### 施設型・特殊エンティティ（独自ロジックの場合）
+
+施設の状態遷移やタイマーなど、固有のロジックを `onDailyTick` に直接記述する。
+
+```typescript
+// 例: 焚き火（点火中）が 1 日後に消火中へ遷移する
+registerEntity({
+    entityType: ENTITY_TYPES.bonfire_lit,
+    getSprites() { ... },
+
+    onDailyTick(ctx: DailyTickContext): void {
+        ctx.voxelMap.set((ctx.voxel & 0xff) | (ENTITY_TYPES.bonfire_done << 8), ctx.pos);
+    },
+});
+```
+
+#### `DailyTickContext` のフィールド
+
+| フィールド | 型 | 説明 |
+|---|---|---|
+| `voxelMap` | `IVoxelWriter` | ボクセルの読み書き |
+| `pos` | `Pos3D` | 対象タイルの座標（surfacePosition） |
+| `voxel` | `number` | 対象タイルのボクセル値（変更前） |
+| `isWet` | `boolean` | 地形が wetSoil かどうか |
+
+#### `onDailyTick` を持たないエンティティ
+
+施設（workbench, forge 等）や bonfire_done（消火中、プレイヤー操作待ち）のように日次で変化しないエンティティは `onDailyTick` を省略する。ループで走査されても何も起きない。
 
 ---
 

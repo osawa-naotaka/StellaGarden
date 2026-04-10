@@ -1,4 +1,5 @@
 import { CROP_DEFS, getFertilizerYieldMultiplier, getVisualStage } from "../../engine/CropDefs";
+import { applyCropDailyTick } from "../../engine/CropSystem";
 import {
     ENTITY_TYPES,
     getCropGrowthStageFromVoxel,
@@ -12,7 +13,7 @@ import {
     setLastCropInVoxel,
     TERRAIN_TYPES,
 } from "../../engine/TerrainDefs";
-import { registerEntity, type EntitySpriteInfo, type InteractionContext } from "../EntityRegistry";
+import { registerEntity, type DailyTickContext, type EntitySpriteInfo, type InteractionContext } from "../EntityRegistry";
 import { registerItem } from "../ItemRegistry";
 
 // ── スプライト定義 ──
@@ -44,6 +45,10 @@ registerEntity({
         const dayCounter = getCropGrowthStageFromVoxel(voxel);
         const visualStage = getVisualStage(ENTITY_TYPES.sunflower, dayCounter);
         return sprites[visualStage] ?? sprites[0];
+    },
+
+    onDailyTick(ctx: DailyTickContext): void {
+        applyCropDailyTick(ctx, CROP_DEFS[ENTITY_TYPES.sunflower]);
     },
 
     onInteract(ctx: InteractionContext): boolean {

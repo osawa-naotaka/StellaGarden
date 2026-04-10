@@ -1,5 +1,5 @@
 import { ENTITY_TYPES } from "../../engine/TerrainDefs";
-import { registerEntity, type EntitySpriteInfo, type InteractionContext } from "../EntityRegistry";
+import { registerEntity, type DailyTickContext, type EntitySpriteInfo, type InteractionContext } from "../EntityRegistry";
 import { placeFacility, removeFacilityAtPos } from "../facilityUtil";
 import { registerItem } from "../ItemRegistry";
 
@@ -46,7 +46,12 @@ registerEntity({
         const frame = Math.floor(Date.now() / ANIM_FRAME_MS) % 3;
         return LIT_SPRITES[frame];
     },
-    // 点火中は操作不可
+
+    onDailyTick(ctx: DailyTickContext): void {
+        // 1日後に消火中へ遷移
+        ctx.voxelMap.set((ctx.voxel & 0xff) | (ENTITY_TYPES.bonfire_done << 8), ctx.pos);
+    },
+    // 右クリック操作不可（点火中のため）
 });
 
 // ── 焚き火（消火中）──

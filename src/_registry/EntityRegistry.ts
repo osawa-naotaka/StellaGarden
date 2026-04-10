@@ -13,8 +13,16 @@ export interface InteractionContext {
     readonly tool: ItemId | null;
 }
 
+/** onDailyTick に渡されるコンテキスト */
+export interface DailyTickContext {
+    readonly voxelMap: IVoxelWriter;
+    readonly pos: Pos3D;
+    readonly voxel: number;
+    readonly isWet: boolean;
+}
+
 /**
- * エンティティ定義。スプライト・インタラクションを1つにまとめる。
+ * エンティティ定義。スプライト・インタラクション・日次処理を1つにまとめる。
  * 各エンティティは _registry/entities/ にファイルを作り registerEntity() で登録する。
  * アイテム使用（植え付け等）は ItemRegistry に registerItem() で別途登録する。
  */
@@ -31,6 +39,9 @@ export interface EntityDef {
     /** 左クリック: このエンティティが対象地点に存在する時に呼ばれる（例: 施設UIの起動）。
      *  true = 処理済み、false = 未処理。 */
     onPrimaryInteract?(ctx: InteractionContext): boolean;
+
+    /** ゲーム内1日経過時に呼ばれる（例: 作物の成長・焚き火の状態遷移）。 */
+    onDailyTick?(ctx: DailyTickContext): void;
 }
 
 // ── 内部ストレージ ──
