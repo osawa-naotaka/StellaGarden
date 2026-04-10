@@ -273,6 +273,148 @@ class UIState {
 
 ---
 
+## 新要素の追加方法
+
+### エンティティの追加
+
+エンティティには **作物型**（農地で育てるもの）と **施設型**（フィールドに配置する構造物）の2種類がある。いずれも手順の骨格は同じ。
+
+#### 手順
+
+**1. `engine/TerrainDefs.ts` の `ENTITY_TYPES` に番号を追加する**
+
+```typescript
+export const ENTITY_TYPES = {
+    // ... 既存 ...
+    my_entity: 20,  // ← 既存番号と重複しない値を割り当てる
+} as const;
+```
+
+**2. `engine/ItemDefs.ts` の `ItemId` 型に必要なアイテム ID を追加する**
+
+```typescript
+export type ItemId =
+    // ... 既存 ...
+    | "my_entity"   // 施設アイテム、または作物の種アイテム
+    | "my_harvest"; // 収穫物（別アイテムが必要な場合）
+```
+
+**3. `_registry/entities/MyEntity.ts` を作成する**
+
+`registerEntity()` でスプライト・インタラクションを登録する。  
+アイテムが関連する場合は同じファイル内で `registerItem()` も呼び、**全側面を1ファイルに集約する**。
+
+```typescript
+// 作物型の例
+import { ENTITY_TYPES, ... } from "../../engine/TerrainDefs";
+import { registerEntity, type InteractionContext } from "../EntityRegistry";
+import { registerItem } from "../ItemRegistry";
+
+registerEntity({
+    entityType: ENTITY_TYPES.my_entity,
+
+    getSprites(voxel: number) {
+        // voxel 値（成長段階等）を見てスプライト名・オフセットを返す
+        return [["ss_sprite_XXX.png", 0, -8]];
+    },
+
+    onInteract(ctx: InteractionContext): boolean {
+        // 右クリック: 収穫・撤去等
+        // 未処理の場合は false を返す（次のパスへ進む）
+        if (ctx.tool !== "shovel") return false;
+        // ... 収穫ロジック ...
+        return true;
+    },
+
+    // 施設型の場合: 左クリックで UI を開く
+    onPrimaryInteract(ctx: InteractionContext): boolean {
+        ctx.eventBroker.publish("open_craft_ui", { pos: ... });
+        return true;
+    },
+});
+
+// アイテムとして使用する場合（種の植え付け、施設の配置 等）
+registerItem({
+    itemId: "my_entity",
+    spriteName: "ss_sprite_YYY.png",
+    maxStack: 64,
+
+    // ワールドに使用する操作（植え付け等）がある場合
+    onItemUse(ctx: InteractionContext): boolean {
+        // ... ロジック ...
+        return true;
+    },
+
+    // 施設型の場合: 配置情報を設定する
+    placement: {
+        entityType: ENTITY_TYPES.my_entity,
+        entitySize: { w: 2, h: 1 },
+        fieldSpriteName: "ss_sprite_ZZZ.png",
+        onPlace(voxelMap, pos) {
+            placeFacility(voxelMap, pos, ENTITY_TYPES.my_entity, { w: 2, h: 1 });
+        },
+    },
+});
+```
+
+**4. `src/App.tsx` で import する**
+
+```typescript
+import "./_registry/entities/MyEntity";
+```
+
+エンティティ定義ファイルを import するだけで `registerEntity()` / `registerItem()` の副作用が実行され、Registry に登録される。
+
+---
+
+### アイテムのみの追加（エンティティ不要）
+
+収穫物・素材・中間生産物など、フィールドエンティティを持たないアイテムを追加する場合。
+
+**1. `engine/ItemDefs.ts` の `ItemId` 型に ID を追加する**
+
+```typescript
+export type ItemId =
+    // ... 既存 ...
+    | "charcoal";
+```
+
+**2. 既存の `_registry/items/*.ts` に `registerItem()` を追記する（または新ファイルを作成する）**
+
+同カテゴリの素材なら `Materials.ts` 等に1行追加するだけでよい。  
+ワールド使用が必要（`onItemUse`）なら新ファイルを作成し `App.tsx` で import する。
+
+```typescript
+// Materials.ts への追記例
+registerItem({ itemId: "charcoal", spriteName: "ss_sprite_NNN.png", maxStack: 64 });
+```
+
+---
+
+### クラフトレシピの追加
+
+**1. 成果物アイテムが未登録なら `engine/ItemDefs.ts` の `ItemId` に追加する**（上記「アイテムのみの追加」参照）
+
+**2. `engine/RecipeDefs.ts` の `RECIPES` 配列にレシピオブジェクトを追加する**
+
+```typescript
+export const RECIPES: readonly RecipeDef[] = [
+    // ... 既存 ...
+    {
+        id: "charcoal",             // レシピを一意に識別する文字列
+        station: "bonfire",         // クラフトステーション（"hand" / "workbench" / 任意の施設名）
+        ingredients: [
+            { itemId: "trunk", count: 2 },
+        ],
+        result: { itemId: "charcoal", count: 4 },
+    },
+];
+```
+
+`station` に使うクラフトステーション名は `_boundary/interfaces.ts` の `CraftStation` 型で管理されている。新しいステーションを追加する場合はその型定義も更新が必要。
+
+---
+
 ## 検討課題（未着手）
 
 ### GUI ウィジェットの入力とロジックの分離
