@@ -49,6 +49,16 @@ export function registerItem(def: ItemDef): void {
     }
 }
 
+/**
+ * アイテムを追加の entityType にも関連付ける。
+ * 使い捨て施設など、配置時と消火後で entityType が異なる場合に使う。
+ * findFacilityAnchor が全状態のアンカーを解決できるようにする。
+ */
+export function registerItemAlias(entityType: number, itemId: string): void {
+    const def = itemDefs.get(itemId);
+    if (def) itemByEntityType.set(entityType, def);
+}
+
 export function getItemDef(itemId: string): ItemDef | undefined {
     return itemDefs.get(itemId);
 }

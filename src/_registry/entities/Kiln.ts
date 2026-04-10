@@ -5,8 +5,8 @@ import {
     setCropGrowthStageInVoxel,
 } from "../../engine/TerrainDefs";
 import { registerEntity, type DailyTickContext, type EntitySpriteInfo, type InteractionContext } from "../EntityRegistry";
-import { placeFacility } from "../facilityUtil";
-import { registerItem } from "../ItemRegistry";
+import { findFacilityAnchor, placeFacility } from "../facilityUtil";
+import { registerItem, registerItemAlias } from "../ItemRegistry";
 
 // ── 稼働中アニメーション用スプライトテーブル ──
 
@@ -55,9 +55,17 @@ registerEntity({
     onInteract(ctx: InteractionContext): boolean {
         // スコップで窯を崩し、木炭を回収（窯は消滅、使い捨て）
         if (ctx.tool !== "shovel") return false;
+        // facility_part タイルからでも正しくアンカー座標を解決する
+        const anchor = findFacilityAnchor(ctx.voxelMap, ctx.surfacePos.x, ctx.surfacePos.z);
+        if (!anchor) return false;
         if (!ctx.inventory.addItems([{ itemId: "charcoal", count: 4 }])) return false;
-        const terrain = getTerrainTypeFromVoxel(ctx.voxel);
-        ctx.voxelMap.set(terrain, ctx.surfacePos);
+        // 2x2 の全タイルのエンティティビットをクリアする
+        for (let dz = 0; dz < 2; dz++) {
+            for (let dx = 0; dx < 2; dx++) {
+                const pos = ctx.voxelMap.getSurfacePosition({ x: anchor.anchorX + dx, y: 0, z: anchor.anchorZ + dz });
+                ctx.voxelMap.set(ctx.voxelMap.get(pos) & 0xff, pos);
+            }
+        }
         return true;
     },
 });
@@ -77,3 +85,6 @@ registerItem({
         },
     },
 });
+
+// 消火状態（kiln）でも findFacilityAnchor がアンカーを解決できるように登録する
+registerItemAlias(ENTITY_TYPES.kiln, "kiln");
