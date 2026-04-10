@@ -7,7 +7,7 @@ registerEntity({
     entityType: ENTITY_TYPES.forge,
 
     getSprites(): EntitySpriteInfo[] {
-        return [["ss_sprite_052.png", 0, 0]];
+        return [["ss_sprite_069.png", 0, 0]];
     },
 
     onInteract(ctx: InteractionContext): boolean {
@@ -22,10 +22,10 @@ registerItem({
     maxStack: 1,
     placement: {
         entityType: ENTITY_TYPES.forge,
-        entitySize: { w: 1, h: 1 },
-        fieldSpriteName: "ss_sprite_052.png",
+        entitySize: { w: 2, h: 2 },
+        fieldSpriteName: "ss_sprite_069.png",
         onPlace(voxelMap, pos) {
-            placeFacility(voxelMap, pos, ENTITY_TYPES.forge, { w: 1, h: 1 });
+            placeFacility(voxelMap, pos, ENTITY_TYPES.forge, { w: 2, h: 2 });
         },
     },
 });
