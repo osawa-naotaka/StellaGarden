@@ -8,6 +8,22 @@ export const RECIPES: readonly RecipeDef[] = [
         result: { itemId: "workbench", count: 1 },
     },
     {
+        id: "bonfire",
+        station: "hand",
+        ingredients: [{ itemId: "stone", count: 4 }],
+        result: { itemId: "bonfire", count: 1 },
+    },
+    {
+        id: "kiln",
+        station: "hand",
+        ingredients: [
+            { itemId: "trunk", count: 8 },
+            { itemId: "stem", count: 2 },
+            { itemId: "dirt", count: 2 }
+        ],
+        result: { itemId: "kiln", count: 1 },
+    },
+    {
         id: "compost_bin",
         station: "workbench",
         ingredients: [{ itemId: "trunk", count: 4 }],

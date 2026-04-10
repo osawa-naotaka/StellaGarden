@@ -40,4 +40,6 @@ export type ItemId =
     | "spinning_wheel"
     | "loom"
     | "stone"
-    | "chest";
+    | "chest"
+    | "bonfire"
+    | "kiln";
