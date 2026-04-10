@@ -32,6 +32,8 @@ export const ENTITY_TYPES = {
     chest: 17,
     bonfire: 18,
     kiln: 19,
+    bonfire_lit: 20,
+    bonfire_done: 21,
 } as const;
 
 // ---------------------------------------------------------------------------

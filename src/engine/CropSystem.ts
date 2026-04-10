@@ -55,6 +55,16 @@ export function processDailyTick(voxelMap: IVoxelWriter): void {
 
             // --- CROP_DEFS 外（tree・施設等）: 従来ロジック ---
             if (cropDef === undefined) {
+                // 焚き火: 点火中 → 消火中
+                if (entityType === ENTITY_TYPES.bonfire_lit) {
+                    voxelMap.set((voxel & 0xff) | (ENTITY_TYPES.bonfire_done << 8), pos);
+                    continue;
+                }
+                // 焚き火: 消火中はそのまま
+                if (entityType === ENTITY_TYPES.bonfire_done) {
+                    continue;
+                }
+
                 const stage = getCropGrowthStageFromVoxel(voxel);
                 if (stage < FALLBACK_MAX_GROWTH_STAGE) {
                     voxel = setCropGrowthStageInVoxel(voxel, stage + 1);
