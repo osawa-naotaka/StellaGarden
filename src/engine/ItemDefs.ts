@@ -42,4 +42,5 @@ export type ItemId =
     | "stone"
     | "chest"
     | "bonfire"
-    | "kiln";
+    | "kiln"
+    | "charcoal";

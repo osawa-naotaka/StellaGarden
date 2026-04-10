@@ -34,6 +34,7 @@ export const ENTITY_TYPES = {
     kiln: 19,
     bonfire_lit: 20,
     bonfire_done: 21,
+    kiln_burning: 22,
 } as const;
 
 // ---------------------------------------------------------------------------

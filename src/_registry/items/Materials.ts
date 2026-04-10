@@ -14,3 +14,4 @@ registerItem({ itemId: "cloth", spriteName: "ss_sprite_026.png", maxStack: 64 })
 registerItem({ itemId: "bag", spriteName: "ss_sprite_027.png", maxStack: 64 });
 registerItem({ itemId: "flaxseed_oil", spriteName: "ss_sprite_028.png", maxStack: 64 });
 registerItem({ itemId: "trunk", spriteName: "ss_sprite_036.png", maxStack: 64 });
+registerItem({ itemId: "charcoal", spriteName: "ss_sprite_082.png", maxStack: 64 });

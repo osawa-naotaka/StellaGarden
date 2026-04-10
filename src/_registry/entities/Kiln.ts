@@ -1,7 +1,49 @@
-import { ENTITY_TYPES } from "../../engine/TerrainDefs";
-import { registerEntity, type EntitySpriteInfo, type InteractionContext } from "../EntityRegistry";
-import { placeFacility, removeFacilityAtPos } from "../facilityUtil";
+import {
+    ENTITY_TYPES,
+    getCropGrowthStageFromVoxel,
+    getTerrainTypeFromVoxel,
+    setCropGrowthStageInVoxel,
+} from "../../engine/TerrainDefs";
+import { registerEntity, type DailyTickContext, type EntitySpriteInfo, type InteractionContext } from "../EntityRegistry";
+import { placeFacility } from "../facilityUtil";
 import { registerItem } from "../ItemRegistry";
+
+// ── 稼働中アニメーション用スプライトテーブル ──
+
+const BURNING_SPRITES: EntitySpriteInfo[][] = [
+    [["ss_sprite_078_1.png", 0, 0]],
+    [["ss_sprite_078_2.png", 0, 0]],
+    [["ss_sprite_078_3.png", 0, 0]],
+];
+const ANIM_FRAME_MS = 300;
+
+/** 消火状態になるまでの日数 */
+const BURN_DAYS = 4;
+
+// ── 炭焼き窯（稼働中）──
+
+registerEntity({
+    entityType: ENTITY_TYPES.kiln_burning,
+
+    getSprites(): EntitySpriteInfo[] {
+        const frame = Math.floor(Date.now() / ANIM_FRAME_MS) % 3;
+        return BURNING_SPRITES[frame];
+    },
+
+    onDailyTick(ctx: DailyTickContext): void {
+        const stage = getCropGrowthStageFromVoxel(ctx.voxel);
+        if (stage >= BURN_DAYS - 1) {
+            // 4日経過: 消火状態へ遷移
+            const terrain = getTerrainTypeFromVoxel(ctx.voxel);
+            ctx.voxelMap.set(terrain | (ENTITY_TYPES.kiln << 8), ctx.pos);
+        } else {
+            ctx.voxelMap.set(setCropGrowthStageInVoxel(ctx.voxel, stage + 1), ctx.pos);
+        }
+    },
+    // 稼働中は操作不可
+});
+
+// ── 炭焼き窯（消火状態）──
 
 registerEntity({
     entityType: ENTITY_TYPES.kiln,
@@ -11,21 +53,27 @@ registerEntity({
     },
 
     onInteract(ctx: InteractionContext): boolean {
-        if (ctx.tool !== "pickaxe") return false;
-        return removeFacilityAtPos(ctx.voxelMap, ctx.inventory, ctx.surfacePos.x, ctx.surfacePos.z, ENTITY_TYPES.kiln);
+        // スコップで窯を崩し、木炭を回収（窯は消滅、使い捨て）
+        if (ctx.tool !== "shovel") return false;
+        if (!ctx.inventory.addItems([{ itemId: "charcoal", count: 4 }])) return false;
+        const terrain = getTerrainTypeFromVoxel(ctx.voxel);
+        ctx.voxelMap.set(terrain, ctx.surfacePos);
+        return true;
     },
 });
+
+// ── アイテム登録（配置すると即稼働中になる）──
 
 registerItem({
     itemId: "kiln",
     spriteName: "ss_sprite_068.png",
     maxStack: 1,
     placement: {
-        entityType: ENTITY_TYPES.kiln,
+        entityType: ENTITY_TYPES.kiln_burning,
         entitySize: { w: 2, h: 2 },
-        fieldSpriteName: "ss_sprite_077.png",
+        fieldSpriteName: "ss_sprite_078_1.png",
         onPlace(voxelMap, pos) {
-            placeFacility(voxelMap, pos, ENTITY_TYPES.kiln, { w: 2, h: 2 });
+            placeFacility(voxelMap, pos, ENTITY_TYPES.kiln_burning, { w: 2, h: 2 });
         },
     },
 });
