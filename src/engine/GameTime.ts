@@ -17,7 +17,16 @@ const DAWN_TIME_MS = (DAY_DURATION_MS * 5) / 24;
  */
 export class GameTime implements IGameTimeReader {
     /** ゲーム開始からの経過時間（ms）。朝5時直後からスタート。 */
-    private elapsedMs: number = DAWN_TIME_MS;
+    private elapsedMs: number;
+
+    constructor(initialElapsedMs?: number) {
+        this.elapsedMs = initialElapsedMs ?? DAWN_TIME_MS;
+    }
+
+    /** 現在の経過時間を返す（セーブ用）。 */
+    getElapsedMs(): number {
+        return this.elapsedMs;
+    }
 
     /**
      * 毎フレーム呼び出す。deltaMS 分だけ時間を進め、朝5時を通過した場合は

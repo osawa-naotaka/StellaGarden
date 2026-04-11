@@ -29,6 +29,19 @@ export class VoxelMap implements IVoxelWriter {
         this.broker = broker;
     }
 
+    /** 内部ボクセル配列への読み取り専用参照を返す（セーブ用）。 */
+    getVoxelsBuffer(): Uint32Array {
+        return this.voxels;
+    }
+
+    /** 外部から voxels 配列を上書きする（ロード用）。サイズが一致しない場合はエラー。 */
+    setVoxelsBuffer(buffer: Uint32Array): void {
+        if (buffer.length !== this.voxels.length) {
+            throw new Error(`Voxel buffer size mismatch: expected ${this.voxels.length}, got ${buffer.length}`);
+        }
+        this.voxels = buffer;
+    }
+
     constructor(width: number, height: number, depth: number, horizonHeight: number) {
         this.width = width;
         this.height = height;

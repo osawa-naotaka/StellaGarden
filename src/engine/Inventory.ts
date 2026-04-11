@@ -98,6 +98,13 @@ export class Inventory implements IInventoryWriter {
         return this.toolbarSlots_[this.selectedIndex_]?.itemId ?? null;
     }
 
+    /** 初期選択インデックスを設定する（セーブデータ復元用）。 */
+    setSelectedIndex(index: number): void {
+        if (index >= 0 && index < TOOLBAR_SLOT_COUNT) {
+            this.selectedIndex_ = index;
+        }
+    }
+
     /** スロットを選択する。範囲外のインデックスは無視される。 */
     selectSlot(index: number): void {
         if (index >= 0 && index < TOOLBAR_SLOT_COUNT) {

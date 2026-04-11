@@ -39,8 +39,11 @@ export class PlayerState implements IPlayerStateWriter {
         worldSize: Size2D;
         tilePerViewport: Size2D;
         voxelMap: IVoxelReader;
+        zoomLevel?: number;
+        facing?: Direction8;
+        inventory?: Inventory;
     }) {
-        this.inventory = new Inventory();
+        this.inventory = opt.inventory ?? new Inventory();
         this.posInWorld_ = { x: opt.start.x, z: opt.start.z };
         this.worldSize = { w: opt.worldSize.w, h: opt.worldSize.h };
         this.tilePerViewport_ = {
@@ -48,6 +51,8 @@ export class PlayerState implements IPlayerStateWriter {
             h: opt.tilePerViewport.h,
         };
         this.voxelMap = opt.voxelMap;
+        if (opt.zoomLevel !== undefined) this.zoomLevel_ = opt.zoomLevel;
+        if (opt.facing !== undefined) this.facing_ = opt.facing;
     }
 
     get posInWorld(): Pos2D {

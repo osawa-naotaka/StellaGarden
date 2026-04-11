@@ -24,6 +24,7 @@ import "./_registry/terrains/SoilWetSoil";
 import { setChestStorage } from "./_registry/entities/Chest";
 import { ChestStorage } from "./engine/ChestStorage";
 import { CraftSystem } from "./engine/CraftSystem";
+import { Inventory } from "./engine/Inventory";
 import { processDailyTick } from "./engine/CropSystem";
 import { GameTime } from "./engine/GameTime";
 import { PlayerState } from "./engine/PlayerState";
@@ -32,8 +33,10 @@ import { InputHandler } from "./input/InputHandler";
 import { createInteractionHandler } from "./input/InteractionSystem";
 import { DEBUG } from "./lib/debugFlag";
 import { createEventBroker } from "./lib/Event";
+import { loadGame, saveGame } from "./lib/SaveSystem";
 import type { GameEventMap } from "./_boundary/events";
 import type { Pos2D, Size2D } from "./lib/VoxelMap";
+import { VoxelMap } from "./lib/VoxelMap";
 import { ChestView } from "./view/ChestView";
 import { DebugText } from "./view/DebugText";
 import { InventoryView } from "./view/InventoryView";
@@ -85,6 +88,7 @@ function useGameEngine(worldSize: Size2D) {
             const eventBroker = createEventBroker<GameEventMap>();
 
             const app = new Application();
+            const saveData = await loadGame();
             await app.init({ background: "#1099bb", resizeTo: window });
 
             if (cancelled) {
@@ -97,7 +101,15 @@ function useGameEngine(worldSize: Size2D) {
             const worldContainer = new Container();
             pixiApp.stage.addChild(worldContainer);
 
-            const voxelMap = generateTerrain({ width: worldSize.w, height: 12, depth: worldSize.h, horizonHeight: 3 });
+            // VoxelMap: セーブデータがあれば復元、なければ新規生成
+            let voxelMap: VoxelMap;
+            if (saveData) {
+                const sd = saveData.voxelMap;
+                voxelMap = new VoxelMap(sd.width, sd.height, sd.depth, sd.horizonHeight);
+                voxelMap.setVoxelsBuffer(new Uint32Array(sd.voxels));
+            } else {
+                voxelMap = generateTerrain({ width: worldSize.w, height: 12, depth: worldSize.h, horizonHeight: 3 });
+            }
             voxelMap.setEventBroker(eventBroker);
 
             const topView = new TopView(voxelMap, pixiApp, {
@@ -106,15 +118,24 @@ function useGameEngine(worldSize: Size2D) {
             });
             worldContainer.addChild(topView.top);
 
-            const initialZoom = 2.0;
+            const initialZoom = saveData?.playerState.zoomLevel ?? 2.0;
             const initialChunks = calcChunkPerViewport(pixiApp.screen.width, pixiApp.screen.height, initialZoom);
             const initialTiles = calcTilePerViewport(pixiApp.screen.width, pixiApp.screen.height, initialZoom);
 
+            // Inventory: セーブデータがあれば復元
+            const inventory = saveData
+                ? new Inventory(saveData.inventory.toolbarSlots, saveData.inventory.inventorySlots)
+                : new Inventory();
+            if (saveData) inventory.setSelectedIndex(saveData.inventory.selectedIndex);
+
             const playerState = new PlayerState({
-                start: { x: 200, z: 200 },
+                start: saveData?.playerState.posInWorld ?? { x: 200, z: 200 },
                 worldSize,
                 tilePerViewport: initialTiles,
                 voxelMap,
+                zoomLevel: saveData?.playerState.zoomLevel,
+                facing: saveData?.playerState.facing,
+                inventory,
             });
             disposers.push(playerState.setEventBroker(eventBroker));
             playerState.inventory.setEventBroker(eventBroker);
@@ -130,6 +151,7 @@ function useGameEngine(worldSize: Size2D) {
             pixiApp.stage.addChild(toolbar.top);
 
             const chestStorage = new ChestStorage();
+            if (saveData) chestStorage.loadSaveData(saveData.chestStorage.chests);
             setChestStorage(chestStorage);
 
             const craftSystem = new CraftSystem(playerState.inventory);
@@ -150,7 +172,7 @@ function useGameEngine(worldSize: Size2D) {
 
             disposers.push(createInteractionHandler(voxelMap, playerState.inventory, eventBroker, uiState, playerState));
 
-            const gameTime = new GameTime();
+            const gameTime = new GameTime(saveData?.gameTime.elapsedMs);
             disposers.push(
                 eventBroker.subscribe("day_changed", () => {
                     processDailyTick(voxelMap);
@@ -169,12 +191,55 @@ function useGameEngine(worldSize: Size2D) {
             let prevChunksW = initialChunks.w;
             let prevChunksH = initialChunks.h;
 
+            // 定期保存: 30秒ごとにセーブ
+            const SAVE_INTERVAL_MS = 30_000;
+            let timeSinceLastSave = 0;
+            let isSaving = false;
+
+            function performSave() {
+                if (isSaving) return;
+                isSaving = true;
+                saveGame({
+                    voxelMap: {
+                        width: voxelMap.width,
+                        height: voxelMap.height,
+                        depth: voxelMap.depth,
+                        horizonHeight: voxelMap.horizonHeight,
+                        voxels: voxelMap.getVoxelsBuffer(),
+                    },
+                    playerState: {
+                        posInWorld: { ...playerState.posInWorld },
+                        zoomLevel: playerState.zoomLevel,
+                        facing: playerState.facing,
+                    },
+                    inventory: {
+                        toolbarSlots: [...playerState.inventory.toolbarSlots],
+                        inventorySlots: [...playerState.inventory.inventorySlots],
+                        selectedIndex: playerState.inventory.selectedIndex,
+                    },
+                    gameTime: {
+                        elapsedMs: gameTime.getElapsedMs(),
+                    },
+                    chestStorage: {
+                        chests: chestStorage.toSaveData(),
+                    },
+                }).catch((e) => console.warn("Save failed:", e))
+                  .finally(() => { isSaving = false; });
+            }
+
             // ゲームループ
             pixiApp.ticker.add((ticker) => {
                 if (!pixiApp) return;
 
                 gameTime.tick(ticker.deltaMS, eventBroker);
                 inputHandler.tick(ticker.deltaMS);
+
+                // 定期保存チェック
+                timeSinceLastSave += ticker.deltaMS;
+                if (timeSinceLastSave >= SAVE_INTERVAL_MS) {
+                    timeSinceLastSave = 0;
+                    performSave();
+                }
 
                 // 画面サイズ＋ズームから必要チャンク数を再計算
                 const screenW = pixiApp.screen.width;

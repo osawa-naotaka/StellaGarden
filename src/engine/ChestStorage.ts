@@ -48,4 +48,21 @@ export class ChestStorage {
             slots[index] = stack;
         }
     }
+
+    /** 全チェストデータをシリアライズ可能な形式で返す（セーブ用）。 */
+    toSaveData(): Array<{ key: string; slots: (ItemStack | null)[] }> {
+        const result: Array<{ key: string; slots: (ItemStack | null)[] }> = [];
+        for (const [key, slots] of this.chests) {
+            result.push({ key, slots: [...slots] });
+        }
+        return result;
+    }
+
+    /** セーブデータからチェストストレージを復元する（ロード用）。 */
+    loadSaveData(data: Array<{ key: string; slots: (ItemStack | null)[] }>): void {
+        this.chests.clear();
+        for (const { key, slots } of data) {
+            this.chests.set(key, [...slots]);
+        }
+    }
 }
