@@ -35,6 +35,9 @@ export const ENTITY_TYPES = {
     bonfire_lit: 20,
     bonfire_done: 21,
     kiln_burning: 22,
+    compost_bin_loaded: 23,
+    compost_bin_fermenting: 24,
+    compost_bin_done: 25,
 } as const;
 
 // ---------------------------------------------------------------------------

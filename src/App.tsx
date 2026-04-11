@@ -2,6 +2,7 @@ import { Application, Container, TextureSource } from "pixi.js";
 import { useEffect, useRef } from "react";
 import { PIXEL_PER_TILE, TILE_PER_CHUNK } from "./_boundary/constants";
 import "./_registry/entities/Chest";
+import "./_registry/entities/CompostBin";
 import "./_registry/entities/facilities";
 import "./_registry/entities/Flax";
 import "./_registry/entities/Forge";
