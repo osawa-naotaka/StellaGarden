@@ -1,5 +1,6 @@
+import { Box, Button, Stack, Typography } from "@mui/material";
 import { Application, Container, TextureSource } from "pixi.js";
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { PIXEL_PER_TILE, TILE_PER_CHUNK } from "./_boundary/constants";
 import "./_registry/entities/Chest";
 import "./_registry/entities/CompostBin";
@@ -33,7 +34,7 @@ import { InputHandler } from "./input/InputHandler";
 import { createInteractionHandler } from "./input/InteractionSystem";
 import { DEBUG } from "./lib/debugFlag";
 import { createEventBroker } from "./lib/Event";
-import { loadGame, saveGame } from "./lib/SaveSystem";
+import { deleteGame, hasSaveData, loadGame, saveGame } from "./lib/SaveSystem";
 import type { GameEventMap } from "./_boundary/events";
 import type { Pos2D, Size2D } from "./lib/VoxelMap";
 import { VoxelMap } from "./lib/VoxelMap";
@@ -64,7 +65,7 @@ function calcTilePerViewport(screenW: number, screenH: number, zoomLevel: number
     };
 }
 
-function useGameEngine(worldSize: Size2D) {
+function useGameEngine(worldSize: Size2D, loadSave: boolean) {
     const containerRef = useRef<HTMLDivElement>(null);
 
     // biome-ignore lint/correctness/useExhaustiveDependencies: worldSize は実質定数。PixiJS 初期化はマウント時一度だけ行う設計のため依存追加しない
@@ -88,7 +89,7 @@ function useGameEngine(worldSize: Size2D) {
             const eventBroker = createEventBroker<GameEventMap>();
 
             const app = new Application();
-            const saveData = await loadGame();
+            const saveData = loadSave ? await loadGame() : null;
             await app.init({ background: "#1099bb", resizeTo: window });
 
             if (cancelled) {
@@ -301,7 +302,99 @@ function useGameEngine(worldSize: Size2D) {
     return containerRef;
 }
 
-export default function App() {
-    const containerRef = useGameEngine({ w: 400, h: 400 });
+type AppMode = "title" | "game";
+
+function TitleScreen({ onStart }: { onStart: (loadSave: boolean) => void }) {
+    const [saveExists, setSaveExists] = useState<boolean | null>(null);
+
+    useEffect(() => {
+        hasSaveData().then(setSaveExists);
+    }, []);
+
+    const handleNewGame = useCallback(async () => {
+        await deleteGame();
+        onStart(false);
+    }, [onStart]);
+
+    const handleContinue = useCallback(() => {
+        onStart(true);
+    }, [onStart]);
+
+    return (
+        <Box
+            sx={{
+                position: "fixed",
+                inset: 0,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                background: "linear-gradient(135deg, #1a3a2a 0%, #0d1f17 100%)",
+            }}
+        >
+            <Stack spacing={4} alignItems="center">
+                <Typography
+                    variant="h2"
+                    sx={{
+                        color: "#e8f5e9",
+                        fontWeight: 700,
+                        letterSpacing: 4,
+                        textShadow: "2px 2px 8px rgba(0,0,0,0.5)",
+                    }}
+                >
+                    Stella Garden
+                </Typography>
+                <Stack spacing={2} sx={{ minWidth: 240 }}>
+                    <Button
+                        variant="contained"
+                        size="large"
+                        onClick={handleNewGame}
+                        sx={{
+                            bgcolor: "#4caf50",
+                            "&:hover": { bgcolor: "#388e3c" },
+                            fontSize: "1.1rem",
+                            py: 1.5,
+                        }}
+                    >
+                        はじめから
+                    </Button>
+                    <Button
+                        variant="outlined"
+                        size="large"
+                        disabled={saveExists === null || !saveExists}
+                        onClick={handleContinue}
+                        sx={{
+                            color: "#e8f5e9",
+                            borderColor: "#4caf50",
+                            "&:hover": { borderColor: "#388e3c", bgcolor: "rgba(76,175,80,0.1)" },
+                            "&.Mui-disabled": { color: "#5a5a5a", borderColor: "#3a3a3a" },
+                            fontSize: "1.1rem",
+                            py: 1.5,
+                        }}
+                    >
+                        つづきから
+                    </Button>
+                </Stack>
+            </Stack>
+        </Box>
+    );
+}
+
+function GameScreen({ loadSave }: { loadSave: boolean }) {
+    const containerRef = useGameEngine({ w: 400, h: 400 }, loadSave);
     return <div ref={containerRef} style={{ position: "fixed", inset: 0 }} />;
+}
+
+export default function App() {
+    const [mode, setMode] = useState<AppMode>("title");
+    const [loadSave, setLoadSave] = useState(false);
+
+    const handleStart = useCallback((load: boolean) => {
+        setLoadSave(load);
+        setMode("game");
+    }, []);
+
+    if (mode === "title") {
+        return <TitleScreen onStart={handleStart} />;
+    }
+    return <GameScreen loadSave={loadSave} />;
 }

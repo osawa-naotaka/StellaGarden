@@ -121,6 +121,28 @@ export async function loadGame(): Promise<SaveData | null> {
     }
 }
 
+/** セーブデータが存在するかを高速確認する。データ本体は読み込まない。 */
+export async function hasSaveData(): Promise<boolean> {
+    try {
+        const db = await openDB();
+        return new Promise((resolve, reject) => {
+            const tx = db.transaction(STORE_NAME, "readonly");
+            const request = tx.objectStore(STORE_NAME).count(SAVE_KEY);
+            request.onsuccess = () => {
+                db.close();
+                resolve(request.result > 0);
+            };
+            request.onerror = () => {
+                db.close();
+                reject(request.error);
+            };
+        });
+    } catch (e) {
+        console.warn("Failed to check save data:", e);
+        return false;
+    }
+}
+
 /** セーブデータを削除する。 */
 export async function deleteGame(): Promise<void> {
     const db = await openDB();
