@@ -1,5 +1,5 @@
 import { ENTITY_TYPES } from "../../engine/TerrainDefs";
-import { registerEntity, type EntitySpriteInfo, type InteractionContext } from "../EntityRegistry";
+import { type EntitySpriteInfo, type InteractionContext, registerEntity } from "../EntityRegistry";
 import { placeFacility, removeFacilityAtPos } from "../facilityUtil";
 import { registerItem } from "../ItemRegistry";
 

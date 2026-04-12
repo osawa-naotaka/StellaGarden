@@ -22,12 +22,13 @@ import "./_registry/items/Tools";
 import "./_registry/items/WateringCan";
 import "./_registry/terrains/GrassDirt";
 import "./_registry/terrains/SoilWetSoil";
+import type { GameEventMap } from "./_boundary/events";
 import { setChestStorage } from "./_registry/entities/Chest";
 import { ChestStorage } from "./engine/ChestStorage";
 import { CraftSystem } from "./engine/CraftSystem";
-import { Inventory } from "./engine/Inventory";
 import { processDailyTick } from "./engine/CropSystem";
 import { GameTime } from "./engine/GameTime";
+import { Inventory } from "./engine/Inventory";
 import { PlayerState } from "./engine/PlayerState";
 import { generateTerrain } from "./engine/TerrainGenerator";
 import { InputHandler } from "./input/InputHandler";
@@ -35,17 +36,16 @@ import { createInteractionHandler } from "./input/InteractionSystem";
 import { DEBUG } from "./lib/debugFlag";
 import { createEventBroker } from "./lib/Event";
 import { deleteGame, hasSaveData, loadGame, saveGame } from "./lib/SaveSystem";
-import type { GameEventMap } from "./_boundary/events";
 import type { Pos2D, Size2D } from "./lib/VoxelMap";
 import { VoxelMap } from "./lib/VoxelMap";
 import { ChestView } from "./view/ChestView";
 import { DebugText } from "./view/DebugText";
 import { InventoryView } from "./view/InventoryView";
 import { PlacementOverlay } from "./view/PlacementOverlay";
+import { PlayerCharacterView } from "./view/PlayerCharacterView";
 import { loadSprite } from "./view/Sprite";
 import { Toolbar } from "./view/Toolbar";
 import { TopView } from "./view/TopView";
-import { PlayerCharacterView } from "./view/PlayerCharacterView";
 import { UIState } from "./view/UIState";
 
 /** 画面サイズとズームレベルから必要なチャンク数を計算する。 */
@@ -124,9 +124,7 @@ function useGameEngine(worldSize: Size2D, loadSave: boolean) {
             const initialTiles = calcTilePerViewport(pixiApp.screen.width, pixiApp.screen.height, initialZoom);
 
             // Inventory: セーブデータがあれば復元
-            const inventory = saveData
-                ? new Inventory(saveData.inventory.toolbarSlots, saveData.inventory.inventorySlots)
-                : new Inventory();
+            const inventory = saveData ? new Inventory(saveData.inventory.toolbarSlots, saveData.inventory.inventorySlots) : new Inventory();
             if (saveData) inventory.setSelectedIndex(saveData.inventory.selectedIndex);
 
             const playerState = new PlayerState({
@@ -224,8 +222,11 @@ function useGameEngine(worldSize: Size2D, loadSave: boolean) {
                     chestStorage: {
                         chests: chestStorage.toSaveData(),
                     },
-                }).catch((e) => console.warn("Save failed:", e))
-                  .finally(() => { isSaving = false; });
+                })
+                    .catch((e) => console.warn("Save failed:", e))
+                    .finally(() => {
+                        isSaving = false;
+                    });
             }
 
             // ゲームループ
@@ -259,8 +260,8 @@ function useGameEngine(worldSize: Size2D, loadSave: boolean) {
                 topView.updateViewport(playerState.posInWorld, playerState.pointerPosInWorld);
 
                 // TopView と同じチャンクベースの viewportOrigin を計算
-                const chunkHalfW = Math.floor(prevChunksW * TILE_PER_CHUNK / 2);
-                const chunkHalfH = Math.floor(prevChunksH * TILE_PER_CHUNK / 2);
+                const chunkHalfW = Math.floor((prevChunksW * TILE_PER_CHUNK) / 2);
+                const chunkHalfH = Math.floor((prevChunksH * TILE_PER_CHUNK) / 2);
                 const playerLocalX = chunkHalfW * PIXEL_PER_TILE;
                 const playerLocalZ = chunkHalfH * PIXEL_PER_TILE;
 
@@ -292,7 +293,9 @@ function useGameEngine(worldSize: Size2D, loadSave: boolean) {
             cancelled = true;
             container.removeEventListener("contextmenu", preventContextMenu);
             if (pixiApp) {
-                disposers.forEach((d) => d());
+                disposers.forEach((d) => {
+                    d();
+                });
                 pixiApp.destroy(true, { children: true });
                 pixiApp = null;
             }

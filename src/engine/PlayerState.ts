@@ -2,7 +2,7 @@ import type { Direction8, IEventBroker, IPlayerStateWriter, IVoxelReader } from 
 import { CHUNK_RENDER_MARGIN } from "../lib/ChunkRenderer";
 import type { Pos2D, Size2D } from "../lib/VoxelMap";
 import { Inventory } from "./Inventory";
-import { TERRAIN_TYPES, ENTITY_TYPES, getTerrainTypeFromVoxel, getEntityTypeFromVoxel } from "./TerrainDefs";
+import { ENTITY_TYPES, getEntityTypeFromVoxel, getTerrainTypeFromVoxel, TERRAIN_TYPES } from "./TerrainDefs";
 
 const MIN_ZOOM = 0.5;
 const MAX_ZOOM = 4.0;
@@ -31,7 +31,10 @@ export class PlayerState implements IPlayerStateWriter {
         const d2 = broker.subscribe("zoom_change", ({ delta }) => {
             this.adjustZoom(delta);
         });
-        return () => { d1(); d2(); };
+        return () => {
+            d1();
+            d2();
+        };
     }
 
     constructor(opt: {
@@ -133,12 +136,8 @@ export class PlayerState implements IPlayerStateWriter {
         if (terrainType === TERRAIN_TYPES.water || terrainType === TERRAIN_TYPES.waterSource) return true;
 
         // 作物系エンティティ（potato, soy, flax, sunflower）は通過可能
-        if (
-            entityType === ENTITY_TYPES.potato ||
-            entityType === ENTITY_TYPES.soy ||
-            entityType === ENTITY_TYPES.flax ||
-            entityType === ENTITY_TYPES.sunflower
-        ) return false;
+        if (entityType === ENTITY_TYPES.potato || entityType === ENTITY_TYPES.soy || entityType === ENTITY_TYPES.flax || entityType === ENTITY_TYPES.sunflower)
+            return false;
 
         // その他のエンティティが存在すればブロック
         if (entityType !== ENTITY_TYPES.none) return true;

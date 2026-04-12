@@ -374,8 +374,8 @@ function placeEntities(map: VoxelMap): void {
     const treeScale = 10; // 個別の木の配置周波数（高周波 = 細かい分布）
 
     const stoneNoise = createNoise2D(alea("stone"));
-    const stoneScale = 10; // 個別の石の配置周波数（高周波 = 細かい分布）    
-    
+    const stoneScale = 10; // 個別の石の配置周波数（高周波 = 細かい分布）
+
     for (let z = 0; z < map.depth; z++) {
         for (let x = 0; x < map.width; x++) {
             const isForestBiome = forestNoise(x * forestScale, z * forestScale) > 0.2;
@@ -392,13 +392,13 @@ function placeEntities(map: VoxelMap): void {
                     map.set(terrain | (ENTITY_TYPES.stone << 8), pos);
                 }
             } else if (shouldPlaceTree) {
-              const pos = map.getSurfacePosition({ x, y: 0, z });
-              const terrain = map.get(pos);
-  
-              if (terrain === TERRAIN_TYPES.soil || terrain === TERRAIN_TYPES.grass) {
-                  map.set(terrain | (ENTITY_TYPES.tree << 8), pos);
-              }                
-            } 
-          }
+                const pos = map.getSurfacePosition({ x, y: 0, z });
+                const terrain = map.get(pos);
+
+                if (terrain === TERRAIN_TYPES.soil || terrain === TERRAIN_TYPES.grass) {
+                    map.set(terrain | (ENTITY_TYPES.tree << 8), pos);
+                }
+            }
+        }
     }
 }

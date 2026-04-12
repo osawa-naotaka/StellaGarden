@@ -19,25 +19,14 @@ export function removeFacility(voxelMap: IVoxelWriter, inventory: IInventoryWrit
 }
 
 /** ctx の surfacePos からアンカーを解決し、施設を撤去する。成功時 true。 */
-export function removeFacilityAtPos(
-    voxelMap: IVoxelWriter,
-    inventory: IInventoryWriter,
-    x: number,
-    z: number,
-    expectedEntityType: number,
-): boolean {
+export function removeFacilityAtPos(voxelMap: IVoxelWriter, inventory: IInventoryWriter, x: number, z: number, expectedEntityType: number): boolean {
     const anchor = findFacilityAnchor(voxelMap, x, z);
     if (!anchor || anchor.entityType !== expectedEntityType) return false;
     return removeFacility(voxelMap, inventory, anchor.anchorX, anchor.anchorZ, anchor.def);
 }
 
 /** 施設をフィールドに配置する（アンカー + facility_part の voxel 書き込み）。 */
-export function placeFacility(
-    voxelMap: IVoxelWriter,
-    pos: Pos2D,
-    entityType: number,
-    entitySize: { w: number; h: number },
-): void {
+export function placeFacility(voxelMap: IVoxelWriter, pos: Pos2D, entityType: number, entitySize: { w: number; h: number }): void {
     for (let dz = 0; dz < entitySize.h; dz++) {
         for (let dx = 0; dx < entitySize.w; dx++) {
             const surfacePos = voxelMap.getSurfacePosition({ x: pos.x + dx, y: 0, z: pos.z + dz });

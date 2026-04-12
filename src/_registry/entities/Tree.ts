@@ -6,7 +6,7 @@ import {
     setCropGrowthStageInVoxel,
     TERRAIN_TYPES,
 } from "../../engine/TerrainDefs";
-import { registerEntity, type DailyTickContext, type EntitySpriteInfo, type InteractionContext } from "../EntityRegistry";
+import { type DailyTickContext, type EntitySpriteInfo, type InteractionContext, registerEntity } from "../EntityRegistry";
 import { registerItem } from "../ItemRegistry";
 
 const TREE_MAX_GROWTH_STAGE = 7;
@@ -54,11 +54,16 @@ registerEntity({
         if (ctx.tool !== "axe") return false;
 
         const leavesCount = 2 + Math.floor(Math.random() * 3); // 2-4
-        if (!ctx.inventory.addItems([{ itemId: "trunk", count: 1 }, { itemId: "leaves", count: leavesCount }])) return false;
+        if (
+            !ctx.inventory.addItems([
+                { itemId: "trunk", count: 1 },
+                { itemId: "leaves", count: leavesCount },
+            ])
+        )
+            return false;
         ctx.voxelMap.set(ctx.voxel & 0x000000ff, ctx.surfacePos);
         return true;
     },
-
 });
 
 registerItem({
@@ -68,10 +73,7 @@ registerItem({
     onItemUse(ctx: InteractionContext): boolean {
         const voxel = ctx.voxel;
         const terrainType = getTerrainTypeFromVoxel(voxel);
-        if (
-            (terrainType !== TERRAIN_TYPES.soil && terrainType !== TERRAIN_TYPES.wetSoil) ||
-            getEntityTypeFromVoxel(voxel) !== ENTITY_TYPES.none
-        ) {
+        if ((terrainType !== TERRAIN_TYPES.soil && terrainType !== TERRAIN_TYPES.wetSoil) || getEntityTypeFromVoxel(voxel) !== ENTITY_TYPES.none) {
             return false;
         }
         if (!ctx.inventory.consumeSelectedItem(1)) return false;

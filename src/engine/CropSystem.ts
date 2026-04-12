@@ -1,4 +1,5 @@
 import type { IVoxelWriter } from "../_boundary/interfaces";
+import { type DailyTickContext, getEntityDef } from "../_registry/EntityRegistry";
 import type { CropDef } from "./CropDefs";
 import {
     ENTITY_TYPES,
@@ -10,7 +11,6 @@ import {
     setDroughtCounterInVoxel,
     TERRAIN_TYPES,
 } from "./TerrainDefs";
-import { getEntityDef, type DailyTickContext } from "../_registry/EntityRegistry";
 
 /** 水切れ枯死の閾値。この日数連続で水切れすると枯死する。 */
 const DROUGHT_DEATH_THRESHOLD = 3;

@@ -1,15 +1,11 @@
 import { ENTITY_TYPES } from "../../engine/TerrainDefs";
-import { registerEntity, type DailyTickContext, type EntitySpriteInfo, type InteractionContext } from "../EntityRegistry";
+import { type DailyTickContext, type EntitySpriteInfo, type InteractionContext, registerEntity } from "../EntityRegistry";
 import { placeFacility, removeFacilityAtPos } from "../facilityUtil";
 import { registerItem } from "../ItemRegistry";
 
 // ── 点火中アニメーション用スプライトテーブル ──
 
-const LIT_SPRITES: EntitySpriteInfo[][] = [
-    [["ss_sprite_074_1.png", 0, 0]],
-    [["ss_sprite_074_2.png", 0, 0]],
-    [["ss_sprite_074_3.png", 0, 0]],
-];
+const LIT_SPRITES: EntitySpriteInfo[][] = [[["ss_sprite_074_1.png", 0, 0]], [["ss_sprite_074_2.png", 0, 0]], [["ss_sprite_074_3.png", 0, 0]]];
 const ANIM_FRAME_MS = 300;
 
 // ── 焚き火（点火前）──

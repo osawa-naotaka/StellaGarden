@@ -1,6 +1,6 @@
 import type { ChestStorage } from "../../engine/ChestStorage";
 import { ENTITY_TYPES, getTerrainTypeFromVoxel } from "../../engine/TerrainDefs";
-import { registerEntity, type EntitySpriteInfo, type InteractionContext } from "../EntityRegistry";
+import { type EntitySpriteInfo, type InteractionContext, registerEntity } from "../EntityRegistry";
 import { placeFacility } from "../facilityUtil";
 import { registerItem } from "../ItemRegistry";
 

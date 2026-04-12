@@ -4,12 +4,7 @@
  * - hoes: 耕作（平坦な地面を soil に変換）
  */
 import type { IVoxelWriter } from "../../_boundary/interfaces";
-import {
-    ENTITY_TYPES,
-    getEntityTypeFromVoxel,
-    getTerrainTypeFromVoxel,
-    TERRAIN_TYPES,
-} from "../../engine/TerrainDefs";
+import { ENTITY_TYPES, getEntityTypeFromVoxel, getTerrainTypeFromVoxel, TERRAIN_TYPES } from "../../engine/TerrainDefs";
 import { floodFillWater } from "../../engine/WaterSystem";
 import { registerTerrain } from "../TerrainRegistry";
 
@@ -65,10 +60,7 @@ function onGrassDirtInteract(ctx: import("../EntityRegistry").InteractionContext
     const { voxelMap, inventory, surfacePos, voxel, tool } = ctx;
 
     if (tool === "shovel") {
-        if (
-            getEntityTypeFromVoxel(voxel) !== ENTITY_TYPES.none ||
-            !isSafeToRemove3x3(voxelMap, surfacePos.x, surfacePos.z)
-        ) {
+        if (getEntityTypeFromVoxel(voxel) !== ENTITY_TYPES.none || !isSafeToRemove3x3(voxelMap, surfacePos.x, surfacePos.z)) {
             return false;
         }
         if (surfacePos.y >= 1 && inventory.addItems([{ itemId: "dirt", count: 1 }])) {
@@ -81,10 +73,7 @@ function onGrassDirtInteract(ctx: import("../EntityRegistry").InteractionContext
     }
 
     if (tool === "hoes") {
-        if (
-            getEntityTypeFromVoxel(voxel) === ENTITY_TYPES.none &&
-            isFlat3x3(voxelMap, surfacePos.x, surfacePos.z, surfacePos.y)
-        ) {
+        if (getEntityTypeFromVoxel(voxel) === ENTITY_TYPES.none && isFlat3x3(voxelMap, surfacePos.x, surfacePos.z, surfacePos.y)) {
             voxelMap.set(TERRAIN_TYPES.soil, surfacePos);
             return true;
         }

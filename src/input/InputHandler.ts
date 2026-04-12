@@ -1,17 +1,15 @@
 import type { Container, FederatedPointerEvent } from "pixi.js";
-import type { GameEventMap } from "../_boundary/events";
 import { PIXEL_PER_TILE } from "../_boundary/constants";
+import type { GameEventMap } from "../_boundary/events";
 import type { IPlayerStateWriter } from "../_boundary/interfaces";
 import type { EventBroker } from "../lib/Event";
 
 const ZOOM_STEP = 0.1;
-const HOLD_DELAY = 300;    // 最初のインタラクトまでの遅延(ms)
+const HOLD_DELAY = 300; // 最初のインタラクトまでの遅延(ms)
 const HOLD_INTERVAL = 300; // 連続インタラクトの間隔(ms)
 
 /** ホールド操作が必要なツールのID集合 */
-const HOLD_TOOL_IDS: ReadonlySet<string> = new Set([
-    "axe", "hoes", "pickaxe", "sickle", "shovel", "watering_can",
-]);
+const HOLD_TOOL_IDS: ReadonlySet<string> = new Set(["axe", "hoes", "pickaxe", "sickle", "shovel", "watering_can"]);
 
 /** キーボード・マウスイベントを受け取り、PlayerState を更新する。
  *  インタラクションは EventBroker 経由で通知する。 */
@@ -110,10 +108,16 @@ export class InputHandler {
 
     /** 移動キーが押されているかどうか。 */
     get isMoving(): boolean {
-        return this.keyPressState.a || this.keyPressState.arrowleft ||
-            this.keyPressState.d || this.keyPressState.arrowright ||
-            this.keyPressState.w || this.keyPressState.arrowup ||
-            this.keyPressState.s || this.keyPressState.arrowdown;
+        return (
+            this.keyPressState.a ||
+            this.keyPressState.arrowleft ||
+            this.keyPressState.d ||
+            this.keyPressState.arrowright ||
+            this.keyPressState.w ||
+            this.keyPressState.arrowup ||
+            this.keyPressState.s ||
+            this.keyPressState.arrowdown
+        );
     }
 
     /** ツールホールド中かどうか。 */
