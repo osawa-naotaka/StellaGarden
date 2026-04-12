@@ -1,15 +1,10 @@
 import type { GameEventMap } from "../_boundary/events";
 import type { IInventoryWriter, IPlayerStateReader, IVoxelWriter } from "../_boundary/interfaces";
 import { getEntityDef, type InteractionContext } from "../_registry/EntityRegistry";
+import { findFacilityAnchor } from "../_registry/facilityUtil";
 import { getItemDef } from "../_registry/ItemRegistry";
 import { getTerrainDef } from "../_registry/TerrainRegistry";
-import { findFacilityAnchor } from "../_registry/facilityUtil";
-import {
-    ENTITY_TYPES,
-    getEntityTypeFromVoxel,
-    getTerrainTypeFromVoxel,
-    TERRAIN_TYPES,
-} from "../engine/TerrainDefs";
+import { ENTITY_TYPES, getEntityTypeFromVoxel, getTerrainTypeFromVoxel, TERRAIN_TYPES } from "../engine/TerrainDefs";
 import type { EventBroker } from "../lib/Event";
 import type { UIState } from "../view/UIState";
 
@@ -83,5 +78,8 @@ export function createInteractionHandler(
         entityDef?.onPrimaryInteract?.(ctx);
     });
 
-    return () => { d1(); d2(); };
+    return () => {
+        d1();
+        d2();
+    };
 }

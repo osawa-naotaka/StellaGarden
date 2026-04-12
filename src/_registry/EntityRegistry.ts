@@ -1,4 +1,4 @@
-import type { IEventBroker, IInventoryWriter, IVoxelWriter, ItemId, Pos3D } from "../_boundary/interfaces";
+import type { IEventBroker, IInventoryWriter, ItemId, IVoxelWriter, Pos3D } from "../_boundary/interfaces";
 
 /** エンティティスプライト情報: [spriteName, offset-x, offset-y] */
 export type EntitySpriteInfo = [string, number, number];

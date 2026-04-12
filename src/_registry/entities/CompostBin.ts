@@ -1,10 +1,5 @@
-import {
-    ENTITY_TYPES,
-    getCropGrowthStageFromVoxel,
-    getTerrainTypeFromVoxel,
-    setCropGrowthStageInVoxel,
-} from "../../engine/TerrainDefs";
-import { registerEntity, type DailyTickContext, type EntitySpriteInfo, type InteractionContext } from "../EntityRegistry";
+import { ENTITY_TYPES, getCropGrowthStageFromVoxel, getTerrainTypeFromVoxel, setCropGrowthStageInVoxel } from "../../engine/TerrainDefs";
+import { type DailyTickContext, type EntitySpriteInfo, type InteractionContext, registerEntity } from "../EntityRegistry";
 import { findFacilityAnchor, placeFacility, removeFacilityAtPos } from "../facilityUtil";
 import { registerItem, registerItemAlias } from "../ItemRegistry";
 

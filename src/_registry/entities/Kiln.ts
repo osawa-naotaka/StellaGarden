@@ -1,20 +1,11 @@
-import {
-    ENTITY_TYPES,
-    getCropGrowthStageFromVoxel,
-    getTerrainTypeFromVoxel,
-    setCropGrowthStageInVoxel,
-} from "../../engine/TerrainDefs";
-import { registerEntity, type DailyTickContext, type EntitySpriteInfo, type InteractionContext } from "../EntityRegistry";
+import { ENTITY_TYPES, getCropGrowthStageFromVoxel, getTerrainTypeFromVoxel, setCropGrowthStageInVoxel } from "../../engine/TerrainDefs";
+import { type DailyTickContext, type EntitySpriteInfo, type InteractionContext, registerEntity } from "../EntityRegistry";
 import { findFacilityAnchor, placeFacility } from "../facilityUtil";
 import { registerItem, registerItemAlias } from "../ItemRegistry";
 
 // ── 稼働中アニメーション用スプライトテーブル ──
 
-const BURNING_SPRITES: EntitySpriteInfo[][] = [
-    [["ss_sprite_078_1.png", 0, 0]],
-    [["ss_sprite_078_2.png", 0, 0]],
-    [["ss_sprite_078_3.png", 0, 0]],
-];
+const BURNING_SPRITES: EntitySpriteInfo[][] = [[["ss_sprite_078_1.png", 0, 0]], [["ss_sprite_078_2.png", 0, 0]], [["ss_sprite_078_3.png", 0, 0]]];
 const ANIM_FRAME_MS = 300;
 
 /** 消火状態になるまでの日数 */

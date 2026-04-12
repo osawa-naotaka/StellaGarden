@@ -22,12 +22,13 @@ import "./_registry/items/Tools";
 import "./_registry/items/WateringCan";
 import "./_registry/terrains/GrassDirt";
 import "./_registry/terrains/SoilWetSoil";
+import type { GameEventMap } from "./_boundary/events";
 import { setChestStorage } from "./_registry/entities/Chest";
 import { ChestStorage } from "./engine/ChestStorage";
 import { CraftSystem } from "./engine/CraftSystem";
-import { Inventory } from "./engine/Inventory";
 import { processDailyTick } from "./engine/CropSystem";
 import { GameTime } from "./engine/GameTime";
+import { Inventory } from "./engine/Inventory";
 import { PlayerState } from "./engine/PlayerState";
 import { generateTerrain } from "./engine/TerrainGenerator";
 import { InputHandler } from "./input/InputHandler";
@@ -35,17 +36,16 @@ import { createInteractionHandler } from "./input/InteractionSystem";
 import { DEBUG } from "./lib/debugFlag";
 import { createEventBroker } from "./lib/Event";
 import { deleteGame, hasSaveData, loadGame, saveGame } from "./lib/SaveSystem";
-import type { GameEventMap } from "./_boundary/events";
 import type { Pos2D, Size2D } from "./lib/VoxelMap";
 import { VoxelMap } from "./lib/VoxelMap";
 import { ChestView } from "./view/ChestView";
 import { DebugText } from "./view/DebugText";
 import { InventoryView } from "./view/InventoryView";
 import { PlacementOverlay } from "./view/PlacementOverlay";
+import { PlayerCharacterView } from "./view/PlayerCharacterView";
 import { loadSprite } from "./view/Sprite";
 import { Toolbar } from "./view/Toolbar";
 import { TopView } from "./view/TopView";
-import { PlayerCharacterView } from "./view/PlayerCharacterView";
 import { UIState } from "./view/UIState";
 
 /** 画面サイズとズームレベルから必要なチャンク数を計算する。 */
@@ -81,6 +81,8 @@ function useGameEngine(worldSize: Size2D, loadSave: boolean) {
         let cancelled = false;
         let pixiApp: Application | null = null;
         const disposers: (() => void)[] = [];
+        let handleVisibilityChange: () => void = () => {};
+        let handlePageHide: () => void = () => {};
 
         async function init() {
             TextureSource.defaultOptions.scaleMode = "nearest";
@@ -109,7 +111,12 @@ function useGameEngine(worldSize: Size2D, loadSave: boolean) {
                 voxelMap = new VoxelMap(sd.width, sd.height, sd.depth, sd.horizonHeight);
                 voxelMap.setVoxelsBuffer(new Uint32Array(sd.voxels));
             } else {
-                voxelMap = generateTerrain({ width: worldSize.w, height: 12, depth: worldSize.h, horizonHeight: 3 });
+                voxelMap = generateTerrain({
+                    width: worldSize.w,
+                    height: 12,
+                    depth: worldSize.h,
+                    horizonHeight: 3,
+                });
             }
             voxelMap.setEventBroker(eventBroker);
 
@@ -124,9 +131,7 @@ function useGameEngine(worldSize: Size2D, loadSave: boolean) {
             const initialTiles = calcTilePerViewport(pixiApp.screen.width, pixiApp.screen.height, initialZoom);
 
             // Inventory: セーブデータがあれば復元
-            const inventory = saveData
-                ? new Inventory(saveData.inventory.toolbarSlots, saveData.inventory.inventorySlots)
-                : new Inventory();
+            const inventory = saveData ? new Inventory(saveData.inventory.toolbarSlots, saveData.inventory.inventorySlots) : new Inventory();
             if (saveData) inventory.setSelectedIndex(saveData.inventory.selectedIndex);
 
             const playerState = new PlayerState({
@@ -224,9 +229,20 @@ function useGameEngine(worldSize: Size2D, loadSave: boolean) {
                     chestStorage: {
                         chests: chestStorage.toSaveData(),
                     },
-                }).catch((e) => console.warn("Save failed:", e))
-                  .finally(() => { isSaving = false; });
+                })
+                    .catch((e) => console.warn("Save failed:", e))
+                    .finally(() => {
+                        isSaving = false;
+                    });
             }
+
+            // ブラウザ離脱・リロード時の保存
+            handleVisibilityChange = () => {
+                if (document.hidden) performSave();
+            };
+            handlePageHide = () => performSave();
+            document.addEventListener("visibilitychange", handleVisibilityChange);
+            window.addEventListener("pagehide", handlePageHide);
 
             // ゲームループ
             pixiApp.ticker.add((ticker) => {
@@ -259,8 +275,8 @@ function useGameEngine(worldSize: Size2D, loadSave: boolean) {
                 topView.updateViewport(playerState.posInWorld, playerState.pointerPosInWorld);
 
                 // TopView と同じチャンクベースの viewportOrigin を計算
-                const chunkHalfW = Math.floor(prevChunksW * TILE_PER_CHUNK / 2);
-                const chunkHalfH = Math.floor(prevChunksH * TILE_PER_CHUNK / 2);
+                const chunkHalfW = Math.floor((prevChunksW * TILE_PER_CHUNK) / 2);
+                const chunkHalfH = Math.floor((prevChunksH * TILE_PER_CHUNK) / 2);
                 const playerLocalX = chunkHalfW * PIXEL_PER_TILE;
                 const playerLocalZ = chunkHalfH * PIXEL_PER_TILE;
 
@@ -291,8 +307,12 @@ function useGameEngine(worldSize: Size2D, loadSave: boolean) {
         return () => {
             cancelled = true;
             container.removeEventListener("contextmenu", preventContextMenu);
+            document.removeEventListener("visibilitychange", handleVisibilityChange);
+            window.removeEventListener("pagehide", handlePageHide);
             if (pixiApp) {
-                disposers.forEach((d) => d());
+                disposers.forEach((d) => {
+                    d();
+                });
                 pixiApp.destroy(true, { children: true });
                 pixiApp = null;
             }
@@ -365,8 +385,14 @@ function TitleScreen({ onStart }: { onStart: (loadSave: boolean) => void }) {
                         sx={{
                             color: "#e8f5e9",
                             borderColor: "#4caf50",
-                            "&:hover": { borderColor: "#388e3c", bgcolor: "rgba(76,175,80,0.1)" },
-                            "&.Mui-disabled": { color: "#5a5a5a", borderColor: "#3a3a3a" },
+                            "&:hover": {
+                                borderColor: "#388e3c",
+                                bgcolor: "rgba(76,175,80,0.1)",
+                            },
+                            "&.Mui-disabled": {
+                                color: "#5a5a5a",
+                                borderColor: "#3a3a3a",
+                            },
                             fontSize: "1.1rem",
                             py: 1.5,
                         }}

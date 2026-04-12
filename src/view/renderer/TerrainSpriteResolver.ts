@@ -1,12 +1,6 @@
-import {
-    ENTITY_TYPES,
-    getEntityTypeFromVoxel,
-    getFertilizedFromVoxel,
-    getTerrainTypeFromVoxel,
-    TERRAIN_TYPES,
-} from "../../engine/TerrainDefs";
+import { type EntitySpriteInfo, getEntityDef } from "../../_registry/EntityRegistry";
+import { ENTITY_TYPES, getEntityTypeFromVoxel, getFertilizedFromVoxel, getTerrainTypeFromVoxel, TERRAIN_TYPES } from "../../engine/TerrainDefs";
 import type { Pos3D } from "../../lib/VoxelMap";
-import { getEntityDef, type EntitySpriteInfo } from "../../_registry/EntityRegistry";
 
 // -----------------------------------------------------------------------------
 // 内部ヘルパー: 高さ配列 ↔ ID の変換
@@ -269,7 +263,7 @@ export function getTerrainSpriteNamesFromVoxel(voxel: number[], pos: Pos3D[], ho
             return grassSpritesName(pos, pos[4].y, horizonHeight);
         case TERRAIN_TYPES.dirt:
             return dirtSpriteName(pos, pos[4].y, horizonHeight, voxel);
-            // return ["ss_sprite_047.png"];
+        // return ["ss_sprite_047.png"];
         default:
             throw new Error(`Unknown voxel type: ${type}`);
     }
@@ -285,7 +279,7 @@ export function getEntitySpriteNameFromVoxel(voxel: number): EntitySpriteInfo[] 
     switch (type) {
         case ENTITY_TYPES.none:
         case ENTITY_TYPES.facility_part:
-        // 描画はアンカータイルが担当するため、このタイルでは描画しない。
+            // 描画はアンカータイルが担当するため、このタイルでは描画しない。
             return [];
         default: {
             // Registry に登録済みなら委譲、未登録なら空配列

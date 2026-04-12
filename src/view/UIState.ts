@@ -38,7 +38,11 @@ export class UIState {
             this.chestPos = pos;
         });
 
-        return () => { d1(); d2(); d3(); };
+        return () => {
+            d1();
+            d2();
+            d3();
+        };
     }
 
     /** 配置モードに入る（フィールド変更のみ、副作用なし）。 */

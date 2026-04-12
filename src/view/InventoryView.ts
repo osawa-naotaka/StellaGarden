@@ -1,8 +1,8 @@
 import { BitmapText, Container, type FederatedPointerEvent, Graphics, Rectangle, Sprite, Texture } from "pixi.js";
 import type { CraftStation, ICraftSystem, IInventoryWriter, ItemStack, SlotRef } from "../_boundary/interfaces";
 import { getItemDef, isPlaceable } from "../_registry/ItemRegistry";
-import type { UIMode, UIState } from "./UIState";
 import { CraftPane } from "./CraftPane";
+import type { UIMode, UIState } from "./UIState";
 
 const CELL_SIZE = 40;
 const ICON_SIZE = 32;

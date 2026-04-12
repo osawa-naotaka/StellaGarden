@@ -1,10 +1,4 @@
-import {
-    FERTILIZER_TYPES,
-    getFertilizerTypeFromVoxel,
-    getTerrainTypeFromVoxel,
-    setFertilizerTypeInVoxel,
-    TERRAIN_TYPES,
-} from "../../engine/TerrainDefs";
+import { FERTILIZER_TYPES, getFertilizerTypeFromVoxel, getTerrainTypeFromVoxel, setFertilizerTypeInVoxel, TERRAIN_TYPES } from "../../engine/TerrainDefs";
 import { registerItem } from "../ItemRegistry";
 
 function registerFertilizer(itemId: string, fertType: number, spriteName: string): void {

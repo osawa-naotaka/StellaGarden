@@ -13,7 +13,7 @@ import {
     setLastCropInVoxel,
     TERRAIN_TYPES,
 } from "../../engine/TerrainDefs";
-import { registerEntity, type DailyTickContext, type EntitySpriteInfo, type InteractionContext } from "../EntityRegistry";
+import { type DailyTickContext, type EntitySpriteInfo, type InteractionContext, registerEntity } from "../EntityRegistry";
 import { registerItem } from "../ItemRegistry";
 
 // ── スプライト定義 ──
@@ -67,7 +67,13 @@ registerEntity({
         const fatigueMultiplier = fatigue === 0 ? 1.0 : fatigue === 1 ? 0.7 : 0.4;
         const harvestCount = Math.max(1, Math.floor(baseCount * fertMultiplier * fatigueMultiplier));
 
-        if (!ctx.inventory.addItems([{ itemId: "soybeans", count: harvestCount }, { itemId: "stem", count: harvestCount }])) return false;
+        if (
+            !ctx.inventory.addItems([
+                { itemId: "soybeans", count: harvestCount },
+                { itemId: "stem", count: harvestCount },
+            ])
+        )
+            return false;
 
         let afterVoxel: number = TERRAIN_TYPES.dirt;
         afterVoxel = setLastCropInVoxel(afterVoxel, ENTITY_TYPES.soy);
@@ -81,7 +87,6 @@ registerEntity({
         });
         return true;
     },
-
 });
 
 registerItem({
@@ -91,10 +96,7 @@ registerItem({
     onItemUse(ctx: InteractionContext): boolean {
         const voxel = ctx.voxel;
         const terrainType = getTerrainTypeFromVoxel(voxel);
-        if (
-            (terrainType !== TERRAIN_TYPES.soil && terrainType !== TERRAIN_TYPES.wetSoil) ||
-            getEntityTypeFromVoxel(voxel) !== ENTITY_TYPES.none
-        ) {
+        if ((terrainType !== TERRAIN_TYPES.soil && terrainType !== TERRAIN_TYPES.wetSoil) || getEntityTypeFromVoxel(voxel) !== ENTITY_TYPES.none) {
             return false;
         }
 

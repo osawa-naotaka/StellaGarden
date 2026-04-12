@@ -1,7 +1,7 @@
 import { BitmapText, Container, type FederatedPointerEvent, Graphics, Rectangle, Sprite, Texture } from "pixi.js";
 import type { IInventoryWriter, ItemStack, SlotRef } from "../_boundary/interfaces";
-import type { ChestStorage } from "../engine/ChestStorage";
 import { getItemDef } from "../_registry/ItemRegistry";
+import type { ChestStorage } from "../engine/ChestStorage";
 import type { UIMode, UIState } from "./UIState";
 
 const CELL_SIZE = 40;

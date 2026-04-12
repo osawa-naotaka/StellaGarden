@@ -1,4 +1,4 @@
-import { AnimatedSprite, Assets, Spritesheet } from "pixi.js";
+import { AnimatedSprite, Assets, type Spritesheet } from "pixi.js";
 import type { Direction8 } from "../_boundary/interfaces";
 
 export class PlayerCharacterView {
@@ -9,9 +9,7 @@ export class PlayerCharacterView {
     private currentHolding_: boolean = false;
 
     constructor() {
-        const sheet = Assets.get<Spritesheet>(
-            "/assets/16x16-Idle-Sheet.spritesheet.json"
-        );
+        const sheet = Assets.get<Spritesheet>("/assets/16x16-Idle-Sheet.spritesheet.json");
         const textures = sheet.animations["Idle_down"];
         const sprite = new AnimatedSprite(textures);
         sprite.anchor.set(0.5, 1.0);
@@ -21,32 +19,22 @@ export class PlayerCharacterView {
     }
 
     tick(facing: Direction8, isMoving: boolean, isHolding: boolean): void {
-        if (
-            facing === this.currentFacing_ &&
-            isMoving === this.currentMoving_ &&
-            isHolding === this.currentHolding_
-        ) {
+        if (facing === this.currentFacing_ && isMoving === this.currentMoving_ && isHolding === this.currentHolding_) {
             return;
         }
         this.currentFacing_ = facing;
         this.currentMoving_ = isMoving;
         this.currentHolding_ = isHolding;
 
-        const idleSheet = Assets.get<Spritesheet>(
-            "/assets/16x16-Idle-Sheet.spritesheet.json"
-        );
-        const walkSheet = Assets.get<Spritesheet>(
-            "/assets/16x16-Walk-Sheet.spritesheet.json"
-        );
+        const idleSheet = Assets.get<Spritesheet>("/assets/16x16-Idle-Sheet.spritesheet.json");
+        const walkSheet = Assets.get<Spritesheet>("/assets/16x16-Walk-Sheet.spritesheet.json");
 
         let animName = "Idle_down";
         let scaleX = 1.0;
         let sheet = idleSheet;
 
         if (isHolding) {
-            const interactSheet = Assets.get<Spritesheet>(
-                "/assets/16x16-Interact-Sheet.spritesheet.json"
-            );
+            const interactSheet = Assets.get<Spritesheet>("/assets/16x16-Interact-Sheet.spritesheet.json");
             if (interactSheet) {
                 sheet = interactSheet;
                 switch (facing) {

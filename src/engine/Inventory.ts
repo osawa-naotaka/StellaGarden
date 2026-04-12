@@ -161,12 +161,7 @@ export class Inventory implements IInventoryWriter {
     }
 
     /** スナップショット上でアイテム追加を試行する。成功時 true（スナップショットを変更）。 */
-    private static tryAdd(
-        invSlots: (ItemStack | null)[],
-        tbSlots: (ItemStack | null)[],
-        itemId: ItemId,
-        count: number,
-    ): boolean {
+    private static tryAdd(invSlots: (ItemStack | null)[], tbSlots: (ItemStack | null)[], itemId: ItemId, count: number): boolean {
         const maxStack = getItemDef(itemId)?.maxStack ?? 64;
         let remaining = count;
 

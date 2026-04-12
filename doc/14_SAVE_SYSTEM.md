@@ -81,10 +81,15 @@ interface SaveData {
 
 | トリガー | 説明 |
 |---|---|
-| 定期保存（60秒ごと） | ゲームループ内でタイマーを管理し、60秒経過ごとにセーブを実行 |
+| 定期保存（30秒ごと） | ゲームループ内でタイマーを管理し、30秒経過ごとにセーブを実行 |
+| `visibilitychange` (hidden) | タブ切り替え・最小化・タブを閉じる直前に発火。ブラウザが即座に kill しないため IndexedDB の非同期処理が完了しやすい |
+| `pagehide` | ページがアンロードされる直前（リロード・タブ閉じ含む）に発火。`visibilitychange` のバックアップとして機能 |
 
-- `beforeunload` イベントでの保存は行わない（IndexedDB の非同期処理は完了保証が弱いため）
-- 定期保存のみで十分シンプルかつ安全
+- `beforeunload` は採用しない（IndexedDB の非同期処理の完了保証が弱いため）
+- `visibilitychange` + `pagehide` の組み合わせにより、タブ閉じとリロードの両方をカバーする
+- `isSaving` フラグにより、複数イベントが連続して発火した場合でもダブルセーブを防止する
+- タブ閉じ時の発火順: `visibilitychange(hidden)` → `pagehide`（先に発火した `visibilitychange` でセーブ開始、`pagehide` は `isSaving` フラグでスキップ）
+- リロード時の発火順: `pagehide`（`visibilitychange` はリロードでは発火しない）
 
 ---
 
