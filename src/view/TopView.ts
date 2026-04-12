@@ -143,6 +143,7 @@ function setupTerrainTile(tile: Tile, voxels: number[], positions: Pos3D[], hori
 
 function setupEntityTile(tile: Tile, voxels: number[], positions: Pos3D[], pointerPos: Pos2D): void {
     const infos = getEntitySpriteNameFromVoxel(voxels[4]);
+    tile.useNSprites(infos.length);
     for (let i = 0; i < infos.length; i++) {
         tile.sprites[i].texture = Texture.from(infos[i][0]); // 0: spriteName
         tile.sprites[i].visible = true;
