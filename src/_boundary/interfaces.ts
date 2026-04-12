@@ -130,6 +130,12 @@ export interface IGameTimeReader {
     readonly currentTimeString: string;
     /** 経過した日数（ゲーム開始を0日目とする）。 */
     readonly dayCount: number;
+    /**
+     * 現在の時刻に基づいた世界の明るさ（0.45〜1.0）。
+     * 昼（05:00〜19:00）= 1.0、夜（20:00〜04:00）= 0.45、
+     * 薄暮（19:00〜20:00）と夜明け（04:00〜05:00）はその間を線形補間。
+     */
+    readonly worldBrightness: number;
 }
 
 // ─── CraftSystem インターフェース ────────────────────────────────────────────

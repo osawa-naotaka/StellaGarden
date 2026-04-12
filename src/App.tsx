@@ -1,5 +1,5 @@
 import { Box, Button, Stack, Typography } from "@mui/material";
-import { Application, Container, TextureSource } from "pixi.js";
+import { Application, ColorMatrixFilter, Container, TextureSource } from "pixi.js";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { PIXEL_PER_TILE, TILE_PER_CHUNK } from "./_boundary/constants";
 import "./_registry/entities/Chest";
@@ -101,6 +101,10 @@ function useGameEngine(worldSize: Size2D, loadSave: boolean) {
 
             const worldContainer = new Container();
             pixiApp.stage.addChild(worldContainer);
+
+            // 昼夜サイクル用フィルター（worldContainer にのみ適用し、UI には影響させない）
+            const dayNightFilter = new ColorMatrixFilter();
+            worldContainer.filters = [dayNightFilter];
 
             // VoxelMap: セーブデータがあれば復元、なければ新規生成
             let voxelMap: VoxelMap;
@@ -234,6 +238,7 @@ function useGameEngine(worldSize: Size2D, loadSave: boolean) {
                 if (!pixiApp) return;
 
                 gameTime.tick(ticker.deltaMS, eventBroker);
+                dayNightFilter.brightness(gameTime.worldBrightness, false);
                 inputHandler.tick(ticker.deltaMS);
 
                 // 定期保存チェック

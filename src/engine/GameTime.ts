@@ -47,6 +47,36 @@ export class GameTime implements IGameTimeReader {
         return ((this.elapsedMs - DAWN_TIME_MS) % DAY_DURATION_MS) / DAY_DURATION_MS;
     }
 
+    /**
+     * 現在のゲーム内時刻に基づく世界の明るさを 0.0〜1.0 で返す。
+     * - 昼（05:00〜19:00）: 1.0
+     * - 黄昏（19:00〜20:00）: 1.0 → 0.45 に線形補間
+     * - 夜（20:00〜04:00）: 0.45
+     * - 夜明け（04:00〜05:00）: 0.45 → 1.0 に線形補間
+     */
+    get worldBrightness(): number {
+        const MIN_BRIGHTNESS = 0.45;
+        const t = this.normalizedDayTime;
+
+        const DUSK_START = 14 / 24; // 19:00
+        const DUSK_END = 15 / 24; // 20:00
+        const DAWN_START = 23 / 24; // 04:00
+        // DAWN_END = 1.0           // 05:00
+
+        if (t < DUSK_START) {
+            return 1.0;
+        }
+        if (t < DUSK_END) {
+            const progress = (t - DUSK_START) / (DUSK_END - DUSK_START);
+            return 1.0 - progress * (1.0 - MIN_BRIGHTNESS);
+        }
+        if (t < DAWN_START) {
+            return MIN_BRIGHTNESS;
+        }
+        const progress = (t - DAWN_START) / (1.0 - DAWN_START);
+        return MIN_BRIGHTNESS + progress * (1.0 - MIN_BRIGHTNESS);
+    }
+
     /** 現在のゲーム内時刻を "HH:MM" 形式の文字列で返す（例: "05:00", "23:30"）。 */
     get currentTimeString(): string {
         const totalHours = this.normalizedDayTime * 24 + 5; // 朝5時を起点に0.0〜1.0 → 5〜29時
