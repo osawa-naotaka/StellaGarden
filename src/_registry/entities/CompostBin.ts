@@ -26,21 +26,17 @@ registerEntity({
         if (ctx.tool === "axe") {
             return removeFacilityAtPos(ctx.voxelMap, ctx.inventory, ctx.surfacePos.x, ctx.surfacePos.z, ENTITY_TYPES.compost_bin);
         }
-        // 有機物を1個投入する（facility_part タイルからも操作可能なようアンカーを解決）
+        // 有機物を REQUIRED_ORGANIC 個まとめて投入する（facility_part タイルからも操作可能なようアンカーを解決）
         if (!ctx.tool || !ORGANIC_MATERIALS.has(ctx.tool)) return false;
         const anchor = findFacilityAnchor(ctx.voxelMap, ctx.surfacePos.x, ctx.surfacePos.z);
         if (!anchor) return false;
         const anchorPos = ctx.voxelMap.getSurfacePosition({ x: anchor.anchorX, y: 0, z: anchor.anchorZ });
         const anchorVoxel = ctx.voxelMap.get(anchorPos);
-        const count = getCropGrowthStageFromVoxel(anchorVoxel);
-        if (!ctx.inventory.consumeSelectedItem(1)) return false;
-        if (count + 1 >= REQUIRED_ORGANIC) {
-            // 10個投入完了 → 発酵開始（growth counter をリセット）
-            const terrain = getTerrainTypeFromVoxel(anchorVoxel);
-            ctx.voxelMap.set(terrain | (ENTITY_TYPES.compost_bin_loaded << 8), anchorPos);
-        } else {
-            ctx.voxelMap.set(setCropGrowthStageInVoxel(anchorVoxel, count + 1), anchorPos);
-        }
+        // 10個消費できない場合は何もしない
+        if (!ctx.inventory.consumeSelectedItem(REQUIRED_ORGANIC)) return false;
+        // 即座に発酵開始フェーズへ移行
+        const terrain = getTerrainTypeFromVoxel(anchorVoxel);
+        ctx.voxelMap.set(terrain | (ENTITY_TYPES.compost_bin_loaded << 8), anchorPos);
         return true;
     },
 });

@@ -58,6 +58,7 @@ registerEntity({
             !ctx.inventory.addItems([
                 { itemId: "trunk", count: 1 },
                 { itemId: "leaves", count: leavesCount },
+                { itemId: "nuts", count: leavesCount }
             ])
         )
             return false;

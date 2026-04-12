@@ -75,7 +75,7 @@ registerEntity({
         )
             return false;
 
-        let afterVoxel: number = TERRAIN_TYPES.dirt;
+        let afterVoxel: number = TERRAIN_TYPES.soil;
         afterVoxel = setLastCropInVoxel(afterVoxel, ENTITY_TYPES.soy);
         afterVoxel = setFatigueInVoxel(afterVoxel, fatigue);
         ctx.voxelMap.set(afterVoxel, ctx.surfacePos);
