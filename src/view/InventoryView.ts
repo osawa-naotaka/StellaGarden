@@ -317,15 +317,31 @@ export class InventoryView {
             return;
         }
 
-        // 同じスロットを再クリック → 元に戻す
-        if (ref.area === this.pickedUp.source.area && ref.index === this.pickedUp.source.index) {
-            this.inventory.setSlot(ref, this.pickedUp.stack);
-            this.pickedUp = null;
+        // 別スロットをクリック → 同種なら統合、異種なら入れ替え
+        const targetStack = this.inventory.getSlot(ref);
+
+        if (targetStack && targetStack.itemId === this.pickedUp.stack.itemId) {
+            // ── 同種アイテム → スタック統合 ──
+            const maxStack = getItemDef(this.pickedUp.stack.itemId)?.maxStack ?? 64;
+            const total = targetStack.count + this.pickedUp.stack.count;
+
+            if (total <= maxStack) {
+                // 合計が上限以内 → Bスロットに全部収めて持ち上げ解除
+                this.inventory.setSlot(ref, { itemId: targetStack.itemId, count: total });
+                this.pickedUp = null;
+            } else {
+                // 合計が上限超過 → Bスロットを上限に設定し、残りを持ち上げ継続
+                this.inventory.setSlot(ref, { itemId: targetStack.itemId, count: maxStack });
+                this.pickedUp = {
+                    stack: { itemId: this.pickedUp.stack.itemId, count: total - maxStack },
+                    source: ref,
+                };
+                this.setCursorPosition(event.clientX, event.clientY);
+            }
             return;
         }
 
-        // 別スロットをクリック → 入れ替え
-        const targetStack = this.inventory.getSlot(ref);
+        // ── 異なるアイテム or 空スロット → 従来の入れ替え ──
         this.inventory.setSlot(ref, this.pickedUp.stack);
 
         if (targetStack) {
