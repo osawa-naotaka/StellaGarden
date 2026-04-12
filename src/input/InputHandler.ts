@@ -21,7 +21,7 @@ export class InputHandler {
     private keyPressState: Record<string, boolean> = {};
     private pointerPosInGlobal = { x: 0, z: 0 };
 
-    private rightHeld_ = false;
+    private leftHeld_ = false;
     private holdAccumulator_ = 0;
     private holdFired_ = false;
 
@@ -71,27 +71,27 @@ export class InputHandler {
             const z = Math.floor(this.playerState.pointerPosInWorld.z);
 
             if (e.button === 0) {
-                // 左クリック: 施設UIの起動等
-                this.eventBroker.publish("interact_primary", { pos: { x, z } });
-            } else if (e.button === 2) {
-                // 右クリック: ツール使用
+                // 左クリック: ツール使用
                 const selectedTool = this.playerState.inventory.selectedTool;
                 if (selectedTool && HOLD_TOOL_IDS.has(selectedTool)) {
                     // ホールドツール: tick で遅延発動
-                    this.rightHeld_ = true;
+                    this.leftHeld_ = true;
                     this.holdAccumulator_ = 0;
                     this.holdFired_ = false;
                 } else {
                     // 非ホールドツール: 即時発動（従来通り）
                     this.eventBroker.publish("interact_world", { pos: { x, z } });
                 }
+            } else if (e.button === 2) {
+                // 右クリック: 施設UIの起動等
+                this.eventBroker.publish("interact_primary", { pos: { x, z } });
             }
         };
         this.target.on("pointerdown", onPointerDown);
 
         const onPointerUp = (e: PointerEvent) => {
-            if (e.button === 2) {
-                this.rightHeld_ = false;
+            if (e.button === 0) {
+                this.leftHeld_ = false;
             }
         };
         window.addEventListener("pointerup", onPointerUp);
@@ -122,7 +122,7 @@ export class InputHandler {
 
     /** ツールホールド中かどうか。 */
     get isHolding(): boolean {
-        return this.rightHeld_;
+        return this.leftHeld_;
     }
 
     /** ゲームループから毎フレーム呼ぶ。キー状態に基づいてプレイヤーを移動させる。 */
@@ -134,7 +134,7 @@ export class InputHandler {
         if (this.keyPressState.w || this.keyPressState.arrowup) dz -= 2;
         if (this.keyPressState.s || this.keyPressState.arrowdown) dz += 2;
 
-        if ((dx !== 0 || dz !== 0) && !this.rightHeld_) {
+        if ((dx !== 0 || dz !== 0) && !this.leftHeld_) {
             // 斜め移動を正規化
             if (dx !== 0 && dz !== 0) {
                 const norm = 1 / Math.sqrt(2);
@@ -146,7 +146,7 @@ export class InputHandler {
         this.updatePointerPosInWorld();
 
         // ホールド中のツール連続発動
-        if (this.rightHeld_) {
+        if (this.leftHeld_) {
             this.holdAccumulator_ += deltaMS;
             if (!this.holdFired_ && this.holdAccumulator_ >= HOLD_DELAY) {
                 this.fireInteractWorld();
