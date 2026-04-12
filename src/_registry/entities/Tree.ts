@@ -9,7 +9,8 @@ import {
 import { type DailyTickContext, type EntitySpriteInfo, type InteractionContext, registerEntity } from "../EntityRegistry";
 import { registerItem } from "../ItemRegistry";
 
-const TREE_MAX_GROWTH_STAGE = 7;
+const TREE_MAX_GROWTH_STAGE = 4;
+const LEAVES_STAGE = 4;
 
 // ── スプライト定義 ──
 
@@ -19,8 +20,13 @@ const sprites: EntitySpriteInfo[][] = [
     [["ss_sprite_039.png", 0, -16]],
     [
         ["ss_sprite_040.png", -8, -16],
-        // ["ss_sprite_041.png", 0, 8],
     ],
+];
+
+/** 落ち葉あり（stage 15）: 成木 + 落ち葉を重ねて表示 */
+const spritesWithLeaves: EntitySpriteInfo[] = [
+    ["ss_sprite_040.png", -8, -16],
+    ["ss_sprite_041.png", 0, 8],
 ];
 
 // ── 登録 ──
@@ -29,11 +35,10 @@ registerEntity({
     entityType: ENTITY_TYPES.tree,
 
     getSprites(voxel: number): EntitySpriteInfo[] {
-        const dayCounter = getCropGrowthStageFromVoxel(voxel);
-        if (dayCounter >= 3) {
-            return sprites[3];
-        }
-        return sprites[dayCounter] ?? sprites[0];
+        const stage = getCropGrowthStageFromVoxel(voxel);
+        if (stage >= LEAVES_STAGE) return spritesWithLeaves;
+        if (stage >= 3) return sprites[3];
+        return sprites[stage] ?? sprites[0];
     },
 
     onDailyTick(ctx: DailyTickContext): void {
@@ -50,20 +55,33 @@ registerEntity({
     },
 
     onInteract(ctx: InteractionContext): boolean {
-        // 伐採: axe で tree を右クリック
-        if (ctx.tool !== "axe") return false;
+        // 伐採: axe で tree
+        if (ctx.tool === "axe") {
+            const leavesCount = 2 + Math.floor(Math.random() * 3); // 2-4
+            if (
+                !ctx.inventory.addItems([
+                    { itemId: "trunk", count: 1 },
+                    { itemId: "leaves", count: leavesCount },
+                    { itemId: "nuts", count: leavesCount },
+                ])
+            )
+                return false;
+            ctx.voxelMap.set(ctx.voxel & 0x000000ff, ctx.surfacePos);
+            return true;
+        }
 
-        const leavesCount = 2 + Math.floor(Math.random() * 3); // 2-4
-        if (
-            !ctx.inventory.addItems([
-                { itemId: "trunk", count: 1 },
-                { itemId: "leaves", count: leavesCount },
-                { itemId: "nuts", count: leavesCount }
-            ])
-        )
-            return false;
-        ctx.voxelMap.set(ctx.voxel & 0x000000ff, ctx.surfacePos);
-        return true;
+        // 落ち葉収集: 素手 + stage 15
+        if (ctx.tool === "hand") {
+            const stage = getCropGrowthStageFromVoxel(ctx.voxel);
+            if (stage < LEAVES_STAGE) return false;
+            const leavesCount = 2 + Math.floor(Math.random() * 3); // 2〜4個
+            if (!ctx.inventory.addItems([{ itemId: "leaves", count: leavesCount }])) return false;
+            // stage を 3 にリセットして再カウント開始
+            ctx.voxelMap.set(setCropGrowthStageInVoxel(ctx.voxel, 3), ctx.surfacePos);
+            return true;
+        }
+
+        return false;
     },
 });
 
