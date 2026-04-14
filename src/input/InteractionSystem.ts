@@ -39,8 +39,6 @@ export function createInteractionHandler(
         const terrainType = getTerrainTypeFromVoxel(voxel);
         const tool = inventory.selectedTool;
 
-        if (terrainType === TERRAIN_TYPES.waterSource) return;
-
         const ctx: InteractionContext = { voxelMap, inventory, eventBroker, surfacePos, voxel, tool };
         const entityType = resolveEntityType(voxelMap, voxel, packet.pos.x, packet.pos.z);
 

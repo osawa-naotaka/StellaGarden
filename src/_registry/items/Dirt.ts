@@ -62,10 +62,12 @@ registerItem({
         const groundPos = ctx.voxelMap.getGroundSurfacePosition({ x: ctx.surfacePos.x, y: 0, z: ctx.surfacePos.z });
         const groundVoxel = ctx.voxelMap.get(groundPos);
         const groundTerrainType = getTerrainTypeFromVoxel(groundVoxel);
+        const surfaceTerrainType = getTerrainTypeFromVoxel(ctx.voxel);
+        const isWaterSurface = surfaceTerrainType === TERRAIN_TYPES.waterSource;
         if (
-            (groundTerrainType === TERRAIN_TYPES.grass || groundTerrainType === TERRAIN_TYPES.dirt) &&
+            (isWaterSurface || groundTerrainType === TERRAIN_TYPES.grass || groundTerrainType === TERRAIN_TYPES.dirt) &&
             groundPos.y + 1 < ctx.voxelMap.height &&
-            isSafeToAdd3x3(ctx.voxelMap, ctx.surfacePos.x, ctx.surfacePos.z) &&
+            (isWaterSurface || isSafeToAdd3x3(ctx.voxelMap, ctx.surfacePos.x, ctx.surfacePos.z)) &&
             ctx.inventory.consumeSelectedItem(1)
         ) {
             ctx.voxelMap.set(TERRAIN_TYPES.dirt, { x: groundPos.x, y: groundPos.y + 1, z: groundPos.z });
