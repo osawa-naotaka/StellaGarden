@@ -14,3 +14,11 @@ export const PIXEL_PER_TILE = 16;
  * model/GameState.ts の TILE_PER_CHUNK と同じ値。
  */
 export const TILE_PER_CHUNK = 16;
+
+/**
+ * 素掘り水路における、waterSource からの最大水拡散距離（BFS ホップ数）。
+ * この距離を超えたタイルには water を配置しない（地面に染み込む挙動）。
+ * 将来の石組み導水路では Infinity を渡すことで距離制限なしにできる。
+ * doc/16_IRRIGATION.md §2.3 参照。
+ */
+export const MAX_WATER_SPREAD_DISTANCE = 8;
