@@ -155,7 +155,7 @@ function createVoxelMap(hm: Int8Array, opt: GenerateTerrainOptions): VoxelMap {
             const h = hm[idx];
             if (h < opt.horizonHeight) {
                 for (let y = 0; y <= h; y++) map.set(TERRAIN_TYPES.dirt, { x, y, z });
-                for (let y = h + 1; y <= opt.horizonHeight; y++) map.set(TERRAIN_TYPES.water, { x, y, z });
+                for (let y = h + 1; y <= opt.horizonHeight; y++) map.set(TERRAIN_TYPES.waterSource, { x, y, z });
             } else {
                 for (let y = 0; y < h; y++) map.set(TERRAIN_TYPES.dirt, { x, y, z });
                 map.set(TERRAIN_TYPES.grass, { x, y: h, z });

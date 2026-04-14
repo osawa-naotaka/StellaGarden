@@ -1,5 +1,6 @@
 import type { IVoxelWriter } from "../../_boundary/interfaces";
 import { getTerrainTypeFromVoxel, TERRAIN_TYPES } from "../../engine/TerrainDefs";
+import { removeDisconnectedWater } from "../../engine/WaterSystem";
 import { registerItem } from "../ItemRegistry";
 
 /** 中心に土を盛った後（y + 1）でも、3x3 範囲の各セルとの高さ差が 1 以下に収まるか返す。 */
@@ -69,6 +70,7 @@ registerItem({
         ) {
             ctx.voxelMap.set(TERRAIN_TYPES.dirt, { x: groundPos.x, y: groundPos.y + 1, z: groundPos.z });
             revertNearbyInvalidTerrain(ctx.voxelMap, ctx.surfacePos.x, ctx.surfacePos.z);
+            removeDisconnectedWater(ctx.voxelMap, ctx.surfacePos.x, ctx.surfacePos.z);
             return true;
         }
         return false;
