@@ -9,6 +9,8 @@ import {
     getFertilizerTypeFromVoxel,
     getLastCropFromVoxel,
     getTerrainTypeFromVoxel,
+    initializeVoxel,
+    setEntityTypeInVoxel,
     setFatigueInVoxel,
     setFertilizerTypeInVoxel,
     setLastCropInVoxel,
@@ -78,7 +80,7 @@ registerEntity({
         )
             return false;
 
-        let afterVoxel: bigint = BigInt(TERRAIN_TYPES.soil);
+        let afterVoxel = initializeVoxel(TERRAIN_TYPES.soil);
         afterVoxel = setLastCropInVoxel(afterVoxel, ENTITY_TYPES.potato);
         afterVoxel = setFatigueInVoxel(afterVoxel, fatigue);
         ctx.voxelMap.set(afterVoxel, ctx.surfacePos);
@@ -115,7 +117,8 @@ registerItem({
         if (fatigue >= cropDef.fatigueThreshold) return false;
         if (!ctx.inventory.consumeSelectedItem(1)) return false;
 
-        let newVoxel = BigInt(terrainType) | (BigInt(ENTITY_TYPES.potato) << 8n);
+        let newVoxel = initializeVoxel(terrainType);
+        newVoxel = setEntityTypeInVoxel(newVoxel, ENTITY_TYPES.potato);
         newVoxel = setFatigueInVoxel(newVoxel, fatigue);
         newVoxel = setLastCropInVoxel(newVoxel, ENTITY_TYPES.potato);
         newVoxel = setFertilizerTypeInVoxel(newVoxel, getFertilizerTypeFromVoxel(voxel));

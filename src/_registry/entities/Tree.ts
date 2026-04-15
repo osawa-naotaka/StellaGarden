@@ -4,6 +4,7 @@ import {
     getEntityTypeFromVoxel,
     getTerrainTypeFromVoxel,
     setCropGrowthStageInVoxel,
+    setEntityTypeInVoxel,
     TERRAIN_TYPES,
 } from "../../engine/TerrainDefs";
 import { type DailyTickContext, type EntitySpriteInfo, type InteractionContext, registerEntity } from "../EntityRegistry";
@@ -97,7 +98,7 @@ registerItem({
         }
         if (!ctx.inventory.consumeSelectedItem(1)) return false;
 
-        ctx.voxelMap.set(BigInt(terrainType) | (BigInt(ENTITY_TYPES.tree) << 8n), ctx.surfacePos);
+        ctx.voxelMap.set(setEntityTypeInVoxel(voxel, ENTITY_TYPES.tree), ctx.surfacePos);
         ctx.eventBroker.publish("crop_planted", {
             pos: { x: ctx.surfacePos.x, z: ctx.surfacePos.z },
             cropType: "nuts",

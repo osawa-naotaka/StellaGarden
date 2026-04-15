@@ -1,4 +1,4 @@
-import { ENTITY_TYPES, getCropGrowthStageFromVoxel, getTerrainTypeFromVoxel, setCropGrowthStageInVoxel } from "../../engine/TerrainDefs";
+import { ENTITY_TYPES, getCropGrowthStageFromVoxel, setCropGrowthStageInVoxel, setEntityTypeInVoxel } from "../../engine/TerrainDefs";
 import { type DailyTickContext, type EntitySpriteInfo, type InteractionContext, registerEntity } from "../EntityRegistry";
 import { findFacilityAnchor, placeFacility } from "../facilityUtil";
 import { registerItem, registerItemAlias } from "../ItemRegistry";
@@ -25,8 +25,7 @@ registerEntity({
         const stage = getCropGrowthStageFromVoxel(ctx.voxel);
         if (stage >= BURN_DAYS - 1) {
             // 4日経過: 消火状態へ遷移
-            const terrain = getTerrainTypeFromVoxel(ctx.voxel);
-            ctx.voxelMap.set(BigInt(terrain) | (BigInt(ENTITY_TYPES.kiln) << 8n), ctx.pos);
+            ctx.voxelMap.set(setEntityTypeInVoxel(ctx.voxel, ENTITY_TYPES.kiln), ctx.pos);
         } else {
             ctx.voxelMap.set(setCropGrowthStageInVoxel(ctx.voxel, stage + 1), ctx.pos);
         }
@@ -46,10 +45,11 @@ registerEntity({
     onInteract(ctx: InteractionContext): boolean {
         // スコップで窯を崩し、木炭を回収（窯は消滅、使い捨て）
         if (ctx.tool !== "shovel") return false;
+        
         // facility_part タイルからでも正しくアンカー座標を解決する
         const anchor = findFacilityAnchor(ctx.voxelMap, ctx.surfacePos.x, ctx.surfacePos.z);
         if (!anchor) return false;
-        if (!ctx.inventory.addItems([{ itemId: "charcoal", count: 4 }])) return false;
+        if (!ctx.inventory.addItems([{ itemId: "charcoal", count: 8 }, { itemId: "dirt", count: 2 }])) return false;
         // 2x2 の全タイルのエンティティビットをクリアする
         for (let dz = 0; dz < 2; dz++) {
             for (let dx = 0; dx < 2; dx++) {

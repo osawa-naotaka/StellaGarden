@@ -1,4 +1,4 @@
-import { ENTITY_TYPES } from "../../engine/TerrainDefs";
+import { ENTITY_TYPES, setEntityTypeInVoxel } from "../../engine/TerrainDefs";
 import { type DailyTickContext, type EntitySpriteInfo, type InteractionContext, registerEntity } from "../EntityRegistry";
 import { placeFacility, removeFacilityAtPos } from "../facilityUtil";
 import { registerItem } from "../ItemRegistry";
@@ -21,8 +21,7 @@ registerEntity({
         // trunk 4 つを消費して点火
         if (ctx.tool === "trunk") {
             if (!ctx.inventory.consumeSelectedItem(4)) return false;
-            const newVoxel = (ctx.voxel & 0xffn) | (BigInt(ENTITY_TYPES.bonfire_lit) << 8n);
-            ctx.voxelMap.set(newVoxel, ctx.surfacePos);
+            ctx.voxelMap.set(setEntityTypeInVoxel(ctx.voxel, ENTITY_TYPES.bonfire_lit), ctx.surfacePos);
             return true;
         }
         // axe で撤去
@@ -45,7 +44,7 @@ registerEntity({
 
     onDailyTick(ctx: DailyTickContext): void {
         // 1日後に消火中へ遷移
-        ctx.voxelMap.set((ctx.voxel & 0xffn) | (BigInt(ENTITY_TYPES.bonfire_done) << 8n), ctx.pos);
+        ctx.voxelMap.set(setEntityTypeInVoxel(ctx.voxel, ENTITY_TYPES.bonfire_done), ctx.pos);
     },
     // 右クリック操作不可（点火中のため）
 });
@@ -63,8 +62,7 @@ registerEntity({
         // 素手で草木灰を回収し、点火前に戻す
         if (ctx.tool !== "hand") return false;
         if (!ctx.inventory.addItems([{ itemId: "plant_ashes", count: 4 }])) return false;
-        const newVoxel = (ctx.voxel & 0xffn) | (BigInt(ENTITY_TYPES.bonfire) << 8n);
-        ctx.voxelMap.set(newVoxel, ctx.surfacePos);
+        ctx.voxelMap.set(setEntityTypeInVoxel(ctx.voxel, ENTITY_TYPES.bonfire), ctx.surfacePos);
         return true;
     },
 });

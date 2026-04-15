@@ -2,7 +2,7 @@
  * soil / wetSoil 地形のインタラクション定義。
  * - hoes: 作物エンティティの削除（虚空へ消滅、アイテム追加なし）
  */
-import { ENTITY_TYPES, getEntityTypeFromVoxel, getTerrainTypeFromVoxel, TERRAIN_TYPES } from "../../engine/TerrainDefs";
+import { ENTITY_TYPES, getEntityTypeFromVoxel, setEntityTypeInVoxel, TERRAIN_TYPES } from "../../engine/TerrainDefs";
 import { registerTerrain } from "../TerrainRegistry";
 
 function onSoilInteract(ctx: import("../EntityRegistry").InteractionContext): boolean {
@@ -12,8 +12,7 @@ function onSoilInteract(ctx: import("../EntityRegistry").InteractionContext): bo
     if (entityType === ENTITY_TYPES.none) return false;
 
     // 作物エンティティを削除（虚空へ消滅、アイテム追加なし）
-    const terrainType = getTerrainTypeFromVoxel(ctx.voxel);
-    ctx.voxelMap.set(BigInt(terrainType), ctx.surfacePos);
+    ctx.voxelMap.set(setEntityTypeInVoxel(ctx.voxel, ENTITY_TYPES.none), ctx.surfacePos);
     return true;
 }
 

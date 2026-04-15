@@ -1,4 +1,4 @@
-import { getTerrainTypeFromVoxel, TERRAIN_TYPES } from "../../engine/TerrainDefs";
+import { getTerrainTypeFromVoxel, setTerrainTypeInVoxel, TERRAIN_TYPES } from "../../engine/TerrainDefs";
 import { registerItem } from "../ItemRegistry";
 
 registerItem({
@@ -7,8 +7,7 @@ registerItem({
     maxStack: 1,
     onItemUse(ctx) {
         if (getTerrainTypeFromVoxel(ctx.voxel) !== TERRAIN_TYPES.soil) return false;
-        // エンティティビットと growthStage を保持したまま地形タイプのみ wetSoil に変更
-        ctx.voxelMap.set((ctx.voxel & ~0xffn) | BigInt(TERRAIN_TYPES.wetSoil), ctx.surfacePos);
+        ctx.voxelMap.set(setTerrainTypeInVoxel(ctx.voxel, TERRAIN_TYPES.wetSoil), ctx.surfacePos);
         return true;
     },
 });

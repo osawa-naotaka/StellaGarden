@@ -66,9 +66,25 @@ export function getTerrainTypeFromVoxel(voxel: bigint): number {
     return Number(voxel & 0xffn);
 }
 
+export function initializeVoxel(terrainType: number): bigint {
+    return BigInt(terrainType) & 0xffn;
+}
+
+export function setTerrainTypeInVoxel(voxel: bigint, terrainType: number): bigint {
+    return (voxel & ~0xffn) | (BigInt(terrainType) & 0xffn);
+}
+
 /** ボクセル値からエンティティタイプを取り出す。 */
 export function getEntityTypeFromVoxel(voxel: bigint): number {
     return Number((voxel >> 8n) & 0xffn);
+}
+
+export function setEntityTypeInVoxel(voxel: bigint, entityType: number): bigint {
+    return (voxel & ~(0xffn << 8n)) | ((BigInt(entityType) & 0xffn) << 8n);
+}
+
+export function clearEntityTypeInVoxel(voxel: bigint): bigint {
+    return voxel & ~(0xffn << 8n);
 }
 
 /**

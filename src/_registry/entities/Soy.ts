@@ -8,6 +8,8 @@ import {
     getFertilizerTypeFromVoxel,
     getLastCropFromVoxel,
     getTerrainTypeFromVoxel,
+    initializeVoxel,
+    setEntityTypeInVoxel,
     setFatigueInVoxel,
     setFertilizerTypeInVoxel,
     setLastCropInVoxel,
@@ -111,7 +113,8 @@ registerItem({
         if (fatigue >= cropDef.fatigueThreshold) return false;
         if (!ctx.inventory.consumeSelectedItem(1)) return false;
 
-        let newVoxel = BigInt(terrainType) | (BigInt(ENTITY_TYPES.soy) << 8n);
+        let newVoxel = initializeVoxel(terrainType);
+        newVoxel = setEntityTypeInVoxel(newVoxel, ENTITY_TYPES.soy);
         newVoxel = setFatigueInVoxel(newVoxel, fatigue);
         newVoxel = setLastCropInVoxel(newVoxel, ENTITY_TYPES.soy);
         newVoxel = setFertilizerTypeInVoxel(newVoxel, getFertilizerTypeFromVoxel(voxel));

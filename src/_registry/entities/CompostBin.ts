@@ -1,4 +1,4 @@
-import { ENTITY_TYPES, getCropGrowthStageFromVoxel, getTerrainTypeFromVoxel, setCropGrowthStageInVoxel } from "../../engine/TerrainDefs";
+import { ENTITY_TYPES, getCropGrowthStageFromVoxel, setCropGrowthStageInVoxel, setEntityTypeInVoxel } from "../../engine/TerrainDefs";
 import { type DailyTickContext, type EntitySpriteInfo, type InteractionContext, registerEntity } from "../EntityRegistry";
 import { findFacilityAnchor, placeFacility, removeFacilityAtPos } from "../facilityUtil";
 import { registerItem, registerItemAlias } from "../ItemRegistry";
@@ -35,8 +35,7 @@ registerEntity({
         // 10個消費できない場合は何もしない
         if (!ctx.inventory.consumeSelectedItem(REQUIRED_ORGANIC)) return false;
         // 即座に発酵開始フェーズへ移行
-        const terrain = getTerrainTypeFromVoxel(anchorVoxel);
-        ctx.voxelMap.set(BigInt(terrain) | (BigInt(ENTITY_TYPES.compost_bin_loaded) << 8n), anchorPos);
+        ctx.voxelMap.set(setEntityTypeInVoxel(anchorVoxel, ENTITY_TYPES.compost_bin_loaded), anchorPos);
         return true;
     },
 });
@@ -54,8 +53,7 @@ registerEntity({
         const stage = getCropGrowthStageFromVoxel(ctx.voxel);
         if (stage >= FERMENT_DAYS - 1) {
             // 2日経過 → 発酵中へ（growth counter をリセット）
-            const terrain = getTerrainTypeFromVoxel(ctx.voxel);
-            ctx.voxelMap.set(BigInt(terrain) | (BigInt(ENTITY_TYPES.compost_bin_fermenting) << 8n), ctx.pos);
+            ctx.voxelMap.set(setEntityTypeInVoxel(ctx.voxel, ENTITY_TYPES.compost_bin_fermenting), ctx.pos);
         } else {
             ctx.voxelMap.set(setCropGrowthStageInVoxel(ctx.voxel, stage + 1), ctx.pos);
         }
@@ -75,8 +73,7 @@ registerEntity({
         const stage = getCropGrowthStageFromVoxel(ctx.voxel);
         if (stage >= FERMENT_DAYS - 1) {
             // 2日経過 → 発酵完了へ
-            const terrain = getTerrainTypeFromVoxel(ctx.voxel);
-            ctx.voxelMap.set(BigInt(terrain) | (BigInt(ENTITY_TYPES.compost_bin_done) << 8n), ctx.pos);
+            ctx.voxelMap.set(setEntityTypeInVoxel(ctx.voxel, ENTITY_TYPES.compost_bin_done), ctx.pos);
         } else {
             ctx.voxelMap.set(setCropGrowthStageInVoxel(ctx.voxel, stage + 1), ctx.pos);
         }
@@ -100,8 +97,7 @@ registerEntity({
         const anchorPos = ctx.voxelMap.getSurfacePosition({ x: anchor.anchorX, y: 0, z: anchor.anchorZ });
         const anchorVoxel = ctx.voxelMap.get(anchorPos);
         if (!ctx.inventory.addItems([{ itemId: "compost", count: 1 }])) return false;
-        const terrain = getTerrainTypeFromVoxel(anchorVoxel);
-        ctx.voxelMap.set(BigInt(terrain) | (BigInt(ENTITY_TYPES.compost_bin) << 8n), anchorPos);
+        ctx.voxelMap.set(setEntityTypeInVoxel(anchorVoxel, ENTITY_TYPES.compost_bin), anchorPos);
         return true;
     },
 });

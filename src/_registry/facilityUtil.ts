@@ -1,5 +1,5 @@
 import type { IInventoryWriter, ItemId, IVoxelReader, IVoxelWriter, Pos2D } from "../_boundary/interfaces";
-import { ENTITY_TYPES, getEntityTypeFromVoxel, getTerrainTypeFromVoxel } from "../engine/TerrainDefs";
+import { ENTITY_TYPES, getEntityTypeFromVoxel, setEntityTypeInVoxel } from "../engine/TerrainDefs";
 import { getItemDefByEntityType, type ItemDef } from "./ItemRegistry";
 
 /** 施設を撤去してインベントリに回収する。成功時 true。 */
@@ -12,7 +12,7 @@ export function removeFacility(voxelMap: IVoxelWriter, inventory: IInventoryWrit
         for (let dx = 0; dx < w; dx++) {
             const pos = voxelMap.getSurfacePosition({ x: anchorX + dx, y: 0, z: anchorZ + dz });
             const v = voxelMap.get(pos);
-            voxelMap.set(v & 0xffn, pos);
+            voxelMap.set(setEntityTypeInVoxel(v, ENTITY_TYPES.none), pos);
         }
     }
     return true;
@@ -30,9 +30,9 @@ export function placeFacility(voxelMap: IVoxelWriter, pos: Pos2D, entityType: nu
     for (let dz = 0; dz < entitySize.h; dz++) {
         for (let dx = 0; dx < entitySize.w; dx++) {
             const surfacePos = voxelMap.getSurfacePosition({ x: pos.x + dx, y: 0, z: pos.z + dz });
-            const terrain = getTerrainTypeFromVoxel(voxelMap.get(surfacePos));
+            const voxel = voxelMap.get(surfacePos);
             const entity = dx === 0 && dz === 0 ? entityType : ENTITY_TYPES.facility_part;
-            voxelMap.set(BigInt(terrain | entity << 8), surfacePos);
+            voxelMap.set(setEntityTypeInVoxel(voxel, entity), surfacePos);
         }
     }
 }
