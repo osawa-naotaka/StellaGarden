@@ -12,7 +12,7 @@ export function removeFacility(voxelMap: IVoxelWriter, inventory: IInventoryWrit
         for (let dx = 0; dx < w; dx++) {
             const pos = voxelMap.getSurfacePosition({ x: anchorX + dx, y: 0, z: anchorZ + dz });
             const v = voxelMap.get(pos);
-            voxelMap.set(v & 0xff, pos);
+            voxelMap.set(v & 0xffn, pos);
         }
     }
     return true;
@@ -32,7 +32,7 @@ export function placeFacility(voxelMap: IVoxelWriter, pos: Pos2D, entityType: nu
             const surfacePos = voxelMap.getSurfacePosition({ x: pos.x + dx, y: 0, z: pos.z + dz });
             const terrain = getTerrainTypeFromVoxel(voxelMap.get(surfacePos));
             const entity = dx === 0 && dz === 0 ? entityType : ENTITY_TYPES.facility_part;
-            voxelMap.set(terrain | (entity << 8), surfacePos);
+            voxelMap.set(BigInt(terrain | entity << 8), surfacePos);
         }
     }
 }

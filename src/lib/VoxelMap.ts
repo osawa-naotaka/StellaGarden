@@ -1,4 +1,5 @@
 import type { IEventBroker, IVoxelWriter } from "../_boundary/interfaces";
+import { TERRAIN_TYPES } from "../engine/TerrainDefs";
 
 export type Pos2D = {
     x: number;
@@ -21,7 +22,7 @@ export class VoxelMap implements IVoxelWriter {
     readonly height: number;
     readonly depth: number;
     readonly horizonHeight: number;
-    private voxels: Uint32Array;
+    private voxels: BigUint64Array;
     private broker: IEventBroker | null = null;
 
     /** ゲームプレイ開始後に EventBroker を注入する。地形生成前は呼ばないこと。 */
@@ -30,12 +31,12 @@ export class VoxelMap implements IVoxelWriter {
     }
 
     /** 内部ボクセル配列への読み取り専用参照を返す（セーブ用）。 */
-    getVoxelsBuffer(): Uint32Array {
+    getVoxelsBuffer(): BigUint64Array {
         return this.voxels;
     }
 
     /** 外部から voxels 配列を上書きする（ロード用）。サイズが一致しない場合はエラー。 */
-    setVoxelsBuffer(buffer: Uint32Array): void {
+    setVoxelsBuffer(buffer: BigUint64Array): void {
         if (buffer.length !== this.voxels.length) {
             throw new Error(`Voxel buffer size mismatch: expected ${this.voxels.length}, got ${buffer.length}`);
         }
@@ -47,10 +48,10 @@ export class VoxelMap implements IVoxelWriter {
         this.height = height;
         this.depth = depth;
         this.horizonHeight = horizonHeight;
-        this.voxels = new Uint32Array(width * height * depth).fill(0);
+        this.voxels = new BigUint64Array(width * height * depth).fill(0n);
     }
 
-    get(pos: Pos3D): number {
+    get(pos: Pos3D): bigint {
         const index = this.posToIndex(pos);
         if (index < 0 || index >= this.voxels.length) {
             throw new Error(`Position out of bounds: (${pos.x}, ${pos.y}, ${pos.z})`);
@@ -58,7 +59,7 @@ export class VoxelMap implements IVoxelWriter {
         return this.voxels[index];
     }
 
-    set(voxel: number, pos: Pos3D): void {
+    set(voxel: bigint, pos: Pos3D): void {
         const index = this.posToIndex(pos);
         this.voxels[index] = voxel;
         this.broker?.publish("terrain_changed", { pos, voxel });
@@ -66,11 +67,11 @@ export class VoxelMap implements IVoxelWriter {
 
     remove(pos: Pos3D): void {
         const index = this.posToIndex(pos);
-        this.voxels[index] = 0;
-        this.broker?.publish("terrain_changed", { pos, voxel: 0 });
+        this.voxels[index] = 0n;
+        this.broker?.publish("terrain_changed", { pos, voxel: 0n });
     }
 
-    getSurface(pos: Pos3D): number {
+    getSurface(pos: Pos3D): bigint {
         const surfacePos = this.getSurfacePosition(pos);
         return this.get(surfacePos);
     }
@@ -84,7 +85,7 @@ export class VoxelMap implements IVoxelWriter {
         for (let y = this.height - 1; y >= 0; y--) {
             const pos3d: Pos3D = { x: pos.x, y, z: pos.z };
             const vs = this.get(pos3d);
-            if (vs && vs !== 0) {
+            if (vs && vs !== 0n) {
                 return pos3d; // 上から最初に見つかったセルの位置を返す
             }
         }
@@ -101,9 +102,9 @@ export class VoxelMap implements IVoxelWriter {
         for (let y = this.height - 1; y >= 0; y--) {
             const pos3d: Pos3D = { x: pos.x, y, z: pos.z };
             const voxel = this.get(pos3d);
-            if (voxel === 0) continue;
-            const terrainType = voxel & 0xff;
-            if (terrainType === 1 || terrainType === 6) continue;
+            if (voxel === 0n) continue;
+            const terrainType = Number(voxel & 0xffn);
+            if (terrainType === TERRAIN_TYPES.water || terrainType === TERRAIN_TYPES.waterSource) continue;
             return pos3d;
         }
 

@@ -36,7 +36,7 @@ registerEntity({
         if (!ctx.inventory.consumeSelectedItem(REQUIRED_ORGANIC)) return false;
         // 即座に発酵開始フェーズへ移行
         const terrain = getTerrainTypeFromVoxel(anchorVoxel);
-        ctx.voxelMap.set(terrain | (ENTITY_TYPES.compost_bin_loaded << 8), anchorPos);
+        ctx.voxelMap.set(BigInt(terrain) | (BigInt(ENTITY_TYPES.compost_bin_loaded) << 8n), anchorPos);
         return true;
     },
 });
@@ -55,7 +55,7 @@ registerEntity({
         if (stage >= FERMENT_DAYS - 1) {
             // 2日経過 → 発酵中へ（growth counter をリセット）
             const terrain = getTerrainTypeFromVoxel(ctx.voxel);
-            ctx.voxelMap.set(terrain | (ENTITY_TYPES.compost_bin_fermenting << 8), ctx.pos);
+            ctx.voxelMap.set(BigInt(terrain) | (BigInt(ENTITY_TYPES.compost_bin_fermenting) << 8n), ctx.pos);
         } else {
             ctx.voxelMap.set(setCropGrowthStageInVoxel(ctx.voxel, stage + 1), ctx.pos);
         }
@@ -76,7 +76,7 @@ registerEntity({
         if (stage >= FERMENT_DAYS - 1) {
             // 2日経過 → 発酵完了へ
             const terrain = getTerrainTypeFromVoxel(ctx.voxel);
-            ctx.voxelMap.set(terrain | (ENTITY_TYPES.compost_bin_done << 8), ctx.pos);
+            ctx.voxelMap.set(BigInt(terrain) | (BigInt(ENTITY_TYPES.compost_bin_done) << 8n), ctx.pos);
         } else {
             ctx.voxelMap.set(setCropGrowthStageInVoxel(ctx.voxel, stage + 1), ctx.pos);
         }
@@ -101,7 +101,7 @@ registerEntity({
         const anchorVoxel = ctx.voxelMap.get(anchorPos);
         if (!ctx.inventory.addItems([{ itemId: "compost", count: 1 }])) return false;
         const terrain = getTerrainTypeFromVoxel(anchorVoxel);
-        ctx.voxelMap.set(terrain | (ENTITY_TYPES.compost_bin << 8), anchorPos);
+        ctx.voxelMap.set(BigInt(terrain) | (BigInt(ENTITY_TYPES.compost_bin) << 8n), anchorPos);
         return true;
     },
 });

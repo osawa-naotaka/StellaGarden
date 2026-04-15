@@ -92,7 +92,7 @@ export function floodFillWater(
                 const existing = voxelMap.get({ x, y, z });
                 const existingTerrain = getTerrainTypeFromVoxel(existing);
                 if (existingTerrain !== TERRAIN_TYPES.water && existingTerrain !== TERRAIN_TYPES.waterSource) {
-                    voxelMap.set(TERRAIN_TYPES.water, { x, y, z });
+                    voxelMap.set(BigInt(TERRAIN_TYPES.water), { x, y, z });
                 }
             }
         }

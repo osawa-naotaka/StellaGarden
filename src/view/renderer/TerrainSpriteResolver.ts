@@ -155,7 +155,7 @@ const TRANSITION_ID5: ReadonlyMap<number, string> = new Map([
 // -----------------------------------------------------------------------------
 
 /** voxel 配列 + 述語からスプライトオーバーレイ名を解決する。 */
-function resolveSoilOverlay(voxel: number[], isSoilPredicate: (v: number) => boolean, prefix: string): string {
+function resolveSoilOverlay(voxel: bigint[], isSoilPredicate: (v: bigint) => boolean, prefix: string): string {
     const flags = voxel.map((v) => (isSoilPredicate(v) ? 1 : 0));
     const id9 = calcId9FromVoxel(flags);
     const id5 = calcId5FromVoxel(flags);
@@ -163,13 +163,13 @@ function resolveSoilOverlay(voxel: number[], isSoilPredicate: (v: number) => boo
     return `${prefix}_${suffix}`;
 }
 
-export function soilSpriteName(pos: Pos3D[], centerHight: number, horizonHeight: number, voxel: number[]): string[] {
+export function soilSpriteName(pos: Pos3D[], centerHight: number, horizonHeight: number, voxel: bigint[]): string[] {
     const base = grassSpritesName(pos, centerHight, horizonHeight);
-    const isSoil = (v: number) => getTerrainTypeFromVoxel(v) === TERRAIN_TYPES.soil || getTerrainTypeFromVoxel(v) === TERRAIN_TYPES.wetSoil;
+    const isSoil = (v: bigint) => getTerrainTypeFromVoxel(v) === TERRAIN_TYPES.soil || getTerrainTypeFromVoxel(v) === TERRAIN_TYPES.wetSoil;
     return [...base, resolveSoilOverlay(voxel, isSoil, "soil_normal")];
 }
 
-export function dirtSpriteName(pos: Pos3D[], centerHight: number, horizonHeight: number, voxel: number[]): string[] {
+export function dirtSpriteName(pos: Pos3D[], centerHight: number, horizonHeight: number, voxel: bigint[]): string[] {
     const heights = new Set(pos.map((p) => p.y));
 
     let isEdge: boolean;
@@ -198,9 +198,9 @@ export function dirtSpriteName(pos: Pos3D[], centerHight: number, horizonHeight:
     return [...base, `dirt_grass_normal_${suffix}`];
 }
 
-export function wetSoilSpriteName(pos: Pos3D[], centerHight: number, horizonHeight: number, voxel: number[]): string[] {
+export function wetSoilSpriteName(pos: Pos3D[], centerHight: number, horizonHeight: number, voxel: bigint[]): string[] {
     const base = soilSpriteName(pos, centerHight, horizonHeight, voxel);
-    const isWetSoil = (v: number) => getTerrainTypeFromVoxel(v) === TERRAIN_TYPES.wetSoil;
+    const isWetSoil = (v: bigint) => getTerrainTypeFromVoxel(v) === TERRAIN_TYPES.wetSoil;
     return [...base, resolveSoilOverlay(voxel, isWetSoil, "soil_wet")];
 }
 
@@ -239,7 +239,7 @@ export function grassSpritesName(pos: Pos3D[], centerHight: number, horizonHeigh
 // -----------------------------------------------------------------------------
 
 /** ボクセルデータから地形タイルのスプライト名配列を返す。 */
-export function getTerrainSpriteNamesFromVoxel(voxel: number[], pos: Pos3D[], horizonHeight: number): string[] {
+export function getTerrainSpriteNamesFromVoxel(voxel: bigint[], pos: Pos3D[], horizonHeight: number): string[] {
     const type = getTerrainTypeFromVoxel(voxel[4]);
     switch (type) {
         case TERRAIN_TYPES.water:
@@ -273,7 +273,7 @@ export function getTerrainSpriteNamesFromVoxel(voxel: number[], pos: Pos3D[], ho
 export type { EntitySpriteInfo } from "../../_registry/EntityRegistry";
 
 /** ボクセル値からエンティティタイルのスプライト情報を返す。 */
-export function getEntitySpriteNameFromVoxel(voxel: number): EntitySpriteInfo[] {
+export function getEntitySpriteNameFromVoxel(voxel: bigint): EntitySpriteInfo[] {
     const type = getEntityTypeFromVoxel(voxel);
 
     switch (type) {

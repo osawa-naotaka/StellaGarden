@@ -42,7 +42,7 @@ const sprites: EntitySpriteInfo[][] = [
 registerEntity({
     entityType: ENTITY_TYPES.potato,
 
-    getSprites(voxel: number): EntitySpriteInfo[] {
+    getSprites(voxel: bigint): EntitySpriteInfo[] {
         const dayCounter = getCropGrowthStageFromVoxel(voxel);
         const visualStage = getVisualStage(ENTITY_TYPES.potato, dayCounter);
         return sprites[visualStage] ?? sprites[0];
@@ -78,7 +78,7 @@ registerEntity({
         )
             return false;
 
-        let afterVoxel: number = TERRAIN_TYPES.soil;
+        let afterVoxel: bigint = BigInt(TERRAIN_TYPES.soil);
         afterVoxel = setLastCropInVoxel(afterVoxel, ENTITY_TYPES.potato);
         afterVoxel = setFatigueInVoxel(afterVoxel, fatigue);
         ctx.voxelMap.set(afterVoxel, ctx.surfacePos);
@@ -115,7 +115,7 @@ registerItem({
         if (fatigue >= cropDef.fatigueThreshold) return false;
         if (!ctx.inventory.consumeSelectedItem(1)) return false;
 
-        let newVoxel = terrainType | (ENTITY_TYPES.potato << 8);
+        let newVoxel = BigInt(terrainType) | (BigInt(ENTITY_TYPES.potato) << 8n);
         newVoxel = setFatigueInVoxel(newVoxel, fatigue);
         newVoxel = setLastCropInVoxel(newVoxel, ENTITY_TYPES.potato);
         newVoxel = setFertilizerTypeInVoxel(newVoxel, getFertilizerTypeFromVoxel(voxel));

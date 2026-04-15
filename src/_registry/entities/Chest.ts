@@ -24,7 +24,7 @@ registerEntity({
         const pos = { x: ctx.surfacePos.x, z: ctx.surfacePos.z };
         if (!chestStorage.isEmpty(pos)) return false;
         const terrain = getTerrainTypeFromVoxel(ctx.voxel);
-        ctx.voxelMap.set(terrain, ctx.surfacePos);
+        ctx.voxelMap.set(BigInt(terrain), ctx.surfacePos);
         ctx.inventory.addItems([{ itemId: "chest", count: 1 }]);
         chestStorage.remove(pos);
         return true;

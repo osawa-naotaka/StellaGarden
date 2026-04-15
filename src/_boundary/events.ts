@@ -38,7 +38,7 @@ export type GameEventMap = {
     // 将来、チャンクキャッシュ無効化・差分 UI 更新などの最適化が必要になった時点で
     // view/ 側が subscribe を追加する。
     /** 地形ボクセル変更通知（将来: TopView チャンクキャッシュ無効化に使う） */
-    terrain_changed: { pos: Pos3D; voxel: number };
+    terrain_changed: { pos: Pos3D; voxel: bigint };
     /** インベントリスロット変更通知（将来: UI 差分更新に使う） */
     inventory_changed: {
         slotIndex: number;

@@ -33,7 +33,7 @@ function revertNearbyInvalidTerrain(voxelMap: IVoxelWriter, cx: number, cz: numb
             const terrain = getTerrainTypeFromVoxel(voxelMap.get(pos));
             if (isFlat3x3(voxelMap, nx, nz, pos.y)) continue;
             if (terrain === TERRAIN_TYPES.soil || terrain === TERRAIN_TYPES.wetSoil) {
-                voxelMap.set(TERRAIN_TYPES.dirt, pos);
+                voxelMap.set(BigInt(TERRAIN_TYPES.dirt), pos);
             }
         }
     }
@@ -70,7 +70,7 @@ registerItem({
             (isWaterSurface || isSafeToAdd3x3(ctx.voxelMap, ctx.surfacePos.x, ctx.surfacePos.z)) &&
             ctx.inventory.consumeSelectedItem(1)
         ) {
-            ctx.voxelMap.set(TERRAIN_TYPES.dirt, { x: groundPos.x, y: groundPos.y + 1, z: groundPos.z });
+            ctx.voxelMap.set(BigInt(TERRAIN_TYPES.dirt), { x: groundPos.x, y: groundPos.y + 1, z: groundPos.z });
             revertNearbyInvalidTerrain(ctx.voxelMap, ctx.surfacePos.x, ctx.surfacePos.z);
             removeDisconnectedWater(ctx.voxelMap, ctx.surfacePos.x, ctx.surfacePos.z);
             return true;

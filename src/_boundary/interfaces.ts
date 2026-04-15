@@ -50,8 +50,8 @@ export interface IVoxelReader {
     readonly height: number;
     readonly depth: number;
     readonly horizonHeight: number;
-    get(pos: Pos3D): number;
-    getSurface(pos: Pos3D): number;
+    get(pos: Pos3D): bigint;
+    getSurface(pos: Pos3D): bigint;
     getSurfacePosition(pos: Pos3D): Pos3D;
     /** 水タイルを無視して、最上層の地面（dirt/grass/soil 等）の位置を返す。 */
     getGroundSurfacePosition(pos: Pos3D): Pos3D;
@@ -62,7 +62,7 @@ export interface IVoxelReader {
  * engine/ のみが使う。view/ は IVoxelReader に留めること。
  */
 export interface IVoxelWriter extends IVoxelReader {
-    set(voxel: number, pos: Pos3D): void;
+    set(voxel: bigint, pos: Pos3D): void;
     remove(pos: Pos3D): void;
 }
 

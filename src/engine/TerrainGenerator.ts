@@ -1,7 +1,7 @@
 import alea from "alea";
 import { createNoise2D } from "simplex-noise";
 import { type Pos2D, VoxelMap } from "../lib/VoxelMap";
-import { ENTITY_TYPES, setCropGrowthStageInVoxel, TERRAIN_TYPES } from "./TerrainDefs";
+import { ENTITY_TYPES, getTerrainTypeFromVoxel, setCropGrowthStageInVoxel, TERRAIN_TYPES } from "./TerrainDefs";
 
 export type GenerateTerrainOptions = {
     width: number;
@@ -154,11 +154,11 @@ function createVoxelMap(hm: Int8Array, opt: GenerateTerrainOptions): VoxelMap {
             const idx = z * opt.width + x;
             const h = hm[idx];
             if (h < opt.horizonHeight) {
-                for (let y = 0; y <= h; y++) map.set(TERRAIN_TYPES.dirt, { x, y, z });
-                for (let y = h + 1; y <= opt.horizonHeight; y++) map.set(TERRAIN_TYPES.waterSource, { x, y, z });
+                for (let y = 0; y <= h; y++) map.set(BigInt(TERRAIN_TYPES.dirt), { x, y, z });
+                for (let y = h + 1; y <= opt.horizonHeight; y++) map.set(BigInt(TERRAIN_TYPES.waterSource), { x, y, z });
             } else {
-                for (let y = 0; y < h; y++) map.set(TERRAIN_TYPES.dirt, { x, y, z });
-                map.set(TERRAIN_TYPES.grass, { x, y: h, z });
+                for (let y = 0; y < h; y++) map.set(BigInt(TERRAIN_TYPES.dirt), { x, y, z });
+                map.set(BigInt(TERRAIN_TYPES.grass), { x, y: h, z });
             }
         }
     }
@@ -387,16 +387,18 @@ function placeEntities(map: VoxelMap): void {
             if (shouldPlaceStone) {
                 const pos = map.getSurfacePosition({ x, y: 0, z });
                 const terrain = map.get(pos);
+                const terrainType = getTerrainTypeFromVoxel(terrain);
 
-                if (terrain === TERRAIN_TYPES.soil || terrain === TERRAIN_TYPES.grass) {
-                    map.set(terrain | (ENTITY_TYPES.stone << 8), pos);
+                if (terrainType === TERRAIN_TYPES.soil || terrainType === TERRAIN_TYPES.grass) {
+                    map.set(terrain | BigInt(ENTITY_TYPES.stone) << 8n, pos);
                 }
             } else if (shouldPlaceTree) {
                 const pos = map.getSurfacePosition({ x, y: 0, z });
                 const terrain = map.get(pos);
+                const terrainType = getTerrainTypeFromVoxel(terrain);
 
-                if (terrain === TERRAIN_TYPES.soil || terrain === TERRAIN_TYPES.grass) {
-                    map.set(setCropGrowthStageInVoxel(terrain | (ENTITY_TYPES.tree << 8), 3), pos);
+                if (terrainType === TERRAIN_TYPES.soil || terrainType === TERRAIN_TYPES.grass) {
+                    map.set(setCropGrowthStageInVoxel(terrain | BigInt(ENTITY_TYPES.tree) << 8n, 3), pos);
                 }
             }
         }

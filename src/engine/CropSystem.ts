@@ -31,7 +31,7 @@ export function applyCropDailyTick(ctx: DailyTickContext, cropDef: CropDef): voi
 
     // 既に枯死済み: 乾燥のみ
     if (dayCounter >= cropDef.witherDay) {
-        if (isWet) voxelMap.set((voxel & ~0xff) | TERRAIN_TYPES.soil, pos);
+        if (isWet) voxelMap.set((voxel & ~0xffn) | BigInt(TERRAIN_TYPES.soil), pos);
         return;
     }
 
@@ -41,7 +41,7 @@ export function applyCropDailyTick(ctx: DailyTickContext, cropDef: CropDef): voi
             // 水やり済み: 成長 + drought リセット + 乾燥
             voxel = setCropGrowthStageInVoxel(voxel, dayCounter + 1);
             voxel = setDroughtCounterInVoxel(voxel, 0);
-            voxel = (voxel & ~0xff) | TERRAIN_TYPES.soil;
+            voxel = (voxel & ~0xffn) | BigInt(TERRAIN_TYPES.soil);
         } else {
             // 水切れ: 成長停止 + drought インクリメント
             const drought = getDroughtCounterFromVoxel(voxel);
@@ -63,7 +63,7 @@ export function applyCropDailyTick(ctx: DailyTickContext, cropDef: CropDef): voi
             if (wateredCount < 3) {
                 voxel = setDroughtCounterInVoxel(voxel, wateredCount + 1);
             }
-            voxel = (voxel & ~0xff) | TERRAIN_TYPES.soil;
+            voxel = (voxel & ~0xffn) | BigInt(TERRAIN_TYPES.soil);
         }
     }
 
@@ -85,7 +85,7 @@ export function processDailyTick(voxelMap: IVoxelWriter): void {
             const isWet = getTerrainTypeFromVoxel(voxel) === TERRAIN_TYPES.wetSoil;
 
             if (entityType === ENTITY_TYPES.none) {
-                if (isWet) voxelMap.set((voxel & ~0xff) | TERRAIN_TYPES.soil, pos);
+                if (isWet) voxelMap.set((voxel & ~0xffn) | BigInt(TERRAIN_TYPES.soil), pos);
                 continue;
             }
 

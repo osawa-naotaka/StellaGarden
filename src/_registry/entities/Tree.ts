@@ -34,7 +34,7 @@ const spritesWithLeaves: EntitySpriteInfo[] = [
 registerEntity({
     entityType: ENTITY_TYPES.tree,
 
-    getSprites(voxel: number): EntitySpriteInfo[] {
+    getSprites(voxel: bigint): EntitySpriteInfo[] {
         const stage = getCropGrowthStageFromVoxel(voxel);
         if (stage >= LEAVES_STAGE) return spritesWithLeaves;
         if (stage >= 3) return sprites[3];
@@ -49,7 +49,7 @@ registerEntity({
             voxel = setCropGrowthStageInVoxel(voxel, stage + 1);
         }
         if (isWet) {
-            voxel = (voxel & ~0xff) | TERRAIN_TYPES.soil;
+            voxel = (voxel & ~0xffn) | BigInt(TERRAIN_TYPES.soil);
         }
         voxelMap.set(voxel, pos);
     },
@@ -66,7 +66,7 @@ registerEntity({
                 ])
             )
                 return false;
-            ctx.voxelMap.set(ctx.voxel & 0x000000ff, ctx.surfacePos);
+            ctx.voxelMap.set(ctx.voxel & 0x000000ffn, ctx.surfacePos);
             return true;
         }
 
@@ -97,7 +97,7 @@ registerItem({
         }
         if (!ctx.inventory.consumeSelectedItem(1)) return false;
 
-        ctx.voxelMap.set(terrainType | (ENTITY_TYPES.tree << 8), ctx.surfacePos);
+        ctx.voxelMap.set(BigInt(terrainType) | (BigInt(ENTITY_TYPES.tree) << 8n), ctx.surfacePos);
         ctx.eventBroker.publish("crop_planted", {
             pos: { x: ctx.surfacePos.x, z: ctx.surfacePos.z },
             cropType: "nuts",

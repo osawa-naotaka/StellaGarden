@@ -9,7 +9,7 @@ export interface InteractionContext {
     readonly inventory: IInventoryWriter;
     readonly eventBroker: IEventBroker;
     readonly surfacePos: Pos3D;
-    readonly voxel: number;
+    readonly voxel: bigint;
     readonly tool: ItemId | null;
 }
 
@@ -17,7 +17,7 @@ export interface InteractionContext {
 export interface DailyTickContext {
     readonly voxelMap: IVoxelWriter;
     readonly pos: Pos3D;
-    readonly voxel: number;
+    readonly voxel: bigint;
     readonly isWet: boolean;
 }
 
@@ -30,7 +30,7 @@ export interface EntityDef {
     readonly entityType: number;
 
     /** voxel 値からスプライト情報を返す */
-    getSprites(voxel: number): EntitySpriteInfo[];
+    getSprites(voxel: bigint): EntitySpriteInfo[];
 
     /** 右クリック: このエンティティが対象地点に存在する時に呼ばれる（例: 収穫・撤去）。
      *  true = 処理済み（後続パスをスキップ）、false = 未処理（後続パスへ進む）。 */

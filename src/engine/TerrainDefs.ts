@@ -62,54 +62,54 @@ export const FERTILIZER_TYPES = {
 } as const;
 
 /** ボクセル値から地形タイプを取り出す。 */
-export function getTerrainTypeFromVoxel(voxel: number): number {
-    return voxel & 0xff;
+export function getTerrainTypeFromVoxel(voxel: bigint): number {
+    return Number(voxel & 0xffn);
 }
 
 /** ボクセル値からエンティティタイプを取り出す。 */
-export function getEntityTypeFromVoxel(voxel: number): number {
-    return (voxel >> 8) & 0xff;
+export function getEntityTypeFromVoxel(voxel: bigint): number {
+    return Number((voxel >> 8n) & 0xffn);
 }
 
 /**
  * ボクセル値から作物の育成日カウンタを取り出す（bits 16-19、4bit）。
  * 0 = 植えたて、1〜 = 経過日数。
  */
-export function getCropGrowthStageFromVoxel(voxel: number): number {
-    return (voxel >> 16) & 0xf;
+export function getCropGrowthStageFromVoxel(voxel: bigint): number {
+    return Number((voxel >> 16n) & 0xfn);
 }
 
 /**
  * ボクセル値に育成日カウンタを書き込んだ新しい値を返す（bits 16-19）。
  * 元の値は変更しない（純粋関数）。
  */
-export function setCropGrowthStageInVoxel(voxel: number, stage: number): number {
-    return (voxel & ~(0xf << 16)) | ((stage & 0xf) << 16);
+export function setCropGrowthStageInVoxel(voxel: bigint, stage: number): bigint {
+    return (voxel & ~(0xfn << 16n)) | ((BigInt(stage) & 0xfn) << 16n);
 }
 
 /**
  * ボクセル値から肥料タイプを取り出す（bits 20-21、2bit）。
  * 0 = 未施肥、1 = compost、2 = plant_ashes、3 = oil_cake。
  */
-export function getFertilizerTypeFromVoxel(voxel: number): number {
-    return (voxel >> 20) & 0x3;
+export function getFertilizerTypeFromVoxel(voxel: bigint): number {
+    return Number((voxel >> 20n) & 0x3n);
 }
 
 /**
  * ボクセル値に肥料タイプを書き込んだ新しい値を返す（bits 20-21）。
  * 元の値は変更しない（純粋関数）。
  */
-export function setFertilizerTypeInVoxel(voxel: number, fertType: number): number {
-    return (voxel & ~(0x3 << 20)) | ((fertType & 0x3) << 20);
+export function setFertilizerTypeInVoxel(voxel: bigint, fertType: number): bigint {
+    return (voxel & ~(0x3n << 20n)) | ((BigInt(fertType) & 0x3n) << 20n);
 }
 
 /** 後方互換: 施肥済みかどうかを返す。 */
-export function getFertilizedFromVoxel(voxel: number): boolean {
+export function getFertilizedFromVoxel(voxel: bigint): boolean {
     return getFertilizerTypeFromVoxel(voxel) !== 0;
 }
 
 /** 後方互換: 施肥フラグを書き込む。true → compost(1), false → none(0)。 */
-export function setFertilizedInVoxel(voxel: number, fertilized: boolean): number {
+export function setFertilizedInVoxel(voxel: bigint, fertilized: boolean): bigint {
     return setFertilizerTypeInVoxel(voxel, fertilized ? FERTILIZER_TYPES.compost : FERTILIZER_TYPES.none);
 }
 
@@ -118,36 +118,36 @@ export function setFertilizedInVoxel(voxel: number, fertilized: boolean): number
  * 水やり必須作物: 連続水切れ日数（3で枯死）。
  * ジャガイモ: 水やり回数カウント（収量ボーナス用）。
  */
-export function getDroughtCounterFromVoxel(voxel: number): number {
-    return (voxel >> 22) & 0x3;
+export function getDroughtCounterFromVoxel(voxel: bigint): number {
+    return Number((voxel >> 22n) & 0x3n);
 }
 
 /** ボクセル値に水切れカウンタを書き込んだ新しい値を返す（bits 22-23）。 */
-export function setDroughtCounterInVoxel(voxel: number, count: number): number {
-    return (voxel & ~(0x3 << 22)) | ((count & 0x3) << 22);
+export function setDroughtCounterInVoxel(voxel: bigint, count: number): bigint {
+    return (voxel & ~(0x3n << 22n)) | ((BigInt(count) & 0x3n) << 22n);
 }
 
 /**
  * ボクセル値から前作の作物タイプを取り出す（bits 24-26、3bit）。
  * ENTITY_TYPES の値（0=none, 2=potato, 3=soy, 4=flax, 5=sunflower）。
  */
-export function getLastCropFromVoxel(voxel: number): number {
-    return (voxel >> 24) & 0x7;
+export function getLastCropFromVoxel(voxel: bigint): number {
+    return Number((voxel >> 24n) & 0x7n);
 }
 
 /** ボクセル値に前作の作物タイプを書き込んだ新しい値を返す（bits 24-26）。 */
-export function setLastCropInVoxel(voxel: number, cropType: number): number {
-    return (voxel & ~(0x7 << 24)) | ((cropType & 0x7) << 24);
+export function setLastCropInVoxel(voxel: bigint, cropType: number): bigint {
+    return (voxel & ~(0x7n << 24n)) | ((BigInt(cropType) & 0x7n) << 24n);
 }
 
 /**
  * ボクセル値から連作疲労カウンタを取り出す（bits 27-29、3bit、0-7）。
  */
-export function getFatigueFromVoxel(voxel: number): number {
-    return (voxel >> 27) & 0x7;
+export function getFatigueFromVoxel(voxel: bigint): number {
+    return Number((voxel >> 27n) & 0x7n);
 }
 
 /** ボクセル値に連作疲労カウンタを書き込んだ新しい値を返す（bits 27-29）。 */
-export function setFatigueInVoxel(voxel: number, fatigue: number): number {
-    return (voxel & ~(0x7 << 27)) | ((fatigue & 0x7) << 27);
+export function setFatigueInVoxel(voxel: bigint, fatigue: number): bigint {
+    return (voxel & ~(0x7n << 27n)) | ((BigInt(fatigue) & 0x7n) << 27n);
 }

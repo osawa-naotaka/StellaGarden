@@ -18,7 +18,7 @@ export interface VoxelMapSaveData {
     height: number;
     depth: number;
     horizonHeight: number;
-    voxels: Uint32Array;
+    voxels: BigUint64Array;
 }
 
 export interface PlayerStateSaveData {

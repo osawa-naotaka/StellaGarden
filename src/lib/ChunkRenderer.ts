@@ -7,7 +7,7 @@ export const CHUNK_RENDER_MARGIN = 2;
 
 /** チャンクの各タイルにスプライトを設定するコールバック型。
  *  neighborVoxels / neighborPositions は 3x3 の近傍データ（中心 = インデックス4）。 */
-export type SetupTileFn = (tile: Tile, neighborVoxels: number[], neighborPositions: Pos3D[]) => void;
+export type SetupTileFn = (tile: Tile, neighborVoxels: bigint[], neighborPositions: Pos3D[]) => void;
 
 export class ChunkRenderer {
     private readonly app: Application;
@@ -19,11 +19,11 @@ export class ChunkRenderer {
     private readonly chunkContainer: Container;
 
     // ボクセル参照テーブル（近傍参照のため描画範囲より広く確保）
-    private readonly voxelLookup: number[];
+    private readonly voxelLookup: bigint[];
     private readonly positionLookup: Pos3D[];
 
     // 各タイルの 3x3 近傍バッファ（renderChunk 内で使い回すためクラスフィールドに置く）
-    private readonly neighborVoxels = new Array<number>(9);
+    private readonly neighborVoxels = new Array<bigint>(9);
     private readonly neighborPositions = new Array<Pos3D>(9);
 
     // lookupIndex / tileIndex で使うストライドをキャッシュ

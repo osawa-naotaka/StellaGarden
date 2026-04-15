@@ -26,7 +26,7 @@ registerEntity({
         if (stage >= BURN_DAYS - 1) {
             // 4日経過: 消火状態へ遷移
             const terrain = getTerrainTypeFromVoxel(ctx.voxel);
-            ctx.voxelMap.set(terrain | (ENTITY_TYPES.kiln << 8), ctx.pos);
+            ctx.voxelMap.set(BigInt(terrain) | (BigInt(ENTITY_TYPES.kiln) << 8n), ctx.pos);
         } else {
             ctx.voxelMap.set(setCropGrowthStageInVoxel(ctx.voxel, stage + 1), ctx.pos);
         }
@@ -54,7 +54,7 @@ registerEntity({
         for (let dz = 0; dz < 2; dz++) {
             for (let dx = 0; dx < 2; dx++) {
                 const pos = ctx.voxelMap.getSurfacePosition({ x: anchor.anchorX + dx, y: 0, z: anchor.anchorZ + dz });
-                ctx.voxelMap.set(ctx.voxelMap.get(pos) & 0xff, pos);
+                ctx.voxelMap.set(ctx.voxelMap.get(pos) & 0xffn, pos);
             }
         }
         return true;

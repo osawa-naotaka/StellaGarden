@@ -50,7 +50,7 @@ function revertNearbyInvalidTerrain(voxelMap: IVoxelWriter, cx: number, cz: numb
             const terrain = getTerrainTypeFromVoxel(voxelMap.get(pos));
             if (isFlat3x3(voxelMap, nx, nz, pos.y)) continue;
             if (terrain === TERRAIN_TYPES.soil || terrain === TERRAIN_TYPES.wetSoil) {
-                voxelMap.set(TERRAIN_TYPES.dirt, pos);
+                voxelMap.set(BigInt(TERRAIN_TYPES.dirt), pos);
             }
         }
     }
@@ -74,7 +74,7 @@ function onGrassDirtInteract(ctx: import("../EntityRegistry").InteractionContext
 
     if (tool === "hoes") {
         if (getEntityTypeFromVoxel(voxel) === ENTITY_TYPES.none && isFlat3x3(voxelMap, surfacePos.x, surfacePos.z, surfacePos.y)) {
-            voxelMap.set(TERRAIN_TYPES.soil, surfacePos);
+            voxelMap.set(BigInt(TERRAIN_TYPES.soil), surfacePos);
             return true;
         }
         return false;

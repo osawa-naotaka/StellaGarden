@@ -13,7 +13,7 @@ function onSoilInteract(ctx: import("../EntityRegistry").InteractionContext): bo
 
     // 作物エンティティを削除（虚空へ消滅、アイテム追加なし）
     const terrainType = getTerrainTypeFromVoxel(ctx.voxel);
-    ctx.voxelMap.set(terrainType, ctx.surfacePos);
+    ctx.voxelMap.set(BigInt(terrainType), ctx.surfacePos);
     return true;
 }
 

@@ -126,7 +126,7 @@ export class TopView {
     }
 }
 
-function setupTerrainTile(tile: Tile, voxels: number[], positions: Pos3D[], horizonHeight: number, pointerPos: Pos2D): void {
+function setupTerrainTile(tile: Tile, voxels: bigint[], positions: Pos3D[], horizonHeight: number, pointerPos: Pos2D): void {
     const spriteNames = getTerrainSpriteNamesFromVoxel(voxels, positions, horizonHeight);
     tile.useNSprites(spriteNames.length);
 
@@ -141,7 +141,7 @@ function setupTerrainTile(tile: Tile, voxels: number[], positions: Pos3D[], hori
     }
 }
 
-function setupEntityTile(tile: Tile, voxels: number[], positions: Pos3D[], pointerPos: Pos2D): void {
+function setupEntityTile(tile: Tile, voxels: bigint[], positions: Pos3D[], pointerPos: Pos2D): void {
     const infos = getEntitySpriteNameFromVoxel(voxels[4]);
     tile.useNSprites(infos.length);
     for (let i = 0; i < infos.length; i++) {

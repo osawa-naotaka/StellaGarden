@@ -9,7 +9,7 @@ import type { EventBroker } from "../lib/Event";
 import type { UIState } from "../view/UIState";
 
 /** resolve helper: facility_part をアンカーの entityType に解決する */
-function resolveEntityType(voxelMap: IVoxelWriter, voxel: number, x: number, z: number): number {
+function resolveEntityType(voxelMap: IVoxelWriter, voxel: bigint, x: number, z: number): number {
     let entityType = getEntityTypeFromVoxel(voxel);
     if (entityType === ENTITY_TYPES.facility_part) {
         const anchor = findFacilityAnchor(voxelMap, x, z);

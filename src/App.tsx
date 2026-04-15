@@ -111,7 +111,7 @@ function useGameEngine(worldSize: Size2D, loadSave: boolean) {
             if (saveData) {
                 const sd = saveData.voxelMap;
                 voxelMap = new VoxelMap(sd.width, sd.height, sd.depth, sd.horizonHeight);
-                voxelMap.setVoxelsBuffer(new Uint32Array(sd.voxels));
+                voxelMap.setVoxelsBuffer(new BigUint64Array(sd.voxels));
             } else {
                 voxelMap = generateTerrain({ width: worldSize.w, height: 12, depth: worldSize.h, horizonHeight: 3 });
             }
