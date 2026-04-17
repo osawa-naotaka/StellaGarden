@@ -3,6 +3,7 @@ import { Application, ColorMatrixFilter, Container, TextureSource } from "pixi.j
 import { useCallback, useEffect, useRef, useState } from "react";
 import { PIXEL_PER_TILE, TILE_PER_CHUNK } from "./_boundary/constants";
 import "./_registry/entities/Chest";
+import "./_registry/entities/Clay";
 import "./_registry/entities/CompostBin";
 import "./_registry/entities/facilities";
 import "./_registry/entities/Flax";
@@ -25,6 +26,7 @@ import "./_registry/terrains/SoilWetSoil";
 import type { GameEventMap } from "./_boundary/events";
 import { setChestStorage } from "./_registry/entities/Chest";
 import { ChestStorage } from "./engine/ChestStorage";
+import { regenerateClay } from "./engine/ClaySystem";
 import { CraftSystem } from "./engine/CraftSystem";
 import { processDailyTick } from "./engine/CropSystem";
 import { GameTime } from "./engine/GameTime";
@@ -112,6 +114,7 @@ function useGameEngine(worldSize: Size2D, loadSave: boolean) {
                 const sd = saveData.voxelMap;
                 voxelMap = new VoxelMap(sd.width, sd.height, sd.depth, sd.horizonHeight);
                 voxelMap.setVoxelsBuffer(new BigUint64Array(sd.voxels));
+                voxelMap.setRiversideCells(new Uint32Array(sd.riversideCells));
             } else {
                 voxelMap = generateTerrain({ width: worldSize.w, height: 12, depth: worldSize.h, horizonHeight: 3 });
             }
@@ -179,6 +182,7 @@ function useGameEngine(worldSize: Size2D, loadSave: boolean) {
             disposers.push(
                 eventBroker.subscribe("day_changed", () => {
                     processDailyTick(voxelMap);
+                    regenerateClay(voxelMap);
                 }),
             );
 
@@ -209,6 +213,7 @@ function useGameEngine(worldSize: Size2D, loadSave: boolean) {
                         depth: voxelMap.depth,
                         horizonHeight: voxelMap.horizonHeight,
                         voxels: voxelMap.getVoxelsBuffer(),
+                        riversideCells: voxelMap.riversideCells,
                     },
                     playerState: {
                         posInWorld: { ...playerState.posInWorld },

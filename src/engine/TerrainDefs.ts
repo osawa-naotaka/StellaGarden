@@ -38,6 +38,7 @@ export const ENTITY_TYPES = {
     compost_bin_loaded: 23,
     compost_bin_fermenting: 24,
     compost_bin_done: 25,
+    clay: 26,
 } as const;
 
 // ---------------------------------------------------------------------------

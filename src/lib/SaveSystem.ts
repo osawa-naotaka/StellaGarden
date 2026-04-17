@@ -19,6 +19,7 @@ export interface VoxelMapSaveData {
     depth: number;
     horizonHeight: number;
     voxels: BigUint64Array;
+    riversideCells: Uint32Array;
 }
 
 export interface PlayerStateSaveData {
@@ -47,7 +48,7 @@ const DB_NAME = "stella-garden";
 const DB_VERSION = 1;
 const STORE_NAME = "saveData";
 const SAVE_KEY = "autosave";
-const CURRENT_SAVE_VERSION = 1;
+const CURRENT_SAVE_VERSION = 2;
 
 // ─── IndexedDB ユーティリティ ────────────────────────────────────────────────
 

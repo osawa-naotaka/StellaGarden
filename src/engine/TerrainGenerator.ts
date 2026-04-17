@@ -17,9 +17,11 @@ type River = {
 /** シンプレックスノイズで地形と樹木を生成し、VoxelMap に書き込む。 */
 export function generateTerrain(opt: GenerateTerrainOptions): VoxelMap {
     const hightMap = computeHeightmap(opt.width, opt.depth, opt.height);
-    const rivers = generateRivers(hightMap.hm, hightMap.hmf, opt);
-    const hm = elodeRiverside(hightMap.hm, rivers, opt); // 渓谷カービングで高さマップを掘り下げる
+    const { major, tributaries } = generateRivers(hightMap.hm, hightMap.hmf, opt);
+    const hm = elodeRiverside(hightMap.hm, [...major, ...tributaries], opt); // 渓谷カービングで高さマップを掘り下げる
     const map = createVoxelMap(hm, opt);
+    const riversideCells = placeClay(map, hm, major, opt);
+    map.setRiversideCells(riversideCells);
     placeEntities(map);
 
     return map;
@@ -148,22 +150,87 @@ function computeHeightmap(width: number, depth: number, maxHeight: number): { hm
 /** 高さマップを VoxelMap に書き込む。高さ < horizonHeight のタイルは水になる。 */
 function createVoxelMap(hm: Int8Array, opt: GenerateTerrainOptions): VoxelMap {
     const map = new VoxelMap(opt.width, opt.height, opt.depth, opt.horizonHeight);
+    const W = opt.width;
+    const D = opt.depth;
 
-    for (let z = 0; z < opt.depth; z++) {
-        for (let x = 0; x < opt.width; x++) {
-            const idx = z * opt.width + x;
+    for (let z = 0; z < D; z++) {
+        for (let x = 0; x < W; x++) {
+            const idx = z * W + x;
             const h = hm[idx];
             if (h < opt.horizonHeight) {
                 for (let y = 0; y <= h; y++) map.set(BigInt(TERRAIN_TYPES.dirt), { x, y, z });
                 for (let y = h + 1; y <= opt.horizonHeight; y++) map.set(BigInt(TERRAIN_TYPES.waterSource), { x, y, z });
             } else {
                 for (let y = 0; y < h; y++) map.set(BigInt(TERRAIN_TYPES.dirt), { x, y, z });
-                map.set(BigInt(TERRAIN_TYPES.grass), { x, y: h, z });
+                // 水辺判定: h == horizonHeight かつ 4近傍に h < horizonHeight があれば grass ではなく dirt
+                const isWaterside = h === opt.horizonHeight && isAdjacentToWater(hm, x, z, W, D, opt.horizonHeight);
+                map.set(BigInt(isWaterside ? TERRAIN_TYPES.dirt : TERRAIN_TYPES.grass), { x, y: h, z });
             }
         }
     }
 
     return map;
+}
+
+/** (x, z) の 4 近傍に水（h < horizonHeight）があるかを返す。 */
+function isAdjacentToWater(hm: Int8Array, x: number, z: number, W: number, D: number, horizonHeight: number): boolean {
+    const DIRS: ReadonlyArray<[number, number]> = [
+        [0, -1],
+        [0, 1],
+        [-1, 0],
+        [1, 0],
+    ];
+    for (const [dx, dz] of DIRS) {
+        const nx = x + dx;
+        const nz = z + dz;
+        if (nx < 0 || nx >= W || nz < 0 || nz >= D) continue;
+        if (hm[nz * W + nx] < horizonHeight) return true;
+    }
+    return false;
+}
+
+/**
+ * 大河パスに隣接する水辺セルを列挙し、CLAY_RATE の割合で粘土エンティティを配置する。
+ * 戻り値は再生成レジストリ（VoxelMap.riversideCells）に格納される全水辺セルのインデックス配列。
+ */
+function placeClay(map: VoxelMap, hm: Int8Array, majorRivers: River[], opt: GenerateTerrainOptions): Uint32Array {
+    const CLAY_RATE = 0.35;
+    const W = opt.width;
+    const D = opt.depth;
+    const DIRS: ReadonlyArray<[number, number]> = [
+        [0, -1],
+        [0, 1],
+        [-1, 0],
+        [1, 0],
+    ];
+
+    const riversideSet = new Set<number>();
+    for (const river of majorRivers) {
+        for (const idx of river.path) {
+            const { x, z } = idxToPos(idx, W);
+            for (const [dx, dz] of DIRS) {
+                const nx = x + dx;
+                const nz = z + dz;
+                if (nx < 0 || nx >= W || nz < 0 || nz >= D) continue;
+                const nidx = nz * W + nx;
+                if (hm[nidx] === opt.horizonHeight) riversideSet.add(nidx);
+            }
+        }
+    }
+
+    const rng = alea("clay_initial");
+    for (const idx of riversideSet) {
+        if (rng() >= CLAY_RATE) continue;
+        const pos = { x: idx % W, y: opt.horizonHeight, z: (idx / W) | 0 };
+        const voxel = map.get(pos);
+        const terrain = Number(voxel & 0xffn);
+        const entity = Number((voxel >> 8n) & 0xffn);
+        if (terrain === TERRAIN_TYPES.dirt && entity === ENTITY_TYPES.none) {
+            map.set(voxel | (BigInt(ENTITY_TYPES.clay) << 8n), pos);
+        }
+    }
+
+    return Uint32Array.from(riversideSet);
 }
 
 /**
@@ -174,7 +241,7 @@ function createVoxelMap(hm: Int8Array, opt: GenerateTerrainOptions): VoxelMap {
  *
  * elodeRiverside() でパスに沿って海面まで掘り下げる。
  */
-function generateRivers(hm: Int8Array, hmf: Float32Array, opt: GenerateTerrainOptions): River[] {
+function generateRivers(hm: Int8Array, hmf: Float32Array, opt: GenerateTerrainOptions): { major: River[]; tributaries: River[] } {
     const W = opt.width;
     const D = opt.depth;
 
@@ -364,7 +431,7 @@ function generateRivers(hm: Int8Array, hmf: Float32Array, opt: GenerateTerrainOp
         tributaries.push({ path });
     }
 
-    return [...majorRivers, ...tributaries];
+    return { major: majorRivers, tributaries };
 }
 
 function placeEntities(map: VoxelMap): void {

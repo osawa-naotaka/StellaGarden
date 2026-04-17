@@ -23,6 +23,7 @@ export class VoxelMap implements IVoxelWriter {
     readonly depth: number;
     readonly horizonHeight: number;
     private voxels: BigUint64Array;
+    private riversideCells_: Uint32Array = new Uint32Array(0);
     private broker: IEventBroker | null = null;
 
     /** ゲームプレイ開始後に EventBroker を注入する。地形生成前は呼ばないこと。 */
@@ -41,6 +42,15 @@ export class VoxelMap implements IVoxelWriter {
             throw new Error(`Voxel buffer size mismatch: expected ${this.voxels.length}, got ${buffer.length}`);
         }
         this.voxels = buffer;
+    }
+
+    /** 大河水辺セルインデックス配列（粘土の再生成対象）。地形生成時に確定しセーブデータに保存される。 */
+    get riversideCells(): Uint32Array {
+        return this.riversideCells_;
+    }
+
+    setRiversideCells(cells: Uint32Array): void {
+        this.riversideCells_ = cells;
     }
 
     constructor(width: number, height: number, depth: number, horizonHeight: number) {
