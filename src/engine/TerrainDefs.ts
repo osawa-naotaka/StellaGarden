@@ -40,6 +40,7 @@ export const ENTITY_TYPES = {
     compost_bin_done: 25,
     clay: 26,
     meteoric_iron: 27,
+    anvil: 28,
 } as const;
 
 // ---------------------------------------------------------------------------

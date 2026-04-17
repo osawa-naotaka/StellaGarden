@@ -6,3 +6,4 @@ registerItem({ itemId: "axe", spriteName: "axe.png", maxStack: 1 });
 registerItem({ itemId: "sickle", spriteName: "sickle.png", maxStack: 1 });
 registerItem({ itemId: "shovel", spriteName: "shovel.png", maxStack: 1 });
 registerItem({ itemId: "hoes", spriteName: "ss_sprite_001.png", maxStack: 1 });
+registerItem({ itemId: "tongs", spriteName: "ss_sprite_091.png", maxStack: 1 });
