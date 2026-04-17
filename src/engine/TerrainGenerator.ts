@@ -435,6 +435,9 @@ function generateRivers(hm: Int8Array, hmf: Float32Array, opt: GenerateTerrainOp
 }
 
 function placeEntities(map: VoxelMap): void {
+    // 隕鉄を先に配置（2x2、レア）。以降のパスは既設エンティティを上書きしない。
+    placeMeteoricIron(map);
+
     const forestNoise = createNoise2D(alea("forest"));
     const treeNoise = createNoise2D(alea("tree"));
     const forestScale = 0.025; // 森バイオームの周波数（低周波 = 大きなまとまり）
@@ -451,23 +454,62 @@ function placeEntities(map: VoxelMap): void {
 
             if (!shouldPlaceTree && !shouldPlaceStone) continue;
 
-            if (shouldPlaceStone) {
-                const pos = map.getSurfacePosition({ x, y: 0, z });
-                const terrain = map.get(pos);
-                const terrainType = getTerrainTypeFromVoxel(terrain);
+            const pos = map.getSurfacePosition({ x, y: 0, z });
+            const terrain = map.get(pos);
+            const terrainType = getTerrainTypeFromVoxel(terrain);
+            // 既存エンティティ（隕鉄・facility_part 等）があるタイルは上書きしない
+            if (Number((terrain >> 8n) & 0xffn) !== ENTITY_TYPES.none) continue;
 
+            if (shouldPlaceStone) {
                 if (terrainType === TERRAIN_TYPES.soil || terrainType === TERRAIN_TYPES.grass) {
                     map.set(terrain | BigInt(ENTITY_TYPES.stone) << 8n, pos);
                 }
             } else if (shouldPlaceTree) {
-                const pos = map.getSurfacePosition({ x, y: 0, z });
-                const terrain = map.get(pos);
-                const terrainType = getTerrainTypeFromVoxel(terrain);
-
                 if (terrainType === TERRAIN_TYPES.soil || terrainType === TERRAIN_TYPES.grass) {
                     map.set(setCropGrowthStageInVoxel(terrain | BigInt(ENTITY_TYPES.tree) << 8n, 3), pos);
                 }
             }
         }
     }
+}
+
+/**
+ * 隕鉄を 2x2 タイル占有で配置する。
+ * 配置条件: 4タイル全てが grass、同じ高さ、エンティティなし。
+ * 密度: 1タイルあたり 0.04% の試行確率（400x400 マップで試行 ~64 回、成立は約 15〜30 個）。
+ */
+function placeMeteoricIron(map: VoxelMap): void {
+    const rng = alea("meteoric_iron");
+    const DENSITY = 0.0004;
+
+    for (let z = 0; z < map.depth - 1; z++) {
+        for (let x = 0; x < map.width - 1; x++) {
+            if (rng() >= DENSITY) continue;
+            if (!canPlaceMeteoricIron(map, x, z)) continue;
+
+            for (let dz = 0; dz < 2; dz++) {
+                for (let dx = 0; dx < 2; dx++) {
+                    const pos = map.getSurfacePosition({ x: x + dx, y: 0, z: z + dz });
+                    const v = map.get(pos);
+                    const entity = dx === 0 && dz === 0 ? ENTITY_TYPES.meteoric_iron : ENTITY_TYPES.facility_part;
+                    map.set((v & ~(0xffn << 8n)) | (BigInt(entity) << 8n), pos);
+                }
+            }
+        }
+    }
+}
+
+function canPlaceMeteoricIron(map: VoxelMap, x: number, z: number): boolean {
+    let anchorY = -1;
+    for (let dz = 0; dz < 2; dz++) {
+        for (let dx = 0; dx < 2; dx++) {
+            const pos = map.getSurfacePosition({ x: x + dx, y: 0, z: z + dz });
+            const v = map.get(pos);
+            if (getTerrainTypeFromVoxel(v) !== TERRAIN_TYPES.grass) return false;
+            if (Number((v >> 8n) & 0xffn) !== ENTITY_TYPES.none) return false;
+            if (anchorY === -1) anchorY = pos.y;
+            else if (pos.y !== anchorY) return false;
+        }
+    }
+    return true;
 }

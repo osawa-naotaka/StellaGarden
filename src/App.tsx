@@ -10,6 +10,7 @@ import "./_registry/entities/Flax";
 import "./_registry/entities/Forge";
 import "./_registry/entities/Bonfire";
 import "./_registry/entities/Kiln";
+import "./_registry/entities/MeteoricIron";
 import "./_registry/entities/Potato";
 import "./_registry/entities/Soy";
 import "./_registry/entities/Stone";

@@ -2,6 +2,24 @@ import type { IInventoryWriter, ItemId, IVoxelReader, IVoxelWriter, Pos2D } from
 import { ENTITY_TYPES, getEntityTypeFromVoxel, setEntityTypeInVoxel } from "../engine/TerrainDefs";
 import { getItemDefByEntityType, type ItemDef } from "./ItemRegistry";
 
+/**
+ * 配置不可（地形生成のみで出現）の多タイルエンティティのサイズ登録。
+ * placeable な item.placement.entitySize が無いエンティティを
+ * findFacilityAnchor で解決できるようにするための補助レジストリ。
+ */
+const multiTileEntitySizes = new Map<number, { w: number; h: number }>();
+
+export function registerMultiTileEntitySize(entityType: number, size: { w: number; h: number }): void {
+    multiTileEntitySizes.set(entityType, size);
+}
+
+/** エンティティタイプからサイズを解決する。 placeable item > 非配置型レジストリ の順で参照。 */
+function getEntitySize(entityType: number): { w: number; h: number } | undefined {
+    const def = getItemDefByEntityType(entityType);
+    if (def?.placement) return def.placement.entitySize;
+    return multiTileEntitySizes.get(entityType);
+}
+
 /** 施設を撤去してインベントリに回収する。成功時 true。 */
 export function removeFacility(voxelMap: IVoxelWriter, inventory: IInventoryWriter, anchorX: number, anchorZ: number, def: ItemDef): boolean {
     if (!def.placement) return false;
@@ -21,7 +39,7 @@ export function removeFacility(voxelMap: IVoxelWriter, inventory: IInventoryWrit
 /** ctx の surfacePos からアンカーを解決し、施設を撤去する。成功時 true。 */
 export function removeFacilityAtPos(voxelMap: IVoxelWriter, inventory: IInventoryWriter, x: number, z: number, expectedEntityType: number): boolean {
     const anchor = findFacilityAnchor(voxelMap, x, z);
-    if (!anchor || anchor.entityType !== expectedEntityType) return false;
+    if (!anchor || anchor.entityType !== expectedEntityType || !anchor.def) return false;
     return removeFacility(voxelMap, inventory, anchor.anchorX, anchor.anchorZ, anchor.def);
 }
 
@@ -39,21 +57,23 @@ export function placeFacility(voxelMap: IVoxelWriter, pos: Pos2D, entityType: nu
 
 /**
  * 指定座標が施設（アンカーまたは facility_part）の場合、
- * アンカーの位置と ItemDef を返す。施設でなければ null。
+ * アンカーの位置・エンティティタイプ・サイズを返す。施設でなければ null。
+ * 配置可能施設は ItemDef も返す（removeFacility 用）。
  */
 export function findFacilityAnchor(
     voxelMap: IVoxelReader,
     x: number,
     z: number,
-): { anchorX: number; anchorZ: number; entityType: number; def: ItemDef } | null {
+): { anchorX: number; anchorZ: number; entityType: number; size: { w: number; h: number }; def?: ItemDef } | null {
     const surfacePos = voxelMap.getSurfacePosition({ x, y: 0, z });
     const voxel = voxelMap.get(surfacePos);
     const entityType = getEntityTypeFromVoxel(voxel);
 
     // アンカータイルの場合: 直接返す
-    const def = getItemDefByEntityType(entityType);
-    if (def) {
-        return { anchorX: x, anchorZ: z, entityType, def };
+    const size = getEntitySize(entityType);
+    if (size) {
+        const def = getItemDefByEntityType(entityType);
+        return { anchorX: x, anchorZ: z, entityType, size, def };
     }
 
     // facility_part の場合: 近傍を探索してアンカーを見つける
@@ -72,13 +92,13 @@ export function findFacilityAnchor(
             const nSurfacePos = voxelMap.getSurfacePosition({ x: nx, y: 0, z: nz });
             const nVoxel = voxelMap.get(nSurfacePos);
             const nEntityType = getEntityTypeFromVoxel(nVoxel);
-            const nDef = getItemDefByEntityType(nEntityType);
-            if (!nDef?.placement) continue;
+            const nSize = getEntitySize(nEntityType);
+            if (!nSize) continue;
 
             // このアンカーの entitySize が (x, z) を包含するか確認
-            const size = nDef.placement.entitySize;
-            if (x >= nx && x < nx + size.w && z >= nz && z < nz + size.h) {
-                return { anchorX: nx, anchorZ: nz, entityType: nEntityType, def: nDef };
+            if (x >= nx && x < nx + nSize.w && z >= nz && z < nz + nSize.h) {
+                const nDef = getItemDefByEntityType(nEntityType);
+                return { anchorX: nx, anchorZ: nz, entityType: nEntityType, size: nSize, def: nDef };
             }
         }
     }

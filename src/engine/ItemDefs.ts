@@ -44,4 +44,5 @@ export type ItemId =
     | "bonfire"
     | "kiln"
     | "charcoal"
-    | "clay";
+    | "clay"
+    | "meteoric_iron";
