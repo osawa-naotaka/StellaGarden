@@ -48,12 +48,17 @@ const DEFAULT_INVENTORY_ITEMS: readonly (DefaultItem | null)[] = [
     { itemId: "spinning_wheel", count: 1 },
     { itemId: "loom", count: 1 },
     { itemId: "chest", count: 64 },
-    { itemId: "kiln", count: 1 },
-    { itemId: "bonfire", count: 1 },
-    { itemId: "meteoric_iron", count: 8 },
-    { itemId: "hot_meteoric_iron", count: 8 },
+    { itemId: "kiln", count: 64 },
+    { itemId: "bonfire", count: 64 },
+    { itemId: "meteoric_iron", count: 64 },
+    { itemId: "hot_meteoric_iron", count: 64 },
     { itemId: "anvil", count: 1 },
-    { itemId: "charcoal", count: 32 },
+    { itemId: "charcoal", count: 64 },
+    { itemId: "stone", count: 64 },
+    { itemId: "dirt", count: 64 },
+    { itemId: "clay", count: 64 },
+    { itemId: "blade", count: 64 },
+    { itemId: "board", count: 64 },
 ];
 
 /** プレイヤーのツールバーと 8×8 インベントリグリッドを管理する。 */

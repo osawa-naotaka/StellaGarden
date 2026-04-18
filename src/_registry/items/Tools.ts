@@ -7,3 +7,7 @@ registerItem({ itemId: "sickle", spriteName: "sickle.png", maxStack: 1 });
 registerItem({ itemId: "shovel", spriteName: "shovel.png", maxStack: 1 });
 registerItem({ itemId: "hoes", spriteName: "ss_sprite_001.png", maxStack: 1 });
 registerItem({ itemId: "tongs", spriteName: "ss_sprite_091.png", maxStack: 1 });
+registerItem({ itemId: "stone_hammer", spriteName: "ss_sprite_089.png", maxStack: 1 });
+registerItem({ itemId: "froe", spriteName: "ss_sprite_090.png", maxStack: 1 });
+registerItem({ itemId: "froe", spriteName: "ss_sprite_090.png", maxStack: 1 });
+registerItem({ itemId: "chisel", spriteName: "ss_sprite_092.png", maxStack: 1 });

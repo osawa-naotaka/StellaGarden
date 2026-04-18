@@ -49,4 +49,11 @@ export type ItemId =
     | "hot_meteoric_iron"
     | "anvil"
     | "tongs"
-    | "blade";
+    | "blade"
+    | "hardwood_teeth"
+    | "stone_hammer"
+    | "froe"
+    | "board"
+    | "screw_rod"
+    | "shaft"
+    | "chisel";

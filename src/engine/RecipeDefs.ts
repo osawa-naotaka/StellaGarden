@@ -55,9 +55,113 @@ export const RECIPES: readonly RecipeDef[] = [
         result: { itemId: "compost_bin", count: 1 },
     },
     {
+        id: "hardwood_teeth",
+        station: "workbench",
+        ingredients: [{ itemId: "trunk", count: 1 }],
+        result: { itemId: "hardwood_teeth", count: 1 },        
+    },
+    {
         id: "threshing_machine",
         station: "workbench",
-        ingredients: [{ itemId: "trunk", count: 2 }],
+        ingredients: [
+            { itemId: "trunk", count: 2 },
+            { itemId: "hardwood_teeth", count: 1 },
+        ],
         result: { itemId: "threshing_machine", count: 1 },
+    },
+    {
+        id: "stone_hammer",
+        station: "workbench",
+        ingredients: [
+            { itemId: "stone", count: 1 },
+            { itemId: "trunk", count: 1 },
+        ],
+        result: { itemId: "stone_hammer", count: 1 },
+    },
+    {
+        id: "froe",
+        station: "workbench",
+        ingredients: [
+            { itemId: "blade", count: 1 },
+            { itemId: "trunk", count: 1 },
+        ],
+        result: { itemId: "froe", count: 1 },
+    },
+    {
+        id: "scutching_board",
+        station: "workbench",
+        ingredients: [
+            { itemId: "trunk", count: 1 },
+        ],
+        result: { itemId: "scutching_board", count: 1 },
+    },
+    {
+        id: "board",
+        station: "workbench",
+        ingredients: [
+            { itemId: "trunk", count: 1 },
+        ],
+        result: { itemId: "board", count: 4 },
+    },
+    {
+        id: "screw_rod",
+        station: "workbench",
+        ingredients: [
+            { itemId: "trunk", count: 1 },
+        ],
+        result: { itemId: "screw_rod", count: 1 },
+    },
+    {
+        id: "screw_presses",
+        station: "workbench",
+        ingredients: [
+            { itemId: "board", count: 4 },
+            { itemId: "screw_rod", count: 1 },
+        ],
+        result: { itemId: "screw_presses", count: 1 },
+    },
+    {
+        id: "shaft",
+        station: "workbench",
+        ingredients: [
+            { itemId: "trunk", count: 1 },
+        ],
+        result: { itemId: "shaft", count: 1 },
+    },
+    {
+        id: "spinning_wheel",
+        station: "workbench",
+        ingredients: [
+          { itemId: "board", count: 2 },
+          { itemId: "shaft", count: 1 },
+        ],
+        result: { itemId: "spinning_wheel", count: 1 },
+    },
+    {
+        id: "soaking_basket",
+        station: "workbench",
+        ingredients: [
+          { itemId: "board", count: 8 },
+          { itemId: "clay", count: 2 },
+        ],
+        result: { itemId: "soaking_basket", count: 1 },
+    },
+    {
+        id: "loom",
+        station: "workbench",
+        ingredients: [
+          { itemId: "board", count: 4 },
+          { itemId: "trunk", count: 2 },
+        ],
+        result: { itemId: "loom", count: 1 },
+    },
+    {
+        id: "chisel",
+        station: "workbench",
+        ingredients: [
+          { itemId: "blade", count: 1 },
+          { itemId: "trunk", count: 1 },
+        ],
+        result: { itemId: "chisel", count: 1 },
     },
 ];
