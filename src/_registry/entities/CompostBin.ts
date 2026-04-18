@@ -107,7 +107,7 @@ registerEntity({
 registerItem({
     itemId: "compost_bin",
     spriteName: "ss_sprite_062.png",
-    maxStack: 1,
+    maxStack: 64,
     placement: {
         entityType: ENTITY_TYPES.compost_bin,
         entitySize: { w: 2, h: 2 },

@@ -28,7 +28,7 @@ registerEntity({
 registerItem({
     itemId: "anvil",
     spriteName: ANVIL_SPRITE,
-    maxStack: 1,
+    maxStack: 64,
     placement: {
         entityType: ENTITY_TYPES.anvil,
         entitySize: { w: 1, h: 1 },

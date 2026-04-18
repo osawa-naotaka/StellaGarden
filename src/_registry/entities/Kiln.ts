@@ -66,7 +66,7 @@ registerEntity({
 registerItem({
     itemId: "kiln",
     spriteName: "ss_sprite_068.png",
-    maxStack: 1,
+    maxStack: 64,
     placement: {
         entityType: ENTITY_TYPES.kiln_burning,
         entitySize: { w: 2, h: 2 },

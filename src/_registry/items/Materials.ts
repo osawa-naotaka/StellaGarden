@@ -16,4 +16,4 @@ registerItem({ itemId: "flaxseed_oil", spriteName: "ss_sprite_028.png", maxStack
 registerItem({ itemId: "trunk", spriteName: "ss_sprite_036.png", maxStack: 64 });
 registerItem({ itemId: "charcoal", spriteName: "ss_sprite_082.png", maxStack: 64 });
 registerItem({ itemId: "hot_meteoric_iron", spriteName: "ss_sprite_088.png", maxStack: 64 });
-registerItem({ itemId: "blade", spriteName: "ss_sprite_084.png", maxStack: 1 });
+registerItem({ itemId: "blade", spriteName: "ss_sprite_084.png", maxStack: 64 });
