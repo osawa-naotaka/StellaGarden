@@ -11,6 +11,7 @@ export interface InteractionContext {
     readonly surfacePos: Pos3D;
     readonly voxel: bigint;
     readonly tool: ItemId | null;
+    readonly entityType: number | null;
 }
 
 /** onDailyTick に渡されるコンテキスト */

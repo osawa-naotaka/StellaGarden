@@ -39,8 +39,8 @@ export function createInteractionHandler(
         const terrainType = getTerrainTypeFromVoxel(voxel);
         const tool = inventory.selectedTool;
 
-        const ctx: InteractionContext = { voxelMap, inventory, eventBroker, surfacePos, voxel, tool };
         const entityType = resolveEntityType(voxelMap, voxel, packet.pos.x, packet.pos.z);
+        const ctx: InteractionContext = { voxelMap, inventory, eventBroker, surfacePos, voxel, tool, entityType };
 
         // パス1: EntityRegistry — エンティティベース
         const entityDef = getEntityDef(entityType);
@@ -69,8 +69,8 @@ export function createInteractionHandler(
 
         if (terrainType === TERRAIN_TYPES.waterSource) return;
 
-        const ctx: InteractionContext = { voxelMap, inventory, eventBroker, surfacePos, voxel, tool: inventory.selectedTool };
         const entityType = resolveEntityType(voxelMap, voxel, packet.pos.x, packet.pos.z);
+        const ctx: InteractionContext = { voxelMap, inventory, eventBroker, surfacePos, voxel, tool: inventory.selectedTool, entityType };
 
         const entityDef = getEntityDef(entityType);
         entityDef?.onPrimaryInteract?.(ctx);
