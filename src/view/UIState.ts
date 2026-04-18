@@ -1,6 +1,6 @@
 import type { CraftStation, IEventBroker, ItemId, Pos2D, SlotRef } from "../_boundary/interfaces";
 
-export type UIMode = "normal" | "inventory" | "craft" | "placement" | "chest";
+export type UIMode = "normal" | "inventory" | "craft" | "placement" | "chest" | "forge";
 
 /**
  * UI の状態を一元管理する純粋データクラス。
@@ -13,6 +13,7 @@ export class UIState {
     placementItemId: ItemId | null = null;
     placementSourceSlot: SlotRef | null = null;
     chestPos: Pos2D | null = null;
+    forgePos: Pos2D | null = null;
 
     /** EventBroker を購読して mode を更新する。dispose 関数を返す。 */
     subscribeEvents(broker: IEventBroker): () => void {
@@ -23,6 +24,7 @@ export class UIState {
             } else {
                 this.mode = "normal";
                 this.chestPos = null;
+                this.forgePos = null;
             }
         });
 
@@ -38,10 +40,17 @@ export class UIState {
             this.chestPos = pos;
         });
 
+        const d4 = broker.subscribe("open_forge_ui", ({ pos }) => {
+            if (this.mode === "placement") return;
+            this.mode = "forge";
+            this.forgePos = pos;
+        });
+
         return () => {
             d1();
             d2();
             d3();
+            d4();
         };
     }
 

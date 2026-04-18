@@ -2,6 +2,7 @@ import { Box, Button, Stack, Typography } from "@mui/material";
 import { Application, ColorMatrixFilter, Container, TextureSource } from "pixi.js";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { PIXEL_PER_TILE, TILE_PER_CHUNK } from "./_boundary/constants";
+import "./_registry/entities/Anvil";
 import "./_registry/entities/Chest";
 import "./_registry/entities/Clay";
 import "./_registry/entities/CompostBin";
@@ -26,7 +27,9 @@ import "./_registry/terrains/GrassDirt";
 import "./_registry/terrains/SoilWetSoil";
 import type { GameEventMap } from "./_boundary/events";
 import { setChestStorage } from "./_registry/entities/Chest";
+import { setForgeStorage } from "./_registry/entities/Forge";
 import { ChestStorage } from "./engine/ChestStorage";
+import { ForgeStorage } from "./engine/ForgeStorage";
 import { regenerateClay } from "./engine/ClaySystem";
 import { CraftSystem } from "./engine/CraftSystem";
 import { processDailyTick } from "./engine/CropSystem";
@@ -43,6 +46,7 @@ import type { Pos2D, Size2D } from "./lib/VoxelMap";
 import { VoxelMap } from "./lib/VoxelMap";
 import { ChestView } from "./view/ChestView";
 import { DebugText } from "./view/DebugText";
+import { ForgeView } from "./view/ForgeView";
 import { InventoryView } from "./view/InventoryView";
 import { PlacementOverlay } from "./view/PlacementOverlay";
 import { PlayerCharacterView } from "./view/PlayerCharacterView";
@@ -161,6 +165,10 @@ function useGameEngine(worldSize: Size2D, loadSave: boolean) {
             if (saveData) chestStorage.loadSaveData(saveData.chestStorage.chests);
             setChestStorage(chestStorage);
 
+            const forgeStorage = new ForgeStorage();
+            if (saveData) forgeStorage.loadSaveData(saveData.forgeStorage.forges);
+            setForgeStorage(forgeStorage);
+
             const craftSystem = new CraftSystem(playerState.inventory);
 
             await loadSprite();
@@ -171,6 +179,9 @@ function useGameEngine(worldSize: Size2D, loadSave: boolean) {
 
             const chestView = new ChestView(playerState.inventory, chestStorage, uiState);
             pixiApp.stage.addChild(chestView.top);
+
+            const forgeView = new ForgeView(playerState.inventory, forgeStorage, voxelMap, uiState);
+            pixiApp.stage.addChild(forgeView.top);
 
             topView.resize(initialChunks);
 
@@ -184,6 +195,7 @@ function useGameEngine(worldSize: Size2D, loadSave: boolean) {
                 eventBroker.subscribe("day_changed", () => {
                     processDailyTick(voxelMap);
                     regenerateClay(voxelMap);
+                    forgeStorage.advanceDayAllForges(voxelMap);
                 }),
             );
 
@@ -231,6 +243,9 @@ function useGameEngine(worldSize: Size2D, loadSave: boolean) {
                     },
                     chestStorage: {
                         chests: chestStorage.toSaveData(),
+                    },
+                    forgeStorage: {
+                        forges: forgeStorage.toSaveData(),
                     },
                 })
                     .catch((e) => console.warn("Save failed:", e))
@@ -295,6 +310,7 @@ function useGameEngine(worldSize: Size2D, loadSave: boolean) {
                 toolbar.tick();
                 inventoryView.tick();
                 chestView.tick();
+                forgeView.tick();
             });
         }
 

@@ -20,6 +20,9 @@ export type GameEventMap = {
     open_craft_ui: { pos: Pos2D };
     /** チェストを右クリックしてチェストUIを開く。 */
     open_chest_ui: { pos: Pos2D };
+    /** 炉を左クリックして炉UIを開く。
+     *  発行: Forge.ts の onPrimaryInteract（forge / forge_burning の両方）。購読: UIState → ForgeView.show(pos)。 */
+    open_forge_ui: { pos: Pos2D };
 
     // ─── input → engine（Phase 3 以降で使用） ───────────────────────────────
     /** プレイヤー移動要求。移動量が 0 でない場合のみ発行すること。

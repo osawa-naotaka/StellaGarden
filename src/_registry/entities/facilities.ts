@@ -49,4 +49,3 @@ registerAxeRemovableFacility(ENTITY_TYPES.soaking_basket, "soaking_basket", "ss_
 registerAxeRemovableFacility(ENTITY_TYPES.scutching_board, "scutching_board", "ss_sprite_057.png", { w: 1, h: 1 }, "ss_sprite_057.png");
 registerAxeRemovableFacility(ENTITY_TYPES.spinning_wheel, "spinning_wheel", "ss_sprite_058.png", { w: 2, h: 1 }, "ss_sprite_066.png");
 registerAxeRemovableFacility(ENTITY_TYPES.loom, "loom", "ss_sprite_059.png", { w: 2, h: 2 }, "ss_sprite_067.png");
-registerAxeRemovableFacility(ENTITY_TYPES.anvil, "anvil", "ss_sprite_079.png", { w: 1, h: 1 }, "ss_sprite_079.png");

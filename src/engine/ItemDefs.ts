@@ -46,6 +46,7 @@ export type ItemId =
     | "charcoal"
     | "clay"
     | "meteoric_iron"
+    | "hot_meteoric_iron"
     | "anvil"
     | "tongs"
     | "blade";

@@ -11,6 +11,7 @@ export interface SaveData {
     inventory: InventorySaveData;
     gameTime: GameTimeSaveData;
     chestStorage: ChestStorageSaveData;
+    forgeStorage: ForgeStorageSaveData;
 }
 
 export interface VoxelMapSaveData {
@@ -42,13 +43,24 @@ export interface ChestStorageSaveData {
     chests: Array<{ key: string; slots: (ItemStack | null)[] }>;
 }
 
+export interface ForgeStorageSaveData {
+    forges: Array<{
+        key: string;
+        slots: {
+            ingredient: ItemStack | null;
+            fuel: ItemStack | null;
+            output: ItemStack | null;
+        };
+    }>;
+}
+
 // ─── 定数 ────────────────────────────────────────────────────────────────────
 
 const DB_NAME = "stella-garden";
 const DB_VERSION = 1;
 const STORE_NAME = "saveData";
 const SAVE_KEY = "autosave";
-const CURRENT_SAVE_VERSION = 2;
+const CURRENT_SAVE_VERSION = 3;
 
 // ─── IndexedDB ユーティリティ ────────────────────────────────────────────────
 

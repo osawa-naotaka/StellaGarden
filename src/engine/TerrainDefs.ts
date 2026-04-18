@@ -41,6 +41,7 @@ export const ENTITY_TYPES = {
     clay: 26,
     meteoric_iron: 27,
     anvil: 28,
+    forge_burning: 29,
 } as const;
 
 // ---------------------------------------------------------------------------

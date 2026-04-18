@@ -34,6 +34,8 @@ StellaGarden は Vite + React 19 + TypeScript + PixiJS 8 で作られたチル�
 | `TerrainGenerator.ts` | Simplex Noise を使った 400×400 マップの地形生成。 |
 | `GameTime.ts` | ゲーム内時間管理。1日=10分（600,000ms）。朝5時を通過するたびに `day_changed` を発行。`IGameTimeReader` を implements。 |
 | `CropSystem.ts` | 作物育成システム。`advanceDayAllCrops(voxelMap)` で全芋タイル（y=horizonHeight）の育成カウンタを+1（上限5）。 |
+| `ChestStorage.ts` | チェストのスロット状態を座標ベースで保持する（64スロット配列）。セーブ/ロード対応。 |
+| `ForgeStorage.ts` | 炉（Forge）のスロット状態を座標ベースで保持する（ingredient / fuel / output の3スロット）。`advanceDayAllForges(voxelMap)` で日次精錬処理。セーブ/ロード対応。 |
 
 ## あなたが発行するイベント（EventBroker.publish）
 
