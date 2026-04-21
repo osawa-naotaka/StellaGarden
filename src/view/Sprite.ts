@@ -9,5 +9,6 @@ export async function loadSprite() {
     await Assets.load("/assets/16x16-Idle-Sheet.spritesheet.json");
     await Assets.load("/assets/16x16-Walk-Sheet.spritesheet.json");
     await Assets.load("/assets/16x16-Interact-Sheet.spritesheet.json");
+    await Assets.load("/assets/Pipes.spritesheet.json");
     await Assets.load("/assets/roboto.fnt");
 }
