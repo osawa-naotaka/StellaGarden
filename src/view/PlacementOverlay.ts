@@ -90,7 +90,7 @@ export class PlacementOverlay {
 
         this.placementInfo = info;
         this.entitySize = info.entitySize;
-        this.previewSprite.texture = Texture.from(info.fieldSpriteName);
+        this.updatePreviewSprite();
         this.previewSprite.width = PIXEL_PER_TILE * info.entitySize.w;
         this.previewSprite.height = PIXEL_PER_TILE * info.entitySize.h;
 
@@ -140,7 +140,7 @@ export class PlacementOverlay {
         if (e.button !== 0) return;
         if (this.valid && this.placementInfo) {
             // 副作用: voxelMap に配置
-            this.placementInfo.onPlace(this.voxelMap, this.snappedPos);
+            this.placementInfo.onPlace(this.voxelMap, this.snappedPos, this.uiState.placementVariant);
             // 純粋: UIState を更新
             this.uiState.exitPlacementMode();
         }
@@ -160,6 +160,21 @@ export class PlacementOverlay {
             }
             // 純粋: UIState を更新
             this.uiState.exitPlacementMode();
+            return;
         }
+
+        if (e.key.toLowerCase() === "v" && this.placementInfo) {
+            this.uiState.togglePlacementVariant();
+            this.updatePreviewSprite();
+        }
+    }
+
+    private updatePreviewSprite(): void {
+        if (!this.placementInfo) return;
+        const spriteName =
+            this.placementInfo.getFieldSpriteName?.(this.uiState.placementVariant) ??
+            this.placementInfo.fieldSpriteName;
+        if (!spriteName) return;
+        this.previewSprite.texture = Texture.from(spriteName);
     }
 }

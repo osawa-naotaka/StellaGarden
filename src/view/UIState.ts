@@ -1,4 +1,5 @@
 import type { CraftStation, IEventBroker, ItemId, Pos2D, SlotRef } from "../_boundary/interfaces";
+import type { PlacementVariant } from "../_registry/ItemRegistry";
 
 export type UIMode = "normal" | "inventory" | "craft" | "placement" | "chest" | "forge";
 
@@ -12,6 +13,7 @@ export class UIState {
     craftStation: CraftStation = "hand";
     placementItemId: ItemId | null = null;
     placementSourceSlot: SlotRef | null = null;
+    placementVariant: PlacementVariant = "horizontal";
     chestPos: Pos2D | null = null;
     forgePos: Pos2D | null = null;
 
@@ -55,10 +57,16 @@ export class UIState {
     }
 
     /** 配置モードに入る（フィールド変更のみ、副作用なし）。 */
-    enterPlacementMode(itemId: ItemId, sourceSlot: SlotRef): void {
+    enterPlacementMode(itemId: ItemId, sourceSlot: SlotRef, variant: PlacementVariant = "horizontal"): void {
         this.mode = "placement";
         this.placementItemId = itemId;
         this.placementSourceSlot = sourceSlot;
+        this.placementVariant = variant;
+    }
+
+    /** 配置中の向きを切り替える（フィールド変更のみ、副作用なし）。 */
+    togglePlacementVariant(): void {
+        this.placementVariant = this.placementVariant === "horizontal" ? "vertical" : "horizontal";
     }
 
     /** 配置モードを終了する（フィールド変更のみ、副作用なし）。 */
@@ -66,5 +74,6 @@ export class UIState {
         this.mode = "normal";
         this.placementItemId = null;
         this.placementSourceSlot = null;
+        this.placementVariant = "horizontal";
     }
 }

@@ -1,16 +1,23 @@
 import type { IVoxelWriter, Pos2D } from "../_boundary/interfaces";
 import type { InteractionContext } from "./EntityRegistry";
 
+/** 配置可能アイテムの向きバリアント。 */
+export type PlacementVariant = "horizontal" | "vertical";
+
 /** 配置可能アイテムの配置情報。 */
 export interface PlacementInfo {
     /** 配置時に使うエンティティタイプ（ENTITY_TYPES の値）。 */
     readonly entityType: number;
     /** 配置時のタイルサイズ（w=横タイル数, h=縦タイル数）。 */
     readonly entitySize: { readonly w: number; readonly h: number };
+    /** 配置開始時のデフォルト向き。 */
+    readonly defaultVariant?: PlacementVariant;
     /** フィールドに配置した時のスプライト名。 */
-    readonly fieldSpriteName: string;
+    readonly fieldSpriteName?: string;
+    /** 配置中プレビューに使うスプライト名を返す。 */
+    getFieldSpriteName?(variant: PlacementVariant): string;
     /** 配置確定時に呼ばれる。voxelMap への書き込みを行う。 */
-    onPlace(voxelMap: IVoxelWriter, pos: Pos2D): void;
+    onPlace(voxelMap: IVoxelWriter, pos: Pos2D, variant: PlacementVariant): void;
 }
 
 /**

@@ -42,8 +42,7 @@ export const ENTITY_TYPES = {
     meteoric_iron: 27,
     anvil: 28,
     forge_burning: 29,
-    pipe1_h: 30,
-    pipe1_v: 31,
+    pipe1: 30,
 } as const;
 
 // ---------------------------------------------------------------------------
@@ -56,7 +55,8 @@ export const ENTITY_TYPES = {
 //   bits 22-23: drought counter   (2bit, 0-3)
 //   bits 24-26: last_crop         (3bit, entity type of previous crop)
 //   bits 27-29: fatigue           (3bit, 0-7)
-//   bits 30-31: free              (2bit)
+//   bit     30: pipe variant      (1bit, 0=horizontal/1=vertical)
+//   bits 31-34: pipe connections  (4bit, up/down/left/right)
 // ---------------------------------------------------------------------------
 
 /** 肥料タイプの定数。 */
@@ -172,4 +172,24 @@ export function getFatigueFromVoxel(voxel: bigint): number {
 /** ボクセル値に連作疲労カウンタを書き込んだ新しい値を返す（bits 27-29）。 */
 export function setFatigueInVoxel(voxel: bigint, fatigue: number): bigint {
     return (voxel & ~(0x7n << 27n)) | ((BigInt(fatigue) & 0x7n) << 27n);
+}
+
+/** 畝間水路の向き。false = horizontal, true = vertical。 */
+export function getPipeVariantFromVoxel(voxel: bigint): boolean {
+    return ((voxel >> 30n) & 0x1n) === 0x1n;
+}
+
+/** 畝間水路の向きビットを書き込んだ新しい値を返す（bit 30）。 */
+export function setPipeVariantInVoxel(voxel: bigint, vertical: boolean): bigint {
+    return (voxel & ~(0x1n << 30n)) | ((vertical ? 1n : 0n) << 30n);
+}
+
+/** 畝間水路の接続マスクを取り出す（bits 31-34）。 */
+export function getPipeConnectionsFromVoxel(voxel: bigint): number {
+    return Number((voxel >> 31n) & 0xfn);
+}
+
+/** 畝間水路の接続マスクを書き込んだ新しい値を返す（bits 31-34）。 */
+export function setPipeConnectionsInVoxel(voxel: bigint, mask: number): bigint {
+    return (voxel & ~(0xfn << 31n)) | ((BigInt(mask) & 0xfn) << 31n);
 }

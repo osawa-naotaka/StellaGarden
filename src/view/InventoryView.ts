@@ -1,6 +1,6 @@
 import { BitmapText, Container, type FederatedPointerEvent, Graphics, Rectangle, Sprite, Texture } from "pixi.js";
 import type { CraftStation, ICraftSystem, IInventoryWriter, ItemStack, SlotRef } from "../_boundary/interfaces";
-import { getItemDef, isPlaceable } from "../_registry/ItemRegistry";
+import { getItemDef, getPlacementInfo, isPlaceable } from "../_registry/ItemRegistry";
 import { CraftPane } from "./CraftPane";
 import type { UIMode, UIState } from "./UIState";
 
@@ -357,7 +357,7 @@ export class InventoryView {
                 }
 
                 // 純粋: UIState を更新
-                this.uiState.enterPlacementMode(stack.itemId, ref);
+                this.uiState.enterPlacementMode(stack.itemId, ref, getPlacementInfo(stack.itemId)?.defaultVariant ?? "horizontal");
                 return;
             }
 
