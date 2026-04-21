@@ -56,4 +56,5 @@ export type ItemId =
     | "board"
     | "screw_rod"
     | "shaft"
-    | "chisel";
+    | "chisel"
+    | "pipe";
