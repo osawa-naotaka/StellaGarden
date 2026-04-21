@@ -2,13 +2,12 @@ import { BitmapText, Container, type FederatedPointerEvent, Graphics, Rectangle,
 import type { CraftStation, ICraftSystem, RecipeDef } from "../_boundary/interfaces";
 import { getItemDef } from "../_registry/ItemRegistry";
 
-const RECIPE_CELL_SIZE = 40;
-const RECIPE_ICON_SIZE = 32;
+const RECIPE_CELL_SIZE = 60;
+const RECIPE_ICON_SIZE = 48;
 const RECIPE_COLS = 4;
-const MATERIAL_ROW_HEIGHT = 36;
-const PANE_WIDTH = 200;
+const MATERIAL_ROW_HEIGHT = 60;
 const PANE_PADDING = 8;
-const MATERIAL_ICON_SIZE = 24;
+const MATERIAL_ICON_SIZE = 48;
 
 /** レシピアイコン1枚分の表示オブジェクト群。 */
 interface RecipeIcon {
@@ -47,12 +46,6 @@ export class CraftPane {
         this.craftSystem = craftSystem;
         this.container = new Container();
 
-        // 背景
-        const bg = new Graphics();
-        bg.rect(0, 0, PANE_WIDTH, 600);
-        bg.fill({ color: 0x222222, alpha: 0.5 });
-        this.container.addChild(bg);
-
         // レシピグリッドコンテナ（右上エリア）
         this.recipeGridContainer = new Container();
         this.recipeGridContainer.y = PANE_PADDING;
@@ -62,7 +55,7 @@ export class CraftPane {
         // 素材エリアラベル（右下エリア）
         this.materialLabel = new BitmapText({
             text: "Materials:",
-            style: { fontFamily: "Roboto", fontSize: 13, fill: 0xaaaaaa },
+            style: { fontFamily: "Roboto", fontSize: 24, fill: 0xaaaaaa },
         });
 
         // 素材コンテナ（右下エリア）
@@ -222,10 +215,10 @@ export class CraftPane {
 
             const countText = new BitmapText({
                 text: "x0",
-                style: { fontFamily: "Roboto", fontSize: 13, fill: 0xdddddd },
+                style: { fontFamily: "Roboto", fontSize: 24, fill: 0xdddddd },
             });
             countText.x = MATERIAL_ICON_SIZE + 6;
-            countText.y = (MATERIAL_ICON_SIZE - 13) / 2;
+            countText.y = (MATERIAL_ICON_SIZE - 24) / 2;
             rowContainer.addChild(countText);
 
             this.materialContainer.addChild(rowContainer);
@@ -244,7 +237,7 @@ export class CraftPane {
         this.materialLabel.y = labelY;
 
         this.materialContainer.x = PANE_PADDING;
-        this.materialContainer.y = labelY + 18;
+        this.materialContainer.y = labelY + 32;
 
         // 全行を非表示にしてリセット
         for (const row of this.materialRows) {

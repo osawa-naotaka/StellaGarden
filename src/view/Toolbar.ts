@@ -3,9 +3,9 @@ import type { IInventoryWriter, ItemStack } from "../_boundary/interfaces";
 import { getItemDef } from "../_registry/ItemRegistry";
 import type { UIState } from "./UIState";
 
-const CELL_SIZE = 40;
+const CELL_SIZE = 60;
 const TOOLBAR_HEIGHT = CELL_SIZE;
-const ICON_SIZE = 32;
+const ICON_SIZE = 48;
 
 /** スロットに事前確保した表示オブジェクト群。tick ごとに内容を上書きして使い回す。 */
 interface SlotIcon {
@@ -133,9 +133,9 @@ export class Toolbar {
 
         const countText = new BitmapText({
             text: "0",
-            style: { fontFamily: "Roboto", fontSize: 10, fill: 0xffffff },
+            style: { fontFamily: "Roboto", fontSize: 24, fill: 0xffffff },
         });
-        countText.y = CELL_SIZE - 12;
+        countText.y = CELL_SIZE - 30;
         countText.visible = false;
         slot.addChild(countText);
 

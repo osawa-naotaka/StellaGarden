@@ -4,11 +4,11 @@ import { getItemDef, isPlaceable } from "../_registry/ItemRegistry";
 import { CraftPane } from "./CraftPane";
 import type { UIMode, UIState } from "./UIState";
 
-const CELL_SIZE = 40;
-const ICON_SIZE = 32;
+const CELL_SIZE = 60;
+const ICON_SIZE = 48;
 const PADDING = 10;
-const TAB_HEIGHT = 32;
-const SEPARATOR_HEIGHT = 14;
+const TAB_HEIGHT = 48;
+const SEPARATOR_HEIGHT = 32;
 const INVENTORY_COLS = 8;
 const INVENTORY_ROWS = 8;
 const TOOLBAR_COLS = 9;
@@ -73,9 +73,9 @@ function createSlotIcon(container: Container, cellSize: number): SlotIcon {
 
     const countText = new BitmapText({
         text: "0",
-        style: { fontFamily: "Roboto", fontSize: 11, fill: 0xffffff },
+        style: { fontFamily: "Roboto", fontSize: 24, fill: 0xffffff },
     });
-    countText.y = cellSize - 13;
+    countText.y = cellSize - 28;
     countText.visible = false;
     container.addChild(countText);
 
@@ -132,7 +132,7 @@ export class InventoryView {
         const leftPaneWidth = Math.max(invWidth, tbWidth) + PADDING * 2;
 
         // 右ペイン幅（CraftPane の幅）
-        const rightPaneWidth = 200; // CraftPane の PANE_WIDTH
+        const rightPaneWidth = 300; // CraftPane の PANE_WIDTH
         const totalWidth = leftPaneWidth + rightPaneWidth + PADDING;
 
         const contentHeight = TAB_HEIGHT + INVENTORY_ROWS * CELL_SIZE + SEPARATOR_HEIGHT + CELL_SIZE;
@@ -153,11 +153,11 @@ export class InventoryView {
         this.tabBgInventory = new Graphics();
         this.tabBgCraft = new Graphics();
 
-        this.buildUI(leftPaneWidth, rightPaneWidth);
+        this.buildUI(leftPaneWidth);
         this.updateWindowPosition();
     }
 
-    private buildUI(leftPaneWidth: number, rightPaneWidth: number): void {
+    private buildUI(leftPaneWidth: number): void {
         // 背景
         const bg = new Graphics();
         bg.rect(0, 0, this.windowWidth, this.windowHeight);
@@ -187,10 +187,10 @@ export class InventoryView {
 
         const tabLabelInventory = new BitmapText({
             text: "Inventory",
-            style: { fontFamily: "Roboto", fontSize: 14, fill: 0xdddddd },
+            style: { fontFamily: "Roboto", fontSize: 24, fill: 0xdddddd },
         });
         tabLabelInventory.x = PADDING + 8;
-        tabLabelInventory.y = PADDING + (TAB_HEIGHT - 4 - 14) / 2;
+        tabLabelInventory.y = PADDING +(TAB_HEIGHT - 4 - 24) / 2;
         this.container.addChild(tabLabelInventory);
 
         // Craft タブ
@@ -209,10 +209,10 @@ export class InventoryView {
 
         const tabLabelCraft = new BitmapText({
             text: "Craft",
-            style: { fontFamily: "Roboto", fontSize: 14, fill: 0xdddddd },
+            style: { fontFamily: "Roboto", fontSize: 24, fill: 0xdddddd },
         });
         tabLabelCraft.x = PADDING + TAB_WIDTH + 8;
-        tabLabelCraft.y = PADDING + (TAB_HEIGHT - 4 - 14) / 2;
+        tabLabelCraft.y = PADDING + (TAB_HEIGHT - 4 - 24) / 2;
         this.container.addChild(tabLabelCraft);
 
         // ─── 左ペイン（インベントリグリッド + ツールバー）──────────────────────
@@ -266,16 +266,6 @@ export class InventoryView {
 
         // ─── カーソル追従コンテナ（最前面）────────────────────────────────────
         this.container.addChild(this.cursorContainer);
-
-        // 右ペインの背景を調整（CraftPane の背景を上書き）
-        const craftBg = new Graphics();
-        craftBg.rect(0, 0, rightPaneWidth, this.windowHeight - PADDING - TAB_HEIGHT - PADDING);
-        craftBg.fill({ color: 0x222222, alpha: 0.0 });
-        craftBg.stroke({ width: 1, color: 0x666666, alpha: 0.5 });
-        craftBg.x = rightPaneX;
-        craftBg.y = PADDING + TAB_HEIGHT;
-        // craftBg は CraftPane の背面に挿入済みのコンテナより前に来るが、
-        // CraftPane 自体に背景があるためここでは不要。省略する。
     }
 
     private createSlotContainer(ref: SlotRef): Container {
@@ -360,7 +350,12 @@ export class InventoryView {
             // 配置可能アイテムの場合は配置モードへ遷移する
             if (isPlaceable(stack.itemId)) {
                 // 副作用: インベントリからアイテムを取り出し
-                this.inventory.setSlot(ref, null);
+                if (stack.count === 1) {
+                    this.inventory.setSlot(ref, null);
+                } else {
+                    stack.count--;
+                }
+
                 // 純粋: UIState を更新
                 this.uiState.enterPlacementMode(stack.itemId, ref);
                 return;

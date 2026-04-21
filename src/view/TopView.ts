@@ -106,7 +106,7 @@ export class TopView {
         const idx = this.chunkIndex(col, row, true);
         const sprite = this.chunkSpritePool[idx];
         sprite.texture = this.chunkRenderer.renderChunk(this.voxelMap, world, idx, (tile, voxels, positions) =>
-            setupTerrainTile(tile, voxels, positions, this.voxelMap.horizonHeight, pointerPos),
+            setupTerrainTile(tile, voxels, positions, this.voxelMap.horizonHeight, pointerPos, this.pixelPerTile),
         );
         sprite.visible = true;
     }
@@ -115,7 +115,7 @@ export class TopView {
         const idx = this.chunkIndex(col, row, false);
         const sprite = this.chunkSpritePool[idx];
         sprite.texture = this.chunkRenderer.renderChunk(this.voxelMap, world, idx, (tile, voxels, positions) =>
-            setupEntityTile(tile, voxels, positions, pointerPos),
+            setupEntityTile(tile, voxels, positions, pointerPos, this.pixelPerTile),
         );
         sprite.visible = true;
     }
@@ -126,7 +126,7 @@ export class TopView {
     }
 }
 
-function setupTerrainTile(tile: Tile, voxels: bigint[], positions: Pos3D[], horizonHeight: number, pointerPos: Pos2D): void {
+function setupTerrainTile(tile: Tile, voxels: bigint[], positions: Pos3D[], horizonHeight: number, pointerPos: Pos2D, pixelPerTile: number): void {
     const spriteNames = getTerrainSpriteNamesFromVoxel(voxels, positions, horizonHeight);
     tile.useNSprites(spriteNames.length);
 
@@ -138,10 +138,11 @@ function setupTerrainTile(tile: Tile, voxels: bigint[], positions: Pos3D[], hori
         tile.sprites[i].anchor.set(0, 0);
         tile.sprites[i].filters = isHovered ? [hoverFilter] : [];
         tile.sprites[i].position.set(0);
+        tile.sprites[i].scale.set(pixelPerTile / 16);
     }
 }
 
-function setupEntityTile(tile: Tile, voxels: bigint[], positions: Pos3D[], pointerPos: Pos2D): void {
+function setupEntityTile(tile: Tile, voxels: bigint[], positions: Pos3D[], pointerPos: Pos2D, pixelPerTile: number): void {
     const infos = getEntitySpriteNameFromVoxel(voxels[4]);
     tile.useNSprites(infos.length);
     for (let i = 0; i < infos.length; i++) {
@@ -151,5 +152,6 @@ function setupEntityTile(tile: Tile, voxels: bigint[], positions: Pos3D[], point
         const isHovered = Math.floor(pointerPos.x) === positions[4].x && Math.floor(pointerPos.z) === positions[4].z;
         tile.sprites[i].filters = isHovered ? [hoverFilter] : [];
         tile.sprites[i].position.set(infos[i][1], infos[i][2]);
+        tile.sprites[i].scale.set(pixelPerTile / 16);
     }
 }

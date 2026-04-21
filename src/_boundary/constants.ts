@@ -7,7 +7,7 @@
  * タイル 1 枚のピクセルサイズ（スプライトのサイズと一致させること）。
  * model/GameState.ts の PIXEL_PER_TILE と同じ値。
  */
-export const PIXEL_PER_TILE = 16;
+export const PIXEL_PER_TILE = 32;
 
 /**
  * チャンク 1 枚のタイル数（1辺）。

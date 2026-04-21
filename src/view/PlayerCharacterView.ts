@@ -1,5 +1,6 @@
 import { AnimatedSprite, Assets, type Spritesheet } from "pixi.js";
 import type { Direction8 } from "../_boundary/interfaces";
+import { PIXEL_PER_TILE } from "../_boundary/constants";
 
 export class PlayerCharacterView {
     readonly top: AnimatedSprite;
@@ -13,6 +14,7 @@ export class PlayerCharacterView {
         const textures = sheet.animations.Idle_down;
         const sprite = new AnimatedSprite(textures);
         sprite.anchor.set(0.5, 1.0);
+        sprite.scale.set(PIXEL_PER_TILE / 16)
         sprite.animationSpeed = 0.1;
         sprite.play();
         this.top = sprite;
@@ -138,7 +140,7 @@ export class PlayerCharacterView {
         }
 
         this.top.textures = sheet.animations[animName];
-        this.top.scale.set(scaleX, 1.0);
+        this.top.scale.set(scaleX * PIXEL_PER_TILE / 16, PIXEL_PER_TILE / 16);
         this.top.play();
     }
 }

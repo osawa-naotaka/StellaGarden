@@ -151,7 +151,12 @@ export class PlacementOverlay {
             // 副作用: アイテムを元スロットに戻す
             const { placementItemId, placementSourceSlot } = this.uiState;
             if (placementItemId && placementSourceSlot) {
-                this.inventory.setSlot(placementSourceSlot, { itemId: placementItemId, count: 1 });
+                const slot = this.inventory.getSlot(placementSourceSlot);
+                if (slot) {
+                    this.inventory.setSlot(placementSourceSlot, { itemId: placementItemId, count: slot.count + 1 });
+                } else {
+                    this.inventory.setSlot(placementSourceSlot, { itemId: placementItemId, count: 1 });
+                }
             }
             // 純粋: UIState を更新
             this.uiState.exitPlacementMode();
