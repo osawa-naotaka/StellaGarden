@@ -5,7 +5,7 @@ import { registerItem } from "../ItemRegistry";
 
 
 registerEntity({
-    entityType: ENTITY_TYPES.pipe,
+    entityType: ENTITY_TYPES.pipe1_h,
 
     getSprites(): EntitySpriteInfo[] {
         return [["pipe1_h", 0, 0]];
@@ -13,7 +13,7 @@ registerEntity({
 
     onInteract(ctx: InteractionContext): boolean {
         if (ctx.tool !== "axe") return false;
-        return removeFacilityAtPos(ctx.voxelMap, ctx.inventory, ctx.surfacePos.x, ctx.surfacePos.z, ENTITY_TYPES.pipe);
+        return removeFacilityAtPos(ctx.voxelMap, ctx.inventory, ctx.surfacePos.x, ctx.surfacePos.z, ENTITY_TYPES.pipe1_h);
     },
 
     onPrimaryInteract(ctx: InteractionContext): boolean {
@@ -29,11 +29,11 @@ registerItem({
     spriteName: "pipe1_h",
     maxStack: 64,
     placement: {
-        entityType: ENTITY_TYPES.pipe,
+        entityType: ENTITY_TYPES.pipe1_h,
         entitySize: { w: 1, h: 1 },
         fieldSpriteName: "pipe1_h",
         onPlace(voxelMap, pos) {
-            placeFacility(voxelMap, pos, ENTITY_TYPES.pipe, { w: 1, h: 1 });
+            placeFacility(voxelMap, pos, ENTITY_TYPES.pipe1_h, { w: 1, h: 1 });
         },
     },
 });
