@@ -57,6 +57,7 @@ export const ENTITY_TYPES = {
 //   bits 27-29: fatigue           (3bit, 0-7)
 //   bit     30: pipe variant      (1bit, 0=horizontal/1=vertical)
 //   bits 31-34: pipe connections  (4bit, up/down/left/right)
+//   bit     35: pipe filled       (1bit, 0=dry/1=filled)
 // ---------------------------------------------------------------------------
 
 /** 肥料タイプの定数。 */
@@ -192,4 +193,14 @@ export function getPipeConnectionsFromVoxel(voxel: bigint): number {
 /** 畝間水路の接続マスクを書き込んだ新しい値を返す（bits 31-34）。 */
 export function setPipeConnectionsInVoxel(voxel: bigint, mask: number): bigint {
     return (voxel & ~(0xfn << 31n)) | ((BigInt(mask) & 0xfn) << 31n);
+}
+
+/** 畝間水路に水が満たされているかどうかを返す（bit 35）。 */
+export function getPipeFilledFromVoxel(voxel: bigint): boolean {
+    return ((voxel >> 35n) & 0x1n) === 0x1n;
+}
+
+/** 畝間水路の通水ビットを書き込んだ新しい値を返す（bit 35）。 */
+export function setPipeFilledInVoxel(voxel: bigint, filled: boolean): bigint {
+    return (voxel & ~(0x1n << 35n)) | ((filled ? 1n : 0n) << 35n);
 }

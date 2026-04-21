@@ -27,6 +27,7 @@
   "animations": { },
   "frames": {
     "pipe1": [0,0, "dir"],
-    "pipe2": [0,1, "dir"]    
+    "pipe2": [0,1, "dir"],
+    "pipe3": [0,2, "dir"]
   }
 }

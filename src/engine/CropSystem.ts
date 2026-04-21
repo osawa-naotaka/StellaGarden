@@ -1,6 +1,7 @@
 import type { IVoxelWriter } from "../_boundary/interfaces";
 import { type DailyTickContext, getEntityDef } from "../_registry/EntityRegistry";
 import type { CropDef } from "./CropDefs";
+import { applyPipeIrrigation } from "./PipeIrrigation";
 import {
     ENTITY_TYPES,
     getCropGrowthStageFromVoxel,
@@ -75,6 +76,7 @@ export function applyCropDailyTick(ctx: DailyTickContext, cropDef: CropDef): voi
  *
  * 各タイルを走査し、エンティティのない wetSoil を乾燥させる。
  * エンティティがあれば EntityRegistry の onDailyTick に委譲する。
+ * その後、通水中の畝間水路から周囲の soil を wetSoil に戻す。
  */
 export function processDailyTick(voxelMap: IVoxelWriter): void {
     for (let x = 0; x < voxelMap.width; x++) {
@@ -93,4 +95,6 @@ export function processDailyTick(voxelMap: IVoxelWriter): void {
             def?.onDailyTick?.({ voxelMap, pos, voxel, isWet });
         }
     }
+
+    applyPipeIrrigation(voxelMap);
 }

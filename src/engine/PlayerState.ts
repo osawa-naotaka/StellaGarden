@@ -135,8 +135,14 @@ export class PlayerState implements IPlayerStateWriter {
         // 水タイルはブロック
         if (terrainType === TERRAIN_TYPES.water || terrainType === TERRAIN_TYPES.waterSource) return true;
 
-        // 作物系エンティティ（potato, soy, flax, sunflower）は通過可能
-        if (entityType === ENTITY_TYPES.potato || entityType === ENTITY_TYPES.soy || entityType === ENTITY_TYPES.flax || entityType === ENTITY_TYPES.sunflower)
+        // 作物系エンティティと畝間水路（potato, soy, flax, sunflower, pipe1）は通過可能
+        if (
+            entityType === ENTITY_TYPES.potato ||
+            entityType === ENTITY_TYPES.soy ||
+            entityType === ENTITY_TYPES.flax ||
+            entityType === ENTITY_TYPES.sunflower ||
+            entityType === ENTITY_TYPES.pipe1
+        )
             return false;
 
         // その他のエンティティが存在すればブロック

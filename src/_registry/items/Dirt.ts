@@ -1,4 +1,5 @@
 import type { IVoxelWriter } from "../../_boundary/interfaces";
+import { recomputeAllPipeWaterFlow } from "../../engine/PipeWaterFlow";
 import { getTerrainTypeFromVoxel, initializeVoxel, TERRAIN_TYPES } from "../../engine/TerrainDefs";
 import { removeDisconnectedWater } from "../../engine/WaterSystem";
 import { registerItem } from "../ItemRegistry";
@@ -73,6 +74,7 @@ registerItem({
             ctx.voxelMap.set(initializeVoxel(TERRAIN_TYPES.dirt), { x: groundPos.x, y: groundPos.y + 1, z: groundPos.z });
             revertNearbyInvalidTerrain(ctx.voxelMap, ctx.surfacePos.x, ctx.surfacePos.z);
             removeDisconnectedWater(ctx.voxelMap, ctx.surfacePos.x, ctx.surfacePos.z);
+            recomputeAllPipeWaterFlow(ctx.voxelMap);
             return true;
         }
         return false;

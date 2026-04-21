@@ -4,6 +4,7 @@
  * - hoes: 耕作（平坦な地面を soil に変換）
  */
 import type { IVoxelWriter } from "../../_boundary/interfaces";
+import { recomputeAllPipeWaterFlow } from "../../engine/PipeWaterFlow";
 import { ENTITY_TYPES, getEntityTypeFromVoxel, getTerrainTypeFromVoxel, setTerrainTypeInVoxel, TERRAIN_TYPES } from "../../engine/TerrainDefs";
 import { floodFillWater } from "../../engine/WaterSystem";
 import { registerTerrain } from "../TerrainRegistry";
@@ -68,6 +69,7 @@ function onGrassDirtInteract(ctx: import("../EntityRegistry").InteractionContext
             voxelMap.remove(surfacePos);
             revertNearbyInvalidTerrain(voxelMap, surfacePos.x, surfacePos.z);
             floodFillWater(voxelMap, surfacePos.x, surfacePos.z);
+            recomputeAllPipeWaterFlow(voxelMap);
             return true;
         }
         return false;
