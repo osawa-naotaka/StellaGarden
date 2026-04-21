@@ -21,8 +21,8 @@ import { registerItem } from "../ItemRegistry";
 
 // ── スプライト定義 ──
 
-const seedSprite: EntitySpriteInfo[] = [["ss_sprite_008.png", 0, -2]];
-const starSprite: EntitySpriteInfo[] = [["ss_sprite_060.png", 0, -4]];
+const seedSprite: EntitySpriteInfo[] = [["ss_sprite_008.png", 0, -4]];
+const starSprite: EntitySpriteInfo[] = [["ss_sprite_060.png", 0, -8]];
 
 function cropPositionOf(sprite: string): EntitySpriteInfo {
     return [sprite, 0, -8];

@@ -16,7 +16,7 @@ export class PlayerState implements IPlayerStateWriter {
 
     private posInWorld_: Pos2D;
     private pointerPosInWorld_: Pos2D = { x: 0, z: 0 };
-    private zoomLevel_ = 2.0;
+    private zoomLevel_ = 1.0;
     private facing_: Direction8 = "down";
     private broker: IEventBroker | null = null;
     private readonly voxelMap: IVoxelReader;

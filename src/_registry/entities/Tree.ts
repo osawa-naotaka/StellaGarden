@@ -16,18 +16,18 @@ const LEAVES_STAGE = 4;
 // ── スプライト定義 ──
 
 const sprites: EntitySpriteInfo[][] = [
-    [["ss_sprite_008.png", 0, -2]], // seed
+    [["ss_sprite_008.png", 0, -4]], // seed
     [["ss_sprite_038.png", 0, 0]],
-    [["ss_sprite_039.png", 0, -16]],
+    [["ss_sprite_039.png", 0, -32]],
     [
-        ["ss_sprite_040.png", -8, -16],
+        ["ss_sprite_040.png", -16, -32],
     ],
 ];
 
 /** 落ち葉あり（stage 15）: 成木 + 落ち葉を重ねて表示 */
 const spritesWithLeaves: EntitySpriteInfo[] = [
-    ["ss_sprite_040.png", -8, -16],
-    ["ss_sprite_041.png", 0, 8],
+    ["ss_sprite_040.png", -16, -32],
+    ["ss_sprite_041.png", 0, 16],
 ];
 
 // ── 登録 ──
