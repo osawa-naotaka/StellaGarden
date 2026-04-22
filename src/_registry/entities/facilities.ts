@@ -45,7 +45,6 @@ function registerAxeRemovableFacility(
 
 registerAxeRemovableFacility(ENTITY_TYPES.threshing_machine, "threshing_machine", "ss_sprite_054.png", { w: 2, h: 1 }, "ss_sprite_063.png");
 registerAxeRemovableFacility(ENTITY_TYPES.screw_presses, "screw_presses", "ss_sprite_055.png", { w: 2, h: 2 }, "ss_sprite_064.png");
-registerAxeRemovableFacility(ENTITY_TYPES.soaking_basket, "soaking_basket", "ss_sprite_056.png", { w: 3, h: 1 }, "ss_sprite_065.png");
 registerAxeRemovableFacility(ENTITY_TYPES.scutching_board, "scutching_board", "ss_sprite_057.png", { w: 1, h: 1 }, "ss_sprite_057.png");
 registerAxeRemovableFacility(ENTITY_TYPES.spinning_wheel, "spinning_wheel", "ss_sprite_058.png", { w: 2, h: 1 }, "ss_sprite_066.png");
 registerAxeRemovableFacility(ENTITY_TYPES.loom, "loom", "ss_sprite_059.png", { w: 2, h: 2 }, "ss_sprite_067.png");

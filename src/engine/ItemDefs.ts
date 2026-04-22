@@ -57,4 +57,14 @@ export type ItemId =
     | "screw_rod"
     | "shaft"
     | "chisel"
-    | "pipe";
+    | "pipe"
+    | "frame"
+    | "processed_flax"
+    | "stone_pickaxe"
+    | "stone_axe"
+    | "stone_sickle"
+    | "wooden_shovel"
+    | "wooden_hoes"
+    | "cray_watering_can"
+    | "warp_gate"
+    | "ingot";

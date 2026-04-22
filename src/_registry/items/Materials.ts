@@ -18,3 +18,6 @@ registerItem({ itemId: "hardwood_teeth", spriteName: "ss_sprite_093.png", maxSta
 registerItem({ itemId: "board", spriteName: "ss_sprite_085.png", maxStack: 64 });
 registerItem({ itemId: "screw_rod", spriteName: "ss_sprite_094.png", maxStack: 64 });
 registerItem({ itemId: "shaft", spriteName: "ss_sprite_095.png", maxStack: 64 });
+registerItem({ itemId: "frame", spriteName: "ss_sprite_096.png", maxStack: 64 });
+registerItem({ itemId: "processed_flax", spriteName: "ss_sprite_097.png", maxStack: 64 });
+registerItem({ itemId: "ingot", spriteName: "ss_sprite_083.png", maxStack: 64 });

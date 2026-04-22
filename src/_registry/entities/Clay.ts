@@ -6,7 +6,7 @@ registerEntity({
     entityType: ENTITY_TYPES.clay,
 
     getSprites(): EntitySpriteInfo[] {
-        return [["ss_sprite_080.png", 0, 0]];
+        return [["ss_sprite_086.png", 0, 0]];
     },
 
     onInteract(ctx: InteractionContext): boolean {

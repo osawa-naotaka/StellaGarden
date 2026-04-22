@@ -43,6 +43,9 @@ export const ENTITY_TYPES = {
     anvil: 28,
     forge_burning: 29,
     pipe1: 30,
+    warp_gate: 31,
+    soaking_basket_loaded: 32,
+    soaking_basket_done: 33,
 } as const;
 
 // ---------------------------------------------------------------------------
