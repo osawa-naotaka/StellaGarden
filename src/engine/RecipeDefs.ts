@@ -268,4 +268,12 @@ export const RECIPES: readonly RecipeDef[] = [
         ],
         result: { itemId: "sickle", count: 1 },
     },
+    {
+        id: "pipe",
+        station: "workbench",
+        ingredients: [
+          { itemId: "board", count: 4 },  
+        ],
+        result: { itemId: "pipe", count: 1 },
+    },
 ];
