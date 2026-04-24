@@ -223,4 +223,49 @@ export const RECIPES: readonly RecipeDef[] = [
         ],
         result: { itemId: "clay_watering_can", count: 1 },
     },
+    {
+        id: "hoes",
+        station: "workbench",
+        ingredients: [
+          { itemId: "trunk", count: 1 },
+          { itemId: "blade", count: 1 },  
+        ],
+        result: { itemId: "hoes", count: 1 },
+    },
+    {
+        id: "shovel",
+        station: "workbench",
+        ingredients: [
+          { itemId: "trunk", count: 1 },
+          { itemId: "blade", count: 1 },  
+        ],
+        result: { itemId: "shovel", count: 1 },
+    },
+    {
+        id: "axe",
+        station: "workbench",
+        ingredients: [
+          { itemId: "trunk", count: 1 },
+          { itemId: "blade", count: 1 },  
+        ],
+        result: { itemId: "axe", count: 1 },
+    },
+    {
+        id: "pickaxe",
+        station: "workbench",
+        ingredients: [
+          { itemId: "trunk", count: 1 },
+          { itemId: "blade", count: 1 },  
+        ],
+        result: { itemId: "pickaxe", count: 1 },
+    },
+    {
+        id: "sickle",
+        station: "workbench",
+        ingredients: [
+          { itemId: "trunk", count: 1 },
+          { itemId: "blade", count: 1 },  
+        ],
+        result: { itemId: "sickle", count: 1 },
+    },
 ];
