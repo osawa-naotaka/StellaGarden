@@ -16,4 +16,4 @@ registerItem({ itemId: "stone_axe", spriteName: "ss_sprite_100.png", maxStack: 1
 registerItem({ itemId: "stone_sickle", spriteName: "ss_sprite_102.png", maxStack: 1 });
 registerItem({ itemId: "wooden_shovel", spriteName: "ss_sprite_099.png", maxStack: 1 });
 registerItem({ itemId: "wooden_hoes", spriteName: "ss_sprite_098.png", maxStack: 1 });
-registerItem({ itemId: "cray_watering_can", spriteName: "ss_sprite_103.png", maxStack: 1 });
+registerItem({ itemId: "clay_watering_can", spriteName: "ss_sprite_103.png", maxStack: 1 });

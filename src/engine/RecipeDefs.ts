@@ -164,4 +164,63 @@ export const RECIPES: readonly RecipeDef[] = [
         ],
         result: { itemId: "chisel", count: 1 },
     },
+    {
+        id: "frame",
+        station: "workbench",
+        ingredients: [
+          { itemId: "board", count: 1 },
+        ],
+        result: { itemId: "frame", count: 1 },
+    },
+    {
+        id: "wooden_hoes",
+        station: "workbench",
+        ingredients: [
+          { itemId: "trunk", count: 2 },
+        ],
+        result: { itemId: "wooden_hoes", count: 1 },
+    },
+    {
+        id: "wooden_shovel",
+        station: "workbench",
+        ingredients: [
+          { itemId: "trunk", count: 2 },
+        ],
+        result: { itemId: "wooden_shovel", count: 1 },
+    },
+    {
+        id: "stone_axe",
+        station: "workbench",
+        ingredients: [
+          { itemId: "trunk", count: 1 },
+          { itemId: "stone", count: 1 },  
+        ],
+        result: { itemId: "stone_axe", count: 1 },
+    },
+    {
+        id: "stone_pickaxe",
+        station: "workbench",
+        ingredients: [
+          { itemId: "trunk", count: 1 },
+          { itemId: "stone", count: 1 },  
+        ],
+        result: { itemId: "stone_pickaxe", count: 1 },
+    },
+    {
+        id: "stone_sickle",
+        station: "workbench",
+        ingredients: [
+          { itemId: "trunk", count: 1 },
+          { itemId: "stone", count: 1 },  
+        ],
+        result: { itemId: "stone_sickle", count: 1 },
+    },
+    {
+        id: "clay_watering_can",
+        station: "workbench",
+        ingredients: [
+          { itemId: "clay", count: 4 },
+        ],
+        result: { itemId: "clay_watering_can", count: 1 },
+    },
 ];

@@ -65,6 +65,6 @@ export type ItemId =
     | "stone_sickle"
     | "wooden_shovel"
     | "wooden_hoes"
-    | "cray_watering_can"
+    | "clay_watering_can"
     | "warp_gate"
     | "ingot";
