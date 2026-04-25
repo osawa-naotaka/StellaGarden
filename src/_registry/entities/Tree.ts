@@ -10,8 +10,8 @@ import {
 import { type DailyTickContext, type EntitySpriteInfo, type InteractionContext, registerEntity } from "../EntityRegistry";
 import { registerItem } from "../ItemRegistry";
 
-const TREE_MAX_GROWTH_STAGE = 4;
-const LEAVES_STAGE = 4;
+const TREE_MAX_GROWTH_STAGE = 15;
+const LEAVES_STAGE = 15;
 
 // ── スプライト定義 ──
 
@@ -38,8 +38,15 @@ registerEntity({
     getSprites(voxel: bigint): EntitySpriteInfo[] {
         const stage = getCropGrowthStageFromVoxel(voxel);
         if (stage >= LEAVES_STAGE) return spritesWithLeaves;
-        if (stage >= 3) return sprites[3];
-        return sprites[stage] ?? sprites[0];
+        if (stage <= 0) {
+            return sprites[0];
+        } else if (stage <= 6) {
+            return sprites[1];
+        } else if (stage <= 12) {
+            return sprites[2];
+        }
+        
+        return sprites[3];
     },
 
     onDailyTick(ctx: DailyTickContext): void {
@@ -63,7 +70,6 @@ registerEntity({
                 !ctx.inventory.addItems([
                     { itemId: "trunk", count: 1 },
                     { itemId: "leaves", count: leavesCount },
-                    { itemId: "nuts", count: leavesCount },
                 ])
             )
                 return false;
@@ -76,9 +82,12 @@ registerEntity({
             const stage = getCropGrowthStageFromVoxel(ctx.voxel);
             if (stage < LEAVES_STAGE) return false;
             const leavesCount = 2 + Math.floor(Math.random() * 3); // 2〜4個
-            if (!ctx.inventory.addItems([{ itemId: "leaves", count: leavesCount }])) return false;
+            if (!ctx.inventory.addItems([
+                { itemId: "leaves", count: leavesCount },
+                { itemId: "nuts", count: 1 },
+              ])) return false;
             // stage を 3 にリセットして再カウント開始
-            ctx.voxelMap.set(setCropGrowthStageInVoxel(ctx.voxel, 3), ctx.surfacePos);
+            ctx.voxelMap.set(setCropGrowthStageInVoxel(ctx.voxel, 13), ctx.surfacePos);
             return true;
         }
 

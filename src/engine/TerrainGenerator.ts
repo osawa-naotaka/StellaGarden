@@ -466,7 +466,7 @@ function placeEntities(map: VoxelMap): void {
                 }
             } else if (shouldPlaceTree) {
                 if (terrainType === TERRAIN_TYPES.soil || terrainType === TERRAIN_TYPES.grass) {
-                    map.set(setCropGrowthStageInVoxel(terrain | BigInt(ENTITY_TYPES.tree) << 8n, 3), pos);
+                    map.set(setCropGrowthStageInVoxel(terrain | BigInt(ENTITY_TYPES.tree) << 8n, 13), pos);
                 }
             }
         }

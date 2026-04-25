@@ -2,7 +2,7 @@ import type { IEventBroker, IGameTimeReader } from "../_boundary/interfaces";
 
 /** リアルタイム1日の長さ（ms）。ゲーム内1日 = 10分。 */
 // const DAY_DURATION_MS = 600_000;
-const DAY_DURATION_MS = 40_000;
+const DAY_DURATION_MS = 200_000;
 
 /** ゲーム内の朝5時に相当する経過時間（ms）。 */
 const DAWN_TIME_MS = (DAY_DURATION_MS * 5) / 24;

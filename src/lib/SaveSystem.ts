@@ -12,6 +12,8 @@ export interface SaveData {
     gameTime: GameTimeSaveData;
     chestStorage: ChestStorageSaveData;
     forgeStorage: ForgeStorageSaveData;
+    warpGateStorage: WarpGateStorageSaveData;
+    reputation: ReputationSaveData;
 }
 
 export interface VoxelMapSaveData {
@@ -54,13 +56,21 @@ export interface ForgeStorageSaveData {
     }>;
 }
 
+export interface WarpGateStorageSaveData {
+    slots: (ItemStack | null)[];
+}
+
+export interface ReputationSaveData {
+    points: number;
+}
+
 // ─── 定数 ────────────────────────────────────────────────────────────────────
 
 const DB_NAME = "stella-garden";
 const DB_VERSION = 1;
 const STORE_NAME = "saveData";
 const SAVE_KEY = "autosave";
-const CURRENT_SAVE_VERSION = 3;
+const CURRENT_SAVE_VERSION = 4;
 
 // ─── IndexedDB ユーティリティ ────────────────────────────────────────────────
 

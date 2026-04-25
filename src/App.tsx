@@ -31,15 +31,18 @@ import "./_registry/terrains/SoilWetSoil";
 import type { GameEventMap } from "./_boundary/events";
 import { setChestStorage } from "./_registry/entities/Chest";
 import { setForgeStorage } from "./_registry/entities/Forge";
+import { setWarpGateStorage } from "./_registry/entities/WarpGate";
 import { ChestStorage } from "./engine/ChestStorage";
-import { ForgeStorage } from "./engine/ForgeStorage";
 import { regenerateClay } from "./engine/ClaySystem";
 import { CraftSystem } from "./engine/CraftSystem";
 import { processDailyTick } from "./engine/CropSystem";
+import { ForgeStorage } from "./engine/ForgeStorage";
 import { GameTime } from "./engine/GameTime";
 import { Inventory } from "./engine/Inventory";
 import { PlayerState } from "./engine/PlayerState";
+import { ReputationSystem } from "./engine/ReputationSystem";
 import { generateTerrain } from "./engine/TerrainGenerator";
+import { WarpGateStorage } from "./engine/WarpGateStorage";
 import { InputHandler } from "./input/InputHandler";
 import { createInteractionHandler } from "./input/InteractionSystem";
 import { DEBUG } from "./lib/debugFlag";
@@ -57,6 +60,7 @@ import { loadSprite } from "./view/Sprite";
 import { Toolbar } from "./view/Toolbar";
 import { TopView } from "./view/TopView";
 import { UIState } from "./view/UIState";
+import { WarpGateView } from "./view/WarpGateView";
 
 /** 画面サイズとズームレベルから必要なチャンク数を計算する。 */
 function calcChunkPerViewport(screenW: number, screenH: number, zoomLevel: number): Size2D {
@@ -172,6 +176,12 @@ function useGameEngine(worldSize: Size2D, loadSave: boolean) {
             if (saveData) forgeStorage.loadSaveData(saveData.forgeStorage.forges);
             setForgeStorage(forgeStorage);
 
+            const warpGateStorage = new WarpGateStorage();
+            if (saveData) warpGateStorage.loadSaveData(saveData.warpGateStorage);
+            setWarpGateStorage(warpGateStorage);
+
+            const reputationSystem = new ReputationSystem(saveData?.reputation.points ?? 0);
+
             const craftSystem = new CraftSystem(playerState.inventory);
 
             await loadSprite();
@@ -186,6 +196,9 @@ function useGameEngine(worldSize: Size2D, loadSave: boolean) {
             const forgeView = new ForgeView(playerState.inventory, forgeStorage, voxelMap, uiState);
             pixiApp.stage.addChild(forgeView.top);
 
+            const warpGateView = new WarpGateView(playerState.inventory, warpGateStorage, reputationSystem, uiState);
+            pixiApp.stage.addChild(warpGateView.top);
+
             topView.resize(initialChunks);
 
             const playerCharView = new PlayerCharacterView();
@@ -199,6 +212,14 @@ function useGameEngine(worldSize: Size2D, loadSave: boolean) {
                     processDailyTick(voxelMap);
                     regenerateClay(voxelMap);
                     forgeStorage.advanceDayAllForges(voxelMap);
+
+                    const shippedItems = new Map();
+                    for (const stack of warpGateStorage.getSlots()) {
+                        if (!stack) continue;
+                        shippedItems.set(stack.itemId, (shippedItems.get(stack.itemId) ?? 0) + stack.count);
+                    }
+                    reputationSystem.processShipment(shippedItems);
+                    warpGateStorage.clear();
                 }),
             );
 
@@ -250,6 +271,8 @@ function useGameEngine(worldSize: Size2D, loadSave: boolean) {
                     forgeStorage: {
                         forges: forgeStorage.toSaveData(),
                     },
+                    warpGateStorage: warpGateStorage.toSaveData(),
+                    reputation: reputationSystem.toSaveData(),
                 })
                     .catch((e) => console.warn("Save failed:", e))
                     .finally(() => {
@@ -314,6 +337,7 @@ function useGameEngine(worldSize: Size2D, loadSave: boolean) {
                 inventoryView.tick();
                 chestView.tick();
                 forgeView.tick();
+                warpGateView.tick();
             });
         }
 

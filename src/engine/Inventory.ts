@@ -16,6 +16,7 @@ const DEFAULT_TOOLBAR_ITEMS: readonly (DefaultItem | null)[] = [
     { itemId: "hoes", count: 1 },
 ];
 const DEFAULT_INVENTORY_ITEMS: readonly (DefaultItem | null)[] = [
+    { itemId: "warp_gate", count: 1 },
     { itemId: "potato", count: 64 },
     { itemId: "soybeans", count: 64 },
     { itemId: "flaxseed", count: 64 },

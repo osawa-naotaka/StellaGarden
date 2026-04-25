@@ -1,7 +1,11 @@
+import type { WarpGateStorage } from "../../engine/WarpGateStorage";
 import { ENTITY_TYPES } from "../../engine/TerrainDefs";
 import { type EntitySpriteInfo, type InteractionContext, registerEntity } from "../EntityRegistry";
 import { placeFacility, removeFacilityAtPos } from "../facilityUtil";
 import { registerItem } from "../ItemRegistry";
+
+/** App.tsx から WarpGateStorage を注入する。 */
+export function setWarpGateStorage(_storage: WarpGateStorage): void {}
 
 const WARP_SPRITES: EntitySpriteInfo[][] = [[["ss_sprite_105_1.png", 0, 0]], [["ss_sprite_105_2.png", 0, 0]], [["ss_sprite_105_3.png", 0, 0]]];
 const ANIM_FRAME_MS = 100;
@@ -20,6 +24,11 @@ registerEntity({
             return removeFacilityAtPos(ctx.voxelMap, ctx.inventory, ctx.surfacePos.x, ctx.surfacePos.z, ENTITY_TYPES.warp_gate);
         }
         return false;
+    },
+
+    onPrimaryInteract(ctx: InteractionContext): boolean {
+        ctx.eventBroker.publish("open_warp_gate_ui", { pos: { x: ctx.surfacePos.x, z: ctx.surfacePos.z } });
+        return true;
     },
 });
 

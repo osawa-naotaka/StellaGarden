@@ -1,7 +1,7 @@
 import type { CraftStation, IEventBroker, ItemId, Pos2D, SlotRef } from "../_boundary/interfaces";
 import type { PlacementVariant } from "../_registry/ItemRegistry";
 
-export type UIMode = "normal" | "inventory" | "craft" | "placement" | "chest" | "forge";
+export type UIMode = "normal" | "inventory" | "craft" | "placement" | "chest" | "forge" | "warp_gate";
 
 /**
  * UI の状態を一元管理する純粋データクラス。
@@ -16,6 +16,7 @@ export class UIState {
     placementVariant: PlacementVariant = "horizontal";
     chestPos: Pos2D | null = null;
     forgePos: Pos2D | null = null;
+    warpGatePos: Pos2D | null = null;
 
     /** EventBroker を購読して mode を更新する。dispose 関数を返す。 */
     subscribeEvents(broker: IEventBroker): () => void {
@@ -27,6 +28,7 @@ export class UIState {
                 this.mode = "normal";
                 this.chestPos = null;
                 this.forgePos = null;
+                this.warpGatePos = null;
             }
         });
 
@@ -48,11 +50,18 @@ export class UIState {
             this.forgePos = pos;
         });
 
+        const d5 = broker.subscribe("open_warp_gate_ui", ({ pos }) => {
+            if (this.mode === "placement") return;
+            this.mode = "warp_gate";
+            this.warpGatePos = pos;
+        });
+
         return () => {
             d1();
             d2();
             d3();
             d4();
+            d5();
         };
     }
 

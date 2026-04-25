@@ -81,8 +81,8 @@ export function findFacilityAnchor(
         return null;
     }
 
-    // 最大施設サイズを考慮して探索（左に最大2、上に最大1）
-    for (let dz = 0; dz >= -1; dz--) {
+    // 最大施設サイズを考慮して探索（左に最大2、上に最大3）
+    for (let dz = 0; dz >= -3; dz--) {
         for (let dx = 0; dx >= -2; dx--) {
             if (dx === 0 && dz === 0) continue;
             const nx = x + dx;
