@@ -4,6 +4,7 @@
  */
 import { ENTITY_TYPES, getEntityTypeFromVoxel, setEntityTypeInVoxel, TERRAIN_TYPES } from "../../engine/TerrainDefs";
 import { registerTerrain } from "../TerrainRegistry";
+import { isCrop } from "../../engine/CropSystem";
 
 function onSoilInteract(ctx: import("../EntityRegistry").InteractionContext): boolean {
     if (ctx.tool !== "hoes") return false;
@@ -12,8 +13,11 @@ function onSoilInteract(ctx: import("../EntityRegistry").InteractionContext): bo
     if (entityType === ENTITY_TYPES.none) return false;
 
     // 作物エンティティを削除（虚空へ消滅、アイテム追加なし）
-    ctx.voxelMap.set(setEntityTypeInVoxel(ctx.voxel, ENTITY_TYPES.none), ctx.surfacePos);
-    return true;
+    if (isCrop(entityType)) {
+        ctx.voxelMap.set(setEntityTypeInVoxel(ctx.voxel, ENTITY_TYPES.none), ctx.surfacePos);
+        return true;        
+    }
+    return false;
 }
 
 registerTerrain({
