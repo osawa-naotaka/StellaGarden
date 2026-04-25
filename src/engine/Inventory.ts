@@ -55,13 +55,13 @@ const DEFAULT_INVENTORY_ITEMS: readonly (DefaultItem | null)[] = [
     // { itemId: "warp_gate", count: 1 },
     // { itemId: "ingot", count: 64 },
     // { itemId: "flax_stalk", count: 64 },
-    
+
     // { itemId: "workbench", count: 1 },
     // { itemId: "trunk", count: 64 },
     // { itemId: "stone", count: 64 },
     // { itemId: "dirt", count: 64 },
     // { itemId: "clay", count: 64 },
-    
+
     // { itemId: "stem", count: 64 },
     // { itemId: "leaves", count: 64 },
     // { itemId: "crop_residue", count: 64 },

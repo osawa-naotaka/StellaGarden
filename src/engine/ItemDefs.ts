@@ -67,4 +67,5 @@ export type ItemId =
     | "wooden_hoes"
     | "clay_watering_can"
     | "warp_gate"
-    | "ingot";
+    | "ingot"
+    | "rail";

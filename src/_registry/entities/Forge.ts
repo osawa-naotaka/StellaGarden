@@ -6,11 +6,7 @@ import { registerItem, registerItemAlias } from "../ItemRegistry";
 
 // ── 燃焼中アニメーション用スプライトテーブル ──
 
-const BURNING_SPRITES: EntitySpriteInfo[][] = [
-    [["ss_sprite_070_1.png", 0, 0]],
-    [["ss_sprite_070_2.png", 0, 0]],
-    [["ss_sprite_070_3.png", 0, 0]],
-];
+const BURNING_SPRITES: EntitySpriteInfo[][] = [[["ss_sprite_070_1.png", 0, 0]], [["ss_sprite_070_2.png", 0, 0]], [["ss_sprite_070_3.png", 0, 0]]];
 const ANIM_FRAME_MS = 300;
 
 // ── ForgeStorage の注入 ──

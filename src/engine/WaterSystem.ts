@@ -1,8 +1,13 @@
+import { MAX_WATER_SPREAD_DISTANCE } from "../_boundary/constants";
 import type { IVoxelWriter } from "../_boundary/interfaces";
 import { getTerrainTypeFromVoxel, TERRAIN_TYPES } from "./TerrainDefs";
-import { MAX_WATER_SPREAD_DISTANCE } from "../_boundary/constants";
 
-const DIRS: [number, number][] = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+const DIRS: [number, number][] = [
+    [1, 0],
+    [-1, 0],
+    [0, 1],
+    [0, -1],
+];
 
 /**
  * 指定座標から水の FloodFill を行う（2フェーズBFS）。
@@ -16,12 +21,7 @@ const DIRS: [number, number][] = [[1, 0], [-1, 0], [0, 1], [0, -1]];
  * @param maxDist waterSource からの最大BFSホップ数。
  *                将来の石組み導水路では Infinity を渡して無制限にできる。
  */
-export function floodFillWater(
-    voxelMap: IVoxelWriter,
-    startX: number,
-    startZ: number,
-    maxDist: number = MAX_WATER_SPREAD_DISTANCE
-): void {
+export function floodFillWater(voxelMap: IVoxelWriter, startX: number, startZ: number, maxDist: number = MAX_WATER_SPREAD_DISTANCE): void {
     const horizonH = voxelMap.horizonHeight;
     const key = (x: number, z: number) => x * voxelMap.depth + z;
 
@@ -124,12 +124,7 @@ export function floodFillWater(
  * @param maxDist waterSource からの最大BFSホップ数。
  *                将来の石組み導水路では Infinity を渡して無制限にできる。
  */
-export function removeDisconnectedWater(
-    voxelMap: IVoxelWriter,
-    cx: number,
-    cz: number,
-    maxDist: number = MAX_WATER_SPREAD_DISTANCE
-): void {
+export function removeDisconnectedWater(voxelMap: IVoxelWriter, cx: number, cz: number, maxDist: number = MAX_WATER_SPREAD_DISTANCE): void {
     const horizonH = voxelMap.horizonHeight;
     const globalVisited = new Set<number>();
     const key = (x: number, z: number) => x * voxelMap.depth + z;

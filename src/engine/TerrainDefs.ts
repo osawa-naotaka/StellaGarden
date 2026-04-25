@@ -46,6 +46,7 @@ export const ENTITY_TYPES = {
     warp_gate: 31,
     soaking_basket_loaded: 32,
     soaking_basket_done: 33,
+    rail: 34,
 } as const;
 
 // ---------------------------------------------------------------------------
@@ -178,15 +179,15 @@ export function setFatigueInVoxel(voxel: bigint, fatigue: number): bigint {
     return (voxel & ~(0x7n << 27n)) | ((BigInt(fatigue) & 0x7n) << 27n);
 }
 
-/** 畝間水路の向き。false = horizontal, true = vertical。 */
-export function getPipeVariantFromVoxel(voxel: bigint): boolean {
-    return ((voxel >> 30n) & 0x1n) === 0x1n;
-}
+// /** 畝間水路の向き。false = horizontal, true = vertical。 */
+// export function getPipeVariantFromVoxel(voxel: bigint): boolean {
+//     return ((voxel >> 30n) & 0x1n) === 0x1n;
+// }
 
-/** 畝間水路の向きビットを書き込んだ新しい値を返す（bit 30）。 */
-export function setPipeVariantInVoxel(voxel: bigint, vertical: boolean): bigint {
-    return (voxel & ~(0x1n << 30n)) | ((vertical ? 1n : 0n) << 30n);
-}
+// /** 畝間水路の向きビットを書き込んだ新しい値を返す（bit 30）。 */
+// export function setPipeVariantInVoxel(voxel: bigint, vertical: boolean): bigint {
+//     return (voxel & ~(0x1n << 30n)) | ((vertical ? 1n : 0n) << 30n);
+// }
 
 /** 畝間水路の接続マスクを取り出す（bits 31-34）。 */
 export function getPipeConnectionsFromVoxel(voxel: bigint): number {
@@ -206,4 +207,14 @@ export function getPipeFilledFromVoxel(voxel: bigint): boolean {
 /** 畝間水路の通水ビットを書き込んだ新しい値を返す（bit 35）。 */
 export function setPipeFilledInVoxel(voxel: bigint, filled: boolean): bigint {
     return (voxel & ~(0x1n << 35n)) | ((filled ? 1n : 0n) << 35n);
+}
+
+/** エンティティのバリアントを取り出す（bit 36-38）。 */
+export function getVariantFromVoxel(voxel: bigint): number {
+    return Number((voxel >> 36n) & 0x7n);
+}
+
+/** エンティティのバリアントを書き込んだ新しい値を返す（bit 36-38）。 */
+export function setVariantInVoxel(voxel: bigint, variant: number): bigint {
+    return (voxel & ~(0x7n << 36n)) | ((BigInt(variant) & 0x7n) << 36n);
 }

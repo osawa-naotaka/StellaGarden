@@ -190,7 +190,7 @@ export class InventoryView {
             style: { fontFamily: "Roboto", fontSize: 24, fill: 0xdddddd },
         });
         tabLabelInventory.x = PADDING + 8;
-        tabLabelInventory.y = PADDING +(TAB_HEIGHT - 4 - 24) / 2;
+        tabLabelInventory.y = PADDING + (TAB_HEIGHT - 4 - 24) / 2;
         this.container.addChild(tabLabelInventory);
 
         // Craft タブ
@@ -357,7 +357,7 @@ export class InventoryView {
                 }
 
                 // 純粋: UIState を更新
-                this.uiState.enterPlacementMode(stack.itemId, ref, getPlacementInfo(stack.itemId)?.defaultVariant ?? "horizontal");
+                this.uiState.enterPlacementMode(stack.itemId, ref, getPlacementInfo(stack.itemId)?.defaultVariant ?? 0);
                 return;
             }
 

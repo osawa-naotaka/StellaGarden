@@ -1,5 +1,5 @@
 import { BitmapText, Container, type FederatedPointerEvent, Graphics, Rectangle, Sprite, Texture } from "pixi.js";
-import type { IInventoryWriter, IVoxelWriter, ItemStack, SlotRef } from "../_boundary/interfaces";
+import type { IInventoryWriter, ItemStack, IVoxelWriter, SlotRef } from "../_boundary/interfaces";
 import { getItemDef } from "../_registry/ItemRegistry";
 import type { ForgeSlotKind, ForgeStorage } from "../engine/ForgeStorage";
 import type { UIMode, UIState } from "./UIState";
@@ -165,8 +165,8 @@ export class ForgeView {
         const forgeSlotStartY = PADDING + TITLE_HEIGHT;
         const forgeSlotDefs: { kind: ForgeSlotKind; label: string; area: ForgeSlotArea }[] = [
             { kind: "ingredient", label: "材料", area: "forge_ingredient" },
-            { kind: "fuel",       label: "燃料", area: "forge_fuel"       },
-            { kind: "output",     label: "結果", area: "forge_output"     },
+            { kind: "fuel", label: "燃料", area: "forge_fuel" },
+            { kind: "output", label: "結果", area: "forge_output" },
         ];
 
         for (let i = 0; i < forgeSlotDefs.length; i++) {

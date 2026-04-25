@@ -125,7 +125,10 @@ export class WarpGateView {
         const totalWidth = leftPaneWidth + rightPaneWidth + PADDING;
         const rightInfoHeight = TITLE_HEIGHT + 64;
         const rightInventoryHeight = TITLE_HEIGHT + ROWS * CELL_SIZE;
-        const contentHeight = Math.max(TITLE_HEIGHT + ROWS * CELL_SIZE + SEPARATOR_HEIGHT + CELL_SIZE, rightInfoHeight + SEPARATOR_HEIGHT + rightInventoryHeight);
+        const contentHeight = Math.max(
+            TITLE_HEIGHT + ROWS * CELL_SIZE + SEPARATOR_HEIGHT + CELL_SIZE,
+            rightInfoHeight + SEPARATOR_HEIGHT + rightInventoryHeight,
+        );
         this.windowWidth = totalWidth;
         this.windowHeight = contentHeight + PADDING * 2;
 

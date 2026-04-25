@@ -1,11 +1,11 @@
 import type { IVoxelWriter, Pos2D } from "../_boundary/interfaces";
 import {
     ENTITY_TYPES,
-    TERRAIN_TYPES,
     getEntityTypeFromVoxel,
     getPipeConnectionsFromVoxel,
     getTerrainTypeFromVoxel,
     setPipeConnectionsInVoxel,
+    TERRAIN_TYPES,
 } from "./TerrainDefs";
 
 export const PIPE_CONNECTION_UP = 1 << 0;

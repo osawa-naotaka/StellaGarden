@@ -1,13 +1,13 @@
 import { refreshPipeConnectionsAround } from "../../engine/ChannelConnection";
-import { recomputeAllPipeWaterFlow } from "../../engine/PipeWaterFlow";
 import { getPipeSpriteName } from "../../engine/PipeShape";
-import { ENTITY_TYPES, getPipeFilledFromVoxel, setPipeVariantInVoxel } from "../../engine/TerrainDefs";
+import { recomputeAllPipeWaterFlow } from "../../engine/PipeWaterFlow";
+import { ENTITY_TYPES, getPipeFilledFromVoxel, setVariantInVoxel } from "../../engine/TerrainDefs";
 import { type EntitySpriteInfo, type InteractionContext, registerEntity } from "../EntityRegistry";
 import { placeFacility, removeFacilityAtPos } from "../facilityUtil";
 import { type PlacementVariant, registerItem } from "../ItemRegistry";
 
 function getPipePreviewSpriteName(variant: PlacementVariant): string {
-    return `pipe1_${variant === "vertical" ? "v" : "h"}`;
+    return `pipe1_${variant === 1 ? "v" : "h"}`;
 }
 
 registerEntity({
@@ -26,13 +26,6 @@ registerEntity({
         }
         return removed;
     },
-
-    onPrimaryInteract(ctx: InteractionContext): boolean {
-        if (ctx.tool !== "hot_meteoric_iron") return false;
-        if (!ctx.inventory.addItems([{ itemId: "blade", count: 1 }])) return false;
-        ctx.inventory.consumeSelectedItem(1);
-        return true;
-    },
 });
 
 registerItem({
@@ -42,7 +35,8 @@ registerItem({
     placement: {
         entityType: ENTITY_TYPES.pipe1,
         entitySize: { w: 1, h: 1 },
-        defaultVariant: "horizontal",
+        defaultVariant: 0,
+        maxVariant: 1,
         getFieldSpriteName(variant: PlacementVariant) {
             return getPipePreviewSpriteName(variant);
         },
@@ -50,7 +44,7 @@ registerItem({
             placeFacility(voxelMap, pos, ENTITY_TYPES.pipe1, { w: 1, h: 1 });
             const surfacePos = voxelMap.getSurfacePosition({ x: pos.x, y: 0, z: pos.z });
             const voxel = voxelMap.get(surfacePos);
-            voxelMap.set(setPipeVariantInVoxel(voxel, variant === "vertical"), surfacePos);
+            voxelMap.set(setVariantInVoxel(voxel, variant), surfacePos);
             refreshPipeConnectionsAround(voxelMap, pos);
             recomputeAllPipeWaterFlow(voxelMap);
         },

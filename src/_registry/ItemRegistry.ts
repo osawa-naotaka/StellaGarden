@@ -1,8 +1,8 @@
 import type { IVoxelWriter, Pos2D } from "../_boundary/interfaces";
 import type { InteractionContext } from "./EntityRegistry";
 
-/** 配置可能アイテムの向きバリアント。 */
-export type PlacementVariant = "horizontal" | "vertical";
+/** 配置可能アイテムのバリアント番号。0..7 を想定する。 */
+export type PlacementVariant = number;
 
 /** 配置可能アイテムの配置情報。 */
 export interface PlacementInfo {
@@ -10,8 +10,10 @@ export interface PlacementInfo {
     readonly entityType: number;
     /** 配置時のタイルサイズ（w=横タイル数, h=縦タイル数）。 */
     readonly entitySize: { readonly w: number; readonly h: number };
-    /** 配置開始時のデフォルト向き。 */
+    /** 配置開始時のデフォルトバリアント。省略時は 0。 */
     readonly defaultVariant?: PlacementVariant;
+    /** 利用可能な最大バリアント番号。省略時は 0（バリアントなし）。 */
+    readonly maxVariant?: number;
     /** フィールドに配置した時のスプライト名。 */
     readonly fieldSpriteName?: string;
     /** 配置中プレビューに使うスプライト名を返す。 */
@@ -50,10 +52,21 @@ const itemByEntityType = new Map<number, ItemDef>();
 // ── 登録・取得 API ──
 
 export function registerItem(def: ItemDef): void {
-    itemDefs.set(def.itemId, def);
     if (def.placement) {
+        const maxVariant = def.placement.maxVariant ?? 0;
+        const defaultVariant = def.placement.defaultVariant ?? 0;
+
+        if (!Number.isInteger(maxVariant) || maxVariant < 0 || maxVariant > 7) {
+            throw new Error(`Invalid maxVariant for item "${def.itemId}": ${maxVariant}. Expected an integer in range 0..7.`);
+        }
+        if (!Number.isInteger(defaultVariant) || defaultVariant < 0 || defaultVariant > maxVariant) {
+            throw new Error(`Invalid defaultVariant for item "${def.itemId}": ${defaultVariant}. Expected an integer in range 0..${maxVariant}.`);
+        }
+
         itemByEntityType.set(def.placement.entityType, def);
     }
+
+    itemDefs.set(def.itemId, def);
 }
 
 /**

@@ -55,12 +55,7 @@ export class ForgeStorage {
     isBurning(pos: Pos2D): boolean {
         const slots = this.forges.get(this.key(pos));
         if (!slots) return false;
-        return (
-            slots.ingredient !== null &&
-            slots.ingredient.count >= 1 &&
-            slots.fuel !== null &&
-            slots.fuel.count >= 1
-        );
+        return slots.ingredient !== null && slots.ingredient.count >= 1 && slots.fuel !== null && slots.fuel.count >= 1;
     }
 
     /** 指定座標の炉の指定スロットを返す。 */
@@ -87,8 +82,7 @@ export class ForgeStorage {
             const allowed = ALLOWED_ITEM_IDS[kind];
             if (stack.itemId !== allowed) {
                 console.warn(
-                    `[ForgeStorage] setSlot: slot "${kind}" は itemId="${allowed}" のみ受け入れます。` +
-                        ` 渡された itemId="${stack.itemId}" は無効です。`
+                    `[ForgeStorage] setSlot: slot "${kind}" は itemId="${allowed}" のみ受け入れます。` + ` 渡された itemId="${stack.itemId}" は無効です。`,
                 );
                 return;
             }

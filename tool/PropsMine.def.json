@@ -1,0 +1,20 @@
+{
+  "meta": {
+    "image": "non-redis/PropsMine.png",
+    "format": "RGBA8888",
+    "px": 16,
+    "py": 16
+  },
+  "displacements": {
+  },
+  "animations": {
+  },
+  "frames": {
+    "rail_v": [0,6],
+    "rail_h": [1,6],
+    "rail_r_1": [2,6],
+    "rail_r_2": [4,6],
+    "rail_r_3": [2,8],
+    "rail_r_4": [4,8]
+  }
+}

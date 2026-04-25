@@ -11,6 +11,7 @@ import {
     getFertilizerTypeFromVoxel,
     getLastCropFromVoxel,
     getTerrainTypeFromVoxel,
+    getVariantFromVoxel,
     TERRAIN_TYPES,
 } from "../engine/TerrainDefs";
 
@@ -101,10 +102,12 @@ export class DebugText {
         const drought = getDroughtCounterFromVoxel(voxel);
         const lastCrop = getLastCropFromVoxel(voxel);
         const fatigue = getFatigueFromVoxel(voxel);
+        const variant = getVariantFromVoxel(voxel);
 
         let info = `Tile (${px}, ${pos.y}, ${pz})`;
         info += `\nTerrain: ${TERRAIN_NAMES[terrain] ?? terrain}`;
         info += `\nEntity: ${ENTITY_NAMES[entity] ?? entity}`;
+        info += `\nVariant: ${variant}`;
 
         if (entity !== ENTITY_TYPES.none) {
             const cropDef = CROP_DEFS[entity];

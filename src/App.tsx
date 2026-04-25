@@ -14,6 +14,7 @@ import "./_registry/entities/Kiln";
 import "./_registry/entities/MeteoricIron";
 import "./_registry/entities/Pipe";
 import "./_registry/entities/Potato";
+import "./_registry/entities/Rail";
 import "./_registry/entities/Soy";
 import "./_registry/entities/Stone";
 import "./_registry/entities/Sunflower";

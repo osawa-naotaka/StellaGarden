@@ -1,4 +1,4 @@
-import { getPipeConnectionsFromVoxel, getPipeVariantFromVoxel } from "./TerrainDefs";
+import { getPipeConnectionsFromVoxel, getVariantFromVoxel } from "./TerrainDefs";
 
 export type PipeShapeKey =
     | "h"
@@ -22,7 +22,7 @@ export function getPipeShapeKey(voxel: bigint): PipeShapeKey {
 
     switch (mask) {
         case 0:
-            return getPipeVariantFromVoxel(voxel) ? "v" : "h";
+            return getVariantFromVoxel(voxel) === 0 ? "h" : "v";
         case 1:
             return "end_d";
         case 2:
@@ -54,7 +54,7 @@ export function getPipeShapeKey(voxel: bigint): PipeShapeKey {
         case 15:
             return "cross";
         default:
-            return getPipeVariantFromVoxel(voxel) ? "v" : "h";
+            return getVariantFromVoxel(voxel) === 0 ? "h" : "v";
     }
 }
 

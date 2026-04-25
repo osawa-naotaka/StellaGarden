@@ -164,16 +164,14 @@ export class PlacementOverlay {
         }
 
         if (e.key.toLowerCase() === "v" && this.placementInfo) {
-            this.uiState.togglePlacementVariant();
+            this.uiState.togglePlacementVariant(this.placementInfo.maxVariant ?? 0);
             this.updatePreviewSprite();
         }
     }
 
     private updatePreviewSprite(): void {
         if (!this.placementInfo) return;
-        const spriteName =
-            this.placementInfo.getFieldSpriteName?.(this.uiState.placementVariant) ??
-            this.placementInfo.fieldSpriteName;
+        const spriteName = this.placementInfo.getFieldSpriteName?.(this.uiState.placementVariant) ?? this.placementInfo.fieldSpriteName;
         if (!spriteName) return;
         this.previewSprite.texture = Texture.from(spriteName);
     }

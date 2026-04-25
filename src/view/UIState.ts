@@ -13,7 +13,7 @@ export class UIState {
     craftStation: CraftStation = "hand";
     placementItemId: ItemId | null = null;
     placementSourceSlot: SlotRef | null = null;
-    placementVariant: PlacementVariant = "horizontal";
+    placementVariant: PlacementVariant = 0;
     chestPos: Pos2D | null = null;
     forgePos: Pos2D | null = null;
     warpGatePos: Pos2D | null = null;
@@ -66,16 +66,20 @@ export class UIState {
     }
 
     /** 配置モードに入る（フィールド変更のみ、副作用なし）。 */
-    enterPlacementMode(itemId: ItemId, sourceSlot: SlotRef, variant: PlacementVariant = "horizontal"): void {
+    enterPlacementMode(itemId: ItemId, sourceSlot: SlotRef, variant: PlacementVariant = 0): void {
         this.mode = "placement";
         this.placementItemId = itemId;
         this.placementSourceSlot = sourceSlot;
         this.placementVariant = variant;
     }
 
-    /** 配置中の向きを切り替える（フィールド変更のみ、副作用なし）。 */
-    togglePlacementVariant(): void {
-        this.placementVariant = this.placementVariant === "horizontal" ? "vertical" : "horizontal";
+    /** 配置中のバリアントを切り替える（フィールド変更のみ、副作用なし）。 */
+    togglePlacementVariant(maxVariant: number): void {
+        if (maxVariant <= 0) {
+            this.placementVariant = 0;
+            return;
+        }
+        this.placementVariant = (this.placementVariant + 1) % (maxVariant + 1);
     }
 
     /** 配置モードを終了する（フィールド変更のみ、副作用なし）。 */
@@ -83,6 +87,6 @@ export class UIState {
         this.mode = "normal";
         this.placementItemId = null;
         this.placementSourceSlot = null;
-        this.placementVariant = "horizontal";
+        this.placementVariant = 0;
     }
 }

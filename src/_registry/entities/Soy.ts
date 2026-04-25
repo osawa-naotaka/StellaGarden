@@ -101,7 +101,7 @@ registerItem({
             ctx.inventory.consumeSelectedItem(1);
             return true;
         }
-        
+
         const voxel = ctx.voxel;
         const terrainType = getTerrainTypeFromVoxel(voxel);
         if ((terrainType !== TERRAIN_TYPES.soil && terrainType !== TERRAIN_TYPES.wetSoil) || getEntityTypeFromVoxel(voxel) !== ENTITY_TYPES.none) {
@@ -143,7 +143,7 @@ registerItem({
         if (!ctx.inventory.addItems([{ itemId: "soybeans", count: 1 }])) return false;
         ctx.inventory.consumeSelectedItem(1);
         return true;
-    }
+    },
 });
 registerItem({ itemId: "soybean_oil", spriteName: "ss_sprite_016.png", maxStack: 64 });
 registerItem({ itemId: "bagged_soybeans", spriteName: "ss_sprite_017.png", maxStack: 64 });

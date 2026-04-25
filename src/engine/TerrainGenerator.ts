@@ -462,11 +462,11 @@ function placeEntities(map: VoxelMap): void {
 
             if (shouldPlaceStone) {
                 if (terrainType === TERRAIN_TYPES.soil || terrainType === TERRAIN_TYPES.grass) {
-                    map.set(terrain | BigInt(ENTITY_TYPES.stone) << 8n, pos);
+                    map.set(terrain | (BigInt(ENTITY_TYPES.stone) << 8n), pos);
                 }
             } else if (shouldPlaceTree) {
                 if (terrainType === TERRAIN_TYPES.soil || terrainType === TERRAIN_TYPES.grass) {
-                    map.set(setCropGrowthStageInVoxel(terrain | BigInt(ENTITY_TYPES.tree) << 8n, 13), pos);
+                    map.set(setCropGrowthStageInVoxel(terrain | (BigInt(ENTITY_TYPES.tree) << 8n), 13), pos);
                 }
             }
         }

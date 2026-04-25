@@ -1,12 +1,5 @@
 import type { IVoxelWriter, Pos2D } from "../_boundary/interfaces";
-import {
-    ENTITY_TYPES,
-    TERRAIN_TYPES,
-    getEntityTypeFromVoxel,
-    getPipeConnectionsFromVoxel,
-    getTerrainTypeFromVoxel,
-    setPipeFilledInVoxel,
-} from "./TerrainDefs";
+import { ENTITY_TYPES, getEntityTypeFromVoxel, getPipeConnectionsFromVoxel, getTerrainTypeFromVoxel, setPipeFilledInVoxel, TERRAIN_TYPES } from "./TerrainDefs";
 
 export const PIPE_WATER_MAX_DISTANCE = 16;
 

@@ -27,25 +27,21 @@ export const RECIPES: readonly RecipeDef[] = [
         id: "forge",
         station: "hand",
         ingredients: [
-          { itemId: "clay", count: 8 },
-          { itemId: "stone", count: 4 },
+            { itemId: "clay", count: 8 },
+            { itemId: "stone", count: 4 },
         ],
         result: { itemId: "forge", count: 1 },
     },
     {
         id: "anvil",
         station: "workbench",
-        ingredients: [
-            { itemId: "stone", count: 4 },
-        ],
+        ingredients: [{ itemId: "stone", count: 4 }],
         result: { itemId: "anvil", count: 1 },
     },
     {
         id: "tongs",
         station: "workbench",
-        ingredients: [
-            { itemId: "trunk", count: 1 },
-        ],
+        ingredients: [{ itemId: "trunk", count: 1 }],
         result: { itemId: "tongs", count: 1 },
     },
     {
@@ -58,7 +54,7 @@ export const RECIPES: readonly RecipeDef[] = [
         id: "hardwood_teeth",
         station: "workbench",
         ingredients: [{ itemId: "trunk", count: 1 }],
-        result: { itemId: "hardwood_teeth", count: 1 },        
+        result: { itemId: "hardwood_teeth", count: 1 },
     },
     {
         id: "threshing_machine",
@@ -90,25 +86,19 @@ export const RECIPES: readonly RecipeDef[] = [
     {
         id: "scutching_board",
         station: "workbench",
-        ingredients: [
-            { itemId: "trunk", count: 1 },
-        ],
+        ingredients: [{ itemId: "trunk", count: 1 }],
         result: { itemId: "scutching_board", count: 1 },
     },
     {
         id: "board",
         station: "workbench",
-        ingredients: [
-            { itemId: "trunk", count: 1 },
-        ],
+        ingredients: [{ itemId: "trunk", count: 1 }],
         result: { itemId: "board", count: 4 },
     },
     {
         id: "screw_rod",
         station: "workbench",
-        ingredients: [
-            { itemId: "trunk", count: 1 },
-        ],
+        ingredients: [{ itemId: "trunk", count: 1 }],
         result: { itemId: "screw_rod", count: 1 },
     },
     {
@@ -123,17 +113,15 @@ export const RECIPES: readonly RecipeDef[] = [
     {
         id: "shaft",
         station: "workbench",
-        ingredients: [
-            { itemId: "trunk", count: 1 },
-        ],
+        ingredients: [{ itemId: "trunk", count: 1 }],
         result: { itemId: "shaft", count: 1 },
     },
     {
         id: "spinning_wheel",
         station: "workbench",
         ingredients: [
-          { itemId: "board", count: 2 },
-          { itemId: "shaft", count: 1 },
+            { itemId: "board", count: 2 },
+            { itemId: "shaft", count: 1 },
         ],
         result: { itemId: "spinning_wheel", count: 1 },
     },
@@ -141,8 +129,8 @@ export const RECIPES: readonly RecipeDef[] = [
         id: "soaking_basket",
         station: "workbench",
         ingredients: [
-          { itemId: "board", count: 8 },
-          { itemId: "clay", count: 2 },
+            { itemId: "board", count: 8 },
+            { itemId: "clay", count: 2 },
         ],
         result: { itemId: "soaking_basket", count: 1 },
     },
@@ -150,8 +138,8 @@ export const RECIPES: readonly RecipeDef[] = [
         id: "loom",
         station: "workbench",
         ingredients: [
-          { itemId: "board", count: 4 },
-          { itemId: "trunk", count: 2 },
+            { itemId: "board", count: 4 },
+            { itemId: "trunk", count: 2 },
         ],
         result: { itemId: "loom", count: 1 },
     },
@@ -159,41 +147,35 @@ export const RECIPES: readonly RecipeDef[] = [
         id: "chisel",
         station: "workbench",
         ingredients: [
-          { itemId: "blade", count: 1 },
-          { itemId: "trunk", count: 1 },
+            { itemId: "blade", count: 1 },
+            { itemId: "trunk", count: 1 },
         ],
         result: { itemId: "chisel", count: 1 },
     },
     {
         id: "frame",
         station: "workbench",
-        ingredients: [
-          { itemId: "board", count: 1 },
-        ],
+        ingredients: [{ itemId: "board", count: 1 }],
         result: { itemId: "frame", count: 1 },
     },
     {
         id: "wooden_hoes",
         station: "workbench",
-        ingredients: [
-          { itemId: "trunk", count: 2 },
-        ],
+        ingredients: [{ itemId: "trunk", count: 2 }],
         result: { itemId: "wooden_hoes", count: 1 },
     },
     {
         id: "wooden_shovel",
         station: "workbench",
-        ingredients: [
-          { itemId: "trunk", count: 2 },
-        ],
+        ingredients: [{ itemId: "trunk", count: 2 }],
         result: { itemId: "wooden_shovel", count: 1 },
     },
     {
         id: "stone_axe",
         station: "workbench",
         ingredients: [
-          { itemId: "trunk", count: 1 },
-          { itemId: "stone", count: 1 },  
+            { itemId: "trunk", count: 1 },
+            { itemId: "stone", count: 1 },
         ],
         result: { itemId: "stone_axe", count: 1 },
     },
@@ -201,8 +183,8 @@ export const RECIPES: readonly RecipeDef[] = [
         id: "stone_pickaxe",
         station: "workbench",
         ingredients: [
-          { itemId: "trunk", count: 1 },
-          { itemId: "stone", count: 1 },  
+            { itemId: "trunk", count: 1 },
+            { itemId: "stone", count: 1 },
         ],
         result: { itemId: "stone_pickaxe", count: 1 },
     },
@@ -210,25 +192,23 @@ export const RECIPES: readonly RecipeDef[] = [
         id: "stone_sickle",
         station: "workbench",
         ingredients: [
-          { itemId: "trunk", count: 1 },
-          { itemId: "stone", count: 1 },  
+            { itemId: "trunk", count: 1 },
+            { itemId: "stone", count: 1 },
         ],
         result: { itemId: "stone_sickle", count: 1 },
     },
     {
         id: "clay_watering_can",
         station: "workbench",
-        ingredients: [
-          { itemId: "clay", count: 4 },
-        ],
+        ingredients: [{ itemId: "clay", count: 4 }],
         result: { itemId: "clay_watering_can", count: 1 },
     },
     {
         id: "hoes",
         station: "workbench",
         ingredients: [
-          { itemId: "trunk", count: 1 },
-          { itemId: "blade", count: 1 },  
+            { itemId: "trunk", count: 1 },
+            { itemId: "blade", count: 1 },
         ],
         result: { itemId: "hoes", count: 1 },
     },
@@ -236,8 +216,8 @@ export const RECIPES: readonly RecipeDef[] = [
         id: "shovel",
         station: "workbench",
         ingredients: [
-          { itemId: "trunk", count: 1 },
-          { itemId: "blade", count: 1 },  
+            { itemId: "trunk", count: 1 },
+            { itemId: "blade", count: 1 },
         ],
         result: { itemId: "shovel", count: 1 },
     },
@@ -245,8 +225,8 @@ export const RECIPES: readonly RecipeDef[] = [
         id: "axe",
         station: "workbench",
         ingredients: [
-          { itemId: "trunk", count: 1 },
-          { itemId: "blade", count: 1 },  
+            { itemId: "trunk", count: 1 },
+            { itemId: "blade", count: 1 },
         ],
         result: { itemId: "axe", count: 1 },
     },
@@ -254,8 +234,8 @@ export const RECIPES: readonly RecipeDef[] = [
         id: "pickaxe",
         station: "workbench",
         ingredients: [
-          { itemId: "trunk", count: 1 },
-          { itemId: "blade", count: 1 },  
+            { itemId: "trunk", count: 1 },
+            { itemId: "blade", count: 1 },
         ],
         result: { itemId: "pickaxe", count: 1 },
     },
@@ -263,25 +243,27 @@ export const RECIPES: readonly RecipeDef[] = [
         id: "sickle",
         station: "workbench",
         ingredients: [
-          { itemId: "trunk", count: 1 },
-          { itemId: "blade", count: 1 },  
+            { itemId: "trunk", count: 1 },
+            { itemId: "blade", count: 1 },
         ],
         result: { itemId: "sickle", count: 1 },
     },
     {
         id: "pipe",
         station: "workbench",
-        ingredients: [
-          { itemId: "board", count: 4 },  
-        ],
+        ingredients: [{ itemId: "board", count: 4 }],
         result: { itemId: "pipe", count: 1 },
     },
     {
         id: "chest",
         station: "workbench",
-        ingredients: [
-          { itemId: "board", count: 4 },
-        ],
+        ingredients: [{ itemId: "board", count: 4 }],
         result: { itemId: "chest", count: 1 },
+    },
+    {
+        id: "rail",
+        station: "workbench",
+        ingredients: [{ itemId: "trunk", count: 4 }],
+        result: { itemId: "rail", count: 4 },
     },
 ];

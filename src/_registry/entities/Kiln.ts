@@ -45,11 +45,17 @@ registerEntity({
     onInteract(ctx: InteractionContext): boolean {
         // スコップで窯を崩し、木炭を回収（窯は消滅、使い捨て）
         if (ctx.tool !== "shovel") return false;
-        
+
         // facility_part タイルからでも正しくアンカー座標を解決する
         const anchor = findFacilityAnchor(ctx.voxelMap, ctx.surfacePos.x, ctx.surfacePos.z);
         if (!anchor) return false;
-        if (!ctx.inventory.addItems([{ itemId: "charcoal", count: 12 }, { itemId: "dirt", count: 2 }])) return false;
+        if (
+            !ctx.inventory.addItems([
+                { itemId: "charcoal", count: 12 },
+                { itemId: "dirt", count: 2 },
+            ])
+        )
+            return false;
         // 2x2 の全タイルのエンティティビットをクリアする
         for (let dz = 0; dz < 2; dz++) {
             for (let dx = 0; dx < 2; dx++) {

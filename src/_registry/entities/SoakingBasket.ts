@@ -58,7 +58,6 @@ registerEntity({
     },
 });
 
-
 registerEntity({
     entityType: ENTITY_TYPES.soaking_basket_done,
 

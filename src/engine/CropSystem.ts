@@ -99,9 +99,8 @@ export function processDailyTick(voxelMap: IVoxelWriter): void {
     applyPipeIrrigation(voxelMap);
 }
 
-
 export function isCrop(entityType: number): boolean {
-    switch(entityType) {
+    switch (entityType) {
         case ENTITY_TYPES.flax:
         case ENTITY_TYPES.potato:
         case ENTITY_TYPES.soy:

@@ -1,13 +1,6 @@
 import type { IVoxelWriter } from "../_boundary/interfaces";
 import { getPipeShapeKey, isIrrigatingPipeShape } from "./PipeShape";
-import {
-    ENTITY_TYPES,
-    getEntityTypeFromVoxel,
-    getPipeFilledFromVoxel,
-    getTerrainTypeFromVoxel,
-    setTerrainTypeInVoxel,
-    TERRAIN_TYPES,
-} from "./TerrainDefs";
+import { ENTITY_TYPES, getEntityTypeFromVoxel, getPipeFilledFromVoxel, getTerrainTypeFromVoxel, setTerrainTypeInVoxel, TERRAIN_TYPES } from "./TerrainDefs";
 
 export const PIPE_IRRIGATION_RANGE = 3;
 

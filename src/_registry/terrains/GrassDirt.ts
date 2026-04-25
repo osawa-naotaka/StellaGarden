@@ -4,11 +4,11 @@
  * - hoes: 耕作（平坦な地面を soil に変換）
  */
 import type { IVoxelWriter } from "../../_boundary/interfaces";
+import { isCrop } from "../../engine/CropSystem";
 import { recomputeAllPipeWaterFlow } from "../../engine/PipeWaterFlow";
 import { ENTITY_TYPES, getEntityTypeFromVoxel, getTerrainTypeFromVoxel, initializeVoxel, setTerrainTypeInVoxel, TERRAIN_TYPES } from "../../engine/TerrainDefs";
 import { floodFillWater } from "../../engine/WaterSystem";
 import { registerTerrain } from "../TerrainRegistry";
-import { isCrop } from "../../engine/CropSystem";
 
 /** 3x3 範囲の表面 y がすべて同じかどうかを返す。 */
 function isFlat3x3(voxelMap: IVoxelWriter, centerX: number, centerZ: number, centerY: number): boolean {
@@ -79,7 +79,7 @@ function onGrassDirtInteract(ctx: import("../EntityRegistry").InteractionContext
     if (tool === "hoes") {
         if (isFlat3x3(voxelMap, surfacePos.x, surfacePos.z, surfacePos.y)) {
             const entityType = getEntityTypeFromVoxel(voxel);
-            if (entityType == ENTITY_TYPES.none || isCrop(entityType)) {
+            if (entityType === ENTITY_TYPES.none || isCrop(entityType)) {
                 voxelMap.set(initializeVoxel(TERRAIN_TYPES.soil), surfacePos);
                 return true;
             }

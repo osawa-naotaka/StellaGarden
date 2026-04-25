@@ -19,9 +19,7 @@ const sprites: EntitySpriteInfo[][] = [
     [["ss_sprite_008.png", 0, -4]], // seed
     [["ss_sprite_038.png", 0, 0]],
     [["ss_sprite_039.png", 0, -32]],
-    [
-        ["ss_sprite_040.png", -16, -32],
-    ],
+    [["ss_sprite_040.png", -16, -32]],
 ];
 
 /** 落ち葉あり（stage 15）: 成木 + 落ち葉を重ねて表示 */
@@ -45,7 +43,7 @@ registerEntity({
         } else if (stage <= 12) {
             return sprites[2];
         }
-        
+
         return sprites[3];
     },
 
@@ -82,10 +80,13 @@ registerEntity({
             const stage = getCropGrowthStageFromVoxel(ctx.voxel);
             if (stage < LEAVES_STAGE) return false;
             const leavesCount = 2 + Math.floor(Math.random() * 3); // 2〜4個
-            if (!ctx.inventory.addItems([
-                { itemId: "leaves", count: leavesCount },
-                { itemId: "nuts", count: 1 },
-              ])) return false;
+            if (
+                !ctx.inventory.addItems([
+                    { itemId: "leaves", count: leavesCount },
+                    { itemId: "nuts", count: 1 },
+                ])
+            )
+                return false;
             // stage を 3 にリセットして再カウント開始
             ctx.voxelMap.set(setCropGrowthStageInVoxel(ctx.voxel, 13), ctx.surfacePos);
             return true;
