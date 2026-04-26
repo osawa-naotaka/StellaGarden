@@ -5,8 +5,8 @@ import type { ReputationSystem } from "../engine/ReputationSystem";
 import type { WarpGateStorage } from "../engine/WarpGateStorage";
 import type { UIMode, UIState } from "./UIState";
 
-const CELL_SIZE = 40;
-const ICON_SIZE = 32;
+const CELL_SIZE = 60;
+const ICON_SIZE = 48;
 const PADDING = 10;
 const TITLE_HEIGHT = 24;
 const SEPARATOR_HEIGHT = 14;

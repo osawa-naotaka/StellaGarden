@@ -5,9 +5,17 @@ import { getItemDef } from "../_registry/ItemRegistry";
 const RECIPE_CELL_SIZE = 60;
 const RECIPE_ICON_SIZE = 48;
 const RECIPE_COLS = 4;
+const RECIPE_ROWS = 4;
+const RECIPES_PER_PAGE = RECIPE_COLS * RECIPE_ROWS;
+
 const MATERIAL_ROW_HEIGHT = 60;
 const PANE_PADDING = 8;
 const MATERIAL_ICON_SIZE = 48;
+
+const PAGINATION_HEIGHT = 36;
+const PAGINATION_BUTTON_WIDTH = 72;
+const PAGINATION_BUTTON_HEIGHT = 28;
+const PAGINATION_LABEL_FONT_SIZE = 20;
 
 /** レシピアイコン1枚分の表示オブジェクト群。 */
 interface RecipeIcon {
@@ -26,6 +34,12 @@ interface MaterialRow {
     countText: BitmapText;
 }
 
+interface PaginationButton {
+    container: Container;
+    background: Graphics;
+    label: BitmapText;
+}
+
 /** クラフトタブの右側ペイン。レシピグリッドと選択レシピの素材表示を担当する。 */
 export class CraftPane {
     readonly container: Container;
@@ -36,11 +50,16 @@ export class CraftPane {
     private selectedRecipe: RecipeDef | null = null;
 
     private recipeGridContainer: Container;
+    private paginationContainer: Container;
     private materialContainer: Container;
     private materialLabel: BitmapText;
+    private pageLabel: BitmapText;
+    private prevButton: PaginationButton;
+    private nextButton: PaginationButton;
 
     /** 現在のステーションで利用可能なレシピ一覧。update() で更新される。 */
     private currentRecipes: readonly RecipeDef[] = [];
+    private currentPage = 0;
 
     constructor(craftSystem: ICraftSystem, station: CraftStation) {
         this.craftSystem = craftSystem;
@@ -51,6 +70,42 @@ export class CraftPane {
         this.recipeGridContainer.y = PANE_PADDING;
         this.recipeGridContainer.x = PANE_PADDING;
         this.container.addChild(this.recipeGridContainer);
+
+        // ページネーションコンテナ
+        this.paginationContainer = new Container();
+        this.paginationContainer.x = PANE_PADDING;
+        this.paginationContainer.y = PANE_PADDING + RECIPE_ROWS * RECIPE_CELL_SIZE + PANE_PADDING;
+        this.container.addChild(this.paginationContainer);
+
+        this.prevButton = this.createPaginationButton("Prev");
+        this.prevButton.container.x = 0;
+        this.paginationContainer.addChild(this.prevButton.container);
+
+        this.pageLabel = new BitmapText({
+            text: "1 / 1",
+            style: { fontFamily: "Roboto", fontSize: PAGINATION_LABEL_FONT_SIZE, fill: 0xdddddd },
+        });
+        this.pageLabel.x = PAGINATION_BUTTON_WIDTH + 12;
+        this.pageLabel.y = 4;
+        this.paginationContainer.addChild(this.pageLabel);
+
+        this.nextButton = this.createPaginationButton("Next");
+        this.nextButton.container.x = RECIPE_COLS * RECIPE_CELL_SIZE - PAGINATION_BUTTON_WIDTH;
+        this.paginationContainer.addChild(this.nextButton.container);
+
+        this.prevButton.container.on("pointerdown", (event: FederatedPointerEvent) => {
+            event.stopPropagation();
+            if (this.currentPage <= 0) return;
+            this.currentPage--;
+            this.refreshRecipePage();
+        });
+
+        this.nextButton.container.on("pointerdown", (event: FederatedPointerEvent) => {
+            event.stopPropagation();
+            if (this.currentPage >= this.getTotalPages() - 1) return;
+            this.currentPage++;
+            this.refreshRecipePage();
+        });
 
         // 素材エリアラベル（右下エリア）
         this.materialLabel = new BitmapText({
@@ -68,6 +123,27 @@ export class CraftPane {
         this.buildRecipeIcons();
         this.buildMaterialRows();
         this.updateMaterialDisplay();
+        this.refreshRecipePage();
+    }
+
+    private createPaginationButton(text: string): PaginationButton {
+        const container = new Container();
+        container.hitArea = new Rectangle(0, 0, PAGINATION_BUTTON_WIDTH, PAGINATION_BUTTON_HEIGHT);
+        container.interactive = true;
+        container.cursor = "pointer";
+
+        const background = new Graphics();
+        container.addChild(background);
+
+        const label = new BitmapText({
+            text,
+            style: { fontFamily: "Roboto", fontSize: 18, fill: 0xffffff },
+        });
+        label.x = 10;
+        label.y = 4;
+        container.addChild(label);
+
+        return { container, background, label };
     }
 
     /** レシピアイコンを事前確保して並べる。 */
@@ -78,10 +154,7 @@ export class CraftPane {
         }
         this.recipeIcons = [];
 
-        const maxRecipes = Math.max(this.currentRecipes.length, 1);
-
-        for (let i = 0; i < maxRecipes; i++) {
-            const recipe = this.currentRecipes[i] ?? null;
+        for (let i = 0; i < RECIPES_PER_PAGE; i++) {
             const col = i % RECIPE_COLS;
             const row = Math.floor(i / RECIPE_COLS);
 
@@ -115,7 +188,7 @@ export class CraftPane {
 
             this.recipeGridContainer.addChild(itemContainer);
 
-            const icon: RecipeIcon = { container: itemContainer, sprite, graphics, border, recipe };
+            const icon: RecipeIcon = { container: itemContainer, sprite, graphics, border, recipe: null };
             this.recipeIcons.push(icon);
 
             // イベント登録（クロージャで icon を参照）
@@ -138,28 +211,57 @@ export class CraftPane {
                 }
             });
         }
+    }
+
+    private getTotalPages(): number {
+        return Math.max(1, Math.ceil(this.currentRecipes.length / RECIPES_PER_PAGE));
+    }
+
+    private getRecipesForCurrentPage(): readonly RecipeDef[] {
+        const startIndex = this.currentPage * RECIPES_PER_PAGE;
+        return this.currentRecipes.slice(startIndex, startIndex + RECIPES_PER_PAGE);
+    }
+
+    private refreshRecipePage(): void {
+        const totalPages = this.getTotalPages();
+        if (this.currentPage >= totalPages) {
+            this.currentPage = totalPages - 1;
+        }
+        if (this.currentPage < 0) {
+            this.currentPage = 0;
+        }
 
         this.applyRecipeIconContent();
         this.updateRecipeBorders();
+        this.updatePaginationDisplay();
+        this.updateMaterialDisplay();
     }
 
     /** レシピアイコンにアイテム画像を適用する。 */
     private applyRecipeIconContent(): void {
+        const pageRecipes = this.getRecipesForCurrentPage();
+
         for (let i = 0; i < this.recipeIcons.length; i++) {
             const icon = this.recipeIcons[i];
-            const recipe = this.currentRecipes[i] ?? null;
+            const recipe = pageRecipes[i] ?? null;
             icon.recipe = recipe;
 
             if (!recipe) {
                 icon.sprite.visible = false;
                 icon.graphics.visible = false;
                 icon.container.interactive = false;
+                icon.container.alpha = 1.0;
                 continue;
             }
 
             icon.container.interactive = true;
             const def = getItemDef(recipe.result.itemId);
-            if (!def) continue;
+            if (!def) {
+                icon.sprite.visible = false;
+                icon.graphics.visible = false;
+                continue;
+            }
+
             const iconOffset = (RECIPE_CELL_SIZE - RECIPE_ICON_SIZE) / 2;
 
             if (def.spriteName) {
@@ -187,6 +289,25 @@ export class CraftPane {
                 icon.border.stroke({ width: 2, color: 0x555555 });
             }
         }
+    }
+
+    private updatePaginationDisplay(): void {
+        const totalPages = this.getTotalPages();
+        this.pageLabel.text = `${this.currentPage + 1} / ${totalPages}`;
+
+        this.updatePaginationButtonState(this.prevButton, this.currentPage > 0);
+        this.updatePaginationButtonState(this.nextButton, this.currentPage < totalPages - 1);
+    }
+
+    private updatePaginationButtonState(button: PaginationButton, enabled: boolean): void {
+        button.container.interactive = enabled;
+        button.container.cursor = enabled ? "pointer" : "default";
+        button.container.alpha = enabled ? 1.0 : 0.4;
+
+        button.background.clear();
+        button.background.roundRect(0, 0, PAGINATION_BUTTON_WIDTH, PAGINATION_BUTTON_HEIGHT, 6);
+        button.background.fill({ color: enabled ? 0x4a4a4a : 0x2f2f2f, alpha: 0.95 });
+        button.background.stroke({ width: 2, color: enabled ? 0x888888 : 0x555555 });
     }
 
     /** 素材表示行を事前確保する（最大想定素材数）。 */
@@ -228,10 +349,9 @@ export class CraftPane {
 
     /** 選択レシピに応じて素材表示を更新する。 */
     private updateMaterialDisplay(): void {
-        // グリッド行数からオフセットを計算
-        const recipeRows = Math.max(1, Math.ceil(this.currentRecipes.length / RECIPE_COLS));
-        const gridHeight = recipeRows * RECIPE_CELL_SIZE;
-        const labelY = PANE_PADDING + gridHeight + PANE_PADDING;
+        const gridHeight = RECIPE_ROWS * RECIPE_CELL_SIZE;
+        const paginationY = PANE_PADDING + gridHeight + PANE_PADDING;
+        const labelY = paginationY + PAGINATION_HEIGHT + PANE_PADDING;
 
         this.materialLabel.x = PANE_PADDING;
         this.materialLabel.y = labelY;
@@ -284,10 +404,9 @@ export class CraftPane {
     /** ステーション変更時にレシピ一覧を再取得して再構築する。 */
     update(station: CraftStation): void {
         this.currentRecipes = this.craftSystem.getAvailableRecipes(station);
+        this.currentPage = 0;
         this.selectedRecipe = null;
-        this.buildRecipeIcons();
-        this.buildMaterialRows();
-        this.updateMaterialDisplay();
+        this.refreshRecipePage();
     }
 
     get top(): Container {

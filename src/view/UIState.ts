@@ -1,7 +1,7 @@
 import type { CraftStation, IEventBroker, ItemId, Pos2D, SlotRef } from "../_boundary/interfaces";
 import type { PlacementVariant } from "../_registry/ItemRegistry";
 
-export type UIMode = "normal" | "inventory" | "craft" | "placement" | "chest" | "forge" | "warp_gate";
+export type UIMode = "normal" | "inventory-craft" | "placement" | "chest" | "forge" | "warp_gate";
 
 /**
  * UI の状態を一元管理する純粋データクラス。
@@ -23,7 +23,7 @@ export class UIState {
         const d1 = broker.subscribe("toggle_inventory", () => {
             if (this.mode === "placement") return;
             if (this.mode === "normal") {
-                this.mode = "inventory";
+                this.mode = "inventory-craft";
             } else {
                 this.mode = "normal";
                 this.chestPos = null;
@@ -34,7 +34,7 @@ export class UIState {
 
         const d2 = broker.subscribe("open_craft_ui", () => {
             if (this.mode === "placement") return;
-            this.mode = "craft";
+            this.mode = "inventory-craft";
             this.craftStation = "workbench";
         });
 
