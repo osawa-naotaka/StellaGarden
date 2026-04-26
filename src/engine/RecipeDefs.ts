@@ -93,6 +93,7 @@ export const RECIPES: readonly RecipeDef[] = [
         id: "board",
         station: "workbench",
         ingredients: [{ itemId: "trunk", count: 1 }],
+        requiredTool: { itemId: "froe" },
         result: { itemId: "board", count: 4 },
     },
     {
@@ -156,6 +157,7 @@ export const RECIPES: readonly RecipeDef[] = [
         id: "frame",
         station: "workbench",
         ingredients: [{ itemId: "board", count: 1 }],
+        requiredTool: { itemId: "chisel" },
         result: { itemId: "frame", count: 1 },
     },
     {

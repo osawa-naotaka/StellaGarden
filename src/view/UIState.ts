@@ -11,6 +11,7 @@ export type UIMode = "normal" | "inventory-craft" | "placement" | "chest" | "for
 export class UIState {
     mode: UIMode = "normal";
     craftStation: CraftStation = "hand";
+    craftWorkbenchPos: Pos2D | null = null;
     placementItemId: ItemId | null = null;
     placementSourceSlot: SlotRef | null = null;
     placementVariant: PlacementVariant = 0;
@@ -24,18 +25,23 @@ export class UIState {
             if (this.mode === "placement") return;
             if (this.mode === "normal") {
                 this.mode = "inventory-craft";
+                this.craftStation = "hand";
+                this.craftWorkbenchPos = null;
             } else {
                 this.mode = "normal";
+                this.craftStation = "hand";
+                this.craftWorkbenchPos = null;
                 this.chestPos = null;
                 this.forgePos = null;
                 this.warpGatePos = null;
             }
         });
 
-        const d2 = broker.subscribe("open_craft_ui", () => {
+        const d2 = broker.subscribe("open_craft_ui", ({ workbenchPos }) => {
             if (this.mode === "placement") return;
             this.mode = "inventory-craft";
             this.craftStation = "workbench";
+            this.craftWorkbenchPos = workbenchPos;
         });
 
         const d3 = broker.subscribe("open_chest_ui", ({ pos }) => {

@@ -33,6 +33,7 @@ import type { GameEventMap } from "./_boundary/events";
 import { setChestStorage } from "./_registry/entities/Chest";
 import { setForgeStorage } from "./_registry/entities/Forge";
 import { setWarpGateStorage } from "./_registry/entities/WarpGate";
+import { setWorkbenchStorage } from "./_registry/entities/Workbench";
 import { ChestStorage } from "./engine/ChestStorage";
 import { regenerateClay } from "./engine/ClaySystem";
 import { CraftSystem } from "./engine/CraftSystem";
@@ -44,6 +45,7 @@ import { PlayerState } from "./engine/PlayerState";
 import { ReputationSystem } from "./engine/ReputationSystem";
 import { generateTerrain } from "./engine/TerrainGenerator";
 import { WarpGateStorage } from "./engine/WarpGateStorage";
+import { WorkbenchStorage } from "./engine/WorkbenchStorage";
 import { InputHandler } from "./input/InputHandler";
 import { createInteractionHandler } from "./input/InteractionSystem";
 import { DEBUG } from "./lib/debugFlag";
@@ -177,13 +179,17 @@ function useGameEngine(worldSize: Size2D, loadSave: boolean) {
             if (saveData) forgeStorage.loadSaveData(saveData.forgeStorage.forges);
             setForgeStorage(forgeStorage);
 
+            const workbenchStorage = new WorkbenchStorage();
+            if (saveData) workbenchStorage.loadSaveData(saveData.workbenchStorage.workbenches);
+            setWorkbenchStorage(workbenchStorage);
+
             const warpGateStorage = new WarpGateStorage();
             if (saveData) warpGateStorage.loadSaveData(saveData.warpGateStorage);
             setWarpGateStorage(warpGateStorage);
 
             const reputationSystem = new ReputationSystem(saveData?.reputation.points ?? 0);
 
-            const craftSystem = new CraftSystem(playerState.inventory);
+            const craftSystem = new CraftSystem(playerState.inventory, workbenchStorage, uiState);
 
             await loadSprite();
             if (!pixiApp) return;
@@ -271,6 +277,9 @@ function useGameEngine(worldSize: Size2D, loadSave: boolean) {
                     },
                     forgeStorage: {
                         forges: forgeStorage.toSaveData(),
+                    },
+                    workbenchStorage: {
+                        workbenches: workbenchStorage.toSaveData(),
                     },
                     warpGateStorage: warpGateStorage.toSaveData(),
                     reputation: reputationSystem.toSaveData(),

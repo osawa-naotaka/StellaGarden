@@ -146,11 +146,15 @@ export type CraftStation = "hand" | "workbench";
 /** レシピの素材1種。 */
 export type RecipeIngredient = { readonly itemId: ItemId; readonly count: number };
 
+/** 作業時に消費せず参照だけする利用ツール。 */
+export type RecipeTool = { readonly itemId: ItemId };
+
 /** クラフトレシピ定義。engine/RecipeDefs.ts で具体値を保持する。 */
 export interface RecipeDef {
     readonly id: string;
     readonly station: CraftStation;
     readonly ingredients: readonly RecipeIngredient[];
+    readonly requiredTool?: RecipeTool;
     readonly result: { readonly itemId: ItemId; readonly count: number };
 }
 
@@ -162,7 +166,9 @@ export interface ICraftSystemReader {
     /** 指定ステーションで利用可能なレシピ一覧を返す。
      *  hand → 素手レシピのみ、workbench → 全レシピ。 */
     getAvailableRecipes(station: CraftStation): readonly RecipeDef[];
-    /** 指定レシピの素材がインベントリに足りているか判定する。 */
+    /** 現在セットされている利用ツールを返す。 */
+    getToolSlot(): ItemStack | null;
+    /** 指定レシピの素材と利用ツール条件が満たされているか判定する。 */
     canCraft(recipe: RecipeDef): boolean;
 }
 
@@ -171,6 +177,8 @@ export interface ICraftSystemReader {
  * view/ がクラフト実行時に呼ぶ。
  */
 export interface ICraftSystem extends ICraftSystemReader {
+    /** 利用ツールスロットを更新する。null で空にする。 */
+    setToolSlot(stack: ItemStack | null): void;
     /** レシピを実行する。素材をインベントリから消費し、成果物を追加する。
      *  成功時 true、素材不足またはインベントリ満杯時 false。 */
     craft(recipe: RecipeDef): boolean;

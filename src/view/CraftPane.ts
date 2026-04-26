@@ -1,12 +1,20 @@
 import { BitmapText, Container, type FederatedPointerEvent, Graphics, Rectangle, Sprite, Texture } from "pixi.js";
-import type { CraftStation, ICraftSystem, RecipeDef } from "../_boundary/interfaces";
+import type { CraftStation, ICraftSystem, Pos2D, RecipeDef } from "../_boundary/interfaces";
 import { getItemDef } from "../_registry/ItemRegistry";
+
+interface CraftPaneOptions {
+    onToolSlotLeftClick?: (event: FederatedPointerEvent) => void;
+}
 
 const RECIPE_CELL_SIZE = 60;
 const RECIPE_ICON_SIZE = 48;
 const RECIPE_COLS = 4;
 const RECIPE_ROWS = 4;
 const RECIPES_PER_PAGE = RECIPE_COLS * RECIPE_ROWS;
+
+const TOOL_SLOT_SIZE = 60;
+const TOOL_SLOT_ICON_SIZE = 48;
+const TOOL_SLOT_AREA_HEIGHT = 92;
 
 const MATERIAL_ROW_HEIGHT = 60;
 const PANE_PADDING = 8;
@@ -40,6 +48,22 @@ interface PaginationButton {
     label: BitmapText;
 }
 
+interface ToolSlotDisplay {
+    container: Container;
+    border: Graphics;
+    sprite: Sprite;
+    graphics: Graphics;
+    label: BitmapText;
+}
+
+interface ToolRequirementDisplay {
+    container: Container;
+    label: BitmapText;
+    sprite: Sprite;
+    graphics: Graphics;
+    nameText: BitmapText;
+}
+
 /** クラフトタブの右側ペイン。レシピグリッドと選択レシピの素材表示を担当する。 */
 export class CraftPane {
     readonly container: Container;
@@ -56,25 +80,34 @@ export class CraftPane {
     private pageLabel: BitmapText;
     private prevButton: PaginationButton;
     private nextButton: PaginationButton;
+    private toolSlotDisplay: ToolSlotDisplay;
+    private toolRequirementDisplay: ToolRequirementDisplay;
 
     /** 現在のステーションで利用可能なレシピ一覧。update() で更新される。 */
     private currentRecipes: readonly RecipeDef[] = [];
     private currentPage = 0;
+    private onToolSlotLeftClick?: (event: FederatedPointerEvent) => void;
 
-    constructor(craftSystem: ICraftSystem, station: CraftStation) {
+    constructor(craftSystem: ICraftSystem, station: CraftStation, options: CraftPaneOptions = {}) {
         this.craftSystem = craftSystem;
         this.container = new Container();
+        this.onToolSlotLeftClick = options.onToolSlotLeftClick;
+
+        this.toolSlotDisplay = this.createToolSlotDisplay();
+        this.toolSlotDisplay.container.x = PANE_PADDING;
+        this.toolSlotDisplay.container.y = PANE_PADDING;
+        this.container.addChild(this.toolSlotDisplay.container);
 
         // レシピグリッドコンテナ（右上エリア）
         this.recipeGridContainer = new Container();
-        this.recipeGridContainer.y = PANE_PADDING;
+        this.recipeGridContainer.y = PANE_PADDING + TOOL_SLOT_AREA_HEIGHT;
         this.recipeGridContainer.x = PANE_PADDING;
         this.container.addChild(this.recipeGridContainer);
 
         // ページネーションコンテナ
         this.paginationContainer = new Container();
         this.paginationContainer.x = PANE_PADDING;
-        this.paginationContainer.y = PANE_PADDING + RECIPE_ROWS * RECIPE_CELL_SIZE + PANE_PADDING;
+        this.paginationContainer.y = PANE_PADDING + TOOL_SLOT_AREA_HEIGHT + RECIPE_ROWS * RECIPE_CELL_SIZE + PANE_PADDING;
         this.container.addChild(this.paginationContainer);
 
         this.prevButton = this.createPaginationButton("Prev");
@@ -106,6 +139,9 @@ export class CraftPane {
             this.currentPage++;
             this.refreshRecipePage();
         });
+
+        this.toolRequirementDisplay = this.createToolRequirementDisplay();
+        this.container.addChild(this.toolRequirementDisplay.container);
 
         // 素材エリアラベル（右下エリア）
         this.materialLabel = new BitmapText({
@@ -144,6 +180,80 @@ export class CraftPane {
         container.addChild(label);
 
         return { container, background, label };
+    }
+
+    private createToolSlotDisplay(): ToolSlotDisplay {
+        const container = new Container();
+
+        const label = new BitmapText({
+            text: "Tool:",
+            style: { fontFamily: "Roboto", fontSize: 24, fill: 0xaaaaaa },
+        });
+        container.addChild(label);
+
+        const slotContainer = new Container();
+        slotContainer.y = 28;
+        slotContainer.hitArea = new Rectangle(0, 0, TOOL_SLOT_SIZE, TOOL_SLOT_SIZE);
+        slotContainer.interactive = true;
+        slotContainer.cursor = "pointer";
+        slotContainer.on("pointerdown", (event: FederatedPointerEvent) => {
+            event.stopPropagation();
+            if (event.button !== 0) return;
+            this.onToolSlotLeftClick?.(event);
+        });
+        container.addChild(slotContainer);
+
+        const border = new Graphics();
+        slotContainer.addChild(border);
+
+        const iconOffset = (TOOL_SLOT_SIZE - TOOL_SLOT_ICON_SIZE) / 2;
+
+        const sprite = new Sprite();
+        sprite.width = TOOL_SLOT_ICON_SIZE;
+        sprite.height = TOOL_SLOT_ICON_SIZE;
+        sprite.x = iconOffset;
+        sprite.y = iconOffset;
+        sprite.visible = false;
+        slotContainer.addChild(sprite);
+
+        const graphics = new Graphics();
+        graphics.visible = false;
+        slotContainer.addChild(graphics);
+
+        return { container: slotContainer, border, sprite, graphics, label };
+    }
+
+    private createToolRequirementDisplay(): ToolRequirementDisplay {
+        const container = new Container();
+        container.visible = false;
+
+        const label = new BitmapText({
+            text: "Tool:",
+            style: { fontFamily: "Roboto", fontSize: 24, fill: 0xaaaaaa },
+        });
+        container.addChild(label);
+
+        const sprite = new Sprite();
+        sprite.width = MATERIAL_ICON_SIZE;
+        sprite.height = MATERIAL_ICON_SIZE;
+        sprite.y = 30;
+        sprite.visible = false;
+        container.addChild(sprite);
+
+        const graphics = new Graphics();
+        graphics.y = 30;
+        graphics.visible = false;
+        container.addChild(graphics);
+
+        const nameText = new BitmapText({
+            text: "",
+            style: { fontFamily: "Roboto", fontSize: 24, fill: 0xdddddd },
+        });
+        nameText.x = MATERIAL_ICON_SIZE + 6;
+        nameText.y = 42;
+        container.addChild(nameText);
+
+        return { container, label, sprite, graphics, nameText };
     }
 
     /** レシピアイコンを事前確保して並べる。 */
@@ -350,14 +460,42 @@ export class CraftPane {
     /** 選択レシピに応じて素材表示を更新する。 */
     private updateMaterialDisplay(): void {
         const gridHeight = RECIPE_ROWS * RECIPE_CELL_SIZE;
-        const paginationY = PANE_PADDING + gridHeight + PANE_PADDING;
-        const labelY = paginationY + PAGINATION_HEIGHT + PANE_PADDING;
+        const paginationY = PANE_PADDING + TOOL_SLOT_AREA_HEIGHT + gridHeight + PANE_PADDING;
+        const toolLabelY = paginationY + PAGINATION_HEIGHT + PANE_PADDING;
+
+        this.toolRequirementDisplay.container.x = PANE_PADDING;
+        this.toolRequirementDisplay.container.y = toolLabelY;
+        this.toolRequirementDisplay.container.visible = false;
+        this.toolRequirementDisplay.sprite.visible = false;
+        this.toolRequirementDisplay.graphics.visible = false;
+
+        let materialLabelY = toolLabelY;
+
+        if (this.selectedRecipe?.requiredTool) {
+            const toolDef = getItemDef(this.selectedRecipe.requiredTool.itemId);
+            this.toolRequirementDisplay.container.visible = true;
+            materialLabelY += MATERIAL_ROW_HEIGHT;
+
+            if (toolDef?.spriteName) {
+                this.toolRequirementDisplay.sprite.texture = Texture.from(toolDef.spriteName);
+                this.toolRequirementDisplay.sprite.visible = true;
+                this.toolRequirementDisplay.graphics.visible = false;
+            } else {
+                this.toolRequirementDisplay.graphics.clear();
+                this.toolRequirementDisplay.graphics.rect(0, 0, MATERIAL_ICON_SIZE, MATERIAL_ICON_SIZE);
+                this.toolRequirementDisplay.graphics.fill({ color: toolDef?.placeholderColor ?? 0x888888 });
+                this.toolRequirementDisplay.graphics.visible = true;
+                this.toolRequirementDisplay.sprite.visible = false;
+            }
+
+            this.toolRequirementDisplay.nameText.text = this.selectedRecipe.requiredTool.itemId;
+        }
 
         this.materialLabel.x = PANE_PADDING;
-        this.materialLabel.y = labelY;
+        this.materialLabel.y = materialLabelY;
 
         this.materialContainer.x = PANE_PADDING;
-        this.materialContainer.y = labelY + 32;
+        this.materialContainer.y = materialLabelY + 32;
 
         // 全行を非表示にしてリセット
         for (const row of this.materialRows) {
@@ -392,8 +530,56 @@ export class CraftPane {
         }
     }
 
+    setOnToolSlotLeftClick(callback: ((event: FederatedPointerEvent) => void) | undefined): void {
+        this.onToolSlotLeftClick = callback;
+    }
+
+    getToolSlot() {
+        return this.craftSystem.getToolSlot();
+    }
+
+    setToolSlot(stack: import("../_boundary/interfaces").ItemStack | null): void {
+        this.craftSystem.setToolSlot(stack);
+        this.updateToolSlotDisplay();
+        this.updateMaterialDisplay();
+    }
+
+    private updateToolSlotDisplay(): void {
+        const toolStack = this.craftSystem.getToolSlot();
+        this.toolSlotDisplay.border.clear();
+        this.toolSlotDisplay.border.rect(0, 0, TOOL_SLOT_SIZE, TOOL_SLOT_SIZE);
+        this.toolSlotDisplay.border.stroke({ width: 2, color: 0x888888 });
+
+        this.toolSlotDisplay.sprite.visible = false;
+        this.toolSlotDisplay.graphics.visible = false;
+
+        if (!toolStack) {
+            return;
+        }
+
+        const def = getItemDef(toolStack.itemId);
+        if (!def) {
+            return;
+        }
+
+        if (def.spriteName) {
+            this.toolSlotDisplay.sprite.texture = Texture.from(def.spriteName);
+            this.toolSlotDisplay.sprite.visible = true;
+            this.toolSlotDisplay.graphics.visible = false;
+        } else {
+            const iconOffset = (TOOL_SLOT_SIZE - TOOL_SLOT_ICON_SIZE) / 2;
+            this.toolSlotDisplay.graphics.clear();
+            this.toolSlotDisplay.graphics.rect(iconOffset, iconOffset, TOOL_SLOT_ICON_SIZE, TOOL_SLOT_ICON_SIZE);
+            this.toolSlotDisplay.graphics.fill({ color: def.placeholderColor ?? 0x888888 });
+            this.toolSlotDisplay.graphics.visible = true;
+            this.toolSlotDisplay.sprite.visible = false;
+        }
+    }
+
     /** ゲームループから毎 tick 呼ぶ。クラフト可否に応じてアイコンの alpha を更新する。 */
     tick(): void {
+        this.updateToolSlotDisplay();
+
         for (let i = 0; i < this.recipeIcons.length; i++) {
             const icon = this.recipeIcons[i];
             if (!icon.recipe) continue;
@@ -402,7 +588,7 @@ export class CraftPane {
     }
 
     /** ステーション変更時にレシピ一覧を再取得して再構築する。 */
-    update(station: CraftStation): void {
+    update(station: CraftStation, _workbenchPos: Pos2D | null = null): void {
         this.currentRecipes = this.craftSystem.getAvailableRecipes(station);
         this.currentPage = 0;
         this.selectedRecipe = null;

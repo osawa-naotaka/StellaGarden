@@ -17,7 +17,7 @@ export type GameEventMap = {
     toggle_inventory: Record<string, never>;
     /** 作業台を右クリックしてクラフトUIを開く。
      *  発行: InteractionSystem（作業台エンティティ検出時）。購読: App.tsx → InventoryView.show("craft")。 */
-    open_craft_ui: { pos: Pos2D };
+    open_craft_ui: { pos: Pos2D; workbenchPos: Pos2D };
     /** チェストを右クリックしてチェストUIを開く。 */
     open_chest_ui: { pos: Pos2D };
     /** warp gate を右クリックして地球出荷UIを開く。 */

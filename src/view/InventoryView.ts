@@ -1,5 +1,5 @@
 import { BitmapText, Container, type FederatedPointerEvent, Graphics, Rectangle, Sprite, Texture } from "pixi.js";
-import type { CraftStation, ICraftSystem, IInventoryWriter, ItemStack, SlotRef } from "../_boundary/interfaces";
+import type { CraftStation, ICraftSystem, IInventoryWriter, ItemId, ItemStack, SlotRef } from "../_boundary/interfaces";
 import { getItemDef, getPlacementInfo, isPlaceable } from "../_registry/ItemRegistry";
 import { CraftPane } from "./CraftPane";
 import type { UIMode, UIState } from "./UIState";
@@ -12,6 +12,26 @@ const SEPARATOR_HEIGHT = 32;
 const INVENTORY_COLS = 8;
 const INVENTORY_ROWS = 8;
 const TOOLBAR_COLS = 9;
+
+const CRAFT_TOOL_ITEM_IDS: ReadonlySet<ItemId> = new Set([
+    "hand",
+    "pickaxe",
+    "axe",
+    "sickle",
+    "shovel",
+    "hoes",
+    "watering_can",
+    "tongs",
+    "stone_hammer",
+    "froe",
+    "chisel",
+    "stone_pickaxe",
+    "stone_axe",
+    "stone_sickle",
+    "wooden_shovel",
+    "wooden_hoes",
+    "clay_watering_can",
+]);
 
 /** スロットに事前確保した表示オブジェクト群。tick ごとに内容を上書きして使い回す。 */
 interface SlotIcon {
@@ -142,7 +162,11 @@ export class InventoryView {
         this.onKeyDownBound = this.onKeyDown.bind(this);
 
         // CraftPane を事前生成
-        this.craftPane = new CraftPane(craftSystem, "hand");
+        this.craftPane = new CraftPane(craftSystem, "hand", {
+            onToolSlotLeftClick: (event: FederatedPointerEvent) => {
+                this.handleCraftToolSlotLeftClick(event);
+            },
+        });
 
         this.buildUI(leftPaneWidth);
         this.updateWindowPosition();
@@ -238,6 +262,35 @@ export class InventoryView {
         const local = this.container.toLocal({ x: clientX, y: clientY });
         this.cursorContainer.x = local.x - CELL_SIZE / 2;
         this.cursorContainer.y = local.y - CELL_SIZE / 2;
+    }
+
+    private isCraftToolItem(itemId: ItemId): boolean {
+        return CRAFT_TOOL_ITEM_IDS.has(itemId);
+    }
+
+    private handleCraftToolSlotLeftClick(event: FederatedPointerEvent): void {
+        const toolStack = this.craftPane.getToolSlot();
+
+        if (!this.pickedUp) {
+            if (!toolStack) return;
+            this.craftPane.setToolSlot(null);
+            this.pickedUp = { stack: { ...toolStack }, source: { area: "inventory", index: -1 } };
+            this.setCursorPosition(event.clientX, event.clientY);
+            return;
+        }
+
+        if (!this.isCraftToolItem(this.pickedUp.stack.itemId)) {
+            return;
+        }
+
+        this.craftPane.setToolSlot({ itemId: this.pickedUp.stack.itemId, count: 1 });
+
+        if (toolStack) {
+            this.pickedUp = { stack: { ...toolStack }, source: { area: "inventory", index: -1 } };
+            this.setCursorPosition(event.clientX, event.clientY);
+        } else {
+            this.pickedUp = null;
+        }
     }
 
     private handleLeftClick(ref: SlotRef, event: FederatedPointerEvent): void {
@@ -344,7 +397,11 @@ export class InventoryView {
     private onKeyDown(e: KeyboardEvent): void {
         if (e.key === "Escape" && this.pickedUp) {
             // ピックアップをキャンセルして元のスロットに戻す
-            this.inventory.setSlot(this.pickedUp.source, this.pickedUp.stack);
+            if (this.pickedUp.source.index >= 0) {
+                this.inventory.setSlot(this.pickedUp.source, this.pickedUp.stack);
+            } else {
+                this.craftPane.setToolSlot(this.pickedUp.stack);
+            }
             this.pickedUp = null;
         }
     }
@@ -393,7 +450,7 @@ export class InventoryView {
      *  defaultTab でどのタブを最初に表示するかを指定できる。
      *  station はクラフトタブで使用する作業台の種類。 */
     show(station: CraftStation = "hand"): void {
-        this.craftPane.update(station);
+        this.craftPane.update(station, this.uiState.craftWorkbenchPos);
         this.updateWindowPosition();
         this.container.visible = true;
         window.addEventListener("mousemove", this.onMouseMoveBound);
@@ -407,7 +464,11 @@ export class InventoryView {
         window.removeEventListener("keydown", this.onKeyDownBound);
         // ピックアップ状態をキャンセルして元に戻す
         if (this.pickedUp) {
-            this.inventory.setSlot(this.pickedUp.source, this.pickedUp.stack);
+            if (this.pickedUp.source.index >= 0) {
+                this.inventory.setSlot(this.pickedUp.source, this.pickedUp.stack);
+            } else {
+                this.craftPane.setToolSlot(this.pickedUp.stack);
+            }
             this.pickedUp = null;
         }
     }
