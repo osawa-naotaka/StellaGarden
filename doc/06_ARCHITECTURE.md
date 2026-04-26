@@ -2,6 +2,31 @@
 
 > このドキュメントはリアーキテクチャ（`07_RE_ARCHETECTURE.md`）完了後の**現在のアーキテクチャ**を記述する。
 > サブエージェントが担当モジュールの実装を始める前に必ず読むこと。
+>
+> **注記（最新拡張との関係）**
+>
+> この文書はアーキテクチャの基本原則を記述する正規文書であるが、作成時点以降に追加された拡張要素の一部は本文にまだ十分反映されていない。
+> 特に以下の文書で扱われる要素は、本書の原則に従って読むこと。
+>
+> - `13_RE_RE_ARCHETECTURE.md` — Registry パターンと `UIState`
+> - `16_IRRIGATION.md` — 灌漑システム
+> - `17_AUTOMATION.md` — 水車・シャフト・ケーブル牽引ベースの自動化
+> - `19_CRAY.md` — 粘土再生成と `VoxelMap.riversideCells`
+> - `20_FORGE.md` — 炉UIと `ForgeStorage`
+> - `21_AUTO_FERTILIZATION.md` — 物流ループ・施肥ループ・レイヤ分離
+>
+> これらの後続文書は**本書のモジュール境界・依存方向・責務分離を前提にした拡張仕様**であり、矛盾する場合は「アーキテクチャ原則は本書、個別機能の具体仕様は後続文書」を優先して解釈すること。
+>
+> 具体的には、以下の点を補足として読む。
+>
+> - `view/` は引き続き `engine/` の具体クラスを直接参照しない
+> - `input/` は引き続き原則 `EventBroker` 経由で操作通知を送る
+> - 新しい施設・作物・アイテム・地形の振る舞い追加は、後続の Registry パターンを通して行う
+> - `VoxelMap` は後続拡張により追加メタデータ（例: `riversideCells`）を持ちうる
+> - ストレージを持つ施設（例: チェスト、炉）は、地形上のエンティティ表現とは別に専用ストレージクラスを持ちうる
+> - UI モード管理は `App.tsx` 直書きではなく、後続の `UIState` 導入方針と整合して読む
+>
+> したがって、この文書は古くなったというより、**後続拡張の土台となる基礎原則文書**として扱う。
 
 ---
 
@@ -20,12 +45,24 @@
 
 ## ディレクトリ構成
 
+> **補足**  
+> 以下の一覧は本書作成時点の代表構成であり、後続拡張で追加された全ファイルを網羅するものではない。  
+> とくに `_registry/`、施設ストレージ系、UI状態管理系、灌漑・自動化・粘土・炉関連の追加ファイルは、後続文書で拡張されている。
+
 ```
 src/
   _boundary/               ← 全モジュールが読む境界定義（変更は全員に影響する）
     events.ts              ← GameEventMap（全イベントの型を一元管理）
     interfaces.ts          ← モジュール間インターフェース定義
     constants.ts           ← 共有定数（PIXEL_PER_TILE, TILE_PER_CHUNK）
+
+  _registry/               ← 振る舞い定義の集約（後続拡張で追加）
+    EntityRegistry.ts
+    ItemRegistry.ts
+    TerrainRegistry.ts
+    entities/
+    items/
+    terrains/
 
   engine/                  ← 純粋なゲームロジック（PixiJS 非依存）
     Inventory.ts           ← IInventoryWriter を implements
@@ -35,6 +72,9 @@ src/
     ItemDefs.ts            ← ITEM_DEFS 定数・ItemId 型
     GameTime.ts            ← IGameTimeReader を implements。ゲーム内時間管理
     CropSystem.ts          ← advanceDayAllCrops / dryWetSoil（純粋関数）
+    ChestStorage.ts        ← チェストの内部ストレージ（後続拡張）
+    ForgeStorage.ts        ← 炉の内部ストレージ（後続拡張）
+    ClaySystem.ts          ← 粘土再生成などの補助システム（後続拡張）
 
   view/                    ← PixiJS レンダリング・UI
     TopView.ts             ← ワールド描画（チャンクキャッシュ、ホバーハイライト）
@@ -43,6 +83,9 @@ src/
     DebugText.ts           ← デバッグ情報表示
     Sprite.ts              ← スプライトシート非同期読み込み
     Tile.ts                ← タイル描画ヘルパー
+    ChestView.ts           ← チェスト UI（後続拡張）
+    ForgeView.ts           ← 炉 UI（後続拡張）
+    UIState.ts             ← UI モードの純粋データ管理（後続拡張）
     renderer/
       TerrainSpriteResolver.ts  ← ボクセル値 → スプライト名マッピング
 
@@ -55,6 +98,7 @@ src/
     VoxelMap.ts            ← IVoxelWriter を implements
     ChunkRenderer.ts       ← チャンク単位の RenderTexture レンダリング
     Pool.ts                ← オブジェクトプール
+    SaveSystem.ts          ← IndexedDB ベースの永続化（後続拡張）
 
   App.tsx                  ← React 層 + DI コンテナ + ゲームループ
   router.tsx               ← React エントリポイント
@@ -176,7 +220,17 @@ export const TILE_PER_CHUNK = 16;   // チャンク1辺のタイル数
 
 ## 各モジュールの責務
 
+> **補足**  
+> 後続拡張により、責務の分割はさらに明確化されている。  
+> とくに「振る舞い定義は `_registry/`」「施設内部状態は専用ストレージ」「UIモードは `UIState`」という分離が追加されている。  
+> 以下の節はその基礎原則として読むこと。
+
 ### `src/engine/` — 純粋なゲームロジック（PixiJS 非依存）
+
+> **後続拡張との関係**  
+> 本書作成時点では `engine/` の代表例として基本クラスのみを挙げているが、現在は `ChestStorage`、`ForgeStorage`、`ClaySystem` など、  
+> 「地形上の見た目とは別に内部状態を持つシステム」も `engine/` に属する。  
+> これらも PixiJS 非依存であり、本節の原則に従う。
 
 | ファイル | 責務 |
 |---|---|
@@ -209,6 +263,10 @@ export const TILE_PER_CHUNK = 16;   // チャンク1辺のタイル数
 `setPointerPosInWorld()` はイベント経由ではなく `IPlayerStateWriter` を直接呼ぶ（毎フレームの高頻度呼び出しのため）。
 
 ### `src/view/` — PixiJS レンダリング・UI
+
+> **後続拡張との関係**  
+> 現在は `InventoryView` だけでなく、`ChestView`、`ForgeView`、`UIState` を利用した各種 UI モード管理が追加されている。  
+> ただし原則は変わらず、`view/` は engine の具体クラスに直接依存せず、Reader interface や UI 状態を tick ごとに読む。
 
 | ファイル | 責務 |
 |---|---|
@@ -292,7 +350,18 @@ sequenceDiagram
 
 ## データ構造
 
+> **補足**  
+> この節のビット割り当ては本書作成時点の代表例であり、後続拡張で追加ビットや補助メタデータが導入されている。  
+> とくに灌漑・方向付きエンティティ・ネットワーク層・粘土再生成・施設内部状態などは、後続文書で拡張されている。  
+> したがって、ここは「基本思想」を示す節として読み、個別の最新割り当ては各後続文書を参照すること。
+
 ### VoxelMap ビットフィールド（uint32）
+
+> **現在の注記**  
+> 本節は初期段階の説明であり、後続拡張では 64bit 化や追加メタデータの導入を前提とする設計が含まれる。  
+> たとえば `19_CRAY.md` では `VoxelMap.riversideCells` のような voxel 配列外の補助データが追加され、  
+> `21_AUTO_FERTILIZATION.md` ではネットワーク層や方向性を持つ地上層エンティティのための追加ビット案が検討されている。  
+> したがって、**「ボクセルに状態を高密度に詰める」という思想は維持しつつ、具体的なビット幅や割り当ては後続拡張で更新されうる**。
 
 ```
 bits  0– 7 : 地形タイプ      （TERRAIN_TYPES: empty=0 / water / grass / soil / wetSoil / dirt）
