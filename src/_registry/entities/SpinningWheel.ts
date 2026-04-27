@@ -24,7 +24,7 @@ registerEntity({
 });
 
 registerItem({
-    itemId: "scutching_board",
+    itemId: "spinning_wheel",
     spriteName: "ss_sprite_066.png",
     maxStack: 64,
     placement: {

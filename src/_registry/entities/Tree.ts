@@ -40,7 +40,7 @@ registerEntity({
             return sprites[0];
         } else if (stage <= 6) {
             return sprites[1];
-        } else if (stage <= 12) {
+        } else if (stage <= 10) {
             return sprites[2];
         }
 
@@ -88,7 +88,7 @@ registerEntity({
             )
                 return false;
             // stage を 3 にリセットして再カウント開始
-            ctx.voxelMap.set(setCropGrowthStageInVoxel(ctx.voxel, 13), ctx.surfacePos);
+            ctx.voxelMap.set(setCropGrowthStageInVoxel(ctx.voxel, 11), ctx.surfacePos);
             return true;
         }
 

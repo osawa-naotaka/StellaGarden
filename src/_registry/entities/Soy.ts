@@ -97,7 +97,10 @@ registerItem({
     maxStack: 64,
     onItemUse(ctx: InteractionContext): boolean {
         if (ctx.entityType === ENTITY_TYPES.screw_presses) {
-            if (!ctx.inventory.addItems([{ itemId: "soybean_oil", count: 1 }])) return false;
+            if (!ctx.inventory.addItems([
+                { itemId: "soybean_oil", count: 1 },
+                { itemId: "oil_cake", count: 1 },
+            ])) return false;
             ctx.inventory.consumeSelectedItem(1);
             return true;
         }
