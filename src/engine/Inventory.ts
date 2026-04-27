@@ -254,4 +254,9 @@ export class Inventory implements IInventoryWriter {
         });
         return true;
     }
+    
+    canConsumeSelectedItem(count: number): boolean {
+        const slot = this.toolbarSlots_[this.selectedIndex_];
+        return slot !== null && slot.count >= count;
+    }
 }

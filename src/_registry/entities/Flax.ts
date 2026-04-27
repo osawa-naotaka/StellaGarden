@@ -73,7 +73,6 @@ registerEntity({
             !ctx.inventory.addItems([
                 { itemId: "flaxseed", count: harvestCount },
                 { itemId: "flax_stalk", count: harvestCount },
-                { itemId: "stem", count: harvestCount },
             ])
         )
             return false;
@@ -97,6 +96,12 @@ registerItem({
     spriteName: "ss_sprite_021.png",
     maxStack: 64,
     onItemUse(ctx: InteractionContext): boolean {
+        if (ctx.entityType === ENTITY_TYPES.screw_presses) {
+            if (!ctx.inventory.addItems([{ itemId: "flaxseed_oil", count: 1 }])) return false;
+            ctx.inventory.consumeSelectedItem(1);
+            return true;
+        }
+        
         const voxel = ctx.voxel;
         const terrainType = getTerrainTypeFromVoxel(voxel);
         if ((terrainType !== TERRAIN_TYPES.soil && terrainType !== TERRAIN_TYPES.wetSoil) || getEntityTypeFromVoxel(voxel) !== ENTITY_TYPES.none) {

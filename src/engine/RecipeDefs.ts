@@ -87,6 +87,7 @@ export const RECIPES: readonly RecipeDef[] = [
         id: "scutching_board",
         station: "workbench",
         ingredients: [{ itemId: "trunk", count: 1 }],
+        requiredTool: { itemId: "froe" },
         result: { itemId: "scutching_board", count: 1 },
     },
     {
@@ -100,6 +101,7 @@ export const RECIPES: readonly RecipeDef[] = [
         id: "screw_rod",
         station: "workbench",
         ingredients: [{ itemId: "trunk", count: 1 }],
+        requiredTool: { itemId: "chisel" },
         result: { itemId: "screw_rod", count: 1 },
     },
     {
@@ -140,7 +142,7 @@ export const RECIPES: readonly RecipeDef[] = [
         station: "workbench",
         ingredients: [
             { itemId: "board", count: 4 },
-            { itemId: "trunk", count: 2 },
+            { itemId: "frame", count: 2 },
         ],
         result: { itemId: "loom", count: 1 },
     },
@@ -266,6 +268,33 @@ export const RECIPES: readonly RecipeDef[] = [
         id: "rail",
         station: "workbench",
         ingredients: [{ itemId: "trunk", count: 4 }],
+        requiredTool: { itemId: "froe" },
         result: { itemId: "rail", count: 4 },
     },
+    {
+        id: "rope",
+        station: "hand",
+        ingredients: [
+            { itemId: "thread", count: 4 },
+        ],
+        result: { itemId: "rope", count: 1 },
+    },
+    {
+        id: "bag",
+        station: "workbench",
+        ingredients: [
+            { itemId: "thread", count: 1 },
+            { itemId: "cloth", count: 1 },
+        ],
+        result: { itemId: "bag", count: 1 },
+    },
+    {
+        id: "bagged_soybeans",
+        station: "hand",
+        ingredients: [
+            { itemId: "bag", count: 1 },
+            { itemId: "soybeans", count: 64 },
+        ],
+        result: { itemId: "bagged_soybeans", count: 1 },
+    }
 ];

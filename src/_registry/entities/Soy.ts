@@ -140,7 +140,7 @@ registerItem({
     maxStack: 64,
     onItemUse(ctx: InteractionContext): boolean {
         if (ctx.entityType !== ENTITY_TYPES.threshing_machine) return false;
-        if (!ctx.inventory.addItems([{ itemId: "soybeans", count: 1 }])) return false;
+        if (!ctx.inventory.addItems([{ itemId: "soybeans", count: 4 }])) return false;
         ctx.inventory.consumeSelectedItem(1);
         return true;
     },

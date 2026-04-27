@@ -22,7 +22,7 @@ registerEntity({
     onInteract(ctx: InteractionContext): boolean {
         // axe で撤去
         if (ctx.tool === "axe") {
-            return removeFacilityAtPos(ctx.voxelMap, ctx.inventory, ctx.surfacePos.x, ctx.surfacePos.z, ENTITY_TYPES.compost_bin);
+            return removeFacilityAtPos(ctx.voxelMap, ctx.inventory, ctx.surfacePos.x, ctx.surfacePos.z, ENTITY_TYPES.soaking_basket);
         }
         // 有機物を REQUIRED_ORGANIC 個まとめて投入する（facility_part タイルからも操作可能なようアンカーを解決）
         if (!ctx.tool || !MATERIALS.has(ctx.tool)) return false;

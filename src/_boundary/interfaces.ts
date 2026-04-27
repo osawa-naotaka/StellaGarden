@@ -90,6 +90,7 @@ export interface IInventoryWriter extends IInventoryReader {
     setSlot(ref: SlotRef, stack: ItemStack | null): void;
     swapSlots(a: SlotRef, b: SlotRef): void;
     consumeSelectedItem(count: number): boolean;
+    canConsumeSelectedItem(count: number): boolean;
 }
 
 // ─── PlayerState インターフェース ────────────────────────────────────────────
