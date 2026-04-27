@@ -35,8 +35,18 @@ export class ReputationSystem {
 
     /** 単一アイテムの評価レートを返す。 */
     getItemPointValue(itemId: ItemId): number {
-        if (itemId === "potato") return 100;
-        return 1;
+        switch (itemId) {
+            case "potato":
+                return 100;
+            case "bagged_soybeans":
+                return 640000;
+            case "soybean_oil":
+                return 1000;
+            case "flaxseed_oil":
+                return 5000;
+            default:
+                return 1;
+        }
     }
 
     /** 単一アイテムスタックの評価値を計算する。 */

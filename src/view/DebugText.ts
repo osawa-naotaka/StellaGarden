@@ -14,6 +14,7 @@ import {
     getVariantFromVoxel,
     TERRAIN_TYPES,
 } from "../engine/TerrainDefs";
+import { getFertilizerYieldMultiplier } from "../engine/CropDefs";
 
 const TERRAIN_NAMES: Record<number, string> = {
     [TERRAIN_TYPES.empty]: "empty",
@@ -130,6 +131,7 @@ export class DebugText {
 
         if (fertType !== 0) {
             info += `\nFertilizer: ${FERTILIZER_NAMES[fertType] ?? fertType}`;
+            info += `\nFertilizerYield: ${getFertilizerYieldMultiplier(entity, fertType)}`;
         }
         if (lastCrop !== 0 || fatigue !== 0) {
             info += `\nLastCrop: ${ENTITY_NAMES[lastCrop] ?? lastCrop}`;

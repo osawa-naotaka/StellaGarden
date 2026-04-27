@@ -109,5 +109,5 @@ export function getFertilizerYieldMultiplier(entityType: number, fertilizerType:
 
     const effect = npk[0] * response[0] + npk[1] * response[1] + npk[2] * response[2];
     // -0.3 〜 +0.5 にクランプして 1.0 に加算
-    return 1.0 + Math.max(-0.3, Math.min(0.5, effect));
+    return 0.5 + Math.max(-0.3, Math.min(1.0, effect));
 }
