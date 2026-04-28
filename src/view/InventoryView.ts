@@ -345,13 +345,6 @@ export class InventoryView {
 
             // 配置可能アイテムの場合は配置モードへ遷移する
             if (isPlaceable(stack.itemId)) {
-                // 副作用: インベントリからアイテムを取り出し
-                if (stack.count === 1) {
-                    this.inventory.setSlot(ref, null);
-                } else {
-                    stack.count--;
-                }
-
                 // 純粋: UIState を更新
                 this.uiState.enterPlacementMode(stack.itemId, ref, getPlacementInfo(stack.itemId)?.defaultVariant ?? 0);
                 return;

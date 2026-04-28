@@ -138,26 +138,23 @@ export class PlacementOverlay {
 
     private onPointerDown(e: MouseEvent): void {
         if (e.button !== 0) return;
-        if (this.valid && this.placementInfo) {
+        if (this.valid && this.placementInfo && this.uiState.placementSourceSlot !== null) {
+            const stack = this.inventory.getSlot(this.uiState.placementSourceSlot);
+            if (!stack) return;
+
+            if (stack.count === 1) {
+                this.inventory.setSlot(this.uiState.placementSourceSlot, null);
+            } else {
+                stack.count--;
+            }
+
             // 副作用: voxelMap に配置
             this.placementInfo.onPlace(this.voxelMap, this.snappedPos, this.uiState.placementVariant);
-            // 純粋: UIState を更新
-            this.uiState.exitPlacementMode();
         }
     }
 
     private onKeyDown(e: KeyboardEvent): void {
         if (e.key === "Escape") {
-            // 副作用: アイテムを元スロットに戻す
-            const { placementItemId, placementSourceSlot } = this.uiState;
-            if (placementItemId && placementSourceSlot) {
-                const slot = this.inventory.getSlot(placementSourceSlot);
-                if (slot) {
-                    this.inventory.setSlot(placementSourceSlot, { itemId: placementItemId, count: slot.count + 1 });
-                } else {
-                    this.inventory.setSlot(placementSourceSlot, { itemId: placementItemId, count: 1 });
-                }
-            }
             // 純粋: UIState を更新
             this.uiState.exitPlacementMode();
             return;
