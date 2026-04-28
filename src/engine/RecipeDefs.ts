@@ -274,9 +274,7 @@ export const RECIPES: readonly RecipeDef[] = [
     {
         id: "rope",
         station: "hand",
-        ingredients: [
-            { itemId: "thread", count: 4 },
-        ],
+        ingredients: [{ itemId: "thread", count: 4 }],
         result: { itemId: "rope", count: 1 },
     },
     {
@@ -296,5 +294,5 @@ export const RECIPES: readonly RecipeDef[] = [
             { itemId: "soybeans", count: 64 },
         ],
         result: { itemId: "bagged_soybeans", count: 1 },
-    }
+    },
 ];

@@ -1,11 +1,11 @@
+import { ENTITY_TYPES } from "../../engine/TerrainDefs";
+import type { InteractionContext } from "../EntityRegistry";
 import { registerItem } from "../ItemRegistry";
 
 registerItem({ itemId: "stem", spriteName: "ss_sprite_005.png", maxStack: 64 });
 registerItem({ itemId: "leaves", spriteName: "ss_sprite_006.png", maxStack: 64 });
 registerItem({ itemId: "crop_residue", spriteName: "ss_sprite_007.png", maxStack: 64 });
 registerItem({ itemId: "flax_stalk", spriteName: "ss_sprite_022.png", maxStack: 64 });
-registerItem({ itemId: "flax_fiber", spriteName: "ss_sprite_023.png", maxStack: 64 });
-registerItem({ itemId: "thread", spriteName: "ss_sprite_024.png", maxStack: 64 });
 registerItem({ itemId: "rope", spriteName: "ss_sprite_025.png", maxStack: 64 });
 registerItem({ itemId: "cloth", spriteName: "ss_sprite_026.png", maxStack: 64 });
 registerItem({ itemId: "bag", spriteName: "ss_sprite_027.png", maxStack: 64 });
@@ -19,5 +19,48 @@ registerItem({ itemId: "board", spriteName: "ss_sprite_085.png", maxStack: 64 })
 registerItem({ itemId: "screw_rod", spriteName: "ss_sprite_094.png", maxStack: 64 });
 registerItem({ itemId: "shaft", spriteName: "ss_sprite_095.png", maxStack: 64 });
 registerItem({ itemId: "frame", spriteName: "ss_sprite_096.png", maxStack: 64 });
-registerItem({ itemId: "processed_flax", spriteName: "ss_sprite_097.png", maxStack: 64 });
 registerItem({ itemId: "ingot", spriteName: "ss_sprite_083.png", maxStack: 64 });
+
+registerItem({
+    itemId: "processed_flax",
+    spriteName: "ss_sprite_097.png",
+    maxStack: 64,
+    onItemUse: (ctx: InteractionContext): boolean => {
+        if (ctx.entityType === ENTITY_TYPES.scutching_board) {
+            if (!ctx.inventory.addItems([{ itemId: "flax_fiber", count: 1 }])) return false;
+            ctx.inventory.consumeSelectedItem(1);
+            return true;
+        }
+        return false;
+    },
+});
+
+registerItem({
+    itemId: "flax_fiber",
+    spriteName: "ss_sprite_023.png",
+    maxStack: 64,
+    onItemUse: (ctx: InteractionContext): boolean => {
+        if (ctx.entityType === ENTITY_TYPES.spinning_wheel) {
+            if (!ctx.inventory.addItems([{ itemId: "thread", count: 1 }])) return false;
+            ctx.inventory.consumeSelectedItem(1);
+            return true;
+        }
+        return false;
+    },
+});
+
+registerItem({
+    itemId: "thread",
+    spriteName: "ss_sprite_024.png",
+    maxStack: 64,
+    onItemUse: (ctx: InteractionContext): boolean => {
+        const num_consume = 8;
+        if (ctx.entityType === ENTITY_TYPES.loom) {
+            if (!ctx.inventory.canConsumeSelectedItem(num_consume)) return false;
+            if (!ctx.inventory.addItems([{ itemId: "cloth", count: 1 }])) return false;
+            ctx.inventory.consumeSelectedItem(num_consume);
+            return true;
+        }
+        return false;
+    },
+});

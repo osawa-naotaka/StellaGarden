@@ -97,14 +97,17 @@ registerItem({
     maxStack: 64,
     onItemUse(ctx: InteractionContext): boolean {
         if (ctx.entityType === ENTITY_TYPES.screw_presses) {
-            if (!ctx.inventory.addItems([
-                { itemId: "flaxseed_oil", count: 1 },
-                { itemId: "oil_cake", count: 1 }
-            ])) return false;
+            if (
+                !ctx.inventory.addItems([
+                    { itemId: "flaxseed_oil", count: 1 },
+                    { itemId: "oil_cake", count: 1 },
+                ])
+            )
+                return false;
             ctx.inventory.consumeSelectedItem(1);
             return true;
         }
-        
+
         const voxel = ctx.voxel;
         const terrainType = getTerrainTypeFromVoxel(voxel);
         if ((terrainType !== TERRAIN_TYPES.soil && terrainType !== TERRAIN_TYPES.wetSoil) || getEntityTypeFromVoxel(voxel) !== ENTITY_TYPES.none) {

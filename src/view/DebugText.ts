@@ -1,6 +1,6 @@
 import { BitmapText } from "pixi.js";
 import type { IGameTimeReader, IPlayerStateReader, IVoxelReader } from "../_boundary/interfaces";
-import { CROP_DEFS, getVisualStage } from "../engine/CropDefs";
+import { CROP_DEFS, getFertilizerYieldMultiplier, getVisualStage } from "../engine/CropDefs";
 import {
     ENTITY_TYPES,
     FERTILIZER_TYPES,
@@ -14,7 +14,6 @@ import {
     getVariantFromVoxel,
     TERRAIN_TYPES,
 } from "../engine/TerrainDefs";
-import { getFertilizerYieldMultiplier } from "../engine/CropDefs";
 
 const TERRAIN_NAMES: Record<number, string> = {
     [TERRAIN_TYPES.empty]: "empty",
