@@ -1,6 +1,6 @@
 import { BitmapText } from "pixi.js";
 import type { IGameTimeReader, IPlayerStateReader, IVoxelReader } from "../_boundary/interfaces";
-import { CROP_DEFS, getFertilizerYieldMultiplier, getVisualStage } from "../engine/CropDefs";
+import { CROP_DEFS, getFertilizerYieldMultiplier } from "../engine/CropDefs";
 import {
     ENTITY_TYPES,
     FERTILIZER_TYPES,
@@ -10,59 +10,9 @@ import {
     getFatigueFromVoxel,
     getFertilizerTypeFromVoxel,
     getLastCropFromVoxel,
-    getTerrainTypeFromVoxel,
-    getVariantFromVoxel,
-    TERRAIN_TYPES,
 } from "../engine/TerrainDefs";
-
-const TERRAIN_NAMES: Record<number, string> = {
-    [TERRAIN_TYPES.empty]: "empty",
-    [TERRAIN_TYPES.water]: "water",
-    [TERRAIN_TYPES.grass]: "grass",
-    [TERRAIN_TYPES.soil]: "soil",
-    [TERRAIN_TYPES.wetSoil]: "wetSoil",
-    [TERRAIN_TYPES.dirt]: "dirt",
-    [TERRAIN_TYPES.waterSource]: "waterSource",
-    [TERRAIN_TYPES.disorderedSoil]: "disorderedSoil",
-};
-
-export const ENTITY_NAMES: Record<number, string> = {
-    [ENTITY_TYPES.none]: "-",
-    [ENTITY_TYPES.tree]: "tree",
-    [ENTITY_TYPES.potato]: "potato",
-    [ENTITY_TYPES.soy]: "soy",
-    [ENTITY_TYPES.flax]: "flax",
-    [ENTITY_TYPES.sunflower]: "sunflower",
-    [ENTITY_TYPES.workbench]: "workbench",
-    [ENTITY_TYPES.facility_part]: "facility_part",
-    [ENTITY_TYPES.forge]: "forge",
-    [ENTITY_TYPES.compost_bin]: "compost_bin",
-    [ENTITY_TYPES.threshing_machine]: "threshing_machine",
-    [ENTITY_TYPES.screw_presses]: "screw_presses",
-    [ENTITY_TYPES.soaking_basket]: "soaking_basket",
-    [ENTITY_TYPES.scutching_board]: "scutching_board",
-    [ENTITY_TYPES.spinning_wheel]: "spinning_wheel",
-    [ENTITY_TYPES.loom]: "loom",
-    [ENTITY_TYPES.stone]: "stone",
-    [ENTITY_TYPES.chest]: "chest",
-    [ENTITY_TYPES.bonfire]: "bonfire",
-    [ENTITY_TYPES.kiln]: "kiln",
-    [ENTITY_TYPES.bonfire_lit]: "bonfire_lit",
-    [ENTITY_TYPES.bonfire_done]: "bonfire_done",
-    [ENTITY_TYPES.kiln_burning]: "kiln_burning",
-    [ENTITY_TYPES.compost_bin_loaded]: "compost_bin_loaded",
-    [ENTITY_TYPES.compost_bin_fermenting]: "compost_bin_fermenting",
-    [ENTITY_TYPES.compost_bin_done]: "compost_bin_done",
-    [ENTITY_TYPES.clay]: "clay",
-    [ENTITY_TYPES.meteoric_iron]: "meteoric_iron",
-    [ENTITY_TYPES.anvil]: "anvil",
-    [ENTITY_TYPES.forge_burning]: "forge_burning",
-    [ENTITY_TYPES.pipe1]: "pipe1",
-    [ENTITY_TYPES.warp_gate]: "warp_gate",
-    [ENTITY_TYPES.soaking_basket_loaded]: "soaking_basket_loaded",
-    [ENTITY_TYPES.soaking_basket_done]: "soaking_basket_done",
-    [ENTITY_TYPES.rail]: "rail",
-};
+import { ENTITY_NAMES } from "./DebugText";
+import { findFacilityAnchor } from "../_registry/facilityUtil";
 
 const FERTILIZER_NAMES: Record<number, string> = {
     [FERTILIZER_TYPES.none]: "-",
@@ -71,7 +21,7 @@ const FERTILIZER_NAMES: Record<number, string> = {
     [FERTILIZER_TYPES.oil_cake]: "oil_cake",
 };
 
-export class DebugText {
+export class PropertyView {
     private textObject: BitmapText;
     private playerState: IPlayerStateReader;
     private gameTime: IGameTimeReader;
@@ -102,12 +52,8 @@ export class DebugText {
     }
 
     private getText() {
-        const ps = this.playerState;
         const base =
-            `X: ${ps.posInWorld.x.toFixed(1)}, Z: ${ps.posInWorld.z.toFixed(1)}` +
-            `\nZoom: ${ps.zoomLevel.toFixed(2)}` +
-            `\nPointer: (${ps.pointerPosInWorld.x.toFixed(1)}, ${ps.pointerPosInWorld.z.toFixed(1)})` +
-            `\nDay ${this.gameTime.dayCount}  ${this.gameTime.currentTimeString}`;
+            `Day ${this.gameTime.dayCount}  ${this.gameTime.currentTimeString}`;
 
         const tileInfo = this.getTileInfo();
         return tileInfo ? `${base}\n---\n${tileInfo}` : base;
@@ -122,31 +68,32 @@ export class DebugText {
         }
 
         const pos = this.voxelMap.getSurfacePosition({ x: px, y: 0, z: pz });
-        const voxel = this.voxelMap.get(pos);
+        let voxel = this.voxelMap.get(pos);
 
-        const terrain = getTerrainTypeFromVoxel(voxel);
-        const entity = getEntityTypeFromVoxel(voxel);
+        let entity = getEntityTypeFromVoxel(voxel);
+        if (entity == ENTITY_TYPES.facility_part) {
+            const anchor = findFacilityAnchor(this.voxelMap, px, pz);
+            if (anchor) {
+                entity = anchor.entityType;
+                voxel = this.voxelMap.get(this.voxelMap.getSurfacePosition({ x: anchor.anchorX, y: 0, z: anchor.anchorZ }));
+            }
+        }
         const dayCounter = getCropGrowthStageFromVoxel(voxel);
         const fertType = getFertilizerTypeFromVoxel(voxel);
         const drought = getDroughtCounterFromVoxel(voxel);
         const lastCrop = getLastCropFromVoxel(voxel);
         const fatigue = getFatigueFromVoxel(voxel);
-        const variant = getVariantFromVoxel(voxel);
 
         let info = `Tile (${px}, ${pos.y}, ${pz})`;
-        info += `\nTerrain: ${TERRAIN_NAMES[terrain] ?? terrain}`;
         info += `\nEntity: ${ENTITY_NAMES[entity] ?? entity}`;
-        info += `\nVariant: ${variant}`;
 
         if (entity !== ENTITY_TYPES.none) {
             const cropDef = CROP_DEFS[entity];
             if (cropDef) {
-                const vis = getVisualStage(entity, dayCounter);
                 const mature = dayCounter >= cropDef.maturityDay;
                 const withered = dayCounter >= cropDef.witherDay;
                 const status = withered ? "WITHERED" : mature ? "MATURE" : "growing";
                 info += `\nDay: ${dayCounter}/${cropDef.witherDay} (${status})`;
-                info += `\nVisual: ${vis}`;
                 if (cropDef.needsWater) {
                     info += `\nDrought: ${drought}/3`;
                 } else {
@@ -159,7 +106,7 @@ export class DebugText {
 
         if (fertType !== 0) {
             info += `\nFertilizer: ${FERTILIZER_NAMES[fertType] ?? fertType}`;
-            info += `\nFertilizerYield: ${getFertilizerYieldMultiplier(entity, fertType)}`;
+            info += `\nFertilizerYield: ${getFertilizerYieldMultiplier(entity, fertType).toFixed(2)}`;
         }
         if (lastCrop !== 0 || fatigue !== 0) {
             info += `\nLastCrop: ${ENTITY_NAMES[lastCrop] ?? lastCrop}`;

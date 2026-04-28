@@ -63,6 +63,7 @@ import { Toolbar } from "./view/Toolbar";
 import { TopView } from "./view/TopView";
 import { UIState } from "./view/UIState";
 import { WarpGateView } from "./view/WarpGateView";
+import { PropertyView } from "./view/PropertyView";
 
 /** 画面サイズとズームレベルから必要なチャンク数を計算する。 */
 function calcChunkPerViewport(screenW: number, screenH: number, zoomLevel: number): Size2D {
@@ -232,9 +233,9 @@ function useGameEngine(worldSize: Size2D, loadSave: boolean) {
             const inputHandler = new InputHandler(topView.top, playerState, eventBroker);
             disposers.push(inputHandler.setListeners());
 
-            const debugText = DEBUG ? new DebugText(playerState, gameTime, voxelMap) : null;
-            if (debugText) {
-                pixiApp.stage.addChild(debugText.textView);
+            const property = DEBUG ? new DebugText(playerState, gameTime, voxelMap) : new PropertyView(playerState, gameTime, voxelMap);
+            if (property) {
+                pixiApp.stage.addChild(property.textView);
             }
 
             // 動的ビューポート: 前回のチャンク数を記憶してリサイズ判定に使う
@@ -341,7 +342,7 @@ function useGameEngine(worldSize: Size2D, loadSave: boolean) {
                 };
                 placementOverlay.tick(playerState.pointerPosInWorld, viewportOrigin);
 
-                if (debugText) debugText.update();
+                if (property) property.update();
                 toolbar.tick();
                 inventoryView.tick();
                 chestView.tick();

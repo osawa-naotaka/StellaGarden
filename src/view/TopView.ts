@@ -1,7 +1,9 @@
 import { type Application, ColorMatrixFilter, Container, Sprite, Texture } from "pixi.js";
 import type { IVoxelReader, Pos2D, Pos3D } from "../_boundary/interfaces";
+import { getEntityTypeFromVoxel, ENTITY_TYPES } from "../engine/TerrainDefs";
 import { ChunkRenderer } from "../lib/ChunkRenderer";
 import type { Size2D } from "../lib/VoxelMap";
+import { findFacilityAnchor } from "../_registry/facilityUtil";
 import { getEntitySpriteNameFromVoxel, getTerrainSpriteNamesFromVoxel } from "./renderer/TerrainSpriteResolver";
 import type { Tile } from "./Tile";
 
@@ -115,7 +117,7 @@ export class TopView {
         const idx = this.chunkIndex(col, row, false);
         const sprite = this.chunkSpritePool[idx];
         sprite.texture = this.chunkRenderer.renderChunk(this.voxelMap, world, idx, (tile, voxels, positions) =>
-            setupEntityTile(tile, voxels, positions, pointerPos, this.pixelPerTile),
+            setupEntityTile(tile, voxels, positions, pointerPos, this.pixelPerTile, this.voxelMap),
         );
         sprite.visible = true;
     }
@@ -142,16 +144,40 @@ function setupTerrainTile(tile: Tile, voxels: bigint[], positions: Pos3D[], hori
     }
 }
 
-function setupEntityTile(tile: Tile, voxels: bigint[], positions: Pos3D[], pointerPos: Pos2D, pixelPerTile: number): void {
-    const infos = getEntitySpriteNameFromVoxel(voxels[4]);
+function setupEntityTile(tile: Tile, voxels: bigint[], positions: Pos3D[], pointerPos: Pos2D, pixelPerTile: number, voxelMap: IVoxelReader): void {
+    const centerPos = positions[4];
+    const centerEntityType = getEntityTypeFromVoxel(voxels[4]);
+
+    let infos = getEntitySpriteNameFromVoxel(voxels[4]);
+    let isHovered = Math.floor(pointerPos.x) === centerPos.x && Math.floor(pointerPos.z) === centerPos.z;
+
+    const facilityAnchor = findFacilityAnchor(voxelMap, centerPos.x, centerPos.z);
+    if (facilityAnchor) {
+        const pointerX = Math.floor(pointerPos.x);
+        const pointerZ = Math.floor(pointerPos.z);
+        isHovered =
+            pointerX >= facilityAnchor.anchorX &&
+            pointerX < facilityAnchor.anchorX + facilityAnchor.size.w &&
+            pointerZ >= facilityAnchor.anchorZ &&
+            pointerZ < facilityAnchor.anchorZ + facilityAnchor.size.h;
+
+        if (centerEntityType === ENTITY_TYPES.facility_part) {
+            infos = [];
+        }
+    }
+
     tile.useNSprites(infos.length);
     for (let i = 0; i < infos.length; i++) {
         tile.sprites[i].texture = Texture.from(infos[i][0]); // 0: spriteName
         tile.sprites[i].visible = true;
         tile.sprites[i].anchor.set(0, 0);
-        const isHovered = Math.floor(pointerPos.x) === positions[4].x && Math.floor(pointerPos.z) === positions[4].z;
         tile.sprites[i].filters = isHovered ? [hoverFilter] : [];
         tile.sprites[i].position.set(infos[i][1], infos[i][2]);
         tile.sprites[i].scale.set(pixelPerTile / 16);
+    }
+
+    for (let i = infos.length; i < tile.sprites.length; i++) {
+        tile.sprites[i].visible = false;
+        tile.sprites[i].filters = [];
     }
 }
