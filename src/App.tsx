@@ -2,7 +2,6 @@ import { Box, Button, Stack, Typography } from "@mui/material";
 import { Application, ColorMatrixFilter, Container, TextureSource } from "pixi.js";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { PIXEL_PER_TILE, TILE_PER_CHUNK } from "./_boundary/constants";
-import "./_registry/entities/Anvil";
 import "./_registry/entities/Chest";
 import "./_registry/entities/Clay";
 import "./_registry/entities/CompostBin";

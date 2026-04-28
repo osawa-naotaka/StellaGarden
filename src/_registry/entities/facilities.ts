@@ -43,6 +43,7 @@ function registerAxeRemovableFacility(
     });
 }
 
+registerAxeRemovableFacility(ENTITY_TYPES.anvil, "anvil", "ss_sprite_079.png", { w: 1, h: 1 });
 registerAxeRemovableFacility(ENTITY_TYPES.threshing_machine, "threshing_machine", "ss_sprite_054.png", { w: 2, h: 1 }, "ss_sprite_063.png");
 registerAxeRemovableFacility(ENTITY_TYPES.screw_presses, "screw_presses", "ss_sprite_055.png", { w: 2, h: 2 }, "ss_sprite_064.png");
 registerAxeRemovableFacility(ENTITY_TYPES.scutching_board, "scutching_board", "ss_sprite_057.png", { w: 1, h: 1 }, "ss_sprite_057.png");

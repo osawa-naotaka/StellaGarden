@@ -12,7 +12,6 @@ registerItem({ itemId: "bag", spriteName: "ss_sprite_027.png", maxStack: 64 });
 registerItem({ itemId: "flaxseed_oil", spriteName: "ss_sprite_028.png", maxStack: 64 });
 registerItem({ itemId: "trunk", spriteName: "ss_sprite_036.png", maxStack: 64 });
 registerItem({ itemId: "charcoal", spriteName: "ss_sprite_082.png", maxStack: 64 });
-registerItem({ itemId: "hot_meteoric_iron", spriteName: "ss_sprite_088.png", maxStack: 64 });
 registerItem({ itemId: "blade", spriteName: "ss_sprite_084.png", maxStack: 64 });
 registerItem({ itemId: "hardwood_teeth", spriteName: "ss_sprite_093.png", maxStack: 64 });
 registerItem({ itemId: "board", spriteName: "ss_sprite_085.png", maxStack: 64 });
@@ -59,6 +58,20 @@ registerItem({
             if (!ctx.inventory.canConsumeSelectedItem(num_consume)) return false;
             if (!ctx.inventory.addItems([{ itemId: "cloth", count: 1 }])) return false;
             ctx.inventory.consumeSelectedItem(num_consume);
+            return true;
+        }
+        return false;
+    },
+});
+
+registerItem({
+    itemId: "hot_meteoric_iron",
+    spriteName: "ss_sprite_088.png",
+    maxStack: 64,
+    onItemUse: (ctx: InteractionContext): boolean => {
+        if (ctx.entityType === ENTITY_TYPES.anvil) {
+            if (!ctx.inventory.addItems([{ itemId: "blade", count: 1 }])) return false;
+            ctx.inventory.consumeSelectedItem(1);
             return true;
         }
         return false;
