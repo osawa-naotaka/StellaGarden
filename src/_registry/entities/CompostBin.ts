@@ -53,7 +53,7 @@ registerEntity({
         const stage = getCropGrowthStageFromVoxel(ctx.voxel);
         if (stage >= FERMENT_DAYS - 1) {
             // 2日経過 → 発酵中へ（growth counter をリセット）
-            ctx.voxelMap.set(setEntityTypeInVoxel(ctx.voxel, ENTITY_TYPES.compost_bin_fermenting), ctx.pos);
+            ctx.voxelMap.set(setCropGrowthStageInVoxel(setEntityTypeInVoxel(ctx.voxel, ENTITY_TYPES.compost_bin_fermenting), 0), ctx.pos);
         } else {
             ctx.voxelMap.set(setCropGrowthStageInVoxel(ctx.voxel, stage + 1), ctx.pos);
         }
@@ -73,7 +73,7 @@ registerEntity({
         const stage = getCropGrowthStageFromVoxel(ctx.voxel);
         if (stage >= FERMENT_DAYS - 1) {
             // 2日経過 → 発酵完了へ
-            ctx.voxelMap.set(setEntityTypeInVoxel(ctx.voxel, ENTITY_TYPES.compost_bin_done), ctx.pos);
+            ctx.voxelMap.set(setCropGrowthStageInVoxel(setEntityTypeInVoxel(ctx.voxel, ENTITY_TYPES.compost_bin_done), 0), ctx.pos);
         } else {
             ctx.voxelMap.set(setCropGrowthStageInVoxel(ctx.voxel, stage + 1), ctx.pos);
         }

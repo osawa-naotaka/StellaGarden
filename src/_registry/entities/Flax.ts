@@ -54,8 +54,9 @@ registerEntity({
     },
 
     onInteract(ctx: InteractionContext): boolean {
-        // 収穫: shovel で成熟した flax を右クリック
-        if (ctx.tool !== "shovel") return false;
+        // 収穫: sickle で成熟した flax を右クリック
+        // shovel の予定だったが、畑に誤って穴を掘ってしまう誤操作をなくすために sickle に変更
+        if (ctx.tool !== "sickle") return false;
 
         const voxel = ctx.voxel;
         const dayCounter = getCropGrowthStageFromVoxel(voxel);
@@ -77,7 +78,7 @@ registerEntity({
         )
             return false;
 
-        let afterVoxel = initializeVoxel(TERRAIN_TYPES.soil);
+        let afterVoxel: bigint = initializeVoxel(getTerrainTypeFromVoxel(voxel));
         afterVoxel = setLastCropInVoxel(afterVoxel, ENTITY_TYPES.flax);
         afterVoxel = setFatigueInVoxel(afterVoxel, fatigue);
         ctx.voxelMap.set(afterVoxel, ctx.surfacePos);

@@ -77,7 +77,7 @@ registerEntity({
         )
             return false;
 
-        let afterVoxel = initializeVoxel(TERRAIN_TYPES.soil);
+        let afterVoxel: bigint = initializeVoxel(getTerrainTypeFromVoxel(voxel));
         afterVoxel = setLastCropInVoxel(afterVoxel, ENTITY_TYPES.sunflower);
         afterVoxel = setFatigueInVoxel(afterVoxel, fatigue);
         ctx.voxelMap.set(afterVoxel, ctx.surfacePos);
