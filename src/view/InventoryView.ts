@@ -403,6 +403,8 @@ export class InventoryView {
                 this.craftPane.setToolSlot(this.pickedUp.stack);
             }
             this.pickedUp = null;
+        } else if (e.key === "Escape") {
+            this.uiState.mode = "normal";
         }
     }
 
