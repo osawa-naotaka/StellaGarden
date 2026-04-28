@@ -10,7 +10,7 @@ const MATERIALS = new Set(["flax_stalk"]);
 const REQUIRED_ORGANIC = 8;
 
 /** 各発酵フェーズの経過日数（この日数後に次のフェーズへ） */
-const FERMENT_DAYS = 2;
+const FERMENT_DAYS = 3;
 
 registerEntity({
     entityType: ENTITY_TYPES.soaking_basket,
@@ -51,7 +51,7 @@ registerEntity({
         const stage = getCropGrowthStageFromVoxel(ctx.voxel);
         if (stage >= FERMENT_DAYS - 1) {
             // 2日経過 → 発酵中へ（growth counter をリセット）
-            ctx.voxelMap.set(setEntityTypeInVoxel(ctx.voxel, ENTITY_TYPES.soaking_basket_done), ctx.pos);
+            ctx.voxelMap.set(setCropGrowthStageInVoxel(setEntityTypeInVoxel(ctx.voxel, ENTITY_TYPES.soaking_basket_done), 0), ctx.pos);
         } else {
             ctx.voxelMap.set(setCropGrowthStageInVoxel(ctx.voxel, stage + 1), ctx.pos);
         }

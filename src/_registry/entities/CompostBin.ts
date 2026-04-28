@@ -97,7 +97,7 @@ registerEntity({
         const anchorPos = ctx.voxelMap.getSurfacePosition({ x: anchor.anchorX, y: 0, z: anchor.anchorZ });
         const anchorVoxel = ctx.voxelMap.get(anchorPos);
         if (!ctx.inventory.addItems([{ itemId: "compost", count: 1 }])) return false;
-        ctx.voxelMap.set(setEntityTypeInVoxel(anchorVoxel, ENTITY_TYPES.compost_bin), anchorPos);
+        ctx.voxelMap.set(setCropGrowthStageInVoxel(setEntityTypeInVoxel(anchorVoxel, ENTITY_TYPES.compost_bin), 0), anchorPos);
         return true;
     },
 });
