@@ -6,18 +6,18 @@ import type { UIMode, UIState } from "./UIState";
 
 const CELL_SIZE = 60;
 const ICON_SIZE = 48;
-const PADDING = 10;
-const TITLE_HEIGHT = 24;
+const PADDING = 20;
+const TITLE_HEIGHT = 40;
 const SEPARATOR_HEIGHT = 14;
 const COLS = 8;
 const INV_ROWS = 8;
 const EARTH_INV_ROWS = 4;
 const TOOLBAR_COLS = 9;
 
-const TIER_HEADER_HEIGHT = 20;
-const TIER_ROW_HEIGHT = 32;
-const TIER_ICON_SIZE = 22;
-const TIER_BAR_HEIGHT = 6;
+const TIER_HEADER_HEIGHT = 48;
+const TIER_ROW_HEIGHT = 60;
+const TIER_ICON_SIZE = 48;
+const TIER_BAR_HEIGHT = 24;
 
 interface SlotIcon {
     sprite: Sprite;
@@ -105,7 +105,7 @@ function createTierRowEntry(): TierRowEntry {
 
     const statusMark = new BitmapText({
         text: "",
-        style: { fontFamily: "Roboto", fontSize: 14, fill: 0xffffff },
+        style: { fontFamily: "Roboto", fontSize: 28, fill: 0xffffff },
     });
     statusMark.x = 0;
     statusMark.y = 4;
@@ -113,7 +113,7 @@ function createTierRowEntry(): TierRowEntry {
 
     const label = new BitmapText({
         text: "",
-        style: { fontFamily: "Roboto", fontSize: 12, fill: 0xdddddd },
+        style: { fontFamily: "Roboto", fontSize: 24, fill: 0xdddddd },
     });
     label.x = 24;
     label.y = 4;
@@ -122,33 +122,33 @@ function createTierRowEntry(): TierRowEntry {
     const iconSprite = new Sprite();
     iconSprite.width = TIER_ICON_SIZE;
     iconSprite.height = TIER_ICON_SIZE;
-    iconSprite.x = 78;
+    iconSprite.x = 100;
     iconSprite.y = 0;
     iconSprite.visible = false;
     container.addChild(iconSprite);
 
     const iconGraphics = new Graphics();
-    iconGraphics.x = 78;
+    iconGraphics.x = 100;
     iconGraphics.y = 0;
     iconGraphics.visible = false;
     container.addChild(iconGraphics);
 
     const detailText = new BitmapText({
         text: "",
-        style: { fontFamily: "Roboto", fontSize: 11, fill: 0xcccccc },
+        style: { fontFamily: "Roboto", fontSize: 24, fill: 0xcccccc },
     });
-    detailText.x = 78 + TIER_ICON_SIZE + 6;
+    detailText.x = 100 + TIER_ICON_SIZE + 6;
     detailText.y = 4;
     container.addChild(detailText);
 
     const progressBg = new Graphics();
-    progressBg.x = 78 + TIER_ICON_SIZE + 6;
+    progressBg.x = 100 + TIER_ICON_SIZE + 6;
     progressBg.y = TIER_ICON_SIZE - TIER_BAR_HEIGHT;
     progressBg.visible = false;
     container.addChild(progressBg);
 
     const progressFill = new Graphics();
-    progressFill.x = 78 + TIER_ICON_SIZE + 6;
+    progressFill.x = 100 + TIER_ICON_SIZE + 6;
     progressFill.y = TIER_ICON_SIZE - TIER_BAR_HEIGHT;
     progressFill.visible = false;
     container.addChild(progressFill);
@@ -210,7 +210,7 @@ function updateTierRowEntry(entry: TierRowEntry, progress: TierProgress, columnW
 
     if (status === "unlocked") {
         // 解放済: この Tier の品目自体の出荷実績は今は表示しない（無いと長くなるため）
-        entry.detailText.text = tier.unlock === null ? "解放済" : `解放済 (${cumulativeShipped}個出荷)`;
+        entry.detailText.text = tier.unlock === null ? "released" : `released (${cumulativeShipped} shippment)`;
         entry.detailText.style.fill = detailColor;
         entry.detailText.visible = true;
         entry.progressBg.visible = false;
@@ -227,14 +227,14 @@ function updateTierRowEntry(entry: TierRowEntry, progress: TierProgress, columnW
         entry.progressFill.fill({ color: 0xffdd88 });
         entry.progressFill.visible = true;
 
-        entry.detailText.text = `${cumulativeShipped}/${threshold}個`;
+        entry.detailText.text = `${cumulativeShipped}/${threshold}`;
         entry.detailText.style.fill = detailColor;
         entry.detailText.y = 0;
         entry.detailText.visible = true;
     } else {
         const sourceItemDef = tier.unlock ? getItemDef(tier.unlock.sourceItemId) : null;
         const sourceLabel = sourceItemDef?.itemId ?? "?";
-        entry.detailText.text = tier.unlock ? `${sourceLabel} ${tier.unlock.threshold}個でアンロック` : "";
+        entry.detailText.text = tier.unlock ? `${sourceLabel} unlock until ${tier.unlock.threshold}` : "";
         entry.detailText.style.fill = detailColor;
         entry.detailText.y = 4;
         entry.detailText.visible = true;
@@ -312,7 +312,7 @@ export class WarpGateView {
         this.container.addChild(bg);
 
         const leftX = PADDING;
-        const leftTitle = new BitmapText({ text: "Inventory", style: { fontFamily: "Roboto", fontSize: 14, fill: 0xffffff } });
+        const leftTitle = new BitmapText({ text: "Inventory", style: { fontFamily: "Roboto", fontSize: 24, fill: 0xffffff } });
         leftTitle.x = leftX;
         leftTitle.y = PADDING;
         this.container.addChild(leftTitle);
@@ -336,14 +336,14 @@ export class WarpGateView {
 
         const rightX = leftPaneWidth + PADDING;
 
-        const reputationTitle = new BitmapText({ text: "Reputation", style: { fontFamily: "Roboto", fontSize: 14, fill: 0xffffff } });
+        const reputationTitle = new BitmapText({ text: "Reputation", style: { fontFamily: "Roboto", fontSize: 24, fill: 0xffffff } });
         reputationTitle.x = rightX;
         reputationTitle.y = PADDING;
         this.container.addChild(reputationTitle);
 
         this.reputationValueText = new BitmapText({
             text: "0 pt",
-            style: { fontFamily: "Roboto", fontSize: 22, fill: 0xffdd88 },
+            style: { fontFamily: "Roboto", fontSize: 48, fill: 0xffdd88 },
         });
         this.reputationValueText.x = rightX;
         this.reputationValueText.y = PADDING + 22;
@@ -351,14 +351,14 @@ export class WarpGateView {
 
         this.shipmentPreviewText = new BitmapText({
             text: "Shipment: +0 pt",
-            style: { fontFamily: "Roboto", fontSize: 12, fill: 0xdddddd },
+            style: { fontFamily: "Roboto", fontSize: 24, fill: 0xdddddd },
         });
         this.shipmentPreviewText.x = rightX;
-        this.shipmentPreviewText.y = PADDING + 50;
+        this.shipmentPreviewText.y = PADDING + 150;
         this.container.addChild(this.shipmentPreviewText);
 
         const gateTitleY = PADDING + rightInfoHeight + SEPARATOR_HEIGHT;
-        const gateTitle = new BitmapText({ text: "Earth Inventory", style: { fontFamily: "Roboto", fontSize: 14, fill: 0xffffff } });
+        const gateTitle = new BitmapText({ text: "Earth Inventory", style: { fontFamily: "Roboto", fontSize: 24, fill: 0xffffff } });
         gateTitle.x = rightX;
         gateTitle.y = gateTitleY;
         this.container.addChild(gateTitle);
@@ -375,7 +375,7 @@ export class WarpGateView {
 
         // ─── Tier 進行表示 ─────────────────────────────────────────────
         const tierY = gateTitleY + TITLE_HEIGHT + EARTH_INV_ROWS * CELL_SIZE + SEPARATOR_HEIGHT;
-        const tierTitle = new BitmapText({ text: "Tier Progression", style: { fontFamily: "Roboto", fontSize: 14, fill: 0xffffff } });
+        const tierTitle = new BitmapText({ text: "Tier Progression", style: { fontFamily: "Roboto", fontSize: 24, fill: 0xffffff } });
         tierTitle.x = rightX;
         tierTitle.y = tierY;
         this.container.addChild(tierTitle);
