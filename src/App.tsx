@@ -48,6 +48,9 @@ import { createEventBroker } from "./lib/Event";
 import { deleteGame, hasSaveData, loadGame, saveGame } from "./lib/SaveSystem";
 import type { Pos2D, Size2D } from "./lib/VoxelMap";
 import { VoxelMap } from "./lib/VoxelMap";
+import type { EngineRefs } from "./react-ui/EngineContext";
+import { SgUiRoot } from "./react-ui/SgUiRoot";
+import { ensureSpritesheetsLoaded } from "./react-ui/spritesheets";
 import { ChestView } from "./view/ChestView";
 import { DebugText } from "./view/DebugText";
 import { ForgeView } from "./view/ForgeView";
@@ -58,7 +61,6 @@ import { loadSprite } from "./view/Sprite";
 import { Toolbar } from "./view/Toolbar";
 import { TopView } from "./view/TopView";
 import { UIState } from "./view/UIState";
-import { WarpGateView } from "./view/WarpGateView";
 import { PropertyView } from "./view/PropertyView";
 
 /** 画面サイズとズームレベルから必要なチャンク数を計算する。 */
@@ -80,6 +82,7 @@ function calcTilePerViewport(screenW: number, screenH: number, zoomLevel: number
 
 function useGameEngine(worldSize: Size2D, loadSave: boolean) {
     const containerRef = useRef<HTMLDivElement>(null);
+    const [engineRefs, setEngineRefs] = useState<EngineRefs | null>(null);
 
     // biome-ignore lint/correctness/useExhaustiveDependencies: worldSize は実質定数。PixiJS 初期化はマウント時一度だけ行う設計のため依存追加しない
     useEffect(() => {
@@ -202,8 +205,18 @@ function useGameEngine(worldSize: Size2D, loadSave: boolean) {
             const forgeView = new ForgeView(playerState.inventory, forgeStorage, voxelMap, uiState);
             pixiApp.stage.addChild(forgeView.top);
 
-            const warpGateView = new WarpGateView(playerState.inventory, warpGateStorage, reputationSystem, uiState);
-            pixiApp.stage.addChild(warpGateView.top);
+            // React UI が利用するスプライトシートを並列ロード
+            await ensureSpritesheetsLoaded();
+            if (cancelled) return;
+
+            // React 側に engine 参照を提供（WarpGate 以降の UI はここから利用する）
+            setEngineRefs({
+                inventory: playerState.inventory,
+                warpGateStorage,
+                reputationSystem,
+                uiState,
+                eventBroker,
+            });
 
             topView.resize(initialChunks);
 
@@ -346,7 +359,6 @@ function useGameEngine(worldSize: Size2D, loadSave: boolean) {
                 inventoryView.tick();
                 chestView.tick();
                 forgeView.tick();
-                warpGateView.tick();
             });
         }
 
@@ -365,7 +377,7 @@ function useGameEngine(worldSize: Size2D, loadSave: boolean) {
         };
     }, []);
 
-    return containerRef;
+    return { containerRef, engineRefs };
 }
 
 type AppMode = "title" | "game";
@@ -446,8 +458,13 @@ function TitleScreen({ onStart }: { onStart: (loadSave: boolean) => void }) {
 }
 
 function GameScreen({ loadSave }: { loadSave: boolean }) {
-    const containerRef = useGameEngine({ w: 400, h: 400 }, loadSave);
-    return <div ref={containerRef} style={{ position: "fixed", inset: 0 }} />;
+    const { containerRef, engineRefs } = useGameEngine({ w: 400, h: 400 }, loadSave);
+    return (
+        <>
+            <div ref={containerRef} style={{ position: "fixed", inset: 0 }} />
+            {engineRefs && <SgUiRoot engine={engineRefs} />}
+        </>
+    );
 }
 
 export default function App() {

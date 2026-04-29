@@ -1,0 +1,288 @@
+@import "./tokens.css";
+
+.sg-ui-root {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    font-family: var(--sg-font);
+    color: var(--sg-fg);
+    z-index: 100;
+}
+
+.sg-ui-root * {
+    box-sizing: border-box;
+}
+
+/* ─── サイドパネル ─────────────────────────────────────────── */
+.sg-sidepanel {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: var(--sg-sidebar-width);
+    max-width: 100vw;
+    background: var(--sg-bg);
+    box-shadow: var(--sg-shadow);
+    pointer-events: auto;
+    transform: translateX(100%);
+    transition: transform var(--sg-duration) var(--sg-easing);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.sg-sidepanel.is-open {
+    transform: translateX(0);
+}
+
+.sg-sidepanel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--sg-padding) calc(var(--sg-padding) * 1.5);
+    border-bottom: 1px solid var(--sg-border);
+    flex-shrink: 0;
+}
+
+.sg-sidepanel-title {
+    font-size: var(--sg-font-size-lg);
+    font-weight: 600;
+    margin: 0;
+}
+
+.sg-sidepanel-close {
+    background: transparent;
+    border: none;
+    color: var(--sg-fg-dim);
+    font-size: 20px;
+    cursor: pointer;
+    width: 28px;
+    height: 28px;
+    border-radius: var(--sg-radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+.sg-sidepanel-close:hover {
+    background: var(--sg-bg-elev2);
+    color: var(--sg-fg);
+}
+
+.sg-sidepanel-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--sg-padding) calc(var(--sg-padding) * 1.5);
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--sg-padding) * 1.25);
+}
+
+.sg-sidepanel-section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sg-gap);
+}
+
+.sg-section-title {
+    font-size: var(--sg-font-size);
+    font-weight: 600;
+    color: var(--sg-fg-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 0;
+}
+
+.sg-section-divider {
+    border: none;
+    border-top: 1px solid var(--sg-border);
+    margin: 0;
+}
+
+/* ─── スロット ─────────────────────────────────────────────── */
+.sg-slot {
+    width: var(--sg-slot-size);
+    height: var(--sg-slot-size);
+    background: var(--sg-bg-slot);
+    border: 1px solid var(--sg-border);
+    border-radius: var(--sg-radius-sm);
+    position: relative;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+}
+
+.sg-slot:hover {
+    background: var(--sg-bg-elev2);
+    border-color: var(--sg-fg-dim);
+}
+
+.sg-slot-count {
+    position: absolute;
+    bottom: 1px;
+    right: 3px;
+    font-size: var(--sg-font-size-sm);
+    font-weight: 600;
+    color: var(--sg-fg);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+    pointer-events: none;
+}
+
+.sg-inventory-grid {
+    display: grid;
+    grid-template-columns: repeat(8, var(--sg-slot-size));
+    gap: 2px;
+}
+
+.sg-inventory-grid--small {
+    grid-template-columns: repeat(8, var(--sg-slot-size));
+}
+
+/* ─── アイテムアイコン ─────────────────────────────────────── */
+.sg-item-icon {
+    width: var(--sg-slot-icon-size);
+    height: var(--sg-slot-icon-size);
+    image-rendering: pixelated;
+    background-repeat: no-repeat;
+    pointer-events: none;
+}
+
+.sg-item-icon-placeholder {
+    width: var(--sg-slot-icon-size);
+    height: var(--sg-slot-icon-size);
+    border-radius: 2px;
+    pointer-events: none;
+}
+
+/* ─── カーソル追従ピックアップ ─────────────────────────────── */
+.sg-cursor-stack {
+    position: fixed;
+    pointer-events: none;
+    width: var(--sg-slot-size);
+    height: var(--sg-slot-size);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+    transform: translate(-50%, -50%);
+}
+
+/* ─── 評価値表示 ───────────────────────────────────────────── */
+.sg-reputation {
+    display: flex;
+    align-items: baseline;
+    gap: var(--sg-gap);
+}
+
+.sg-reputation-value {
+    font-size: var(--sg-font-size-xl);
+    font-weight: 700;
+    color: var(--sg-accent-strong);
+    line-height: 1;
+}
+
+.sg-reputation-shipment {
+    font-size: var(--sg-font-size-sm);
+    color: var(--sg-fg-dim);
+}
+
+/* ─── Tier 進行表示 ────────────────────────────────────────── */
+.sg-tier-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.sg-tier-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+}
+
+.sg-tier-row--single {
+    grid-template-columns: 1fr;
+}
+
+.sg-tier-card {
+    background: var(--sg-bg-elev);
+    border: 1px solid var(--sg-border);
+    border-radius: var(--sg-radius-sm);
+    padding: 6px 8px;
+    display: grid;
+    grid-template-columns: 18px 1fr auto;
+    align-items: center;
+    column-gap: 8px;
+    min-height: 40px;
+}
+
+.sg-tier-card--locked {
+    opacity: 0.55;
+}
+
+.sg-tier-card--unlocked {
+    border-color: var(--sg-success);
+}
+
+.sg-tier-card--in-progress {
+    border-color: var(--sg-accent);
+}
+
+.sg-tier-mark {
+    font-size: 14px;
+    line-height: 1;
+}
+
+.sg-tier-mark--unlocked {
+    color: var(--sg-success);
+}
+
+.sg-tier-mark--in-progress {
+    color: var(--sg-accent);
+}
+
+.sg-tier-mark--locked {
+    color: var(--sg-locked);
+}
+
+.sg-tier-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.sg-tier-label {
+    font-size: var(--sg-font-size);
+    font-weight: 600;
+}
+
+.sg-tier-detail {
+    font-size: var(--sg-font-size-sm);
+    color: var(--sg-fg-dim);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.sg-tier-icon {
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+}
+
+.sg-progress-bar {
+    height: 4px;
+    background: var(--sg-bg-slot);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 3px;
+}
+
+.sg-progress-fill {
+    height: 100%;
+    background: var(--sg-accent);
+    transition: width 200ms var(--sg-easing);
+}

@@ -1,0 +1,34 @@
+/* Stella Garden React UI design tokens */
+:root {
+    --sg-bg: #2a2d33;
+    --sg-bg-elev: #353941;
+    --sg-bg-elev2: #3f4350;
+    --sg-bg-slot: #4a4e5a;
+    --sg-border: #5a5e68;
+    --sg-fg: #e8e6df;
+    --sg-fg-dim: #9a978f;
+    --sg-fg-muted: #6a6864;
+    --sg-accent: #d4a85a;
+    --sg-accent-strong: #f0c878;
+    --sg-success: #88c070;
+    --sg-locked: #5d6068;
+    --sg-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+
+    --sg-radius: 6px;
+    --sg-radius-sm: 4px;
+    --sg-padding: 12px;
+    --sg-gap: 8px;
+
+    --sg-font: "Inter", "Noto Sans JP", system-ui, sans-serif;
+    --sg-font-size-sm: 11px;
+    --sg-font-size: 13px;
+    --sg-font-size-lg: 16px;
+    --sg-font-size-xl: 22px;
+
+    --sg-sidebar-width: 560px;
+    --sg-slot-size: 48px;
+    --sg-slot-icon-size: 36px;
+
+    --sg-easing: cubic-bezier(0.2, 0.8, 0.2, 1);
+    --sg-duration: 220ms;
+}
