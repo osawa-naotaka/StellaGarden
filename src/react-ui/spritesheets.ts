@@ -10,18 +10,21 @@ interface SpritesheetFrameInfo {
     readonly sheetWidth: number;
     /** PNG 全体の高さ。 */
     readonly sheetHeight: number;
-    /** フレームの x 座標。 */
+    /** フレームの x 座標（PNG 内、回転後の状態）。 */
     readonly x: number;
-    /** フレームの y 座標。 */
+    /** フレームの y 座標（PNG 内、回転後の状態）。 */
     readonly y: number;
-    /** フレームの幅。 */
+    /** フレームの幅（PNG 内、回転後の状態）。rotated=true の場合は元画像の高さ。 */
     readonly w: number;
-    /** フレームの高さ。 */
+    /** フレームの高さ（PNG 内、回転後の状態）。rotated=true の場合は元画像の幅。 */
     readonly h: number;
+    /** TexturePacker が atlas で 90° CW 回転して格納している場合 true。 */
+    readonly rotated: boolean;
 }
 
 interface RawFrameData {
     frame: { x: number; y: number; w: number; h: number };
+    rotated?: boolean;
 }
 
 interface RawSpritesheetData {
@@ -67,6 +70,7 @@ async function loadAllSheets(): Promise<Map<string, SpritesheetFrameInfo>> {
                 y: data.frame.y,
                 w: data.frame.w,
                 h: data.frame.h,
+                rotated: data.rotated ?? false,
             });
         }
     });
