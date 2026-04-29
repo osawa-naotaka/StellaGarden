@@ -1,5 +1,9 @@
+import { Toolbar } from "./components/Toolbar";
 import { EngineProvider, type EngineRefs, useEngine } from "./EngineContext";
 import { useUIMode } from "./hooks/useUIMode";
+import { ChestPanel } from "./panels/ChestPanel";
+import { ForgePanel } from "./panels/ForgePanel";
+import { InventoryPanel } from "./panels/InventoryPanel";
 import { WarpGatePanel } from "./panels/WarpGatePanel";
 import "./styles.css";
 
@@ -23,6 +27,25 @@ function PanelDispatcher() {
 
     return (
         <>
+            <Toolbar inventory={engine.inventory} mode={mode} />
+
+            <InventoryPanel
+                open={mode === "inventory-craft"}
+                inventory={engine.inventory}
+                craftSystem={engine.craftSystem}
+                uiState={engine.uiState}
+            />
+
+            <ChestPanel open={mode === "chest"} inventory={engine.inventory} chestStorage={engine.chestStorage} uiState={engine.uiState} />
+
+            <ForgePanel
+                open={mode === "forge"}
+                inventory={engine.inventory}
+                forgeStorage={engine.forgeStorage}
+                voxelMap={engine.voxelMap}
+                uiState={engine.uiState}
+            />
+
             <WarpGatePanel
                 open={mode === "warp_gate"}
                 inventory={engine.inventory}

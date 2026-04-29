@@ -51,14 +51,10 @@ import { VoxelMap } from "./lib/VoxelMap";
 import type { EngineRefs } from "./react-ui/EngineContext";
 import { SgUiRoot } from "./react-ui/SgUiRoot";
 import { ensureSpritesheetsLoaded } from "./react-ui/spritesheets";
-import { ChestView } from "./view/ChestView";
 import { DebugText } from "./view/DebugText";
-import { ForgeView } from "./view/ForgeView";
-import { InventoryView } from "./view/InventoryView";
 import { PlacementOverlay } from "./view/PlacementOverlay";
 import { PlayerCharacterView } from "./view/PlayerCharacterView";
 import { loadSprite } from "./view/Sprite";
-import { Toolbar } from "./view/Toolbar";
 import { TopView } from "./view/TopView";
 import { UIState } from "./view/UIState";
 import { PropertyView } from "./view/PropertyView";
@@ -167,9 +163,6 @@ function useGameEngine(worldSize: Size2D, loadSave: boolean) {
             const placementOverlay = new PlacementOverlay(voxelMap, playerState.inventory, uiState);
             worldContainer.addChild(placementOverlay.top);
 
-            const toolbar = new Toolbar(playerState.inventory, uiState);
-            pixiApp.stage.addChild(toolbar.top);
-
             const chestStorage = new ChestStorage();
             if (saveData) chestStorage.loadSaveData(saveData.chestStorage.chests);
             setChestStorage(chestStorage);
@@ -196,24 +189,19 @@ function useGameEngine(worldSize: Size2D, loadSave: boolean) {
             await loadSprite();
             if (!pixiApp) return;
 
-            const inventoryView = new InventoryView(playerState.inventory, craftSystem, uiState);
-            pixiApp.stage.addChild(inventoryView.top);
-
-            const chestView = new ChestView(playerState.inventory, chestStorage, uiState);
-            pixiApp.stage.addChild(chestView.top);
-
-            const forgeView = new ForgeView(playerState.inventory, forgeStorage, voxelMap, uiState);
-            pixiApp.stage.addChild(forgeView.top);
-
             // React UI が利用するスプライトシートを並列ロード
             await ensureSpritesheetsLoaded();
             if (cancelled) return;
 
-            // React 側に engine 参照を提供（WarpGate 以降の UI はここから利用する）
+            // React 側に engine 参照を提供（全パネル UI はここから利用する）
             setEngineRefs({
                 inventory: playerState.inventory,
                 warpGateStorage,
                 reputationSystem,
+                chestStorage,
+                forgeStorage,
+                craftSystem,
+                voxelMap,
                 uiState,
                 eventBroker,
             });
@@ -355,10 +343,6 @@ function useGameEngine(worldSize: Size2D, loadSave: boolean) {
                 placementOverlay.tick(playerState.pointerPosInWorld, viewportOrigin);
 
                 if (property) property.update();
-                toolbar.tick();
-                inventoryView.tick();
-                chestView.tick();
-                forgeView.tick();
             });
         }
 

@@ -170,6 +170,60 @@
     transform: translate(-50%, -50%);
 }
 
+/* ─── ボトムツールバー ─────────────────────────────────────── */
+.sg-toolbar {
+    position: absolute;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(6px);
+    border-radius: var(--sg-radius);
+    padding: 6px;
+    pointer-events: auto;
+    display: flex;
+    gap: 4px;
+    transition: opacity var(--sg-duration) var(--sg-easing);
+}
+
+.sg-toolbar.is-hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.sg-toolbar .sg-slot {
+    width: var(--sg-slot-size);
+    height: var(--sg-slot-size);
+}
+
+.sg-toolbar-slot {
+    position: relative;
+    cursor: pointer;
+    border-radius: var(--sg-radius-sm);
+    border: 2px solid transparent;
+    background: var(--sg-bg-slot);
+    width: 56px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+}
+
+.sg-toolbar-slot.is-selected {
+    border-color: var(--sg-accent-strong);
+    background: var(--sg-bg-elev2);
+}
+
+.sg-toolbar-slot:hover:not(.is-selected) {
+    border-color: var(--sg-fg-dim);
+}
+
+.sg-toolbar-slot .sg-slot-count {
+    bottom: 2px;
+    right: 4px;
+}
+
 /* ─── 評価値表示 ───────────────────────────────────────────── */
 .sg-reputation {
     display: flex;
@@ -186,6 +240,108 @@
 
 .sg-reputation-shipment {
     font-size: var(--sg-font-size-sm);
+    color: var(--sg-fg-dim);
+}
+
+/* ─── クラフト ─────────────────────────────────────────────── */
+.sg-craft-tool-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.sg-recipe-grid {
+    display: grid;
+    grid-template-columns: repeat(6, var(--sg-slot-size));
+    gap: 4px;
+}
+
+.sg-recipe-cell {
+    width: var(--sg-slot-size);
+    height: var(--sg-slot-size);
+    background: var(--sg-bg-slot);
+    border: 2px solid var(--sg-border);
+    border-radius: var(--sg-radius-sm);
+    cursor: pointer;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sg-recipe-cell.is-selected {
+    border-color: var(--sg-accent-strong);
+}
+
+.sg-recipe-cell.is-uncraftable {
+    opacity: 0.4;
+}
+
+.sg-recipe-cell:hover:not(.is-uncraftable) {
+    border-color: var(--sg-fg-dim);
+}
+
+.sg-pagination {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    justify-content: center;
+}
+
+.sg-pagination button {
+    background: var(--sg-bg-elev2);
+    border: 1px solid var(--sg-border);
+    color: var(--sg-fg);
+    padding: 6px 14px;
+    border-radius: var(--sg-radius-sm);
+    cursor: pointer;
+    font-family: var(--sg-font);
+    font-size: var(--sg-font-size-sm);
+}
+
+.sg-pagination button:disabled {
+    opacity: 0.4;
+    cursor: default;
+}
+
+.sg-recipe-detail {
+    background: var(--sg-bg-elev);
+    border-radius: var(--sg-radius-sm);
+    padding: 8px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.sg-recipe-detail-title {
+    font-size: var(--sg-font-size);
+    font-weight: 600;
+}
+
+.sg-recipe-detail-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: var(--sg-font-size-sm);
+    color: var(--sg-fg-dim);
+}
+
+/* ─── 炉スロット ───────────────────────────────────────────── */
+.sg-forge-slots {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.sg-forge-row {
+    display: grid;
+    grid-template-columns: 80px 1fr;
+    gap: 8px;
+    align-items: center;
+}
+
+.sg-forge-row-label {
+    font-size: var(--sg-font-size);
     color: var(--sg-fg-dim);
 }
 
