@@ -183,7 +183,10 @@ function useGameEngine(worldSize: Size2D, loadSave: boolean) {
             if (saveData) warpGateStorage.loadSaveData(saveData.warpGateStorage);
             setWarpGateStorage(warpGateStorage);
 
-            const reputationSystem = new ReputationSystem(saveData?.reputation.points ?? 0);
+            const reputationSystem = new ReputationSystem({
+                points: saveData?.reputation.points ?? 0,
+                cumulativeShipped: saveData?.reputation.cumulativeShipped,
+            });
 
             const craftSystem = new CraftSystem(playerState.inventory, workbenchStorage, uiState);
 

@@ -18,6 +18,7 @@ export type ItemId =
     | "pods"
     | "soybean_oil"
     | "bagged_soybeans"
+    | "bagged_potato"
     | "flax_stalk"
     | "flax_fiber"
     | "thread"

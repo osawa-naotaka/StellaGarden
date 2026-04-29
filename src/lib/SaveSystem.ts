@@ -1,4 +1,4 @@
-import type { Direction8, ItemStack } from "../_boundary/interfaces";
+import type { Direction8, ItemId, ItemStack } from "../_boundary/interfaces";
 import type { Pos2D } from "./VoxelMap";
 
 // ─── セーブデータ型定義 ──────────────────────────────────────────────────────
@@ -72,6 +72,8 @@ export interface WarpGateStorageSaveData {
 
 export interface ReputationSaveData {
     points: number;
+    /** 品目ごとの累計出荷数。Tier アンロック判定に使う。 */
+    cumulativeShipped: Array<[ItemId, number]>;
 }
 
 // ─── 定数 ────────────────────────────────────────────────────────────────────
@@ -80,7 +82,7 @@ const DB_NAME = "stella-garden";
 const DB_VERSION = 1;
 const STORE_NAME = "saveData";
 const SAVE_KEY = "autosave";
-const CURRENT_SAVE_VERSION = 5;
+const CURRENT_SAVE_VERSION = 6;
 
 // ─── IndexedDB ユーティリティ ────────────────────────────────────────────────
 

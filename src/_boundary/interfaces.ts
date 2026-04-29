@@ -185,6 +185,60 @@ export interface ICraftSystem extends ICraftSystemReader {
     craft(recipe: RecipeDef): boolean;
 }
 
+// ─── ReputationSystem / Tier インターフェース ────────────────────────────────
+
+/**
+ * Tier の識別子。アンロック進行の段階を表す。
+ * 22_REPUTATION_SYSTEM.md の §3 アンロックチェーンと対応する。
+ */
+export type TierId = "tier1" | "tier2" | "tier3a" | "tier3b" | "tier4" | "tier5" | "tier6a" | "tier6b";
+
+/** Tier の表示状態。 */
+export type TierStatus = "unlocked" | "in_progress" | "locked";
+
+/**
+ * Tier 定義（不変なメタデータ）。engine/TierDefs.ts で具体値を保持する。
+ */
+export interface TierDef {
+    readonly id: TierId;
+    /** UI に表示するラベル（例: "Tier 1"、"Tier 3a"）。 */
+    readonly label: string;
+    /** この Tier がアンロックする品目。 */
+    readonly itemId: ItemId;
+    /** UI 上の表示行（0 起点）。同じ displayRow を持つ Tier は横並びに表示される。 */
+    readonly displayRow: number;
+    /**
+     * アンロック条件。null は「ゲーム開始時から解放済」を意味する（Tier 1）。
+     * sourceItemId の累積出荷数が threshold 以上で解放される。
+     */
+    readonly unlock: { readonly sourceItemId: ItemId; readonly threshold: number } | null;
+    /** フィージビリティ範囲のゴール（袋詰め大豆）を示すフラグ。 */
+    readonly isGoal?: boolean;
+}
+
+/** Tier の現在の進行状況。view が tick で読む。 */
+export interface TierProgress {
+    readonly tier: TierDef;
+    readonly status: TierStatus;
+    /** unlock.sourceItemId の累積出荷数（unlock が null の場合は 0）。 */
+    readonly cumulativeShipped: number;
+    /** 解放閾値（unlock が null の場合は 0）。 */
+    readonly threshold: number;
+}
+
+/**
+ * 評価システムの読み取りインターフェース。
+ * view/ が tick() で参照する。ReputationSystem クラスはこれを implements する。
+ */
+export interface IReputationSystemReader {
+    /** 現在の累計評価値。 */
+    getPoints(): number;
+    /** 単一アイテムスタックの評価値（出荷プレビュー用）。 */
+    calculateStackPoints(itemId: ItemId, count: number): number;
+    /** 全 Tier の進行状況を displayRow 昇順で返す。並行 Tier は同じ displayRow を持つ。 */
+    getAllTierProgress(): readonly TierProgress[];
+}
+
 // ─── EventBroker インターフェース ────────────────────────────────────────────
 
 /**

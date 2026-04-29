@@ -1,6 +1,6 @@
 import type { ItemStack } from "../_boundary/interfaces";
 
-const WARP_GATE_SLOT_COUNT = 64;
+const WARP_GATE_SLOT_COUNT = 32;
 
 /** warp gate の地球側インベントリを管理するストレージ。 */
 export class WarpGateStorage {
