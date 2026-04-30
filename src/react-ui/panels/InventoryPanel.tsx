@@ -8,6 +8,7 @@ import { InventoryGrid } from "../components/InventoryGrid";
 import { SidePanel } from "../components/SidePanel";
 import { useFrameTick } from "../hooks/useFrameTick";
 import { usePickup } from "../hooks/usePickup";
+import { registerPanel } from "../PanelRegistry";
 
 const COLS = 8;
 const INV_ROWS = 8;
@@ -110,3 +111,15 @@ export function InventoryPanel({ open, inventory, craftSystem, uiState }: Invent
         </>
     );
 }
+
+registerPanel({
+    mode: "inventory-craft",
+    component: ({ open, engine }) => (
+        <InventoryPanel
+            open={open}
+            inventory={engine.inventory}
+            craftSystem={engine.craftSystem}
+            uiState={engine.uiState}
+        />
+    ),
+});

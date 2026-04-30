@@ -8,6 +8,7 @@ import { SidePanel } from "../components/SidePanel";
 import { TierList } from "../components/TierList";
 import { useFrameTick } from "../hooks/useFrameTick";
 import { usePickup } from "../hooks/usePickup";
+import { registerPanel } from "../PanelRegistry";
 
 const EARTH_INV_ROWS = 4;
 const COLS = 8;
@@ -124,3 +125,16 @@ export function WarpGatePanel({ open, inventory, warpGateStorage, reputationSyst
         </>
     );
 }
+
+registerPanel({
+    mode: "warp_gate",
+    component: ({ open, engine }) => (
+        <WarpGatePanel
+            open={open}
+            inventory={engine.inventory}
+            warpGateStorage={engine.warpGateStorage}
+            reputationSystem={engine.reputationSystem}
+            uiState={engine.uiState}
+        />
+    ),
+});

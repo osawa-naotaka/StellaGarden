@@ -8,6 +8,7 @@ import { SidePanel } from "../components/SidePanel";
 import { Slot } from "../components/Slot";
 import { useFrameTick } from "../hooks/useFrameTick";
 import { usePickup } from "../hooks/usePickup";
+import { registerPanel } from "../PanelRegistry";
 
 const COLS = 8;
 const INV_ROWS = 8;
@@ -149,3 +150,16 @@ export function ForgePanel({ open, inventory, forgeStorage, voxelMap, uiState }:
         </>
     );
 }
+
+registerPanel({
+    mode: "forge",
+    component: ({ open, engine }) => (
+        <ForgePanel
+            open={open}
+            inventory={engine.inventory}
+            forgeStorage={engine.forgeStorage}
+            voxelMap={engine.voxelMap}
+            uiState={engine.uiState}
+        />
+    ),
+});

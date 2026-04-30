@@ -7,6 +7,7 @@ import { InventoryGrid } from "../components/InventoryGrid";
 import { SidePanel } from "../components/SidePanel";
 import { useFrameTick } from "../hooks/useFrameTick";
 import { usePickup } from "../hooks/usePickup";
+import { registerPanel } from "../PanelRegistry";
 
 const CHEST_ROWS = 8;
 const COLS = 8;
@@ -101,3 +102,15 @@ export function ChestPanel({ open, inventory, chestStorage, uiState }: ChestPane
         </>
     );
 }
+
+registerPanel({
+    mode: "chest",
+    component: ({ open, engine }) => (
+        <ChestPanel
+            open={open}
+            inventory={engine.inventory}
+            chestStorage={engine.chestStorage}
+            uiState={engine.uiState}
+        />
+    ),
+});

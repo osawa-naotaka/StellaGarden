@@ -247,7 +247,7 @@ registerItem({
 });
 registerItem({ itemId: "soybean_oil", spriteName: "ss_sprite_016.png", maxStack: 64 });
 registerItem({ itemId: "bagged_soybeans", spriteName: "ss_sprite_017.png", maxStack: 64 });
-registerItem({ itemId: "bagged_potato", spriteName: null, placeholderColor: 0xc8a060, maxStack: 64 });
+registerItem({ itemId: "bagged_potatos", spriteName: "ss_sprite_017.png", maxStack: 64 });
 
 // sunflower
 registerCrop(ENTITY_TYPES.sunflower, "sunflower_seed", sunflowerSprites, "ss_sprite_032.png", (num) => [{ itemId: "sunflower_seed", count: num }, { itemId: "stem", count: num }]);

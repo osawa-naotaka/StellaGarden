@@ -59,7 +59,7 @@ export const TIER_DEFS: readonly TierDef[] = [
     {
         id: "tier6a",
         label: "Tier 6a",
-        itemId: "bagged_potato",
+        itemId: "bagged_potatos",
         baseScore: 1500 * 64,
         displayRow: 5,
         unlock: { sourceItemId: "cloth", threshold: 30 },

@@ -1,10 +1,15 @@
 import { Toolbar } from "./components/Toolbar";
 import { EngineProvider, type EngineRefs, useEngine } from "./EngineContext";
 import { useUIMode } from "./hooks/useUIMode";
-import { ChestPanel } from "./panels/ChestPanel";
-import { ForgePanel } from "./panels/ForgePanel";
-import { InventoryPanel } from "./panels/InventoryPanel";
-import { WarpGatePanel } from "./panels/WarpGatePanel";
+
+// パネルの自己登録（モジュールロード時の副作用）
+// 新しいパネルを追加する時はここに 1 行追加するだけ。
+import "./panels/ChestPanel";
+import "./panels/ForgePanel";
+import "./panels/InventoryPanel";
+import "./panels/WarpGatePanel";
+
+import { getRegisteredPanels } from "./PanelRegistry";
 import "./styles.css";
 
 /**
@@ -24,35 +29,14 @@ export function SgUiRoot({ engine }: { engine: EngineRefs }) {
 function PanelDispatcher() {
     const engine = useEngine();
     const mode = useUIMode(engine.uiState, engine.eventBroker);
+    const panels = getRegisteredPanels();
 
     return (
         <>
             <Toolbar inventory={engine.inventory} mode={mode} />
-
-            <InventoryPanel
-                open={mode === "inventory-craft"}
-                inventory={engine.inventory}
-                craftSystem={engine.craftSystem}
-                uiState={engine.uiState}
-            />
-
-            <ChestPanel open={mode === "chest"} inventory={engine.inventory} chestStorage={engine.chestStorage} uiState={engine.uiState} />
-
-            <ForgePanel
-                open={mode === "forge"}
-                inventory={engine.inventory}
-                forgeStorage={engine.forgeStorage}
-                voxelMap={engine.voxelMap}
-                uiState={engine.uiState}
-            />
-
-            <WarpGatePanel
-                open={mode === "warp_gate"}
-                inventory={engine.inventory}
-                warpGateStorage={engine.warpGateStorage}
-                reputationSystem={engine.reputationSystem}
-                uiState={engine.uiState}
-            />
+            {panels.map(({ mode: panelMode, component: PanelComponent }) => (
+                <PanelComponent key={panelMode} open={mode === panelMode} engine={engine} />
+            ))}
         </>
     );
 }

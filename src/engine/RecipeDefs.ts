@@ -295,4 +295,13 @@ export const RECIPES: readonly RecipeDef[] = [
         ],
         result: { itemId: "bagged_soybeans", count: 1 },
     },
+    {
+        id: "bagged_potato",
+        station: "hand",
+        ingredients: [
+            { itemId: "bag", count: 1 },
+            { itemId: "potato", count: 64 },
+        ],
+        result: { itemId: "bagged_potatos", count: 1 },
+    },
 ];
