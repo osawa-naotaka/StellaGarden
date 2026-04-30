@@ -205,6 +205,8 @@ export interface TierDef {
     readonly label: string;
     /** この Tier がアンロックする品目。 */
     readonly itemId: ItemId;
+    /** アンロックした品目の1個あたりのスコア。 */
+    readonly baseScore: number;
     /** UI 上の表示行（0 起点）。同じ displayRow を持つ Tier は横並びに表示される。 */
     readonly displayRow: number;
     /**

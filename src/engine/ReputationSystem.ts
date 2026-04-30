@@ -15,6 +15,11 @@ export type ReputationInitData = {
     readonly cumulativeShipped?: ReadonlyArray<readonly [ItemId, number]>;
 };
 
+export type ScoreTable = ReadonlyArray<{
+    readonly itemId: ItemId;
+    readonly baseScore: number;
+}>;
+
 /**
  * 地球への出荷に応じた評価値とアンロック進行を管理する。
  *
@@ -49,24 +54,15 @@ export class ReputationSystem implements IReputationSystemReader {
     }
 
     /** 単一アイテムの評価レートを返す。 */
-    getItemPointValue(itemId: ItemId): number {
-        switch (itemId) {
-            case "potato":
-                return 100;
-            case "bagged_soybeans":
-                return 640000;
-            case "soybean_oil":
-                return 1000;
-            case "flaxseed_oil":
-                return 5000;
-            default:
-                return 1;
-        }
+    getItemPointValue(itemId: ItemId, scoreTable: ScoreTable): number {
+        const entry = scoreTable.find((t) => t.itemId === itemId);
+        return entry ? entry.baseScore : 1;
     }
 
     /** 単一アイテムスタックの評価値を計算する。 */
     calculateStackPoints(itemId: ItemId, count: number): number {
-        return this.getItemPointValue(itemId) * Math.max(0, count);
+        const scoreTable = this.getCurrentScoreTable();
+        return this.getItemPointValue(itemId, scoreTable) * Math.max(0, count);
     }
 
     /**
@@ -118,6 +114,23 @@ export class ReputationSystem implements IReputationSystemReader {
                 threshold: tier.unlock.threshold,
             };
         });
+    }
+    
+    private getCurrentScoreTable(): ScoreTable  {
+        return TIER_DEFS.map((tier) => {
+            if (tier.unlock === null) {
+                return {
+                    itemId: tier.itemId,
+                    baseScore: tier.baseScore,
+                };
+            }
+            const cumulative = this.getCumulativeShipped(tier.unlock.sourceItemId);
+            const isUnlocked = cumulative >= tier.unlock.threshold;
+            return {
+                itemId: tier.itemId,
+                baseScore: isUnlocked ? tier.baseScore : 1,
+            };
+        });        
     }
 
     /**

@@ -192,8 +192,8 @@ export class Inventory implements IInventoryWriter {
      *  1つでも入りきらない場合は何も変更せず false を返す。 */
     addItems(items: ReadonlyArray<{ itemId: ItemId; count: number }>): boolean {
         // スナップショットを作成してシミュレーション
-        const invSnapshot = this.inventorySlots_.map((s) => (s ? { ...s } : null));
         const tbSnapshot = this.toolbarSlots_.map((s) => (s ? { ...s } : null));
+        const invSnapshot = this.inventorySlots_.map((s) => (s ? { ...s } : null));
 
         for (const { itemId, count } of items) {
             if (!Inventory.tryAdd(invSnapshot, tbSnapshot, itemId, count)) {
@@ -202,8 +202,8 @@ export class Inventory implements IInventoryWriter {
         }
 
         // シミュレーション成功 → スナップショットを実スロットに適用
-        for (let i = 0; i < invSnapshot.length; i++) this.inventorySlots_[i] = invSnapshot[i];
         for (let i = 0; i < tbSnapshot.length; i++) this.toolbarSlots_[i] = tbSnapshot[i];
+        for (let i = 0; i < invSnapshot.length; i++) this.inventorySlots_[i] = invSnapshot[i];
         return true;
     }
 
@@ -213,7 +213,7 @@ export class Inventory implements IInventoryWriter {
         let remaining = count;
 
         // Phase 1: 既存スタックに積む
-        for (const slots of [invSlots, tbSlots]) {
+        for (const slots of [tbSlots, invSlots]) {
             for (const slot of slots) {
                 if (slot && slot.itemId === itemId && slot.count < maxStack) {
                     const adding = Math.min(maxStack - slot.count, remaining);
@@ -225,7 +225,7 @@ export class Inventory implements IInventoryWriter {
         }
 
         // Phase 2: 空きスロットに新規作成
-        for (const slots of [invSlots, tbSlots]) {
+        for (const slots of [tbSlots, invSlots]) {
             for (let i = 0; i < slots.length && remaining > 0; i++) {
                 if (!slots[i]) {
                     const adding = Math.min(maxStack, remaining);

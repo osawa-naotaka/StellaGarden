@@ -24,6 +24,14 @@ registerEntity({
             ctx.voxelMap.set(setEntityTypeInVoxel(ctx.voxel, ENTITY_TYPES.bonfire_lit), ctx.surfacePos);
             return true;
         }
+
+        // trunk 4 つを消費して点火
+        if (ctx.tool === "stem") {
+            if (!ctx.inventory.consumeSelectedItem(20)) return false;
+            ctx.voxelMap.set(setEntityTypeInVoxel(ctx.voxel, ENTITY_TYPES.bonfire_lit), ctx.surfacePos);
+            return true;
+        }
+        
         // axe で撤去
         if (ctx.tool === "axe") {
             return removeFacilityAtPos(ctx.voxelMap, ctx.inventory, ctx.surfacePos.x, ctx.surfacePos.z, ENTITY_TYPES.bonfire);

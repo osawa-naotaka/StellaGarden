@@ -5,8 +5,8 @@ import type { IPlayerStateWriter } from "../_boundary/interfaces";
 import type { EventBroker } from "../lib/Event";
 
 const ZOOM_STEP = 0.1;
-const HOLD_DELAY = 250; // 最初のインタラクトまでの遅延(ms)
-const HOLD_INTERVAL = 250; // 連続インタラクトの間隔(ms)
+const HOLD_DELAY = 200; // 最初のインタラクトまでの遅延(ms)
+const HOLD_INTERVAL = 200; // 連続インタラクトの間隔(ms)
 
 /** ホールド操作が必要なツールのID集合 */
 const HOLD_TOOL_IDS: ReadonlySet<string> = new Set(["axe", "hoes", "pickaxe", "sickle", "shovel", "watering_can"]);
