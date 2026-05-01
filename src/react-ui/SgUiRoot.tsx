@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Toolbar } from "./components/Toolbar";
 import { EngineProvider, type EngineRefs, useEngine } from "./EngineContext";
 import { useUIMode } from "./hooks/useUIMode";
@@ -10,6 +11,7 @@ import "./panels/InventoryPanel";
 import "./panels/WarpGatePanel";
 
 import { getRegisteredPanels } from "./PanelRegistry";
+import { GuidePanel } from "./panels/GuidePanel";
 import "./styles.css";
 
 /**
@@ -17,9 +19,20 @@ import "./styles.css";
  * 自身は pointer-events: none。各パネルだけが pointer-events: auto を持つ。
  */
 export function SgUiRoot({ engine }: { engine: EngineRefs }) {
+    const [guideOpen, setGuideOpen] = useState(false);
+
     return (
         <EngineProvider engine={engine}>
             <div className="sg-ui-root">
+                <button
+                    type="button"
+                    className="sg-guide-button"
+                    onClick={() => setGuideOpen((v) => !v)}
+                    aria-label="プレイガイドを開く"
+                >
+                    GUIDE
+                </button>
+                <GuidePanel open={guideOpen} onClose={() => setGuideOpen(false)} />
                 <PanelDispatcher />
             </div>
         </EngineProvider>

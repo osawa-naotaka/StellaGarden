@@ -442,3 +442,191 @@
     background: var(--sg-accent);
     transition: width 200ms var(--sg-easing);
 }
+
+/* ─── GUIDE ボタン ─────────────────────────────────────────── */
+.sg-guide-button {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(6px);
+    border: 1px solid var(--sg-border);
+    color: var(--sg-fg);
+    font-family: var(--sg-font);
+    font-size: var(--sg-font-size-sm);
+    font-weight: 700;
+    letter-spacing: 1px;
+    padding: 6px 14px;
+    border-radius: var(--sg-radius);
+    cursor: pointer;
+    pointer-events: auto;
+    transition: background var(--sg-duration) var(--sg-easing),
+        border-color var(--sg-duration) var(--sg-easing);
+}
+
+.sg-guide-button:hover {
+    background: var(--sg-bg-elev2);
+    border-color: var(--sg-accent);
+    color: var(--sg-accent-strong);
+}
+
+/* ─── ガイドパネル（左側からスライドイン） ─────────────────── */
+.sg-guide-panel {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.sg-guide-panel.is-open {
+    pointer-events: auto;
+}
+
+.sg-guide-panel .sg-sidepanel {
+    width: 600px;
+    left: 0;
+    right: auto;
+    transform: translateX(-100%);
+    box-shadow: var(--sg-shadow);
+}
+
+.sg-guide-panel .sg-sidepanel.is-open {
+    transform: translateX(0);
+}
+
+/* ─── Markdown コンテンツ ──────────────────────────────────── */
+.sg-guide-body {
+    font-size: var(--sg-font-size);
+    line-height: 1.7;
+    color: var(--sg-fg);
+}
+
+.sg-guide-body h1 {
+    font-size: var(--sg-font-size-xl);
+    font-weight: 700;
+    margin: 0 0 16px;
+    color: var(--sg-fg);
+    border-bottom: 1px solid var(--sg-border);
+    padding-bottom: 8px;
+}
+
+.sg-guide-body h2 {
+    font-size: var(--sg-font-size-lg);
+    font-weight: 700;
+    margin: 24px 0 8px;
+    color: var(--sg-accent-strong);
+    border-bottom: 1px solid var(--sg-border);
+    padding-bottom: 4px;
+}
+
+.sg-guide-body h3 {
+    font-size: var(--sg-font-size);
+    font-weight: 700;
+    margin: 16px 0 6px;
+    color: var(--sg-fg);
+}
+
+.sg-guide-body h4 {
+    font-size: var(--sg-font-size);
+    font-weight: 600;
+    margin: 12px 0 4px;
+    color: var(--sg-fg-dim);
+}
+
+.sg-guide-body p {
+    margin: 0 0 10px;
+}
+
+.sg-guide-body ul,
+.sg-guide-body ol {
+    margin: 0 0 10px;
+    padding-left: 20px;
+}
+
+.sg-guide-body li {
+    margin-bottom: 4px;
+}
+
+.sg-guide-body strong {
+    color: var(--sg-fg);
+    font-weight: 700;
+}
+
+.sg-guide-body em {
+    color: var(--sg-fg-dim);
+}
+
+.sg-guide-body code {
+    background: var(--sg-bg-slot);
+    border: 1px solid var(--sg-border);
+    border-radius: 3px;
+    padding: 1px 5px;
+    font-size: 12px;
+    font-family: "Consolas", "Menlo", monospace;
+    color: var(--sg-accent-strong);
+}
+
+.sg-guide-body pre {
+    background: var(--sg-bg-slot);
+    border: 1px solid var(--sg-border);
+    border-radius: var(--sg-radius-sm);
+    padding: 10px 12px;
+    overflow-x: auto;
+    margin: 0 0 10px;
+}
+
+.sg-guide-body pre code {
+    background: none;
+    border: none;
+    padding: 0;
+    color: var(--sg-fg);
+    font-size: 12px;
+    white-space: pre;
+}
+
+.sg-guide-body table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--sg-font-size-sm);
+    margin: 0 0 12px;
+}
+
+.sg-guide-body th {
+    background: var(--sg-bg-elev);
+    border: 1px solid var(--sg-border);
+    padding: 5px 8px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--sg-fg-dim);
+    white-space: nowrap;
+}
+
+.sg-guide-body td {
+    border: 1px solid var(--sg-border);
+    padding: 5px 8px;
+    vertical-align: top;
+}
+
+.sg-guide-body tr:nth-child(even) td {
+    background: var(--sg-bg-elev);
+}
+
+.sg-guide-body blockquote {
+    border-left: 3px solid var(--sg-accent);
+    background: var(--sg-bg-elev);
+    margin: 0 0 10px;
+    padding: 8px 12px;
+    border-radius: 0 var(--sg-radius-sm) var(--sg-radius-sm) 0;
+    color: var(--sg-fg-dim);
+    font-size: var(--sg-font-size-sm);
+}
+
+.sg-guide-body blockquote p {
+    margin: 0;
+}
+
+.sg-guide-body hr {
+    border: none;
+    border-top: 1px solid var(--sg-border);
+    margin: 16px 0;
+}
