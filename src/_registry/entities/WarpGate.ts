@@ -36,6 +36,7 @@ registerEntity({
 
 registerItem({
     itemId: "warp_gate",
+    displayName: "転移ゲート",
     spriteName: "ss_sprite_104.png",
     maxStack: 1,
     placement: {

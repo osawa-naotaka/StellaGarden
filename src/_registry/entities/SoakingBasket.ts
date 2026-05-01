@@ -82,6 +82,7 @@ registerEntity({
 
 registerItem({
     itemId: "soaking_basket",
+    displayName: "浸漬槽",
     spriteName: "ss_sprite_065.png",
     maxStack: 64,
     placement: {

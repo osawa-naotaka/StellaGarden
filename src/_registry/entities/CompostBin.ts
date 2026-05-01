@@ -106,6 +106,7 @@ registerEntity({
 
 registerItem({
     itemId: "compost_bin",
+    displayName: "堆肥場",
     spriteName: "ss_sprite_062.png",
     maxStack: 64,
     placement: {

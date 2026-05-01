@@ -79,6 +79,7 @@ registerEntity({
 
 registerItem({
     itemId: "bonfire",
+    displayName: "焚き火",
     spriteName: "ss_sprite_076.png",
     maxStack: 64,
     placement: {

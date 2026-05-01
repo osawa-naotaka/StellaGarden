@@ -30,6 +30,7 @@ registerEntity({
 
 registerItem({
     itemId: "pipe",
+    displayName: "畝間水路",
     spriteName: "pipe1_h",
     maxStack: 64,
     placement: {

@@ -71,6 +71,7 @@ registerEntity({
 
 registerItem({
     itemId: "kiln",
+    displayName: "炭焼き窯",
     spriteName: "ss_sprite_068.png",
     maxStack: 64,
     placement: {

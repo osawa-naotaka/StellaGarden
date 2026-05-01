@@ -82,6 +82,7 @@ registerEntity({
 
 registerItem({
     itemId: "forge",
+    displayName: "炉",
     spriteName: "ss_sprite_052.png",
     maxStack: 64,
     placement: {

@@ -38,6 +38,7 @@ registerEntity({
 
 registerItem({
     itemId: "chest",
+    displayName: "チェスト",
     spriteName: "chest.png",
     maxStack: 64,
     placement: {

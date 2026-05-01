@@ -50,6 +50,7 @@ registerEntity({
 
 registerItem({
     itemId: "workbench",
+    displayName: "作業台",
     spriteName: "ss_sprite_003.png",
     maxStack: 64,
     placement: {
