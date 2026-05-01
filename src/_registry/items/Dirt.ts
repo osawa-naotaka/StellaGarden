@@ -56,6 +56,7 @@ function isFlat3x3(voxelMap: IVoxelWriter, centerX: number, centerZ: number, cen
 
 registerItem({
     itemId: "dirt",
+    displayName: "土",
     spriteName: "ss_sprite_046.png",
     maxStack: 64,
     onItemUse(ctx) {

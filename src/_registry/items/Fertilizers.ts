@@ -1,9 +1,10 @@
 import { FERTILIZER_TYPES, getFertilizerTypeFromVoxel, getTerrainTypeFromVoxel, setFertilizerTypeInVoxel, TERRAIN_TYPES } from "../../engine/TerrainDefs";
 import { registerItem } from "../ItemRegistry";
 
-function registerFertilizer(itemId: string, fertType: number, spriteName: string): void {
+function registerFertilizer(itemId: string, displayName: string, fertType: number, spriteName: string): void {
     registerItem({
         itemId,
+        displayName,
         spriteName,
         maxStack: 64,
         onItemUse(ctx) {
@@ -21,6 +22,6 @@ function registerFertilizer(itemId: string, fertType: number, spriteName: string
     });
 }
 
-registerFertilizer("compost", FERTILIZER_TYPES.compost, "ss_sprite_042.png");
-registerFertilizer("plant_ashes", FERTILIZER_TYPES.plant_ashes, "ss_sprite_043.png");
-registerFertilizer("oil_cake", FERTILIZER_TYPES.oil_cake, "ss_sprite_044.png");
+registerFertilizer("compost", "堆肥", FERTILIZER_TYPES.compost, "ss_sprite_042.png");
+registerFertilizer("plant_ashes", "草木灰", FERTILIZER_TYPES.plant_ashes, "ss_sprite_043.png");
+registerFertilizer("oil_cake", "油粕", FERTILIZER_TYPES.oil_cake, "ss_sprite_044.png");

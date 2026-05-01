@@ -17,4 +17,4 @@ registerEntity({
     },
 });
 
-registerItem({ itemId: "clay", spriteName: "ss_sprite_080.png", maxStack: 64 });
+registerItem({ itemId: "clay", displayName: "粘土", spriteName: "ss_sprite_080.png", maxStack: 64 });

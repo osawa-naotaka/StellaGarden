@@ -17,4 +17,4 @@ registerEntity({
     },
 });
 
-registerItem({ itemId: "stone", spriteName: "stone-icon.png", maxStack: 64 });
+registerItem({ itemId: "stone", displayName: "石", spriteName: "stone-icon.png", maxStack: 64 });

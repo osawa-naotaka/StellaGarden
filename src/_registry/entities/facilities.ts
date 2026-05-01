@@ -11,6 +11,7 @@ import { registerItem } from "../ItemRegistry";
 function registerAxeRemovableFacility(
     entityType: number,
     itemId: ItemId,
+    displayName: string,
     spriteName: string,
     entitySize: { w: number; h: number },
     inventorySpriteName?: string,
@@ -30,6 +31,7 @@ function registerAxeRemovableFacility(
 
     registerItem({
         itemId,
+        displayName,
         spriteName: inventorySpriteName ?? spriteName,
         maxStack: 64,
         placement: {
@@ -43,9 +45,9 @@ function registerAxeRemovableFacility(
     });
 }
 
-registerAxeRemovableFacility(ENTITY_TYPES.anvil, "anvil", "ss_sprite_079.png", { w: 1, h: 1 });
-registerAxeRemovableFacility(ENTITY_TYPES.threshing_machine, "threshing_machine", "ss_sprite_054.png", { w: 2, h: 1 }, "ss_sprite_063.png");
-registerAxeRemovableFacility(ENTITY_TYPES.screw_presses, "screw_presses", "ss_sprite_055.png", { w: 2, h: 2 }, "ss_sprite_064.png");
-registerAxeRemovableFacility(ENTITY_TYPES.scutching_board, "scutching_board", "ss_sprite_057.png", { w: 1, h: 1 }, "ss_sprite_057.png");
-registerAxeRemovableFacility(ENTITY_TYPES.spinning_wheel, "spinning_wheel", "ss_sprite_058.png", { w: 2, h: 1 }, "ss_sprite_066.png");
-registerAxeRemovableFacility(ENTITY_TYPES.loom, "loom", "ss_sprite_059.png", { w: 2, h: 2 }, "ss_sprite_067.png");
+registerAxeRemovableFacility(ENTITY_TYPES.anvil, "anvil", "金床", "ss_sprite_079.png", { w: 1, h: 1 });
+registerAxeRemovableFacility(ENTITY_TYPES.threshing_machine, "threshing_machine", "脱穀機", "ss_sprite_054.png", { w: 2, h: 1 }, "ss_sprite_063.png");
+registerAxeRemovableFacility(ENTITY_TYPES.screw_presses, "screw_presses", "搾油機", "ss_sprite_055.png", { w: 2, h: 2 }, "ss_sprite_064.png");
+registerAxeRemovableFacility(ENTITY_TYPES.scutching_board, "scutching_board", "叩き台", "ss_sprite_057.png", { w: 1, h: 1 }, "ss_sprite_057.png");
+registerAxeRemovableFacility(ENTITY_TYPES.spinning_wheel, "spinning_wheel", "紡ぎ車", "ss_sprite_058.png", { w: 2, h: 1 }, "ss_sprite_066.png");
+registerAxeRemovableFacility(ENTITY_TYPES.loom, "loom", "織機", "ss_sprite_059.png", { w: 2, h: 2 }, "ss_sprite_067.png");

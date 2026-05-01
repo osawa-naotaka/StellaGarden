@@ -76,7 +76,7 @@ const sunflowerSprites: EntitySpriteInfo[][] = [
 type HarvestFn = (num: number) => { itemId: ItemId; count: number }[];
 
 // ── 登録 ──
-export function registerCrop(entityType: number, itemId: ItemId, sprites: EntitySpriteInfo[][], itemSprite: string, harvestFn: HarvestFn, oilItemId: ItemId | null = null): void {
+export function registerCrop(entityType: number, itemId: ItemId, displayName: string, sprites: EntitySpriteInfo[][], itemSprite: string, harvestFn: HarvestFn, oilItemId: ItemId | null = null): void {
     const cropDef = CROP_DEFS[entityType];
     if (!cropDef) throw new Error(`Crop entity type ${entityType} not found`);
 
@@ -128,6 +128,7 @@ export function registerCrop(entityType: number, itemId: ItemId, sprites: Entity
     
     registerItem({
         itemId,
+        displayName,
         spriteName: itemSprite,
         maxStack: 64,
         onItemUse(ctx: InteractionContext): boolean {
@@ -181,17 +182,18 @@ export function registerCrop(entityType: number, itemId: ItemId, sprites: Entity
     });
 }
 
-registerItem({ itemId: "stem", spriteName: "ss_sprite_005.png", maxStack: 64 });
+registerItem({ itemId: "stem", displayName: "茎", spriteName: "ss_sprite_005.png", maxStack: 64 });
 
 // potato
-registerCrop(ENTITY_TYPES.potato, "potato", potetoSprites, "ss_sprite_009.png", (num) => [{ itemId: "potato", count: num }, { itemId: "stem", count: num }]);
+registerCrop(ENTITY_TYPES.potato, "potato", "じゃがいも", potetoSprites, "ss_sprite_009.png", (num) => [{ itemId: "potato", count: num }, { itemId: "stem", count: num }]);
 
 // flax
-registerCrop(ENTITY_TYPES.flax, "flaxseed", flaxSprites, "ss_sprite_021.png", (num) => [{ itemId: "flaxseed", count: num }, { itemId: "flax_stalk", count: num }], "flaxseed_oil");
-registerItem({ itemId: "flaxseed_oil", spriteName: "ss_sprite_028.png", maxStack: 64 });
-registerItem({ itemId: "flax_stalk", spriteName: "ss_sprite_022.png", maxStack: 64 });
+registerCrop(ENTITY_TYPES.flax, "flaxseed", "亜麻の種", flaxSprites, "ss_sprite_021.png", (num) => [{ itemId: "flaxseed", count: num }, { itemId: "flax_stalk", count: num }], "flaxseed_oil");
+registerItem({ itemId: "flaxseed_oil", displayName: "亜麻仁油", spriteName: "ss_sprite_028.png", maxStack: 64 });
+registerItem({ itemId: "flax_stalk", displayName: "亜麻の茎", spriteName: "ss_sprite_022.png", maxStack: 64 });
 registerItem({
     itemId: "processed_flax",
+    displayName: "浸漬済み亜麻",
     spriteName: "ss_sprite_097.png",
     maxStack: 64,
     onItemUse: (ctx: InteractionContext): boolean => {
@@ -205,6 +207,7 @@ registerItem({
 });
 registerItem({
     itemId: "flax_fiber",
+    displayName: "亜麻繊維",
     spriteName: "ss_sprite_023.png",
     maxStack: 64,
     onItemUse: (ctx: InteractionContext): boolean => {
@@ -218,6 +221,7 @@ registerItem({
 });
 registerItem({
     itemId: "thread",
+    displayName: "亜麻糸",
     spriteName: "ss_sprite_024.png",
     maxStack: 64,
     onItemUse: (ctx: InteractionContext): boolean => {
@@ -233,9 +237,10 @@ registerItem({
 });
 
 // soy
-registerCrop(ENTITY_TYPES.soy, "soybeans", soySprites, "ss_sprite_015.png", (num) => [{ itemId: "pods", count: num }, { itemId: "stem", count: num }], "soybean_oil");
+registerCrop(ENTITY_TYPES.soy, "soybeans", "大豆", soySprites, "ss_sprite_015.png", (num) => [{ itemId: "pods", count: num }, { itemId: "stem", count: num }], "soybean_oil");
 registerItem({
     itemId: "pods",
+    displayName: "茎付き大豆",
     spriteName: "ss_sprite_014.png",
     maxStack: 64,
     onItemUse(ctx: InteractionContext): boolean {
@@ -245,9 +250,9 @@ registerItem({
         return true;
     },
 });
-registerItem({ itemId: "soybean_oil", spriteName: "ss_sprite_016.png", maxStack: 64 });
-registerItem({ itemId: "bagged_soybeans", spriteName: "ss_sprite_017.png", maxStack: 64 });
-registerItem({ itemId: "bagged_potatos", spriteName: "ss_sprite_017.png", maxStack: 64 });
+registerItem({ itemId: "soybean_oil", displayName: "大豆油", spriteName: "ss_sprite_016.png", maxStack: 64 });
+registerItem({ itemId: "bagged_soybeans", displayName: "袋詰め大豆", spriteName: "ss_sprite_017.png", maxStack: 64 });
+registerItem({ itemId: "bagged_potatos", displayName: "袋詰めじゃがいも", spriteName: "ss_sprite_017.png", maxStack: 64 });
 
 // sunflower
-registerCrop(ENTITY_TYPES.sunflower, "sunflower_seed", sunflowerSprites, "ss_sprite_032.png", (num) => [{ itemId: "sunflower_seed", count: num }, { itemId: "stem", count: num }]);
+registerCrop(ENTITY_TYPES.sunflower, "sunflower_seed", "ひまわりの種", sunflowerSprites, "ss_sprite_032.png", (num) => [{ itemId: "sunflower_seed", count: num }, { itemId: "stem", count: num }]);

@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import type { CraftStation, ICraftSystem, ItemId, ItemStack, RecipeDef } from "../../_boundary/interfaces";
+import { getItemDisplayName } from "../../_registry/ItemRegistry";
 import { ItemIcon } from "./ItemIcon";
 import { Slot } from "./Slot";
 
@@ -68,6 +69,7 @@ export function CraftPane({ craftSystem, station, pickedUp, onToolSlotLeftClick 
                         <div
                             key={recipe.id}
                             className={`sg-recipe-cell${selected ? " is-selected" : ""}${canCraft ? "" : " is-uncraftable"}`}
+                            data-tooltip={getItemDisplayName(recipe.result.itemId)}
                             onClick={(e) => {
                                 e.stopPropagation();
                                 setSelectedRecipeId(recipe.id);

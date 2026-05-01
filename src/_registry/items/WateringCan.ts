@@ -3,6 +3,7 @@ import { registerItem } from "../ItemRegistry";
 
 registerItem({
     itemId: "watering_can",
+    displayName: "じょうろ",
     spriteName: "water_can.png",
     maxStack: 1,
     onItemUse(ctx) {

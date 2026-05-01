@@ -1,5 +1,6 @@
 import type { MouseEvent, ReactNode } from "react";
 import type { ItemStack } from "../../_boundary/interfaces";
+import { getItemDisplayName } from "../../_registry/ItemRegistry";
 import { ItemIcon } from "./ItemIcon";
 
 export interface SlotProps {
@@ -13,6 +14,7 @@ export function Slot({ stack, onLeftClick, onRightClick, children }: SlotProps) 
     return (
         <div
             className="sg-slot"
+            data-tooltip={stack ? getItemDisplayName(stack.itemId) : undefined}
             onClick={(e) => {
                 e.stopPropagation();
                 onLeftClick?.(e);

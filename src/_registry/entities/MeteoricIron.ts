@@ -34,4 +34,4 @@ registerEntity({
     },
 });
 
-registerItem({ itemId: "meteoric_iron", spriteName: "ss_sprite_081.png", maxStack: 64 });
+registerItem({ itemId: "meteoric_iron", displayName: "隕鉄", spriteName: "ss_sprite_081.png", maxStack: 64 });

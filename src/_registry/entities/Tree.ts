@@ -98,6 +98,7 @@ registerEntity({
 
 registerItem({
     itemId: "nuts",
+    displayName: "木の実",
     spriteName: "ss_sprite_037.png",
     maxStack: 64,
     onItemUse(ctx: InteractionContext): boolean {

@@ -29,6 +29,8 @@ export interface PlacementInfo {
 export interface ItemDef {
     readonly itemId: string;
 
+    /** ツールチップ等に表示する日本語名。省略時は itemId をそのまま使う。 */
+    readonly displayName?: string;
     /** インベントリ表示用のスプライト名。null の場合は仮アイコン（Graphics）で代替する。 */
     readonly spriteName: string | null;
     /** spriteName が null のときに使う仮アイコンの色。 */
@@ -96,4 +98,9 @@ export function isPlaceable(itemId: string): boolean {
 /** itemId から PlacementInfo を取得する */
 export function getPlacementInfo(itemId: string): PlacementInfo | undefined {
     return getItemDef(itemId)?.placement;
+}
+
+/** itemId の表示名を返す。未登録または displayName 未設定の場合は itemId をそのまま返す。 */
+export function getItemDisplayName(itemId: string): string {
+    return itemDefs.get(itemId)?.displayName ?? itemId;
 }
