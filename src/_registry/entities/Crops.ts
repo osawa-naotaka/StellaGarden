@@ -234,7 +234,7 @@ registerItem({
 });
 
 // soy
-registerCrop(ENTITY_TYPES.soy, "soybeans", "大豆", soySprites, "ss_sprite_015.png", (num) => [{ itemId: "pods", count: num }, { itemId: "stem", count: num }], "soybean_oil");
+registerCrop(ENTITY_TYPES.soy, "soybeans", "大豆", soySprites, "ss_sprite_015.png", (num) => [{ itemId: "pods", count: num }], "soybean_oil");
 registerItem({
     itemId: "pods",
     displayName: "茎付き大豆",
@@ -242,7 +242,7 @@ registerItem({
     maxStack: 64,
     onItemUse(ctx: InteractionContext): boolean {
         if (ctx.entityType !== ENTITY_TYPES.threshing_machine) return false;
-        if (!ctx.inventory.addItems([{ itemId: "soybeans", count: 1 }])) return false;
+        if (!ctx.inventory.addItems([{ itemId: "soybeans", count: 1 }, { itemId: "stem", count: 1 }])) return false;
         ctx.inventory.consumeSelectedItem(1);
         return true;
     },

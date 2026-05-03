@@ -809,3 +809,12 @@ pngフォーマットで、RGBA8888。
   - [ ] 154 **脱穀機(縦)**
     - 153を90度回転して配置したもの。横から見たスタイル。
     - _1〜_3: アニメーション フレーム1〜3
+
+## 追加素材(不足分)
+
+- インベントリアイコン
+  - [ ] 155 **亜麻の茎と種（アイコン）** 16x16
+    - 参考画像: https://medieval-dynasty.fandom.com/wiki/Flax_Stalk?file=Flax_Stalk.jpg
+      - 茎の上の方には丸い小さい実がたくさんなっている(種が入っている)
+      - この画像では根が切られていますが、根を残して全体を描いてください
+    - 参考画像: https://www.shutterstock.com/image-photo/sheaf-harvested-flax-stems-seed-capsules-730430428?trackingId=be93e8e8-a022-4647-88a2-628caa33838c
