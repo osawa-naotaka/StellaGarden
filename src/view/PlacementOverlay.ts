@@ -144,6 +144,7 @@ export class PlacementOverlay {
 
             if (stack.count === 1) {
                 this.inventory.setSlot(this.uiState.placementSourceSlot, null);
+                this.uiState.exitPlacementMode();
             } else {
                 stack.count--;
             }
