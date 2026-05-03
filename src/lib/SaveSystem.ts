@@ -76,13 +76,20 @@ export interface ReputationSaveData {
     cumulativeShipped: Array<[ItemId, number]>;
 }
 
+// ─── セーブスロット型 ──────────────────────────────────────────────────────────
+
+export type SaveSlot = 1 | 2 | 3;
+
 // ─── 定数 ────────────────────────────────────────────────────────────────────
 
 const DB_NAME = "stella-garden";
 const DB_VERSION = 1;
 const STORE_NAME = "saveData";
-const SAVE_KEY = "autosave";
 const CURRENT_SAVE_VERSION = 6;
+
+function slotKey(slot: SaveSlot): string {
+    return `save_slot_${slot}`;
+}
 
 // ─── IndexedDB ユーティリティ ────────────────────────────────────────────────
 
@@ -103,7 +110,7 @@ function openDB(): Promise<IDBDatabase> {
 // ─── 公開 API ────────────────────────────────────────────────────────────────
 
 /** ゲーム状態を IndexedDB に保存する。 */
-export async function saveGame(data: Omit<SaveData, "version" | "timestamp">): Promise<void> {
+export async function saveGame(slot: SaveSlot, data: Omit<SaveData, "version" | "timestamp">): Promise<void> {
     const saveData: SaveData = {
         ...data,
         version: CURRENT_SAVE_VERSION,
@@ -112,7 +119,7 @@ export async function saveGame(data: Omit<SaveData, "version" | "timestamp">): P
     const db = await openDB();
     return new Promise((resolve, reject) => {
         const tx = db.transaction(STORE_NAME, "readwrite");
-        tx.objectStore(STORE_NAME).put(saveData, SAVE_KEY);
+        tx.objectStore(STORE_NAME).put(saveData, slotKey(slot));
         tx.oncomplete = () => {
             db.close();
             resolve();
@@ -125,12 +132,12 @@ export async function saveGame(data: Omit<SaveData, "version" | "timestamp">): P
 }
 
 /** IndexedDB からセーブデータを読み込む。データがなければ null を返す。 */
-export async function loadGame(): Promise<SaveData | null> {
+export async function loadGame(slot: SaveSlot): Promise<SaveData | null> {
     try {
         const db = await openDB();
         return new Promise((resolve, reject) => {
             const tx = db.transaction(STORE_NAME, "readonly");
-            const request = tx.objectStore(STORE_NAME).get(SAVE_KEY);
+            const request = tx.objectStore(STORE_NAME).get(slotKey(slot));
             request.onsuccess = () => {
                 db.close();
                 const data = request.result as SaveData | undefined;
@@ -156,16 +163,21 @@ export async function loadGame(): Promise<SaveData | null> {
     }
 }
 
-/** セーブデータが存在するかを高速確認する。データ本体は読み込まない。 */
-export async function hasSaveData(): Promise<boolean> {
+/** スロットの存在確認とセーブ日時を返す。タイトル画面での一覧表示用。 */
+export async function getSlotInfo(slot: SaveSlot): Promise<{ exists: boolean; timestamp: number | null }> {
     try {
         const db = await openDB();
         return new Promise((resolve, reject) => {
             const tx = db.transaction(STORE_NAME, "readonly");
-            const request = tx.objectStore(STORE_NAME).count(SAVE_KEY);
+            const request = tx.objectStore(STORE_NAME).get(slotKey(slot));
             request.onsuccess = () => {
                 db.close();
-                resolve(request.result > 0);
+                const data = request.result as SaveData | undefined;
+                if (!data || data.version !== CURRENT_SAVE_VERSION) {
+                    resolve({ exists: false, timestamp: null });
+                    return;
+                }
+                resolve({ exists: true, timestamp: data.timestamp });
             };
             request.onerror = () => {
                 db.close();
@@ -173,24 +185,7 @@ export async function hasSaveData(): Promise<boolean> {
             };
         });
     } catch (e) {
-        console.warn("Failed to check save data:", e);
-        return false;
+        console.warn("Failed to get slot info:", e);
+        return { exists: false, timestamp: null };
     }
-}
-
-/** セーブデータを削除する。 */
-export async function deleteGame(): Promise<void> {
-    const db = await openDB();
-    return new Promise((resolve, reject) => {
-        const tx = db.transaction(STORE_NAME, "readwrite");
-        tx.objectStore(STORE_NAME).delete(SAVE_KEY);
-        tx.oncomplete = () => {
-            db.close();
-            resolve();
-        };
-        tx.onerror = () => {
-            db.close();
-            reject(tx.error);
-        };
-    });
 }

@@ -45,7 +45,8 @@ import { InputHandler } from "./input/InputHandler";
 import { createInteractionHandler } from "./input/InteractionSystem";
 import { DEBUG } from "./lib/debugFlag";
 import { createEventBroker } from "./lib/Event";
-import { deleteGame, hasSaveData, loadGame, saveGame } from "./lib/SaveSystem";
+import { getSlotInfo, loadGame, saveGame } from "./lib/SaveSystem";
+import type { SaveSlot } from "./lib/SaveSystem";
 import type { Pos2D, Size2D } from "./lib/VoxelMap";
 import { VoxelMap } from "./lib/VoxelMap";
 import type { EngineRefs } from "./react-ui/EngineContext";
@@ -76,7 +77,7 @@ function calcTilePerViewport(screenW: number, screenH: number, zoomLevel: number
     };
 }
 
-function useGameEngine(worldSize: Size2D, loadSave: boolean) {
+function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad: boolean) {
     const containerRef = useRef<HTMLDivElement>(null);
     const [engineRefs, setEngineRefs] = useState<EngineRefs | null>(null);
 
@@ -101,7 +102,7 @@ function useGameEngine(worldSize: Size2D, loadSave: boolean) {
             const eventBroker = createEventBroker<GameEventMap>();
 
             const app = new Application();
-            const saveData = loadSave ? await loadGame() : null;
+            const saveData = shouldLoad ? await loadGame(saveSlot) : null;
             await app.init({ background: "#1099bb", resizeTo: window });
 
             if (cancelled) {
@@ -250,7 +251,7 @@ function useGameEngine(worldSize: Size2D, loadSave: boolean) {
             function performSave() {
                 if (isSaving) return;
                 isSaving = true;
-                saveGame({
+                saveGame(saveSlot, {
                     voxelMap: {
                         width: voxelMap.width,
                         height: voxelMap.height,
@@ -364,74 +365,42 @@ function useGameEngine(worldSize: Size2D, loadSave: boolean) {
     return { containerRef, engineRefs };
 }
 
-type AppMode = "title" | "game";
+type AppMode = "title" | "slot-new" | "slot-load" | "game";
 
-function TitleScreen({ onStart }: { onStart: (loadSave: boolean) => void }) {
-    const [saveExists, setSaveExists] = useState<boolean | null>(null);
+const TITLE_BG = { position: "fixed", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(135deg, #1a3a2a 0%, #0d1f17 100%)" } as const;
+const TITLE_TEXT_SX = { color: "#e8f5e9", fontWeight: 700, letterSpacing: 4, textShadow: "2px 2px 8px rgba(0,0,0,0.5)" } as const;
+const BTN_OUTLINED_SX = { color: "#e8f5e9", borderColor: "#4caf50", "&:hover": { borderColor: "#388e3c", bgcolor: "rgba(76,175,80,0.1)" }, "&.Mui-disabled": { color: "#5a5a5a", borderColor: "#3a3a3a" }, fontSize: "1.1rem", py: 1.5 } as const;
+
+function TitleScreen({ onNewGame, onContinue }: { onNewGame: () => void; onContinue: () => void }) {
+    const [anySlotExists, setAnySlotExists] = useState<boolean | null>(null);
 
     useEffect(() => {
-        hasSaveData().then(setSaveExists);
+        Promise.all([getSlotInfo(1), getSlotInfo(2), getSlotInfo(3)]).then((infos) => {
+            setAnySlotExists(infos.some((info) => info.exists));
+        });
     }, []);
 
-    const handleNewGame = useCallback(async () => {
-        await deleteGame();
-        onStart(false);
-    }, [onStart]);
-
-    const handleContinue = useCallback(() => {
-        onStart(true);
-    }, [onStart]);
-
     return (
-        <Box
-            sx={{
-                position: "fixed",
-                inset: 0,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                background: "linear-gradient(135deg, #1a3a2a 0%, #0d1f17 100%)",
-            }}
-        >
+        <Box sx={TITLE_BG}>
             <Stack spacing={4} alignItems="center">
-                <Typography
-                    variant="h2"
-                    sx={{
-                        color: "#e8f5e9",
-                        fontWeight: 700,
-                        letterSpacing: 4,
-                        textShadow: "2px 2px 8px rgba(0,0,0,0.5)",
-                    }}
-                >
+                <Typography variant="h2" sx={TITLE_TEXT_SX}>
                     Stella Garden
                 </Typography>
                 <Stack spacing={2} sx={{ minWidth: 240 }}>
                     <Button
                         variant="contained"
                         size="large"
-                        onClick={handleNewGame}
-                        sx={{
-                            bgcolor: "#4caf50",
-                            "&:hover": { bgcolor: "#388e3c" },
-                            fontSize: "1.1rem",
-                            py: 1.5,
-                        }}
+                        onClick={onNewGame}
+                        sx={{ bgcolor: "#4caf50", "&:hover": { bgcolor: "#388e3c" }, fontSize: "1.1rem", py: 1.5 }}
                     >
                         はじめから
                     </Button>
                     <Button
                         variant="outlined"
                         size="large"
-                        disabled={saveExists === null || !saveExists}
-                        onClick={handleContinue}
-                        sx={{
-                            color: "#e8f5e9",
-                            borderColor: "#4caf50",
-                            "&:hover": { borderColor: "#388e3c", bgcolor: "rgba(76,175,80,0.1)" },
-                            "&.Mui-disabled": { color: "#5a5a5a", borderColor: "#3a3a3a" },
-                            fontSize: "1.1rem",
-                            py: 1.5,
-                        }}
+                        disabled={anySlotExists === null || !anySlotExists}
+                        onClick={onContinue}
+                        sx={BTN_OUTLINED_SX}
                     >
                         つづきから
                     </Button>
@@ -441,8 +410,87 @@ function TitleScreen({ onStart }: { onStart: (loadSave: boolean) => void }) {
     );
 }
 
-function GameScreen({ loadSave }: { loadSave: boolean }) {
-    const { containerRef, engineRefs } = useGameEngine({ w: 400, h: 400 }, loadSave);
+type SlotInfoState = { exists: boolean; timestamp: number | null };
+
+function formatTimestamp(ts: number): string {
+    const d = new Date(ts);
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    const hh = String(d.getHours()).padStart(2, "0");
+    const mi = String(d.getMinutes()).padStart(2, "0");
+    return `${yyyy}/${mm}/${dd} ${hh}:${mi}`;
+}
+
+function SlotSelectScreen({
+    mode,
+    onSelect,
+    onBack,
+}: {
+    mode: "new" | "load";
+    onSelect: (slot: SaveSlot) => void;
+    onBack: () => void;
+}) {
+    const [slotInfos, setSlotInfos] = useState<SlotInfoState[]>([
+        { exists: false, timestamp: null },
+        { exists: false, timestamp: null },
+        { exists: false, timestamp: null },
+    ]);
+
+    useEffect(() => {
+        Promise.all([getSlotInfo(1), getSlotInfo(2), getSlotInfo(3)]).then(setSlotInfos);
+    }, []);
+
+    const title = mode === "new" ? "どのスロットに保存しますか？" : "どのデータを読み込みますか？";
+
+    return (
+        <Box sx={TITLE_BG}>
+            <Stack spacing={4} alignItems="center">
+                <Typography variant="h2" sx={TITLE_TEXT_SX}>
+                    Stella Garden
+                </Typography>
+                <Typography variant="h6" sx={{ color: "#a5d6a7" }}>
+                    {title}
+                </Typography>
+                <Stack spacing={2} sx={{ minWidth: 360 }}>
+                    {([1, 2, 3] as SaveSlot[]).map((slot, i) => {
+                        const info = slotInfos[i];
+                        const disabled = mode === "load" && !info.exists;
+                        return (
+                            <Button
+                                key={slot}
+                                variant="outlined"
+                                size="large"
+                                disabled={disabled}
+                                onClick={() => onSelect(slot)}
+                                sx={{
+                                    ...BTN_OUTLINED_SX,
+                                    justifyContent: "space-between",
+                                    px: 3,
+                                }}
+                            >
+                                <span>スロット {slot}</span>
+                                <span style={{ fontSize: "0.85rem", opacity: 0.75 }}>
+                                    {info.exists && info.timestamp ? formatTimestamp(info.timestamp) : "空のスロット"}
+                                </span>
+                            </Button>
+                        );
+                    })}
+                </Stack>
+                <Button
+                    variant="text"
+                    onClick={onBack}
+                    sx={{ color: "#a5d6a7", "&:hover": { color: "#e8f5e9" } }}
+                >
+                    戻る
+                </Button>
+            </Stack>
+        </Box>
+    );
+}
+
+function GameScreen({ saveSlot, shouldLoad }: { saveSlot: SaveSlot; shouldLoad: boolean }) {
+    const { containerRef, engineRefs } = useGameEngine({ w: 400, h: 400 }, saveSlot, shouldLoad);
     return (
         <>
             <div ref={containerRef} style={{ position: "fixed", inset: 0 }} />
@@ -453,15 +501,40 @@ function GameScreen({ loadSave }: { loadSave: boolean }) {
 
 export default function App() {
     const [mode, setMode] = useState<AppMode>("title");
-    const [loadSave, setLoadSave] = useState(false);
+    const [selectedSlot, setSelectedSlot] = useState<SaveSlot>(1);
+    const [shouldLoad, setShouldLoad] = useState(false);
 
-    const handleStart = useCallback((load: boolean) => {
-        setLoadSave(load);
+    const handleSelectSlot = useCallback((slot: SaveSlot, load: boolean) => {
+        setSelectedSlot(slot);
+        setShouldLoad(load);
         setMode("game");
     }, []);
 
     if (mode === "title") {
-        return <TitleScreen onStart={handleStart} />;
+        return (
+            <TitleScreen
+                onNewGame={() => setMode("slot-new")}
+                onContinue={() => setMode("slot-load")}
+            />
+        );
     }
-    return <GameScreen loadSave={loadSave} />;
+    if (mode === "slot-new") {
+        return (
+            <SlotSelectScreen
+                mode="new"
+                onSelect={(slot) => handleSelectSlot(slot, false)}
+                onBack={() => setMode("title")}
+            />
+        );
+    }
+    if (mode === "slot-load") {
+        return (
+            <SlotSelectScreen
+                mode="load"
+                onSelect={(slot) => handleSelectSlot(slot, true)}
+                onBack={() => setMode("title")}
+            />
+        );
+    }
+    return <GameScreen saveSlot={selectedSlot} shouldLoad={shouldLoad} />;
 }
