@@ -1,5 +1,5 @@
 import { createContext, type ReactNode, useContext } from "react";
-import type { ICraftSystem, IEventBroker, IInventoryWriter, IReputationSystemReader, IVoxelWriter } from "../_boundary/interfaces";
+import type { ICraftSystem, IEventBroker, IGameTimeReader, IInventoryWriter, IPlayerStateReader, IReputationSystemReader, IVoxelWriter } from "../_boundary/interfaces";
 import type { ChestStorage } from "../engine/ChestStorage";
 import type { ForgeStorage } from "../engine/ForgeStorage";
 import type { WarpGateStorage } from "../engine/WarpGateStorage";
@@ -11,6 +11,8 @@ import type { UIState } from "../view/UIState";
  */
 export interface EngineRefs {
     inventory: IInventoryWriter;
+    playerState: IPlayerStateReader;
+    gameTime: IGameTimeReader;
     warpGateStorage: WarpGateStorage;
     reputationSystem: IReputationSystemReader;
     chestStorage: ChestStorage;

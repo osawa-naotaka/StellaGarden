@@ -101,7 +101,7 @@ const CROP_NPK_RESPONSE: Readonly<Record<number, readonly [number, number, numbe
  * 1.0 = 基準（無肥料）、> 1.0 で増収、< 1.0 で減収。
  */
 export function getFertilizerYieldMultiplier(entityType: number, fertilizerType: number): number {
-    if (fertilizerType === FERTILIZER_TYPES.none) return 1.0;
+    if (fertilizerType === FERTILIZER_TYPES.none) return 0.7;
 
     const npk = FERTILIZER_NPK[fertilizerType];
     const response = CROP_NPK_RESPONSE[entityType];

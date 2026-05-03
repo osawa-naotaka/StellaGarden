@@ -58,7 +58,6 @@ import { PlayerCharacterView } from "./view/PlayerCharacterView";
 import { loadSprite } from "./view/Sprite";
 import { TopView } from "./view/TopView";
 import { UIState } from "./view/UIState";
-import { PropertyView } from "./view/PropertyView";
 
 /** 画面サイズとズームレベルから必要なチャンク数を計算する。 */
 function calcChunkPerViewport(screenW: number, screenH: number, zoomLevel: number): Size2D {
@@ -198,19 +197,6 @@ function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad: boolea
             await ensureSpritesheetsLoaded();
             if (cancelled) return;
 
-            // React 側に engine 参照を提供（全パネル UI はここから利用する）
-            setEngineRefs({
-                inventory: playerState.inventory,
-                warpGateStorage,
-                reputationSystem,
-                chestStorage,
-                forgeStorage,
-                craftSystem,
-                voxelMap,
-                uiState,
-                eventBroker,
-            });
-
             topView.resize(initialChunks);
 
             const playerCharView = new PlayerCharacterView();
@@ -235,12 +221,27 @@ function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad: boolea
                 }),
             );
 
+            // React 側に engine 参照を提供（全パネル UI はここから利用する）
+            setEngineRefs({
+                inventory: playerState.inventory,
+                playerState,
+                gameTime,
+                warpGateStorage,
+                reputationSystem,
+                chestStorage,
+                forgeStorage,
+                craftSystem,
+                voxelMap,
+                uiState,
+                eventBroker,
+            });
+
             const inputHandler = new InputHandler(topView.top, playerState, eventBroker);
             disposers.push(inputHandler.setListeners());
 
-            const property = DEBUG ? new DebugText(playerState, gameTime, voxelMap) : new PropertyView(playerState, gameTime, voxelMap);
-            if (property) {
-                pixiApp.stage.addChild(property.textView);
+            if (DEBUG) {
+                const debugText = new DebugText(playerState, gameTime, voxelMap);
+                pixiApp.stage.addChild(debugText.textView);
             }
 
             // 動的ビューポート: 前回のチャンク数を記憶してリサイズ判定に使う
@@ -350,8 +351,6 @@ function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad: boolea
                     z: playerState.posInWorld.z - chunkHalfH,
                 };
                 placementOverlay.tick(playerState.pointerPosInWorld, viewportOrigin);
-
-                if (property) property.update();
             });
         }
 

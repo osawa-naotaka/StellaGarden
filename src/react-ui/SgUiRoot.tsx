@@ -12,6 +12,7 @@ import "./panels/WarpGatePanel";
 
 import { getRegisteredPanels } from "./PanelRegistry";
 import { GuidePanel } from "./panels/GuidePanel";
+import { PropertyPanel } from "./components/PropertyPanel";
 import "./styles.css";
 
 /**
@@ -34,6 +35,7 @@ export function SgUiRoot({
     return (
         <EngineProvider engine={engine}>
             <div className="sg-ui-root">
+                <PropertyPanel />
                 <div className="sg-corner-buttons">
                     <button
                         type="button"
