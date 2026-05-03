@@ -58,14 +58,6 @@ export function applyCropDailyTick(ctx: DailyTickContext, cropDef: CropDef): voi
     } else {
         // --- 水やり不要作物（ジャガイモ等）: 常に成長 ---
         voxel = setCropGrowthStageInVoxel(voxel, dayCounter + 1);
-        if (isWet) {
-            // 水やり回数をカウント（drought bits を流用）
-            const wateredCount = getDroughtCounterFromVoxel(voxel);
-            if (wateredCount < 3) {
-                voxel = setDroughtCounterInVoxel(voxel, wateredCount + 1);
-            }
-            voxel = (voxel & ~0xffn) | BigInt(TERRAIN_TYPES.soil);
-        }
     }
 
     voxelMap.set(voxel, pos);

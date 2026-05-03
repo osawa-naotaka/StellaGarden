@@ -143,7 +143,6 @@ export function setFertilizedInVoxel(voxel: bigint, fertilized: boolean): bigint
 /**
  * ボクセル値から水切れカウンタを取り出す（bits 22-23、2bit）。
  * 水やり必須作物: 連続水切れ日数（3で枯死）。
- * ジャガイモ: 水やり回数カウント（収量ボーナス用）。
  */
 export function getDroughtCounterFromVoxel(voxel: bigint): number {
     return Number((voxel >> 22n) & 0x3n);

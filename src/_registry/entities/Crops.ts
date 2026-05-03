@@ -104,11 +104,9 @@ export function registerCrop(entityType: number, itemId: ItemId, displayName: st
             const baseCount = 2 + Math.random() * 3; // 2-4
             const fertType = getFertilizerTypeFromVoxel(voxel);
             const fertMultiplier = getFertilizerYieldMultiplier(entityType, fertType);
-            const wateredCount = getDroughtCounterFromVoxel(voxel);
-            const waterBonus = 1.0 + wateredCount * 0.1;
             const fatigue = getFatigueFromVoxel(voxel);
             const fatigueMultiplier = fatigue === 0 ? 1.0 : fatigue === 1 ? 0.7 : 0.4;
-            const harvestCount = Math.max(1, Math.floor(baseCount * fertMultiplier * waterBonus * fatigueMultiplier));
+            const harvestCount = Math.max(1, Math.floor(baseCount * fertMultiplier * fatigueMultiplier));
     
             if (!ctx.inventory.addItems(harvestFn(harvestCount))) return false;
     
