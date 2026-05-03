@@ -17,9 +17,9 @@ import { useFrameTick } from "../hooks/useFrameTick";
 
 const FERTILIZER_LABELS: Record<number, string> = {
     [FERTILIZER_TYPES.none]: "-",
-    [FERTILIZER_TYPES.compost]: "compost",
-    [FERTILIZER_TYPES.plant_ashes]: "plant_ashes",
-    [FERTILIZER_TYPES.oil_cake]: "oil_cake",
+    [FERTILIZER_TYPES.compost]: "堆肥",
+    [FERTILIZER_TYPES.plant_ashes]: "草木灰",
+    [FERTILIZER_TYPES.oil_cake]: "油粕",
 };
 
 function buildTileLines(voxelMap: IVoxelReader, playerState: IPlayerStateReader): string[] | null {
@@ -46,9 +46,8 @@ function buildTileLines(voxelMap: IVoxelReader, playerState: IPlayerStateReader)
     const fatigue = getFatigueFromVoxel(voxel);
 
     const lines: string[] = [];
-    lines.push(`エンティティ: ${ENTITY_NAMES[entity] ?? entity}`);
-
     if (entity !== ENTITY_TYPES.none) {
+        lines.push(`エンティティ: ${ENTITY_NAMES[entity] ?? entity}`);        
         const cropDef = CROP_DEFS[entity];
         if (cropDef) {
             const mature = dayCounter >= cropDef.maturityDay;
@@ -57,8 +56,6 @@ function buildTileLines(voxelMap: IVoxelReader, playerState: IPlayerStateReader)
             lines.push(`成長: ${dayCounter}日/${cropDef.maturityDay}日 (${status})`);
             if (cropDef.needsWater) {
                 lines.push(`干ばつまで: ${drought}/3`);
-            } else {
-                lines.push(`水やり: ${drought}回`);
             }
             if (fertType !== 0) {
                 lines.push(`肥料: ${FERTILIZER_LABELS[fertType] ?? fertType}`);

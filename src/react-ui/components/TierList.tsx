@@ -11,7 +11,7 @@ const STATUS_MARK: Record<TierProgress["status"], string> = {
 
 function TierCard({ progress }: { progress: TierProgress }) {
     const { tier, status, cumulativeShipped, threshold } = progress;
-    const sourceLabel = tier.unlock ? getItemDef(tier.unlock.sourceItemId)?.itemId ?? "?" : null;
+    const sourceLabel = tier.unlock ? getItemDef(tier.unlock.sourceItemId)?.displayName ?? "?" : null;
 
     return (
         <div className={`sg-tier-card sg-tier-card--${status === "in_progress" ? "in-progress" : status}`}>
@@ -25,7 +25,7 @@ function TierCard({ progress }: { progress: TierProgress }) {
                 </div>
                 <div className="sg-tier-detail">
                     {status === "unlocked" && (tier.unlock ? `released (${cumulativeShipped} shipped)` : "released")}
-                    {status === "in_progress" && `${cumulativeShipped}/${threshold}`}
+                    {status === "in_progress" && `${sourceLabel} ${cumulativeShipped}/${threshold}`}
                     {status === "locked" && tier.unlock && `${sourceLabel} ${tier.unlock.threshold}`}
                 </div>
                 {status === "in_progress" && <ProgressBar value={cumulativeShipped} max={threshold} />}

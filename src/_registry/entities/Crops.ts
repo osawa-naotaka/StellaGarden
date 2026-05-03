@@ -4,7 +4,6 @@ import type { ItemId } from "../../engine/ItemDefs";
 import {
     ENTITY_TYPES,
     getCropGrowthStageFromVoxel,
-    getDroughtCounterFromVoxel,
     getEntityTypeFromVoxel,
     getFatigueFromVoxel,
     getFertilizerTypeFromVoxel,
