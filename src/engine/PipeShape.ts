@@ -36,13 +36,13 @@ export function getPipeShapeKey(voxel: bigint): PipeShapeKey {
         case 12:
             return "h";
         case 9:
-            return "corner_ld";
-        case 5:
-            return "corner_rd";
-        case 10:
-            return "corner_lu";
-        case 6:
             return "corner_ru";
+        case 5:
+            return "corner_lu";
+        case 10:
+            return "corner_rd";
+        case 6:
+            return "corner_ld";
         case 13:
             return "t_u";
         case 14:

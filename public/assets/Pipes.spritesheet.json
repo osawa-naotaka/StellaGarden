@@ -52,7 +52,7 @@
         "h": 16
       }
     },
-    "pipe1_corner_rd": {
+    "pipe1_corner_lu": {
       "frame": {
         "x": 32,
         "y": 0,
@@ -72,7 +72,7 @@
         "h": 16
       }
     },
-    "pipe1_corner_ld": {
+    "pipe1_corner_ru": {
       "frame": {
         "x": 48,
         "y": 0,
@@ -92,7 +92,7 @@
         "h": 16
       }
     },
-    "pipe1_corner_lu": {
+    "pipe1_corner_rd": {
       "frame": {
         "x": 64,
         "y": 0,
@@ -112,7 +112,7 @@
         "h": 16
       }
     },
-    "pipe1_corner_ru": {
+    "pipe1_corner_ld": {
       "frame": {
         "x": 80,
         "y": 0,
@@ -352,7 +352,7 @@
         "h": 16
       }
     },
-    "pipe2_corner_rd": {
+    "pipe2_corner_lu": {
       "frame": {
         "x": 32,
         "y": 16,
@@ -372,7 +372,7 @@
         "h": 16
       }
     },
-    "pipe2_corner_ld": {
+    "pipe2_corner_ru": {
       "frame": {
         "x": 48,
         "y": 16,
@@ -392,7 +392,7 @@
         "h": 16
       }
     },
-    "pipe2_corner_lu": {
+    "pipe2_corner_rd": {
       "frame": {
         "x": 64,
         "y": 16,
@@ -412,7 +412,7 @@
         "h": 16
       }
     },
-    "pipe2_corner_ru": {
+    "pipe2_corner_ld": {
       "frame": {
         "x": 80,
         "y": 16,
@@ -652,7 +652,7 @@
         "h": 16
       }
     },
-    "pipe3_corner_rd": {
+    "pipe3_corner_lu": {
       "frame": {
         "x": 32,
         "y": 32,
@@ -672,7 +672,7 @@
         "h": 16
       }
     },
-    "pipe3_corner_ld": {
+    "pipe3_corner_ru": {
       "frame": {
         "x": 48,
         "y": 32,
@@ -692,7 +692,7 @@
         "h": 16
       }
     },
-    "pipe3_corner_lu": {
+    "pipe3_corner_rd": {
       "frame": {
         "x": 64,
         "y": 32,
@@ -712,7 +712,7 @@
         "h": 16
       }
     },
-    "pipe3_corner_ru": {
+    "pipe3_corner_ld": {
       "frame": {
         "x": 80,
         "y": 32,
