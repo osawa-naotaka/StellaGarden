@@ -443,11 +443,19 @@
     transition: width 200ms var(--sg-easing);
 }
 
-/* ─── GUIDE ボタン ─────────────────────────────────────────── */
-.sg-guide-button {
+/* ─── 右上ボタングループ（GUIDE / SAVE） ───────────────────── */
+.sg-corner-buttons {
     position: absolute;
     top: 12px;
     right: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    pointer-events: auto;
+}
+
+.sg-guide-button,
+.sg-save-button {
     background: rgba(0, 0, 0, 0.55);
     backdrop-filter: blur(6px);
     border: 1px solid var(--sg-border);
@@ -459,15 +467,26 @@
     padding: 6px 14px;
     border-radius: var(--sg-radius);
     cursor: pointer;
-    pointer-events: auto;
     transition: background var(--sg-duration) var(--sg-easing),
-        border-color var(--sg-duration) var(--sg-easing);
+        border-color var(--sg-duration) var(--sg-easing),
+        color var(--sg-duration) var(--sg-easing);
 }
 
-.sg-guide-button:hover {
+.sg-guide-button:hover,
+.sg-save-button:hover:not(:disabled) {
     background: var(--sg-bg-elev2);
     border-color: var(--sg-accent);
     color: var(--sg-accent-strong);
+}
+
+.sg-save-button:disabled {
+    cursor: default;
+    opacity: 0.75;
+}
+
+.sg-save-button.is-done {
+    border-color: var(--sg-success);
+    color: var(--sg-success);
 }
 
 /* ─── ガイドパネル（左側からスライドイン） ─────────────────── */

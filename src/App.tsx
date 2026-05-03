@@ -80,6 +80,7 @@ function calcTilePerViewport(screenW: number, screenH: number, zoomLevel: number
 function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad: boolean) {
     const containerRef = useRef<HTMLDivElement>(null);
     const [engineRefs, setEngineRefs] = useState<EngineRefs | null>(null);
+    const requestSaveRef = useRef<() => Promise<void>>(() => Promise.resolve());
 
     // biome-ignore lint/correctness/useExhaustiveDependencies: worldSize は実質定数。PixiJS 初期化はマウント時一度だけ行う設計のため依存追加しない
     useEffect(() => {
@@ -248,10 +249,10 @@ function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad: boolea
             let timeSinceLastSave = 0;
             let isSaving = false;
 
-            function performSave() {
-                if (isSaving) return;
+            function performSave(): Promise<void> {
+                if (isSaving) return Promise.resolve();
                 isSaving = true;
-                saveGame(saveSlot, {
+                return saveGame(saveSlot, {
                     voxelMap: {
                         width: voxelMap.width,
                         height: voxelMap.height,
@@ -290,6 +291,7 @@ function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad: boolea
                         isSaving = false;
                     });
             }
+            requestSaveRef.current = performSave;
 
             // ゲームループ
             pixiApp.ticker.add((ticker) => {
@@ -362,7 +364,7 @@ function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad: boolea
         };
     }, []);
 
-    return { containerRef, engineRefs };
+    return { containerRef, engineRefs, requestSave: () => requestSaveRef.current() };
 }
 
 type AppMode = "title" | "slot-new" | "slot-load" | "game";
@@ -490,11 +492,11 @@ function SlotSelectScreen({
 }
 
 function GameScreen({ saveSlot, shouldLoad }: { saveSlot: SaveSlot; shouldLoad: boolean }) {
-    const { containerRef, engineRefs } = useGameEngine({ w: 400, h: 400 }, saveSlot, shouldLoad);
+    const { containerRef, engineRefs, requestSave } = useGameEngine({ w: 400, h: 400 }, saveSlot, shouldLoad);
     return (
         <>
             <div ref={containerRef} style={{ position: "fixed", inset: 0 }} />
-            {engineRefs && <SgUiRoot engine={engineRefs} />}
+            {engineRefs && <SgUiRoot engine={engineRefs} onSave={requestSave} />}
         </>
     );
 }

@@ -14,24 +14,47 @@ import { getRegisteredPanels } from "./PanelRegistry";
 import { GuidePanel } from "./panels/GuidePanel";
 import "./styles.css";
 
+type SaveState = "idle" | "saving" | "done";
+
 /**
  * React UI 層のルート。canvas の上に重ねるオーバーレイとして配置する。
  * 自身は pointer-events: none。各パネルだけが pointer-events: auto を持つ。
  */
-export function SgUiRoot({ engine }: { engine: EngineRefs }) {
+export function SgUiRoot({ engine, onSave }: { engine: EngineRefs; onSave: () => Promise<void> }) {
     const [guideOpen, setGuideOpen] = useState(false);
+    const [saveState, setSaveState] = useState<SaveState>("idle");
+
+    const handleSave = async () => {
+        setSaveState("saving");
+        await onSave();
+        setSaveState("done");
+        setTimeout(() => setSaveState("idle"), 1500);
+    };
+
+    const saveLabel = saveState === "saving" ? "SAVING..." : saveState === "done" ? "SAVED!" : "SAVE";
 
     return (
         <EngineProvider engine={engine}>
             <div className="sg-ui-root">
-                <button
-                    type="button"
-                    className="sg-guide-button"
-                    onClick={() => setGuideOpen((v) => !v)}
-                    aria-label="プレイガイドを開く"
-                >
-                    GUIDE
-                </button>
+                <div className="sg-corner-buttons">
+                    <button
+                        type="button"
+                        className="sg-guide-button"
+                        onClick={() => setGuideOpen((v) => !v)}
+                        aria-label="プレイガイドを開く"
+                    >
+                        GUIDE
+                    </button>
+                    <button
+                        type="button"
+                        className={`sg-save-button${saveState === "done" ? " is-done" : ""}`}
+                        onClick={handleSave}
+                        disabled={saveState !== "idle"}
+                        aria-label="ゲームを保存する"
+                    >
+                        {saveLabel}
+                    </button>
+                </div>
                 <GuidePanel open={guideOpen} onClose={() => setGuideOpen(false)} />
                 <PanelDispatcher />
             </div>
