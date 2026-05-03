@@ -14,22 +14,20 @@ import { getRegisteredPanels } from "./PanelRegistry";
 import { GuidePanel } from "./panels/GuidePanel";
 import "./styles.css";
 
-type SaveState = "idle" | "saving" | "done";
-
 /**
  * React UI 層のルート。canvas の上に重ねるオーバーレイとして配置する。
  * 自身は pointer-events: none。各パネルだけが pointer-events: auto を持つ。
  */
-export function SgUiRoot({ engine, onSave }: { engine: EngineRefs; onSave: () => Promise<void> }) {
+export function SgUiRoot({
+    engine,
+    onSave,
+    saveState,
+}: {
+    engine: EngineRefs;
+    onSave: () => Promise<void>;
+    saveState: "idle" | "saving" | "done";
+}) {
     const [guideOpen, setGuideOpen] = useState(false);
-    const [saveState, setSaveState] = useState<SaveState>("idle");
-
-    const handleSave = async () => {
-        setSaveState("saving");
-        await onSave();
-        setSaveState("done");
-        setTimeout(() => setSaveState("idle"), 1500);
-    };
 
     const saveLabel = saveState === "saving" ? "SAVING..." : saveState === "done" ? "SAVED!" : "SAVE";
 
@@ -48,7 +46,7 @@ export function SgUiRoot({ engine, onSave }: { engine: EngineRefs; onSave: () =>
                     <button
                         type="button"
                         className={`sg-save-button${saveState === "done" ? " is-done" : ""}`}
-                        onClick={handleSave}
+                        onClick={onSave}
                         disabled={saveState !== "idle"}
                         aria-label="ゲームを保存する"
                     >
