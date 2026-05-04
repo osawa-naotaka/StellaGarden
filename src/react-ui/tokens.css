@@ -20,14 +20,14 @@
     --sg-gap: 8px;
 
     --sg-font: "Inter", "Noto Sans JP", system-ui, sans-serif;
-    --sg-font-size-sm: 11px;
-    --sg-font-size: 13px;
-    --sg-font-size-lg: 16px;
-    --sg-font-size-xl: 22px;
+    --sg-font-size-sm: 14px;
+    --sg-font-size: 17px;
+    --sg-font-size-lg: 20px;
+    --sg-font-size-xl: 26px;
 
-    --sg-sidebar-width: 560px;
-    --sg-slot-size: 48px;
-    --sg-slot-icon-size: 36px;
+    --sg-sidebar-width: 650px;
+    --sg-slot-size: 64px;
+    --sg-slot-icon-size: 48px;
 
     --sg-easing: cubic-bezier(0.2, 0.8, 0.2, 1);
     --sg-duration: 220ms;
