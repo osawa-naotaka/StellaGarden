@@ -81,7 +81,7 @@ export function CraftPane({ craftSystem, station, pickedUp, onToolSlotLeftClick 
                                 if (canCraft) craftSystem.craft(recipe);
                             }}
                         >
-                            <ItemIcon itemId={recipe.result.itemId} size={36} />
+                            <ItemIcon itemId={recipe.result.itemId} size={48} />
                             {recipe.result.count >= 2 && <span className="sg-slot-count">{recipe.result.count}</span>}
                         </div>
                     );
@@ -120,7 +120,7 @@ function RecipeDetail({ recipe }: { recipe: RecipeDef }) {
             {recipe.requiredTool && (
                 <div className="sg-recipe-detail-row">
                     <span>Required tool:</span>
-                    <ItemIcon itemId={recipe.requiredTool.itemId} size={20} />
+                    <ItemIcon itemId={recipe.requiredTool.itemId} size={32} />
                     <span>{recipe.requiredTool.itemId}</span>
                 </div>
             )}

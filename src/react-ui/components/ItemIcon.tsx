@@ -9,7 +9,7 @@ import { getFrameInfo } from "../spritesheets";
  * TexturePacker で回転格納（rotated:true）されたフレームは内側の div に
  * transform: rotate(-90deg) を適用して元の向きに戻す。
  */
-export function ItemIcon({ itemId, size = 36 }: { itemId: ItemId; size?: number }) {
+export function ItemIcon({ itemId, size = 48 }: { itemId: ItemId; size?: number }) {
     const def = getItemDef(itemId);
 
     const data = useMemo(() => {
