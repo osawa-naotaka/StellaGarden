@@ -305,7 +305,7 @@ function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad: boolea
                 if (!pixiApp) return;
 
                 if (uiState.timeSpeed !== "paused") {
-                    const timeMultiplier = uiState.timeSpeed === "fast" ? 2 : 1;
+                    const timeMultiplier = uiState.timeSpeed === "fast" ? 8 : 1;
                     gameTime.tick(ticker.deltaMS * timeMultiplier, eventBroker);
                     inputHandler.tick(ticker.deltaMS);
                 }
