@@ -46,9 +46,7 @@ export function ItemIcon({ itemId, size = 48 }: { itemId: ItemId; size?: number 
 
     if (data.kind === "placeholder") {
         const colorHex = `#${data.color.toString(16).padStart(6, "0")}`;
-        return (
-            <div className="sg-item-icon-placeholder" style={{ width: size, height: size, backgroundColor: colorHex }} />
-        );
+        return <div className="sg-item-icon-placeholder" style={{ width: size, height: size, backgroundColor: colorHex }} />;
     }
 
     if (!data.rotated) {

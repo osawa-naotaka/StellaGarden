@@ -31,7 +31,7 @@ registerEntity({
             ctx.voxelMap.set(setEntityTypeInVoxel(ctx.voxel, ENTITY_TYPES.bonfire_lit), ctx.surfacePos);
             return true;
         }
-        
+
         // axe で撤去
         if (ctx.tool === "axe") {
             return removeFacilityAtPos(ctx.voxelMap, ctx.inventory, ctx.surfacePos.x, ctx.surfacePos.z, ENTITY_TYPES.bonfire);

@@ -45,8 +45,8 @@ import { InputHandler } from "./input/InputHandler";
 import { createInteractionHandler } from "./input/InteractionSystem";
 import { DEBUG } from "./lib/debugFlag";
 import { createEventBroker } from "./lib/Event";
-import { getSlotInfo, loadGame, saveGame } from "./lib/SaveSystem";
 import type { SaveSlot } from "./lib/SaveSystem";
+import { getSlotInfo, loadGame, saveGame } from "./lib/SaveSystem";
 import type { Pos2D, Size2D } from "./lib/VoxelMap";
 import { VoxelMap } from "./lib/VoxelMap";
 import type { EngineRefs } from "./react-ui/EngineContext";
@@ -377,9 +377,23 @@ function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad: boolea
 
 type AppMode = "title" | "slot-new" | "slot-load" | "game";
 
-const TITLE_BG = { position: "fixed", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(135deg, #1a3a2a 0%, #0d1f17 100%)" } as const;
+const TITLE_BG = {
+    position: "fixed",
+    inset: 0,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    background: "linear-gradient(135deg, #1a3a2a 0%, #0d1f17 100%)",
+} as const;
 const TITLE_TEXT_SX = { color: "#e8f5e9", fontWeight: 700, letterSpacing: 4, textShadow: "2px 2px 8px rgba(0,0,0,0.5)" } as const;
-const BTN_OUTLINED_SX = { color: "#e8f5e9", borderColor: "#4caf50", "&:hover": { borderColor: "#388e3c", bgcolor: "rgba(76,175,80,0.1)" }, "&.Mui-disabled": { color: "#5a5a5a", borderColor: "#3a3a3a" }, fontSize: "1.1rem", py: 1.5 } as const;
+const BTN_OUTLINED_SX = {
+    color: "#e8f5e9",
+    borderColor: "#4caf50",
+    "&:hover": { borderColor: "#388e3c", bgcolor: "rgba(76,175,80,0.1)" },
+    "&.Mui-disabled": { color: "#5a5a5a", borderColor: "#3a3a3a" },
+    fontSize: "1.1rem",
+    py: 1.5,
+} as const;
 
 function TitleScreen({ onNewGame, onContinue }: { onNewGame: () => void; onContinue: () => void }) {
     const [anySlotExists, setAnySlotExists] = useState<boolean | null>(null);
@@ -405,13 +419,7 @@ function TitleScreen({ onNewGame, onContinue }: { onNewGame: () => void; onConti
                     >
                         はじめから
                     </Button>
-                    <Button
-                        variant="outlined"
-                        size="large"
-                        disabled={anySlotExists === null || !anySlotExists}
-                        onClick={onContinue}
-                        sx={BTN_OUTLINED_SX}
-                    >
+                    <Button variant="outlined" size="large" disabled={anySlotExists === null || !anySlotExists} onClick={onContinue} sx={BTN_OUTLINED_SX}>
                         つづきから
                     </Button>
                 </Stack>
@@ -432,15 +440,7 @@ function formatTimestamp(ts: number): string {
     return `${yyyy}/${mm}/${dd} ${hh}:${mi}`;
 }
 
-function SlotSelectScreen({
-    mode,
-    onSelect,
-    onBack,
-}: {
-    mode: "new" | "load";
-    onSelect: (slot: SaveSlot) => void;
-    onBack: () => void;
-}) {
+function SlotSelectScreen({ mode, onSelect, onBack }: { mode: "new" | "load"; onSelect: (slot: SaveSlot) => void; onBack: () => void }) {
     const [slotInfos, setSlotInfos] = useState<SlotInfoState[]>([
         { exists: false, timestamp: null },
         { exists: false, timestamp: null },
@@ -487,11 +487,7 @@ function SlotSelectScreen({
                         );
                     })}
                 </Stack>
-                <Button
-                    variant="text"
-                    onClick={onBack}
-                    sx={{ color: "#a5d6a7", "&:hover": { color: "#e8f5e9" } }}
-                >
+                <Button variant="text" onClick={onBack} sx={{ color: "#a5d6a7", "&:hover": { color: "#e8f5e9" } }}>
                     戻る
                 </Button>
             </Stack>
@@ -521,30 +517,13 @@ export default function App() {
     }, []);
 
     if (mode === "title") {
-        return (
-            <TitleScreen
-                onNewGame={() => setMode("slot-new")}
-                onContinue={() => setMode("slot-load")}
-            />
-        );
+        return <TitleScreen onNewGame={() => setMode("slot-new")} onContinue={() => setMode("slot-load")} />;
     }
     if (mode === "slot-new") {
-        return (
-            <SlotSelectScreen
-                mode="new"
-                onSelect={(slot) => handleSelectSlot(slot, false)}
-                onBack={() => setMode("title")}
-            />
-        );
+        return <SlotSelectScreen mode="new" onSelect={(slot) => handleSelectSlot(slot, false)} onBack={() => setMode("title")} />;
     }
     if (mode === "slot-load") {
-        return (
-            <SlotSelectScreen
-                mode="load"
-                onSelect={(slot) => handleSelectSlot(slot, true)}
-                onBack={() => setMode("title")}
-            />
-        );
+        return <SlotSelectScreen mode="load" onSelect={(slot) => handleSelectSlot(slot, true)} onBack={() => setMode("title")} />;
     }
     return <GameScreen saveSlot={selectedSlot} shouldLoad={shouldLoad} />;
 }

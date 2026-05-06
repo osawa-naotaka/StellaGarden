@@ -11,13 +11,11 @@ const STATUS_MARK: Record<TierProgress["status"], string> = {
 
 function TierCard({ progress }: { progress: TierProgress }) {
     const { tier, status, cumulativeShipped, threshold } = progress;
-    const sourceLabel = tier.unlock ? getItemDef(tier.unlock.sourceItemId)?.displayName ?? "?" : null;
+    const sourceLabel = tier.unlock ? (getItemDef(tier.unlock.sourceItemId)?.displayName ?? "?") : null;
 
     return (
         <div className={`sg-tier-card sg-tier-card--${status === "in_progress" ? "in-progress" : status}`}>
-            <span className={`sg-tier-mark sg-tier-mark--${status === "in_progress" ? "in-progress" : status}`}>
-                {STATUS_MARK[status]}
-            </span>
+            <span className={`sg-tier-mark sg-tier-mark--${status === "in_progress" ? "in-progress" : status}`}>{STATUS_MARK[status]}</span>
             <div className="sg-tier-info">
                 <div className="sg-tier-label">
                     {tier.label}

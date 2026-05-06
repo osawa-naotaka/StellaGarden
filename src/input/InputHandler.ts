@@ -134,7 +134,7 @@ export class InputHandler {
         if (this.keyPressState.w || this.keyPressState.arrowup) dz -= 2;
         if (this.keyPressState.s || this.keyPressState.arrowdown) dz += 2;
 
-        if ((dx !== 0 || dz !== 0)) {
+        if (dx !== 0 || dz !== 0) {
             // 斜め移動を正規化
             const norm = 1 / Math.sqrt(2);
             dx *= norm;

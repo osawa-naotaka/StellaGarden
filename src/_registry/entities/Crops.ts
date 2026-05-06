@@ -75,45 +75,53 @@ const sunflowerSprites: EntitySpriteInfo[][] = [
 type HarvestFn = (num: number) => { itemId: ItemId; count: number }[];
 
 // ── 登録 ──
-export function registerCrop(entityType: number, itemId: ItemId, displayName: string, sprites: EntitySpriteInfo[][], itemSprite: string, harvestFn: HarvestFn, oilItemId: ItemId | null = null): void {
+export function registerCrop(
+    entityType: number,
+    itemId: ItemId,
+    displayName: string,
+    sprites: EntitySpriteInfo[][],
+    itemSprite: string,
+    harvestFn: HarvestFn,
+    oilItemId: ItemId | null = null,
+): void {
     const cropDef = CROP_DEFS[entityType];
     if (!cropDef) throw new Error(`Crop entity type ${entityType} not found`);
 
     registerEntity({
         entityType: entityType,
-    
+
         getSprites(voxel: bigint): EntitySpriteInfo[] {
             const dayCounter = getCropGrowthStageFromVoxel(voxel);
             const visualStage = getVisualStage(entityType, dayCounter);
             return sprites[visualStage] ?? sprites[0];
         },
-    
+
         onDailyTick(ctx: DailyTickContext): void {
             applyCropDailyTick(ctx, cropDef);
         },
-    
+
         onInteract(ctx: InteractionContext): boolean {
             // 収穫: sickel で成熟した crop を右クリック
             if (ctx.tool !== "sickle") return false;
-    
+
             const voxel = ctx.voxel;
             const dayCounter = getCropGrowthStageFromVoxel(voxel);
             if (dayCounter < cropDef.maturityDay || dayCounter >= cropDef.witherDay) return false;
-    
+
             const baseCount = 2 + Math.random() * 3; // 2-4
             const fertType = getFertilizerTypeFromVoxel(voxel);
             const fertMultiplier = getFertilizerYieldMultiplier(entityType, fertType);
             const fatigue = getFatigueFromVoxel(voxel);
             const fatigueMultiplier = fatigue === 0 ? 1.0 : fatigue === 1 ? 0.7 : 0.4;
             const harvestCount = Math.max(1, Math.floor(baseCount * fertMultiplier * fatigueMultiplier));
-    
+
             if (!ctx.inventory.addItems(harvestFn(harvestCount))) return false;
-    
+
             let afterVoxel: bigint = initializeVoxel(getTerrainTypeFromVoxel(voxel));
             afterVoxel = setLastCropInVoxel(afterVoxel, entityType);
             afterVoxel = setFatigueInVoxel(afterVoxel, fatigue);
             ctx.voxelMap.set(afterVoxel, ctx.surfacePos);
-    
+
             ctx.eventBroker.publish("crop_harvested", {
                 pos: { x: ctx.surfacePos.x, z: ctx.surfacePos.z },
                 itemId,
@@ -122,7 +130,7 @@ export function registerCrop(entityType: number, itemId: ItemId, displayName: st
             return true;
         },
     });
-    
+
     registerItem({
         itemId,
         displayName,
@@ -145,14 +153,14 @@ export function registerCrop(entityType: number, itemId: ItemId, displayName: st
                     return true;
                 }
             }
-            
+
             // 植え付け: アイテムを soil/wetSoil に使用
             const voxel = ctx.voxel;
             const terrainType = getTerrainTypeFromVoxel(voxel);
             if ((terrainType !== TERRAIN_TYPES.soil && terrainType !== TERRAIN_TYPES.wetSoil) || getEntityTypeFromVoxel(voxel) !== ENTITY_TYPES.none) {
                 return false;
             }
-    
+
             const lastCrop = getLastCropFromVoxel(voxel);
             let fatigue = getFatigueFromVoxel(voxel);
             if (lastCrop === entityType) {
@@ -162,14 +170,14 @@ export function registerCrop(entityType: number, itemId: ItemId, displayName: st
             }
             if (fatigue >= cropDef.fatigueThreshold) return false;
             if (!ctx.inventory.consumeSelectedItem(1)) return false;
-    
+
             let newVoxel = initializeVoxel(terrainType);
             newVoxel = setEntityTypeInVoxel(newVoxel, entityType);
             newVoxel = setFatigueInVoxel(newVoxel, fatigue);
             newVoxel = setLastCropInVoxel(newVoxel, entityType);
             newVoxel = setFertilizerTypeInVoxel(newVoxel, getFertilizerTypeFromVoxel(voxel));
             ctx.voxelMap.set(newVoxel, ctx.surfacePos);
-    
+
             ctx.eventBroker.publish("crop_planted", {
                 pos: { x: ctx.surfacePos.x, z: ctx.surfacePos.z },
                 cropType: itemId,
@@ -182,10 +190,24 @@ export function registerCrop(entityType: number, itemId: ItemId, displayName: st
 registerItem({ itemId: "stem", displayName: "茎", spriteName: "ss_sprite_005.png", maxStack: 64 });
 
 // potato
-registerCrop(ENTITY_TYPES.potato, "potato", "じゃがいも", potetoSprites, "ss_sprite_009.png", (num) => [{ itemId: "potato", count: num }, { itemId: "stem", count: num }]);
+registerCrop(ENTITY_TYPES.potato, "potato", "じゃがいも", potetoSprites, "ss_sprite_009.png", (num) => [
+    { itemId: "potato", count: num },
+    { itemId: "stem", count: num },
+]);
 
 // flax
-registerCrop(ENTITY_TYPES.flax, "flaxseed", "亜麻の種", flaxSprites, "ss_sprite_021.png", (num) => [{ itemId: "flaxseed", count: num }, { itemId: "flax_stalk", count: num }], "flaxseed_oil");
+registerCrop(
+    ENTITY_TYPES.flax,
+    "flaxseed",
+    "亜麻の種",
+    flaxSprites,
+    "ss_sprite_021.png",
+    (num) => [
+        { itemId: "flaxseed", count: num },
+        { itemId: "flax_stalk", count: num },
+    ],
+    "flaxseed_oil",
+);
 registerItem({ itemId: "flaxseed_oil", displayName: "亜麻仁油", spriteName: "ss_sprite_028.png", maxStack: 64 });
 registerItem({ itemId: "flax_stalk", displayName: "亜麻の茎", spriteName: "ss_sprite_022.png", maxStack: 64 });
 registerItem({
@@ -242,7 +264,13 @@ registerItem({
     maxStack: 64,
     onItemUse(ctx: InteractionContext): boolean {
         if (ctx.entityType !== ENTITY_TYPES.threshing_machine) return false;
-        if (!ctx.inventory.addItems([{ itemId: "soybeans", count: 1 }, { itemId: "stem", count: 1 }])) return false;
+        if (
+            !ctx.inventory.addItems([
+                { itemId: "soybeans", count: 1 },
+                { itemId: "stem", count: 1 },
+            ])
+        )
+            return false;
         ctx.inventory.consumeSelectedItem(1);
         return true;
     },
@@ -252,4 +280,7 @@ registerItem({ itemId: "bagged_soybeans", displayName: "袋詰め大豆", sprite
 registerItem({ itemId: "bagged_potatos", displayName: "袋詰めじゃがいも", spriteName: "ss_sprite_017.png", maxStack: 64 });
 
 // sunflower
-registerCrop(ENTITY_TYPES.sunflower, "sunflower_seed", "ひまわりの種", sunflowerSprites, "ss_sprite_032.png", (num) => [{ itemId: "sunflower_seed", count: num }, { itemId: "stem", count: num }]);
+registerCrop(ENTITY_TYPES.sunflower, "sunflower_seed", "ひまわりの種", sunflowerSprites, "ss_sprite_032.png", (num) => [
+    { itemId: "sunflower_seed", count: num },
+    { itemId: "stem", count: num },
+]);

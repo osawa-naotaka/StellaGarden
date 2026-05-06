@@ -1,3 +1,5 @@
+import type { IPlayerStateReader, IVoxelReader } from "../../_boundary/interfaces";
+import { findFacilityAnchor } from "../../_registry/facilityUtil";
 import { CROP_DEFS, getFertilizerYieldMultiplier } from "../../engine/CropDefs";
 import {
     ENTITY_TYPES,
@@ -9,9 +11,7 @@ import {
     getFertilizerTypeFromVoxel,
     getLastCropFromVoxel,
 } from "../../engine/TerrainDefs";
-import { findFacilityAnchor } from "../../_registry/facilityUtil";
 import { ENTITY_NAMES } from "../../view/DebugText";
-import type { IPlayerStateReader, IVoxelReader } from "../../_boundary/interfaces";
 import { useEngine } from "../EngineContext";
 import { useFrameTick } from "../hooks/useFrameTick";
 
@@ -47,7 +47,7 @@ function buildTileLines(voxelMap: IVoxelReader, playerState: IPlayerStateReader)
 
     const lines: string[] = [];
     if (entity !== ENTITY_TYPES.none) {
-        lines.push(`エンティティ: ${ENTITY_NAMES[entity] ?? entity}`);        
+        lines.push(`エンティティ: ${ENTITY_NAMES[entity] ?? entity}`);
         const cropDef = CROP_DEFS[entity];
         if (cropDef) {
             const mature = dayCounter >= cropDef.maturityDay;

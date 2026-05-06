@@ -115,8 +115,8 @@ export class ReputationSystem implements IReputationSystemReader {
             };
         });
     }
-    
-    private getCurrentScoreTable(): ScoreTable  {
+
+    private getCurrentScoreTable(): ScoreTable {
         return TIER_DEFS.map((tier) => {
             if (tier.unlock === null) {
                 return {
@@ -130,7 +130,7 @@ export class ReputationSystem implements IReputationSystemReader {
                 itemId: tier.itemId,
                 baseScore: isUnlocked ? tier.baseScore : 1,
             };
-        });        
+        });
     }
 
     /**

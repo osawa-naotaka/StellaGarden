@@ -467,7 +467,8 @@
     padding: 6px 14px;
     border-radius: var(--sg-radius);
     cursor: pointer;
-    transition: background var(--sg-duration) var(--sg-easing),
+    transition:
+        background var(--sg-duration) var(--sg-easing),
         border-color var(--sg-duration) var(--sg-easing),
         color var(--sg-duration) var(--sg-easing);
 }

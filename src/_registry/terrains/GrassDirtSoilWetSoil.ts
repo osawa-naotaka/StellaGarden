@@ -6,10 +6,17 @@
 import type { IVoxelWriter } from "../../_boundary/interfaces";
 import { isCrop } from "../../engine/CropSystem";
 import { recomputeAllPipeWaterFlow } from "../../engine/PipeWaterFlow";
-import { ENTITY_TYPES, getEntityTypeFromVoxel, getTerrainTypeFromVoxel, initializeVoxel, setTerrainTypeInVoxel, TERRAIN_TYPES } from "../../engine/TerrainDefs";
+import {
+    ENTITY_TYPES,
+    getEntityTypeFromVoxel,
+    getTerrainTypeFromVoxel,
+    initializeVoxel,
+    setEntityTypeInVoxel,
+    setTerrainTypeInVoxel,
+    TERRAIN_TYPES,
+} from "../../engine/TerrainDefs";
 import { floodFillWater } from "../../engine/WaterSystem";
 import { registerTerrain } from "../TerrainRegistry";
-import { setEntityTypeInVoxel } from "../../engine/TerrainDefs";
 
 /** 3x3 範囲の表面 y がすべて同じかどうかを返す。 */
 function isFlat3x3(voxelMap: IVoxelWriter, centerX: number, centerZ: number, centerY: number): boolean {
@@ -101,23 +108,21 @@ registerTerrain({
     onInteract: onGrassDirtInteract,
 });
 
-
-
 function onSoilInteract(ctx: import("../EntityRegistry").InteractionContext): boolean {
     if (ctx.tool === "hoes") {
-      const entityType = getEntityTypeFromVoxel(ctx.voxel);
-      if (entityType === ENTITY_TYPES.none) return false;
-  
-      // 作物エンティティを削除（虚空へ消滅、アイテム追加なし）
-      if (isCrop(entityType)) {
-          ctx.voxelMap.set(setEntityTypeInVoxel(ctx.voxel, ENTITY_TYPES.none), ctx.surfacePos);
-          return true;
-      }
-      return false;        
+        const entityType = getEntityTypeFromVoxel(ctx.voxel);
+        if (entityType === ENTITY_TYPES.none) return false;
+
+        // 作物エンティティを削除（虚空へ消滅、アイテム追加なし）
+        if (isCrop(entityType)) {
+            ctx.voxelMap.set(setEntityTypeInVoxel(ctx.voxel, ENTITY_TYPES.none), ctx.surfacePos);
+            return true;
+        }
+        return false;
     } else if (ctx.tool === "shovel") {
         const { voxelMap, surfacePos, inventory } = ctx;
         const voxel = voxelMap.get(surfacePos);
-        
+
         if (getEntityTypeFromVoxel(voxel) !== ENTITY_TYPES.none || !isSafeToRemove3x3(voxelMap, surfacePos.x, surfacePos.z)) {
             return false;
         }
@@ -130,7 +135,7 @@ function onSoilInteract(ctx: import("../EntityRegistry").InteractionContext): bo
         }
         return false;
     }
-    
+
     return false;
 }
 

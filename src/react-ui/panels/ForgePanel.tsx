@@ -154,12 +154,6 @@ export function ForgePanel({ open, inventory, forgeStorage, voxelMap, uiState }:
 registerPanel({
     mode: "forge",
     component: ({ open, engine }) => (
-        <ForgePanel
-            open={open}
-            inventory={engine.inventory}
-            forgeStorage={engine.forgeStorage}
-            voxelMap={engine.voxelMap}
-            uiState={engine.uiState}
-        />
+        <ForgePanel open={open} inventory={engine.inventory} forgeStorage={engine.forgeStorage} voxelMap={engine.voxelMap} uiState={engine.uiState} />
     ),
 });

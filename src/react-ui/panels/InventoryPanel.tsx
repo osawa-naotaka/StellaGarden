@@ -115,12 +115,5 @@ export function InventoryPanel({ open, inventory, craftSystem, uiState }: Invent
 
 registerPanel({
     mode: "inventory-craft",
-    component: ({ open, engine }) => (
-        <InventoryPanel
-            open={open}
-            inventory={engine.inventory}
-            craftSystem={engine.craftSystem}
-            uiState={engine.uiState}
-        />
-    ),
+    component: ({ open, engine }) => <InventoryPanel open={open} inventory={engine.inventory} craftSystem={engine.craftSystem} uiState={engine.uiState} />,
 });

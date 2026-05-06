@@ -1,9 +1,9 @@
 import { type Application, ColorMatrixFilter, Container, Sprite, Texture } from "pixi.js";
 import type { IVoxelReader, Pos2D, Pos3D } from "../_boundary/interfaces";
-import { getEntityTypeFromVoxel, ENTITY_TYPES } from "../engine/TerrainDefs";
+import { findFacilityAnchor } from "../_registry/facilityUtil";
+import { ENTITY_TYPES, getEntityTypeFromVoxel } from "../engine/TerrainDefs";
 import { ChunkRenderer } from "../lib/ChunkRenderer";
 import type { Size2D } from "../lib/VoxelMap";
-import { findFacilityAnchor } from "../_registry/facilityUtil";
 import { getEntitySpriteNameFromVoxel, getTerrainSpriteNamesFromVoxel } from "./renderer/TerrainSpriteResolver";
 import type { Tile } from "./Tile";
 

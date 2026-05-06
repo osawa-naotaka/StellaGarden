@@ -28,7 +28,7 @@ export const TIER_DEFS: readonly TierDef[] = [
         id: "tier3a",
         label: "Tier 3a",
         itemId: "flaxseed_oil",
-        baseScore: 800　* 8,
+        baseScore: 800 * 8,
         displayRow: 2,
         unlock: { sourceItemId: "soybeans", threshold: 30 },
     },

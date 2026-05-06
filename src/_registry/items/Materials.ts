@@ -17,8 +17,6 @@ registerItem({ itemId: "shaft", displayName: "車軸", spriteName: "ss_sprite_09
 registerItem({ itemId: "frame", displayName: "木の枠", spriteName: "ss_sprite_096.png", maxStack: 64 });
 registerItem({ itemId: "ingot", displayName: "鉄の棒", spriteName: "ss_sprite_083.png", maxStack: 64 });
 
-
-
 registerItem({
     itemId: "hot_meteoric_iron",
     displayName: "熱した隕鉄",

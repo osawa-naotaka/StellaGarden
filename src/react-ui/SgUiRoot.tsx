@@ -10,24 +10,16 @@ import "./panels/ForgePanel";
 import "./panels/InventoryPanel";
 import "./panels/WarpGatePanel";
 
+import { PropertyPanel } from "./components/PropertyPanel";
 import { getRegisteredPanels } from "./PanelRegistry";
 import { GuidePanel } from "./panels/GuidePanel";
-import { PropertyPanel } from "./components/PropertyPanel";
 import "./styles.css";
 
 /**
  * React UI 層のルート。canvas の上に重ねるオーバーレイとして配置する。
  * 自身は pointer-events: none。各パネルだけが pointer-events: auto を持つ。
  */
-export function SgUiRoot({
-    engine,
-    onSave,
-    saveState,
-}: {
-    engine: EngineRefs;
-    onSave: () => Promise<void>;
-    saveState: "idle" | "saving" | "done";
-}) {
+export function SgUiRoot({ engine, onSave, saveState }: { engine: EngineRefs; onSave: () => Promise<void>; saveState: "idle" | "saving" | "done" }) {
     const [guideOpen, setGuideOpen] = useState(false);
 
     const saveLabel = saveState === "saving" ? "SAVING..." : saveState === "done" ? "SAVED!" : "SAVE";
@@ -37,12 +29,7 @@ export function SgUiRoot({
             <div className="sg-ui-root">
                 <PropertyPanel />
                 <div className="sg-corner-buttons">
-                    <button
-                        type="button"
-                        className="sg-guide-button"
-                        onClick={() => setGuideOpen((v) => !v)}
-                        aria-label="プレイガイドを開く"
-                    >
+                    <button type="button" className="sg-guide-button" onClick={() => setGuideOpen((v) => !v)} aria-label="プレイガイドを開く">
                         GUIDE
                     </button>
                     <button

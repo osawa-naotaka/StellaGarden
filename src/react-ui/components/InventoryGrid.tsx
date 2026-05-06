@@ -14,14 +14,7 @@ export function InventoryGrid({ rows, cols, getStack, onLeftClick, onRightClick 
     const total = rows * cols;
     const slots = [];
     for (let i = 0; i < total; i++) {
-        slots.push(
-            <Slot
-                key={i}
-                stack={getStack(i)}
-                onLeftClick={(e) => onLeftClick(i, e)}
-                onRightClick={(e) => onRightClick(i, e)}
-            />,
-        );
+        slots.push(<Slot key={i} stack={getStack(i)} onLeftClick={(e) => onLeftClick(i, e)} onRightClick={(e) => onRightClick(i, e)} />);
     }
     return (
         <div className="sg-inventory-grid" style={{ gridTemplateColumns: `repeat(${cols}, var(--sg-slot-size))` }}>

@@ -105,12 +105,5 @@ export function ChestPanel({ open, inventory, chestStorage, uiState }: ChestPane
 
 registerPanel({
     mode: "chest",
-    component: ({ open, engine }) => (
-        <ChestPanel
-            open={open}
-            inventory={engine.inventory}
-            chestStorage={engine.chestStorage}
-            uiState={engine.uiState}
-        />
-    ),
+    component: ({ open, engine }) => <ChestPanel open={open} inventory={engine.inventory} chestStorage={engine.chestStorage} uiState={engine.uiState} />,
 });
