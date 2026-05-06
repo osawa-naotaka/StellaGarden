@@ -96,25 +96,31 @@ export function PropertyPanel() {
 
     const header = `${gameTime.dayCount}日目  ${gameTime.currentTimeString}`;
     const tileLines = buildTileLines(voxelMap, playerState);
+    const speed = uiState.timeSpeed;
+
+    const makeBtnStyle = (active: boolean): React.CSSProperties => ({
+        background: "none",
+        border: "none",
+        cursor: "pointer",
+        fontSize: "inherit",
+        lineHeight: 1,
+        padding: "0 2px",
+        color: "inherit",
+        pointerEvents: "auto",
+        opacity: active ? 1 : 0.4,
+    });
 
     return (
         <div style={PANEL_STYLE}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <button
-                    type="button"
-                    style={{
-                        background: "none",
-                        border: "none",
-                        cursor: "pointer",
-                        fontSize: "inherit",
-                        lineHeight: 1,
-                        padding: 0,
-                        color: "inherit",
-                        pointerEvents: "auto",
-                    }}
-                    onClick={() => uiState.togglePause()}
-                >
-                    {uiState.isPaused ? "▶" : "⏸"}
+            <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                <button type="button" style={makeBtnStyle(speed === "paused")} onClick={() => uiState.setTimeSpeed("paused")}>
+                    <img src="/assets/svg/pause-solid-full.svg" alt="一時停止" style={{ width: "1em", height: "1em", display: "block" }} />
+                </button>
+                <button type="button" style={makeBtnStyle(speed === "normal")} onClick={() => uiState.setTimeSpeed("normal")}>
+                    <img src="/assets/svg/play-solid-full.svg" alt="通常速度" style={{ width: "1em", height: "1em", display: "block" }} />
+                </button>
+                <button type="button" style={makeBtnStyle(speed === "fast")} onClick={() => uiState.setTimeSpeed("fast")}>
+                    <img src="/assets/svg/forward-solid-full.svg" alt="早送り" style={{ width: "1em", height: "1em", display: "block" }} />
                 </button>
                 <span>{header}</span>
             </div>

@@ -304,8 +304,9 @@ function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad: boolea
             pixiApp.ticker.add((ticker) => {
                 if (!pixiApp) return;
 
-                if (!uiState.isPaused) {
-                    gameTime.tick(ticker.deltaMS, eventBroker);
+                if (uiState.timeSpeed !== "paused") {
+                    const timeMultiplier = uiState.timeSpeed === "fast" ? 2 : 1;
+                    gameTime.tick(ticker.deltaMS * timeMultiplier, eventBroker);
                     inputHandler.tick(ticker.deltaMS);
                 }
                 dayNightFilter.brightness(gameTime.worldBrightness, false);
