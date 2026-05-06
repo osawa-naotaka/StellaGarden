@@ -33,9 +33,11 @@ export interface CraftPaneProps {
     pickedUp: ItemStack | null;
     /** ツールスロットのクリックを処理する。 */
     onToolSlotLeftClick: () => void;
+    /** 一時停止中かどうか。true のときクラフト実行を無効化する。 */
+    isPaused?: boolean;
 }
 
-export function CraftPane({ craftSystem, station, pickedUp, onToolSlotLeftClick }: CraftPaneProps) {
+export function CraftPane({ craftSystem, station, pickedUp, onToolSlotLeftClick, isPaused }: CraftPaneProps) {
     const [selectedRecipeId, setSelectedRecipeId] = useState<string | null>(null);
     const [page, setPage] = useState(0);
 
@@ -78,7 +80,7 @@ export function CraftPane({ craftSystem, station, pickedUp, onToolSlotLeftClick 
                                 e.preventDefault();
                                 e.stopPropagation();
                                 setSelectedRecipeId(recipe.id);
-                                if (canCraft) craftSystem.craft(recipe);
+                                if (canCraft && !isPaused) craftSystem.craft(recipe);
                             }}
                         >
                             <ItemIcon itemId={recipe.result.itemId} size={48} />

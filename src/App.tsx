@@ -304,9 +304,11 @@ function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad: boolea
             pixiApp.ticker.add((ticker) => {
                 if (!pixiApp) return;
 
-                gameTime.tick(ticker.deltaMS, eventBroker);
+                if (!uiState.isPaused) {
+                    gameTime.tick(ticker.deltaMS, eventBroker);
+                    inputHandler.tick(ticker.deltaMS);
+                }
                 dayNightFilter.brightness(gameTime.worldBrightness, false);
-                inputHandler.tick(ticker.deltaMS);
 
                 // 定期保存チェック
                 timeSinceLastSave += ticker.deltaMS;

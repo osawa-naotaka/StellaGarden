@@ -91,7 +91,7 @@ const DIVIDER_STYLE: React.CSSProperties = {
 };
 
 export function PropertyPanel() {
-    const { playerState, gameTime, voxelMap } = useEngine();
+    const { playerState, gameTime, voxelMap, uiState } = useEngine();
     useFrameTick(true);
 
     const header = `${gameTime.dayCount}日目  ${gameTime.currentTimeString}`;
@@ -99,7 +99,25 @@ export function PropertyPanel() {
 
     return (
         <div style={PANEL_STYLE}>
-            <div>{header}</div>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <button
+                    type="button"
+                    style={{
+                        background: "none",
+                        border: "none",
+                        cursor: "pointer",
+                        fontSize: "inherit",
+                        lineHeight: 1,
+                        padding: 0,
+                        color: "inherit",
+                        pointerEvents: "auto",
+                    }}
+                    onClick={() => uiState.togglePause()}
+                >
+                    {uiState.isPaused ? "▶" : "⏸"}
+                </button>
+                <span>{header}</span>
+            </div>
             {tileLines && (
                 <>
                     <div style={DIVIDER_STYLE} />

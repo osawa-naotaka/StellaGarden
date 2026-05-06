@@ -31,6 +31,7 @@ export function createInteractionHandler(
     // 右クリック: ツール使用（収穫・撤去・植え付け・掘削等）
     const d1 = eventBroker.subscribe("interact_world", (packet) => {
         if (uiState.mode === "placement") return;
+        if (uiState.isPaused) return;
         const distX = packet.pos.x - playerState.posInWorld.x;
         const distZ = packet.pos.z - playerState.posInWorld.z;
         if (Math.abs(distX) > INTERACT_RANGE || Math.abs(distZ) > INTERACT_RANGE) return;

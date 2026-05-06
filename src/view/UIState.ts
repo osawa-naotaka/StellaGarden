@@ -18,6 +18,12 @@ export class UIState {
     chestPos: Pos2D | null = null;
     forgePos: Pos2D | null = null;
     warpGatePos: Pos2D | null = null;
+    isPaused = false;
+
+    /** ゲームの一時停止状態をトグルする（フィールド変更のみ、副作用なし）。 */
+    togglePause(): void {
+        this.isPaused = !this.isPaused;
+    }
 
     /** EventBroker を購読して mode を更新する。dispose 関数を返す。 */
     subscribeEvents(broker: IEventBroker): () => void {

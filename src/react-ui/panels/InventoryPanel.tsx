@@ -80,6 +80,7 @@ export function InventoryPanel({ open, inventory, craftSystem, uiState }: Invent
                     station={station}
                     pickedUp={pickedUp}
                     onToolSlotLeftClick={() => handleLeftClick({ area: "craft_tool", index: 0 })}
+                    isPaused={uiState.isPaused}
                 />
 
                 <hr className="sg-section-divider" />
