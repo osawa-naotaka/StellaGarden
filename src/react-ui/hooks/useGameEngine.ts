@@ -35,7 +35,7 @@ export interface UseGameEngineResult {
     saveState: "idle" | "saving" | "done";
 }
 
-export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad: boolean): UseGameEngineResult {
+export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad: boolean, seed: string): UseGameEngineResult {
     const containerRef = useRef<HTMLDivElement>(null);
     const [engineRefs, setEngineRefs] = useState<EngineRefs | null>(null);
     const requestSaveRef = useRef<() => Promise<void>>(() => Promise.resolve());
@@ -81,7 +81,7 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
             const dayNightFilter = new ColorMatrixFilter();
             worldContainer.filters = [dayNightFilter];
 
-            const voxelMap = restoreOrGenerateVoxelMap(saveData, worldSize, eventBroker);
+            const voxelMap = restoreOrGenerateVoxelMap(saveData, worldSize, seed, eventBroker);
 
             const topView = new TopView(voxelMap, pixiApp, {
                 pixelPerTile: PIXEL_PER_TILE,

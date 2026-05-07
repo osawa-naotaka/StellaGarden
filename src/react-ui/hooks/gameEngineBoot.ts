@@ -16,7 +16,7 @@ import { VoxelMap } from "../../lib/VoxelMap";
  * セーブデータがあれば復元、なければ新規地形生成して VoxelMap を返す。
  * eventBroker のセットまでこの関数で完結させる。
  */
-export function restoreOrGenerateVoxelMap(saveData: SaveData | null, worldSize: Size2D, eventBroker: IEventBroker): VoxelMap {
+export function restoreOrGenerateVoxelMap(saveData: SaveData | null, worldSize: Size2D, seed: string, eventBroker: IEventBroker): VoxelMap {
     let voxelMap: VoxelMap;
     if (saveData) {
         const sd = saveData.voxelMap;
@@ -24,7 +24,7 @@ export function restoreOrGenerateVoxelMap(saveData: SaveData | null, worldSize: 
         voxelMap.setVoxelsBuffer(new BigUint64Array(sd.voxels));
         voxelMap.setRiversideCells(new Uint32Array(sd.riversideCells));
     } else {
-        voxelMap = generateTerrain({ width: worldSize.w, height: 12, depth: worldSize.h, horizonHeight: 3 });
+        voxelMap = generateTerrain(seed, { width: worldSize.w, height: 12, depth: worldSize.h, horizonHeight: 3 });
     }
     voxelMap.setEventBroker(eventBroker);
     return voxelMap;

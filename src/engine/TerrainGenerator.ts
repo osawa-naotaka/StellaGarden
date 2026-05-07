@@ -15,14 +15,14 @@ type River = {
 };
 
 /** シンプレックスノイズで地形と樹木を生成し、VoxelMap に書き込む。 */
-export function generateTerrain(opt: GenerateTerrainOptions): VoxelMap {
-    const hightMap = computeHeightmap(opt.width, opt.depth, opt.height);
-    const { major, tributaries } = generateRivers(hightMap.hm, hightMap.hmf, opt);
+export function generateTerrain(seed: string, opt: GenerateTerrainOptions): VoxelMap {
+    const hightMap = computeHeightmap(seed, opt.width, opt.depth, opt.height);
+    const { major, tributaries } = generateRivers(seed, hightMap.hm, hightMap.hmf, opt);
     const hm = elodeRiverside(hightMap.hm, [...major, ...tributaries], opt); // 渓谷カービングで高さマップを掘り下げる
     const map = createVoxelMap(hm, opt);
-    const riversideCells = placeClay(map, hm, major, opt);
+    const riversideCells = placeClay(seed, map, hm, major, opt);
     map.setRiversideCells(riversideCells);
-    placeEntities(map);
+    placeEntities(seed, map);
 
     return map;
 }
@@ -121,12 +121,12 @@ function idxToPos(idx: number, width: number): Pos2D {
  *   整数化すると同値セルが多発して flowDir が全て -1 になるため、
  *   フロー計算には必ず hmf を使う。
  */
-function computeHeightmap(width: number, depth: number, maxHeight: number): { hm: Int8Array; hmf: Float32Array } {
+function computeHeightmap(seed: string, width: number, depth: number, maxHeight: number): { hm: Int8Array; hmf: Float32Array } {
     const octaves = [
-        { noise: createNoise2D(alea("terrain_0")), frequency: 0.008, amplitude: 1.0 }, // 大陸スケール
-        { noise: createNoise2D(alea("terrain_1")), frequency: 0.025, amplitude: 0.45 }, // 山・谷
-        { noise: createNoise2D(alea("terrain_2")), frequency: 0.07, amplitude: 0.18 }, // 丘
-        { noise: createNoise2D(alea("terrain_3")), frequency: 0.18, amplitude: 0.07 }, // 細かい起伏
+        { noise: createNoise2D(alea(`${seed}terrain_0`)), frequency: 0.008, amplitude: 1.0 }, // 大陸スケール
+        { noise: createNoise2D(alea(`${seed}terrain_1`)), frequency: 0.025, amplitude: 0.45 }, // 山・谷
+        { noise: createNoise2D(alea(`${seed}terrain_2`)), frequency: 0.07, amplitude: 0.18 }, // 丘
+        { noise: createNoise2D(alea(`${seed}terrain_3`)), frequency: 0.18, amplitude: 0.07 }, // 細かい起伏
     ];
     const totalAmplitude = octaves.reduce((s, o) => s + o.amplitude, 0);
 
@@ -193,8 +193,8 @@ function isAdjacentToWater(hm: Int8Array, x: number, z: number, W: number, D: nu
  * 大河パスに隣接する水辺セルを列挙し、CLAY_RATE の割合で粘土エンティティを配置する。
  * 戻り値は再生成レジストリ（VoxelMap.riversideCells）に格納される全水辺セルのインデックス配列。
  */
-function placeClay(map: VoxelMap, hm: Int8Array, majorRivers: River[], opt: GenerateTerrainOptions): Uint32Array {
-    const CLAY_RATE = 0.35;
+function placeClay(seed: string, map: VoxelMap, hm: Int8Array, majorRivers: River[], opt: GenerateTerrainOptions): Uint32Array {
+    const CLAY_RATE = 0.15;
     const W = opt.width;
     const D = opt.depth;
     const DIRS: ReadonlyArray<[number, number]> = [
@@ -218,7 +218,7 @@ function placeClay(map: VoxelMap, hm: Int8Array, majorRivers: River[], opt: Gene
         }
     }
 
-    const rng = alea("clay_initial");
+    const rng = alea(`${seed}clay_initial`);
     for (const idx of riversideSet) {
         if (rng() >= CLAY_RATE) continue;
         const pos = { x: idx % W, y: opt.horizonHeight, z: (idx / W) | 0 };
@@ -241,7 +241,7 @@ function placeClay(map: VoxelMap, hm: Int8Array, majorRivers: River[], opt: Gene
  *
  * elodeRiverside() でパスに沿って海面まで掘り下げる。
  */
-function generateRivers(hm: Int8Array, hmf: Float32Array, opt: GenerateTerrainOptions): { major: River[]; tributaries: River[] } {
+function generateRivers(seed: string, hm: Int8Array, hmf: Float32Array, opt: GenerateTerrainOptions): { major: River[]; tributaries: River[] } {
     const W = opt.width;
     const D = opt.depth;
 
@@ -249,7 +249,7 @@ function generateRivers(hm: Int8Array, hmf: Float32Array, opt: GenerateTerrainOp
     const MEANDER_AMPLITUDE = 40;
     const MEANDER_FREQUENCY = 3.0;
 
-    const rngMajor = alea("river_major_rng");
+    const rngMajor = alea(`${seed}river_major_rng`);
     // 端点はマップ幅の20%〜80%の範囲に制限
     const margin20 = (v: number) => Math.floor(v * 0.2 + rngMajor() * v * 0.6);
 
@@ -259,7 +259,7 @@ function generateRivers(hm: Int8Array, hmf: Float32Array, opt: GenerateTerrainOp
     {
         const entryZ = margin20(D);
         const exitZ = margin20(D);
-        const meanderNoise = createNoise2D(alea("river_major_0"));
+        const meanderNoise = createNoise2D(alea(`${seed}river_major_0`));
         const path: number[] = [];
         let prevZ = entryZ;
         for (let x = 0; x < W; x++) {
@@ -282,7 +282,7 @@ function generateRivers(hm: Int8Array, hmf: Float32Array, opt: GenerateTerrainOp
     {
         const entryX = margin20(W);
         const exitX = margin20(W);
-        const meanderNoise = createNoise2D(alea("river_major_1"));
+        const meanderNoise = createNoise2D(alea(`${seed}river_major_1`));
         const path: number[] = [];
         let prevX = entryX;
         for (let z = 0; z < D; z++) {
@@ -349,7 +349,7 @@ function generateRivers(hm: Int8Array, hmf: Float32Array, opt: GenerateTerrainOp
     }
 
     // --- 支流ノイズコスト ---
-    const pathNoise = createNoise2D(alea("river_trib"));
+    const pathNoise = createNoise2D(alea(`${seed}river_trib`));
     const NOISE_SCALE = 1.4;
     const NOISE_WEIGHT = 4.0;
     const noiseCost = new Float32Array(W * D);
@@ -370,7 +370,7 @@ function generateRivers(hm: Int8Array, hmf: Float32Array, opt: GenerateTerrainOp
     }
     landByHeight.sort((a, b) => hmf[b] - hmf[a]);
 
-    const rng = alea("river_trib_sources");
+    const rng = alea(`${seed}river_trib_sources`);
     const topN = (landByHeight.length * TOP_FRAC) | 0;
     const pool = landByHeight.slice(0, topN);
     for (let i = pool.length - 1; i > 0; i--) {
@@ -434,16 +434,16 @@ function generateRivers(hm: Int8Array, hmf: Float32Array, opt: GenerateTerrainOp
     return { major: majorRivers, tributaries };
 }
 
-function placeEntities(map: VoxelMap): void {
+function placeEntities(seed: string, map: VoxelMap): void {
     // 隕鉄を先に配置（2x2、レア）。以降のパスは既設エンティティを上書きしない。
-    placeMeteoricIron(map);
+    placeMeteoricIron(seed, map);
 
-    const forestNoise = createNoise2D(alea("forest"));
-    const treeNoise = createNoise2D(alea("tree"));
+    const forestNoise = createNoise2D(alea(`${seed}forest`));
+    const treeNoise = createNoise2D(alea(`${seed}tree`));
     const forestScale = 0.025; // 森バイオームの周波数（低周波 = 大きなまとまり）
     const treeScale = 10; // 個別の木の配置周波数（高周波 = 細かい分布）
 
-    const stoneNoise = createNoise2D(alea("stone"));
+    const stoneNoise = createNoise2D(alea(`${seed}stone`));
     const stoneScale = 10; // 個別の石の配置周波数（高周波 = 細かい分布）
 
     for (let z = 0; z < map.depth; z++) {
@@ -478,8 +478,8 @@ function placeEntities(map: VoxelMap): void {
  * 配置条件: 4タイル全てが grass、同じ高さ、エンティティなし。
  * 密度: 1タイルあたり 0.04% の試行確率（400x400 マップで試行 ~64 回、成立は約 15〜30 個）。
  */
-function placeMeteoricIron(map: VoxelMap): void {
-    const rng = alea("meteoric_iron");
+function placeMeteoricIron(seed: string, map: VoxelMap): void {
+    const rng = alea(`${seed}meteoric_iron`);
     const DENSITY = 0.0004;
 
     for (let z = 0; z < map.depth - 1; z++) {
