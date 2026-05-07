@@ -1,10 +1,12 @@
 import type { IEventBroker } from "../../_boundary/interfaces";
 import { setChestStorage } from "../../_registry/entities/Chest";
 import { setForgeStorage } from "../../_registry/entities/Forge";
+import { setManualProcessingStorage } from "../../_registry/entities/ManualProcessing";
 import { setWarpGateStorage } from "../../_registry/entities/WarpGate";
 import { setWorkbenchStorage } from "../../_registry/entities/Workbench";
 import { ChestStorage } from "../../engine/ChestStorage";
 import { ForgeStorage } from "../../engine/ForgeStorage";
+import { ManualProcessingStorage } from "../../engine/ManualProcessingStorage";
 import { generateTerrain } from "../../engine/TerrainGenerator";
 import { WarpGateStorage } from "../../engine/WarpGateStorage";
 import { WorkbenchStorage } from "../../engine/WorkbenchStorage";
@@ -35,6 +37,7 @@ export interface Storages {
     forgeStorage: ForgeStorage;
     workbenchStorage: WorkbenchStorage;
     warpGateStorage: WarpGateStorage;
+    manualProcessingStorage: ManualProcessingStorage;
 }
 
 /**
@@ -58,5 +61,9 @@ export function bootstrapStorages(saveData: SaveData | null): Storages {
     if (saveData) warpGateStorage.loadSaveData(saveData.warpGateStorage);
     setWarpGateStorage(warpGateStorage);
 
-    return { chestStorage, forgeStorage, workbenchStorage, warpGateStorage };
+    const manualProcessingStorage = new ManualProcessingStorage();
+    // セーブデータは Phase 6 で対応予定。現状は空で起動する。
+    setManualProcessingStorage(manualProcessingStorage);
+
+    return { chestStorage, forgeStorage, workbenchStorage, warpGateStorage, manualProcessingStorage };
 }

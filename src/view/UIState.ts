@@ -1,7 +1,7 @@
 import type { CraftStation, IEventBroker, ItemId, Pos2D, SlotRef } from "../_boundary/interfaces";
 import type { PlacementVariant } from "../_registry/ItemRegistry";
 
-export type UIMode = "normal" | "inventory-craft" | "placement" | "chest" | "forge" | "warp_gate";
+export type UIMode = "normal" | "inventory-craft" | "placement" | "chest" | "forge" | "warp_gate" | "processing-manual" | "processing-daily";
 export type TimeSpeed = "paused" | "normal" | "fast";
 
 /**
@@ -19,6 +19,7 @@ export class UIState {
     chestPos: Pos2D | null = null;
     forgePos: Pos2D | null = null;
     warpGatePos: Pos2D | null = null;
+    processingPos: Pos2D | null = null;
     timeSpeed: TimeSpeed = "normal";
 
     /** 後方互換ゲッター。isPaused === (timeSpeed === "paused") */
@@ -46,6 +47,7 @@ export class UIState {
                 this.chestPos = null;
                 this.forgePos = null;
                 this.warpGatePos = null;
+                this.processingPos = null;
             }
         });
 
@@ -74,12 +76,26 @@ export class UIState {
             this.warpGatePos = pos;
         });
 
+        const d6 = broker.subscribe("open_processing_manual_ui", ({ pos }) => {
+            if (this.mode === "placement") return;
+            this.mode = "processing-manual";
+            this.processingPos = pos;
+        });
+
+        const d7 = broker.subscribe("open_processing_daily_ui", ({ pos }) => {
+            if (this.mode === "placement") return;
+            this.mode = "processing-daily";
+            this.processingPos = pos;
+        });
+
         return () => {
             d1();
             d2();
             d3();
             d4();
             d5();
+            d6();
+            d7();
         };
     }
 

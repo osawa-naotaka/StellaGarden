@@ -25,6 +25,12 @@ export type GameEventMap = {
     /** 炉を左クリックして炉UIを開く。
      *  発行: Forge.ts の onPrimaryInteract（forge / forge_burning の両方）。購読: UIState → ForgeView.show(pos)。 */
     open_forge_ui: { pos: Pos2D };
+    /** 手動処理施設（threshing_machine / screw_presses / scutching_board / spinning_wheel / loom / anvil）の UI を開く。
+     *  発行: 各エンティティの onPrimaryInteract（右クリック）。購読: UIState → ManualProcessingPanel。 */
+    open_processing_manual_ui: { pos: Pos2D };
+    /** 日次処理施設（compost_bin / soaking_basket / bonfire / kiln）の UI を開く。
+     *  発行: 各エンティティの onPrimaryInteract（右クリック）。購読: UIState → DailyProcessingPanel。 */
+    open_processing_daily_ui: { pos: Pos2D };
 
     // ─── input → engine（Phase 3 以降で使用） ───────────────────────────────
     /** プレイヤー移動要求。移動量が 0 でない場合のみ発行すること。

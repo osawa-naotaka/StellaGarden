@@ -262,18 +262,6 @@ registerItem({
     displayName: "茎付き大豆",
     spriteName: "ss_sprite_014.png",
     maxStack: 64,
-    onItemUse(ctx: InteractionContext): boolean {
-        if (ctx.entityType !== ENTITY_TYPES.threshing_machine) return false;
-        if (
-            !ctx.inventory.addItems([
-                { itemId: "soybeans", count: 1 },
-                { itemId: "stem", count: 1 },
-            ])
-        )
-            return false;
-        ctx.inventory.consumeSelectedItem(1);
-        return true;
-    },
 });
 registerItem({ itemId: "soybean_oil", displayName: "大豆油", spriteName: "ss_sprite_016.png", maxStack: 64 });
 registerItem({ itemId: "bagged_soybeans", displayName: "袋詰め大豆", spriteName: "ss_sprite_017.png", maxStack: 64 });

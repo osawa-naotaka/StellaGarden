@@ -116,7 +116,7 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
             const placementOverlay = new PlacementOverlay(voxelMap, playerState.inventory, uiState);
             worldContainer.addChild(placementOverlay.top);
 
-            const { chestStorage, forgeStorage, workbenchStorage, warpGateStorage } = bootstrapStorages(saveData);
+            const { chestStorage, forgeStorage, workbenchStorage, warpGateStorage, manualProcessingStorage } = bootstrapStorages(saveData);
 
             const reputationSystem = new ReputationSystem({
                 points: saveData?.reputation.points ?? 0,
@@ -170,6 +170,7 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
                 reputationSystem,
                 chestStorage,
                 forgeStorage,
+                manualProcessingStorage,
                 craftSystem,
                 voxelMap,
                 uiState,

@@ -345,6 +345,63 @@
     color: var(--sg-fg-dim);
 }
 
+/* ─── 処理パネル（ManualProcessing / DailyProcessing 共通） ─── */
+.sg-processing-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.sg-processing-arrow {
+    font-size: var(--sg-font-size-lg);
+    color: var(--sg-fg-dim);
+    line-height: 1;
+}
+
+.sg-processing-button {
+    align-self: flex-start;
+    background: var(--sg-bg-elev2);
+    border: 1px solid var(--sg-border);
+    color: var(--sg-fg);
+    font-family: var(--sg-font);
+    font-size: var(--sg-font-size);
+    font-weight: 700;
+    letter-spacing: 1px;
+    padding: 8px 24px;
+    border-radius: var(--sg-radius);
+    cursor: pointer;
+    user-select: none;
+    transition:
+        background var(--sg-duration) var(--sg-easing),
+        border-color var(--sg-duration) var(--sg-easing),
+        color var(--sg-duration) var(--sg-easing);
+}
+
+.sg-processing-button:hover {
+    border-color: var(--sg-accent);
+    color: var(--sg-accent-strong);
+}
+
+.sg-processing-button:active {
+    background: var(--sg-accent);
+    border-color: var(--sg-accent-strong);
+    color: var(--sg-fg);
+}
+
+.sg-processing-progress {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 80px;
+}
+
+.sg-processing-progress-label {
+    font-size: var(--sg-font-size-sm);
+    color: var(--sg-fg-dim);
+    text-align: center;
+}
+
 /* ─── Tier 進行表示 ────────────────────────────────────────── */
 .sg-tier-list {
     display: flex;

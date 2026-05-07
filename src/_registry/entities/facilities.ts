@@ -46,7 +46,7 @@ function registerAxeRemovableFacility(
 }
 
 registerAxeRemovableFacility(ENTITY_TYPES.anvil, "anvil", "金床", "ss_sprite_079.png", { w: 1, h: 1 });
-registerAxeRemovableFacility(ENTITY_TYPES.threshing_machine, "threshing_machine", "脱穀機", "ss_sprite_054.png", { w: 2, h: 1 }, "ss_sprite_063.png");
+// threshing_machine は ManualProcessing.ts に移行済み
 registerAxeRemovableFacility(ENTITY_TYPES.screw_presses, "screw_presses", "搾油機", "ss_sprite_055.png", { w: 2, h: 2 }, "ss_sprite_064.png");
 registerAxeRemovableFacility(ENTITY_TYPES.scutching_board, "scutching_board", "叩き台", "ss_sprite_057.png", { w: 1, h: 1 }, "ss_sprite_057.png");
 registerAxeRemovableFacility(ENTITY_TYPES.spinning_wheel, "spinning_wheel", "紡ぎ車", "ss_sprite_058.png", { w: 2, h: 1 }, "ss_sprite_066.png");

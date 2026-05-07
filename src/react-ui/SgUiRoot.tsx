@@ -8,6 +8,7 @@ import { useUIMode } from "./hooks/useUIMode";
 import "./panels/ChestPanel";
 import "./panels/ForgePanel";
 import "./panels/InventoryPanel";
+import "./panels/ManualProcessingPanel";
 import "./panels/WarpGatePanel";
 
 import { PropertyPanel } from "./components/PropertyPanel";

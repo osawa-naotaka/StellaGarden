@@ -22,6 +22,7 @@ import "./entities/Tree";
 import "./entities/WarpGate";
 import "./entities/Workbench";
 import "./entities/facilities";
+import "./entities/ManualProcessing";
 import "./items/Dirt";
 import "./items/Fertilizers";
 import "./items/Materials";

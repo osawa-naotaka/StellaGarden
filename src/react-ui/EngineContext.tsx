@@ -10,6 +10,7 @@ import type {
 } from "../_boundary/interfaces";
 import type { ChestStorage } from "../engine/ChestStorage";
 import type { ForgeStorage } from "../engine/ForgeStorage";
+import type { ManualProcessingStorage } from "../engine/ManualProcessingStorage";
 import type { WarpGateStorage } from "../engine/WarpGateStorage";
 import type { UIState } from "../view/UIState";
 
@@ -25,6 +26,7 @@ export interface EngineRefs {
     reputationSystem: IReputationSystemReader;
     chestStorage: ChestStorage;
     forgeStorage: ForgeStorage;
+    manualProcessingStorage: ManualProcessingStorage;
     craftSystem: ICraftSystem;
     voxelMap: IVoxelWriter;
     uiState: UIState;
