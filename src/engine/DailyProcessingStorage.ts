@@ -1,0 +1,210 @@
+import type { ItemStack, IVoxelWriter, Pos2D } from "../_boundary/interfaces";
+import { getDailyEntityStateInfo, getDailyStateMapping } from "../_registry/dailyProcessingRegistry";
+import { getItemDef } from "../_registry/ItemRegistry";
+import { KeyedSlotStorage } from "./KeyedSlotStorage";
+import { findRecipeForInput, getDailyProcessingDef, isAcceptableInputItem } from "./ProcessingRecipes";
+import {
+    ENTITY_TYPES,
+    getCropGrowthStageFromVoxel,
+    getEntityTypeFromVoxel,
+    setCropGrowthStageInVoxel,
+    setEntityTypeInVoxel,
+} from "./TerrainDefs";
+
+/** カテゴリ3（日次処理）の状態。 */
+export type DailyProcessingState = "empty" | "loading" | "progressing" | "done";
+
+/** 1施設のスロット状態。outputs は最大2スロット（不要なスロットは null）。 */
+export interface DailyProcessingSlots {
+    input: ItemStack | null;
+    outputs: [ItemStack | null, ItemStack | null];
+}
+
+/**
+ * カテゴリ3（日次処理）施設のスロットを座標ベースで管理するストレージ。
+ * compost_bin / soaking_basket / bonfire / kiln が利用する。
+ *
+ * 進行日数（daysElapsed）は voxel の `growthStage` ビットフィールドに格納する（4bit, 0-15）。
+ * 状態（empty / loading / progressing / done）は voxel の `entityType` で表現し、
+ * setInput/setOutput/onDailyTick の各タイミングで適切な entityType に書き戻す。
+ */
+export class DailyProcessingStorage extends KeyedSlotStorage<DailyProcessingSlots> {
+    protected createDefaultSlots(): DailyProcessingSlots {
+        return { input: null, outputs: [null, null] };
+    }
+
+    protected isSlotsEmpty(slots: DailyProcessingSlots): boolean {
+        return slots.input === null && slots.outputs[0] === null && slots.outputs[1] === null;
+    }
+
+    protected cloneSlots(slots: DailyProcessingSlots): DailyProcessingSlots {
+        return {
+            input: slots.input ? { ...slots.input } : null,
+            outputs: [slots.outputs[0] ? { ...slots.outputs[0] } : null, slots.outputs[1] ? { ...slots.outputs[1] } : null],
+        };
+    }
+
+    getInput(pos: Pos2D): ItemStack | null {
+        return this.getRaw(pos)?.input ?? null;
+    }
+
+    getOutput(pos: Pos2D, index: 0 | 1): ItemStack | null {
+        return this.getRaw(pos)?.outputs[index] ?? null;
+    }
+
+    /** 進行日数を返す（voxel の growthStage を読む）。 */
+    getDaysElapsed(pos: Pos2D, voxelMap: IVoxelWriter): number {
+        const surface = voxelMap.getSurfacePosition({ x: pos.x, y: 0, z: pos.z });
+        return getCropGrowthStageFromVoxel(voxelMap.get(surface));
+    }
+
+    /** 入力スロットを更新する。itemId が変わる場合は進行日数（growthStage）を 0 にリセットする。 */
+    setInput(pos: Pos2D, stack: ItemStack | null, voxelMap: IVoxelWriter): void {
+        const slots = this.getRaw(pos);
+        if (!slots) return;
+        const oldItemId = slots.input?.itemId ?? null;
+        const newItemId = stack?.itemId ?? null;
+        slots.input = stack;
+        if (oldItemId !== newItemId) {
+            this.resetDaysElapsed(pos, voxelMap);
+        }
+        this.updateVoxelEntityType(pos, voxelMap);
+    }
+
+    /** 出力スロットを更新する（取り出し用途）。 */
+    setOutput(pos: Pos2D, index: 0 | 1, stack: ItemStack | null, voxelMap: IVoxelWriter): void {
+        const slots = this.getRaw(pos);
+        if (!slots) return;
+        slots.outputs[index] = stack;
+        this.updateVoxelEntityType(pos, voxelMap);
+    }
+
+    /** 入力スロットがこの施設で受理可能な itemId かどうか（既存スタックと itemId が一致 or 空かつレシピ対応）。 */
+    canAcceptInput(pos: Pos2D, itemId: string, voxelMap: IVoxelWriter): boolean {
+        const baseEntityType = this.getBaseEntityTypeAt(pos, voxelMap);
+        if (baseEntityType === ENTITY_TYPES.none) return false;
+        const def = getDailyProcessingDef(baseEntityType);
+        if (!def) return false;
+        return isAcceptableInputItem(def, itemId as never);
+    }
+
+    /**
+     * day_changed 時に全施設を走査し、入力が必要数に達している施設の進行日数を 1 進める。
+     * daysRequired に到達した施設は出力スロットに加算する（出力満杯なら保留）。
+     */
+    override onDailyTick(voxelMap: IVoxelWriter): void {
+        for (const [key, slots] of this.entries()) {
+            const pos = this.posFromKey(key);
+            const surface = voxelMap.getSurfacePosition({ x: pos.x, y: 0, z: pos.z });
+            const voxel = voxelMap.get(surface);
+            const entityType = getEntityTypeFromVoxel(voxel);
+            const info = getDailyEntityStateInfo(entityType);
+            if (!info) continue;
+
+            const def = getDailyProcessingDef(info.base);
+            if (!def) continue;
+            if (!slots.input) continue;
+
+            const recipe = findRecipeForInput(def, slots.input.itemId);
+            if (!recipe || slots.input.count < recipe.inputCountPerCycle) continue;
+
+            const daysElapsed = getCropGrowthStageFromVoxel(voxel);
+            const nextDays = daysElapsed + 1;
+
+            if (nextDays < def.daysRequired) {
+                // 進行中（loading → progressing への状態遷移は updateVoxelEntityType で）
+                voxelMap.set(setCropGrowthStageInVoxel(voxel, nextDays), surface);
+                this.updateVoxelEntityType(pos, voxelMap);
+                continue;
+            }
+
+            // 完了タイミング: 出力スロットの収まり判定（アトミック）
+            let canApply = true;
+            for (let i = 0; i < recipe.outputs.length; i++) {
+                const out = recipe.outputs[i];
+                const slot = slots.outputs[i];
+                if (slot === null) continue;
+                if (slot.itemId !== out.itemId) {
+                    canApply = false;
+                    break;
+                }
+                const max = getItemDef(out.itemId)?.maxStack ?? 64;
+                if (slot.count + out.count > max) {
+                    canApply = false;
+                    break;
+                }
+            }
+            if (!canApply) {
+                // 出力満杯 → 進行を保留（daysElapsed を上限のまま据え置く）
+                voxelMap.set(setCropGrowthStageInVoxel(voxel, def.daysRequired - 1), surface);
+                this.updateVoxelEntityType(pos, voxelMap);
+                continue;
+            }
+
+            // 入力消費 + 出力加算
+            slots.input.count -= recipe.inputCountPerCycle;
+            if (slots.input.count <= 0) slots.input = null;
+            for (let i = 0; i < recipe.outputs.length; i++) {
+                const out = recipe.outputs[i];
+                const slot = slots.outputs[i];
+                if (slot === null) {
+                    slots.outputs[i] = { itemId: out.itemId, count: out.count };
+                } else {
+                    slot.count += out.count;
+                }
+            }
+
+            // 完了状態へ。daysElapsed をリセットしておく。
+            voxelMap.set(setCropGrowthStageInVoxel(voxel, 0), surface);
+            this.updateVoxelEntityType(pos, voxelMap);
+        }
+    }
+
+    /** 指定座標の施設の「ベース entityType（== empty 状態の entityType）」を返す。施設外なら ENTITY_TYPES.none。 */
+    private getBaseEntityTypeAt(pos: Pos2D, voxelMap: IVoxelWriter): number {
+        const surface = voxelMap.getSurfacePosition({ x: pos.x, y: 0, z: pos.z });
+        const entityType = getEntityTypeFromVoxel(voxelMap.get(surface));
+        const info = getDailyEntityStateInfo(entityType);
+        return info?.base ?? ENTITY_TYPES.none;
+    }
+
+    /** 進行日数（voxel の growthStage）を 0 にリセットする。 */
+    private resetDaysElapsed(pos: Pos2D, voxelMap: IVoxelWriter): void {
+        const surface = voxelMap.getSurfacePosition({ x: pos.x, y: 0, z: pos.z });
+        const voxel = voxelMap.get(surface);
+        voxelMap.set(setCropGrowthStageInVoxel(voxel, 0), surface);
+    }
+
+    /** スロット内容と進行日数から状態を判定する。 */
+    private computeState(slots: DailyProcessingSlots, baseEntityType: number, daysElapsed: number): DailyProcessingState {
+        if (slots.outputs[0] !== null || slots.outputs[1] !== null) return "done";
+        if (!slots.input) return "empty";
+        const def = getDailyProcessingDef(baseEntityType);
+        if (!def) return "empty";
+        const recipe = findRecipeForInput(def, slots.input.itemId);
+        if (!recipe || slots.input.count < recipe.inputCountPerCycle) return "empty";
+        return daysElapsed === 0 ? "loading" : "progressing";
+    }
+
+    /**
+     * アンカーボクセルの entityType を、スロット内容と進行日数に応じた状態に書き戻す。
+     */
+    private updateVoxelEntityType(pos: Pos2D, voxelMap: IVoxelWriter): void {
+        const slots = this.getRaw(pos);
+        if (!slots) return;
+        const surface = voxelMap.getSurfacePosition({ x: pos.x, y: 0, z: pos.z });
+        const voxel = voxelMap.get(surface);
+        const currentEntityType = getEntityTypeFromVoxel(voxel);
+        const info = getDailyEntityStateInfo(currentEntityType);
+        if (!info) return;
+
+        const mapping = getDailyStateMapping(info.base);
+        if (!mapping) return;
+
+        const daysElapsed = getCropGrowthStageFromVoxel(voxel);
+        const newState = this.computeState(slots, info.base, daysElapsed);
+        const newEntityType = mapping[newState] ?? mapping.empty;
+        if (newEntityType === currentEntityType) return;
+        voxelMap.set(setEntityTypeInVoxel(voxel, newEntityType), surface);
+    }
+}

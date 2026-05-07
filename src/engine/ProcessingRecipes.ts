@@ -25,6 +25,8 @@ export interface ManualProcessingDef {
 export interface DailyProcessingDef {
     /** 入力が揃ってから完了までの日数。 */
     readonly daysRequired: number;
+    /** 出力スロット数（1 または 2）。UI でスロット枠を確保するために使う。 */
+    readonly outputSlotCount: 1 | 2;
     /** entity ごとの全レシピ。入力スロットの itemId に応じて切り替える。 */
     readonly recipes: ReadonlyArray<ProcessingRecipe>;
 }
@@ -117,6 +119,7 @@ export const MANUAL_PROCESSING_DEFS: Readonly<Record<number, ManualProcessingDef
 export const DAILY_PROCESSING_DEFS: Readonly<Record<number, DailyProcessingDef>> = {
     [ENTITY_TYPES.compost_bin]: {
         daysRequired: 4,
+        outputSlotCount: 1,
         recipes: [
             { inputItemId: "stem", inputCountPerCycle: 10, outputs: [{ itemId: "compost", count: 1 }] },
             { inputItemId: "leaves", inputCountPerCycle: 10, outputs: [{ itemId: "compost", count: 1 }] },
@@ -125,6 +128,7 @@ export const DAILY_PROCESSING_DEFS: Readonly<Record<number, DailyProcessingDef>>
     },
     [ENTITY_TYPES.soaking_basket]: {
         daysRequired: 3,
+        outputSlotCount: 1,
         recipes: [
             {
                 inputItemId: "flax_stalk",
@@ -135,6 +139,7 @@ export const DAILY_PROCESSING_DEFS: Readonly<Record<number, DailyProcessingDef>>
     },
     [ENTITY_TYPES.bonfire]: {
         daysRequired: 1,
+        outputSlotCount: 1,
         recipes: [
             { inputItemId: "trunk", inputCountPerCycle: 4, outputs: [{ itemId: "plant_ashes", count: 4 }] },
             { inputItemId: "stem", inputCountPerCycle: 20, outputs: [{ itemId: "plant_ashes", count: 4 }] },
@@ -142,11 +147,15 @@ export const DAILY_PROCESSING_DEFS: Readonly<Record<number, DailyProcessingDef>>
     },
     [ENTITY_TYPES.kiln]: {
         daysRequired: 4,
+        outputSlotCount: 2,
         recipes: [
             {
                 inputItemId: "trunk",
                 inputCountPerCycle: 12,
-                outputs: [{ itemId: "charcoal", count: 12 }],
+                outputs: [
+                    { itemId: "charcoal", count: 12 },
+                    { itemId: "dirt", count: 2 },
+                ],
             },
         ],
     },

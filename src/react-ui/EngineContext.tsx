@@ -9,6 +9,7 @@ import type {
     IVoxelWriter,
 } from "../_boundary/interfaces";
 import type { ChestStorage } from "../engine/ChestStorage";
+import type { DailyProcessingStorage } from "../engine/DailyProcessingStorage";
 import type { ForgeStorage } from "../engine/ForgeStorage";
 import type { ManualProcessingStorage } from "../engine/ManualProcessingStorage";
 import type { WarpGateStorage } from "../engine/WarpGateStorage";
@@ -27,6 +28,7 @@ export interface EngineRefs {
     chestStorage: ChestStorage;
     forgeStorage: ForgeStorage;
     manualProcessingStorage: ManualProcessingStorage;
+    dailyProcessingStorage: DailyProcessingStorage;
     craftSystem: ICraftSystem;
     voxelMap: IVoxelWriter;
     uiState: UIState;
