@@ -140,12 +140,17 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
             disposers.push(createInteractionHandler(voxelMap, playerState.inventory, eventBroker, uiState, playerState));
 
             const gameTime = new GameTime(saveData?.gameTime.elapsedMs);
+
+            // 日次処理対象のストレージ群（KeyedSlotStorage 派生）。新規ストレージ追加時はここに足すだけで day_changed に乗る。
+            const dailyTickStorages = [chestStorage, forgeStorage, workbenchStorage];
+
             disposers.push(
                 eventBroker.subscribe("day_changed", () => {
                     processDailyTick(voxelMap);
                     regenerateClay(voxelMap);
-                    forgeStorage.advanceDayAllForges(voxelMap);
+                    for (const s of dailyTickStorages) s.onDailyTick(voxelMap);
 
+                    // WarpGate は座標管理しない別系統。出荷集計→reputation→clear をここで明示的に行う。
                     const shippedItems = new Map();
                     for (const stack of warpGateStorage.getSlots()) {
                         if (!stack) continue;

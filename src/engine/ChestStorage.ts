@@ -1,68 +1,35 @@
 import type { ItemStack, Pos2D } from "../_boundary/interfaces";
+import { KeyedSlotStorage } from "./KeyedSlotStorage";
 
 const CHEST_SLOT_COUNT = 64;
 
+type ChestSlots = (ItemStack | null)[];
+
 /** チェストの中身を座標ベースで管理するストレージ。 */
-export class ChestStorage {
-    private chests = new Map<string, (ItemStack | null)[]>();
-
-    private key(pos: Pos2D): string {
-        return `${pos.x},${pos.z}`;
+export class ChestStorage extends KeyedSlotStorage<ChestSlots> {
+    protected createDefaultSlots(): ChestSlots {
+        return new Array<ItemStack | null>(CHEST_SLOT_COUNT).fill(null);
     }
 
-    /** 指定座標にチェストストレージを作成する（既に存在する場合は何もしない）。 */
-    create(pos: Pos2D): void {
-        const k = this.key(pos);
-        if (!this.chests.has(k)) {
-            this.chests.set(k, new Array<ItemStack | null>(CHEST_SLOT_COUNT).fill(null));
-        }
-    }
-
-    /** 指定座標のチェストストレージを削除する。 */
-    remove(pos: Pos2D): void {
-        this.chests.delete(this.key(pos));
-    }
-
-    /** 指定座標のチェストが空かどうかを返す。存在しない場合は true。 */
-    isEmpty(pos: Pos2D): boolean {
-        const slots = this.chests.get(this.key(pos));
-        if (!slots) return true;
+    protected isSlotsEmpty(slots: ChestSlots): boolean {
         return slots.every((s) => s === null);
     }
 
-    /** 指定座標のチェストの全スロットを返す。存在しない場合は undefined。 */
-    getSlots(pos: Pos2D): readonly (ItemStack | null)[] | undefined {
-        return this.chests.get(this.key(pos));
+    protected cloneSlots(slots: ChestSlots): ChestSlots {
+        return [...slots];
     }
 
     /** 指定座標のチェストの指定スロットを返す。 */
     getSlot(pos: Pos2D, index: number): ItemStack | null {
-        const slots = this.chests.get(this.key(pos));
+        const slots = this.getRaw(pos);
         return slots?.[index] ?? null;
     }
 
     /** 指定座標のチェストの指定スロットを設定する。 */
     setSlot(pos: Pos2D, index: number, stack: ItemStack | null): void {
-        const slots = this.chests.get(this.key(pos));
+        const slots = this.getRaw(pos);
         if (slots) {
             slots[index] = stack;
-        }
-    }
-
-    /** 全チェストデータをシリアライズ可能な形式で返す（セーブ用）。 */
-    toSaveData(): Array<{ key: string; slots: (ItemStack | null)[] }> {
-        const result: Array<{ key: string; slots: (ItemStack | null)[] }> = [];
-        for (const [key, slots] of this.chests) {
-            result.push({ key, slots: [...slots] });
-        }
-        return result;
-    }
-
-    /** セーブデータからチェストストレージを復元する（ロード用）。 */
-    loadSaveData(data: Array<{ key: string; slots: (ItemStack | null)[] }>): void {
-        this.chests.clear();
-        for (const { key, slots } of data) {
-            this.chests.set(key, [...slots]);
         }
     }
 }

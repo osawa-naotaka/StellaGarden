@@ -1,4 +1,5 @@
 import type { ItemStack, IVoxelWriter, Pos2D } from "../_boundary/interfaces";
+import { KeyedSlotStorage } from "./KeyedSlotStorage";
 import { ENTITY_TYPES, setEntityTypeInVoxel } from "./TerrainDefs";
 
 export type ForgeSlotKind = "ingredient" | "fuel" | "output";
@@ -19,54 +20,30 @@ const ALLOWED_ITEM_IDS: Record<ForgeSlotKind, string | null> = {
 const OUTPUT_STACK_MAX = 64;
 
 /** 炉のスロット状態を座標ベースで管理するストレージ。 */
-export class ForgeStorage {
-    private forges = new Map<string, ForgeSlots>();
-
-    private key(pos: Pos2D): string {
-        return `${pos.x},${pos.z}`;
+export class ForgeStorage extends KeyedSlotStorage<ForgeSlots> {
+    protected createDefaultSlots(): ForgeSlots {
+        return { ingredient: null, fuel: null, output: null };
     }
 
-    private posFromKey(key: string): Pos2D {
-        const [x, z] = key.split(",").map(Number);
-        return { x, z };
-    }
-
-    /** 指定座標に炉ストレージを作成する（既に存在する場合は何もしない）。 */
-    create(pos: Pos2D): void {
-        const k = this.key(pos);
-        if (!this.forges.has(k)) {
-            this.forges.set(k, { ingredient: null, fuel: null, output: null });
-        }
-    }
-
-    /** 指定座標の炉ストレージを削除する。 */
-    remove(pos: Pos2D): void {
-        this.forges.delete(this.key(pos));
-    }
-
-    /** 指定座標の炉が空かどうかを返す（3スロット全て null）。存在しない場合は true。 */
-    isEmpty(pos: Pos2D): boolean {
-        const slots = this.forges.get(this.key(pos));
-        if (!slots) return true;
+    protected isSlotsEmpty(slots: ForgeSlots): boolean {
         return slots.ingredient === null && slots.fuel === null && slots.output === null;
+    }
+
+    protected cloneSlots(slots: ForgeSlots): ForgeSlots {
+        return { ...slots };
     }
 
     /** ingredient と fuel が両方 count>=1 であれば稼働中（burning）とみなす。 */
     isBurning(pos: Pos2D): boolean {
-        const slots = this.forges.get(this.key(pos));
+        const slots = this.getRaw(pos);
         if (!slots) return false;
         return slots.ingredient !== null && slots.ingredient.count >= 1 && slots.fuel !== null && slots.fuel.count >= 1;
     }
 
     /** 指定座標の炉の指定スロットを返す。 */
     getSlot(pos: Pos2D, kind: ForgeSlotKind): ItemStack | null {
-        const slots = this.forges.get(this.key(pos));
+        const slots = this.getRaw(pos);
         return slots ? (slots[kind] ?? null) : null;
-    }
-
-    /** 指定座標の炉の全スロットを返す。存在しない場合は undefined。 */
-    getSlots(pos: Pos2D): ForgeSlots | undefined {
-        return this.forges.get(this.key(pos));
     }
 
     /**
@@ -75,7 +52,7 @@ export class ForgeStorage {
      * 設定後、voxelMap のアンカーボクセルの entityType を forge / forge_burning に再判定して書き戻す。
      */
     setSlot(pos: Pos2D, kind: ForgeSlotKind, stack: ItemStack | null, voxelMap: IVoxelWriter): void {
-        const slots = this.forges.get(this.key(pos));
+        const slots = this.getRaw(pos);
         if (!slots) return;
 
         if (stack !== null) {
@@ -96,8 +73,8 @@ export class ForgeStorage {
      * day_changed 時に全炉を走査し、ingredient と fuel に在庫があれば1個ずつ消費して output を加算する。
      * 消費後、アンカーボクセルの entityType を forge / forge_burning に再判定して書き戻す。
      */
-    advanceDayAllForges(voxelMap: IVoxelWriter): void {
-        for (const [key, slots] of this.forges) {
+    override onDailyTick(voxelMap: IVoxelWriter): void {
+        for (const [key, slots] of this.entries()) {
             if (slots.ingredient === null || slots.ingredient.count < 1) continue;
             if (slots.fuel === null || slots.fuel.count < 1) continue;
 
@@ -125,23 +102,6 @@ export class ForgeStorage {
             // voxelMap のアンカー entityType を再判定して書き戻す
             const pos = this.posFromKey(key);
             this.updateVoxelEntityType(pos, voxelMap);
-        }
-    }
-
-    /** 全炉データをシリアライズ可能な形式で返す（セーブ用）。 */
-    toSaveData(): Array<{ key: string; slots: ForgeSlots }> {
-        const result: Array<{ key: string; slots: ForgeSlots }> = [];
-        for (const [key, slots] of this.forges) {
-            result.push({ key, slots: { ...slots } });
-        }
-        return result;
-    }
-
-    /** セーブデータから炉ストレージを復元する（ロード用）。 */
-    loadSaveData(data: Array<{ key: string; slots: ForgeSlots }>): void {
-        this.forges.clear();
-        for (const { key, slots } of data) {
-            this.forges.set(key, { ...slots });
         }
     }
 
