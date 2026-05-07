@@ -87,6 +87,30 @@ export const WarpGateStorageSaveDataSchema = v.object({
     slots: v.array(NullableItemStackSchema),
 });
 
+// 手動処理 / 日次処理は同一スロット構造（入力1 + 出力2）を共有する
+const ProcessingSlotsSchema = v.object({
+    input: NullableItemStackSchema,
+    outputs: v.tuple([NullableItemStackSchema, NullableItemStackSchema]),
+});
+
+export const ManualProcessingStorageSaveDataSchema = v.object({
+    facilities: v.array(
+        v.object({
+            key: v.string(),
+            slots: ProcessingSlotsSchema,
+        }),
+    ),
+});
+
+export const DailyProcessingStorageSaveDataSchema = v.object({
+    facilities: v.array(
+        v.object({
+            key: v.string(),
+            slots: ProcessingSlotsSchema,
+        }),
+    ),
+});
+
 export const ReputationSaveDataSchema = v.object({
     points: v.number(),
     cumulativeShipped: v.array(v.tuple([ItemIdSchema, v.number()])),
@@ -106,6 +130,8 @@ export const SaveDataSchema = v.object({
     forgeStorage: ForgeStorageSaveDataSchema,
     workbenchStorage: WorkbenchStorageSaveDataSchema,
     warpGateStorage: WarpGateStorageSaveDataSchema,
+    manualProcessingStorage: ManualProcessingStorageSaveDataSchema,
+    dailyProcessingStorage: DailyProcessingStorageSaveDataSchema,
     reputation: ReputationSaveDataSchema,
 });
 
@@ -126,4 +152,6 @@ export type ChestStorageSaveData = v.InferOutput<typeof ChestStorageSaveDataSche
 export type ForgeStorageSaveData = v.InferOutput<typeof ForgeStorageSaveDataSchema>;
 export type WorkbenchStorageSaveData = v.InferOutput<typeof WorkbenchStorageSaveDataSchema>;
 export type WarpGateStorageSaveData = v.InferOutput<typeof WarpGateStorageSaveDataSchema>;
+export type ManualProcessingStorageSaveData = v.InferOutput<typeof ManualProcessingStorageSaveDataSchema>;
+export type DailyProcessingStorageSaveData = v.InferOutput<typeof DailyProcessingStorageSaveDataSchema>;
 export type ReputationSaveData = v.InferOutput<typeof ReputationSaveDataSchema>;

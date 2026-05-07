@@ -65,11 +65,11 @@ export function bootstrapStorages(saveData: SaveData | null): Storages {
     setWarpGateStorage(warpGateStorage);
 
     const manualProcessingStorage = new ManualProcessingStorage();
-    // セーブデータは Phase 6 で対応予定。現状は空で起動する。
+    if (saveData) manualProcessingStorage.loadSaveData(saveData.manualProcessingStorage.facilities);
     setManualProcessingStorage(manualProcessingStorage);
 
     const dailyProcessingStorage = new DailyProcessingStorage();
-    // セーブデータは Phase 6 で対応予定。現状は空で起動する。
+    if (saveData) dailyProcessingStorage.loadSaveData(saveData.dailyProcessingStorage.facilities);
     setDailyProcessingStorage(dailyProcessingStorage);
 
     return { chestStorage, forgeStorage, workbenchStorage, warpGateStorage, manualProcessingStorage, dailyProcessingStorage };

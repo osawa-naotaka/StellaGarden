@@ -147,14 +147,13 @@ export const DAILY_PROCESSING_DEFS: Readonly<Record<number, DailyProcessingDef>>
     },
     [ENTITY_TYPES.kiln]: {
         daysRequired: 4,
-        outputSlotCount: 2,
+        outputSlotCount: 1,
         recipes: [
             {
                 inputItemId: "trunk",
                 inputCountPerCycle: 12,
                 outputs: [
                     { itemId: "charcoal", count: 12 },
-                    { itemId: "dirt", count: 2 },
                 ],
             },
         ],

@@ -11,6 +11,8 @@ export type {
     ForgeStorageSaveData,
     WorkbenchStorageSaveData,
     WarpGateStorageSaveData,
+    ManualProcessingStorageSaveData,
+    DailyProcessingStorageSaveData,
     ReputationSaveData,
 } from "./SaveSchema";
 
@@ -23,7 +25,7 @@ export type SaveSlot = 1 | 2 | 3;
 const DB_NAME = "stella-garden";
 const DB_VERSION = 1;
 const STORE_NAME = "saveData";
-const CURRENT_SAVE_VERSION = 7;
+const CURRENT_SAVE_VERSION = 8;
 /** これより古いバージョンはマイグレーションパスがなく、ロード不可。 */
 const MIN_SUPPORTED_VERSION = 6;
 
@@ -42,6 +44,12 @@ type RawSave = Record<string, unknown>;
  */
 const migrations: Record<number, (data: RawSave) => RawSave> = {
     6: (data) => ({ ...data, seed: "" }), // v6 → v7: seed フィールドを追加
+    // v7 → v8: 手動処理 / 日次処理ストレージを追加（既存施設は新仕様 UI 起動時に Storage が作成されるため空配列で OK）
+    7: (data) => ({
+        ...data,
+        manualProcessingStorage: { facilities: [] },
+        dailyProcessingStorage: { facilities: [] },
+    }),
 };
 
 /**

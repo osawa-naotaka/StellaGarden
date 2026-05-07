@@ -129,6 +129,19 @@ export function registerDailyProcessingEntity(opts: DailyProcessingEntityOptions
 
 // ── 移行済みエンティティの登録 ──
 
+// アニメーションスプライトの共通フレーム時間
+const ANIM_FRAME_MS = 300;
+
+const BONFIRE_LIT_FRAMES = ["ss_sprite_074_1.png", "ss_sprite_074_2.png", "ss_sprite_074_3.png"];
+function bonfireLitFrame(): string {
+    return BONFIRE_LIT_FRAMES[Math.floor(Date.now() / ANIM_FRAME_MS) % BONFIRE_LIT_FRAMES.length];
+}
+
+const KILN_BURNING_FRAMES = ["ss_sprite_078_1.png", "ss_sprite_078_2.png", "ss_sprite_078_3.png"];
+function kilnBurningFrame(): string {
+    return KILN_BURNING_FRAMES[Math.floor(Date.now() / ANIM_FRAME_MS) % KILN_BURNING_FRAMES.length];
+}
+
 // compost_bin: 4状態すべて固有のスプライトを持つ
 registerDailyProcessingEntity({
     baseEntityType: ENTITY_TYPES.compost_bin,
@@ -147,5 +160,69 @@ registerDailyProcessingEntity({
     itemId: "compost_bin",
     displayName: "堆肥場",
     inventorySpriteName: "ss_sprite_062.png",
+    entitySize: { w: 2, h: 2 },
+});
+
+// soaking_basket: loading と progressing は同じ entityType / スプライト
+registerDailyProcessingEntity({
+    baseEntityType: ENTITY_TYPES.soaking_basket,
+    stateEntityTypes: {
+        empty: ENTITY_TYPES.soaking_basket,
+        loading: ENTITY_TYPES.soaking_basket_loaded,
+        progressing: ENTITY_TYPES.soaking_basket_loaded,
+        done: ENTITY_TYPES.soaking_basket_done,
+    },
+    sprites: {
+        empty: "ss_sprite_072.png",
+        loading: "ss_sprite_056.png",
+        progressing: "ss_sprite_056.png",
+        done: "ss_sprite_073.png",
+    },
+    itemId: "soaking_basket",
+    displayName: "浸漬槽",
+    inventorySpriteName: "ss_sprite_065.png",
+    entitySize: { w: 3, h: 1 },
+});
+
+// bonfire: loading と progressing は同じく bonfire_lit（アニメーション）
+registerDailyProcessingEntity({
+    baseEntityType: ENTITY_TYPES.bonfire,
+    stateEntityTypes: {
+        empty: ENTITY_TYPES.bonfire,
+        loading: ENTITY_TYPES.bonfire_lit,
+        progressing: ENTITY_TYPES.bonfire_lit,
+        done: ENTITY_TYPES.bonfire_done,
+    },
+    sprites: {
+        empty: "ss_sprite_076.png",
+        loading: bonfireLitFrame,
+        progressing: bonfireLitFrame,
+        done: "ss_sprite_075.png",
+    },
+    itemId: "bonfire",
+    displayName: "焚き火",
+    inventorySpriteName: "ss_sprite_076.png",
+    entitySize: { w: 1, h: 1 },
+});
+
+// kiln: loading と progressing は kiln_burning（アニメーション）。
+// 完了時は empty と同じ kiln スプライトに戻り、output から charcoal + dirt を取り出す。
+registerDailyProcessingEntity({
+    baseEntityType: ENTITY_TYPES.kiln,
+    stateEntityTypes: {
+        empty: ENTITY_TYPES.kiln,
+        loading: ENTITY_TYPES.kiln_burning,
+        progressing: ENTITY_TYPES.kiln_burning,
+        done: ENTITY_TYPES.kiln,
+    },
+    sprites: {
+        empty: "ss_sprite_077.png",
+        loading: kilnBurningFrame,
+        progressing: kilnBurningFrame,
+        done: "ss_sprite_077.png",
+    },
+    itemId: "kiln",
+    displayName: "炭焼き窯",
+    inventorySpriteName: "ss_sprite_068.png",
     entitySize: { w: 2, h: 2 },
 });

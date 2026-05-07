@@ -1,6 +1,8 @@
 import type { ChestStorage } from "../../engine/ChestStorage";
+import type { DailyProcessingStorage } from "../../engine/DailyProcessingStorage";
 import type { ForgeStorage } from "../../engine/ForgeStorage";
 import type { GameTime } from "../../engine/GameTime";
+import type { ManualProcessingStorage } from "../../engine/ManualProcessingStorage";
 import type { PlayerState } from "../../engine/PlayerState";
 import type { ReputationSystem } from "../../engine/ReputationSystem";
 import type { WarpGateStorage } from "../../engine/WarpGateStorage";
@@ -17,12 +19,26 @@ export interface SaveSnapshotDeps {
     forgeStorage: ForgeStorage;
     workbenchStorage: WorkbenchStorage;
     warpGateStorage: WarpGateStorage;
+    manualProcessingStorage: ManualProcessingStorage;
+    dailyProcessingStorage: DailyProcessingStorage;
     reputationSystem: ReputationSystem;
 }
 
 /** 各サブシステムの現在状態から saveGame に渡すペイロードを組み立てる。 */
 export function buildSaveData(deps: SaveSnapshotDeps): Omit<SaveData, "version" | "timestamp"> {
-    const { seed, voxelMap, playerState, gameTime, chestStorage, forgeStorage, workbenchStorage, warpGateStorage, reputationSystem } = deps;
+    const {
+        seed,
+        voxelMap,
+        playerState,
+        gameTime,
+        chestStorage,
+        forgeStorage,
+        workbenchStorage,
+        warpGateStorage,
+        manualProcessingStorage,
+        dailyProcessingStorage,
+        reputationSystem,
+    } = deps;
     const inventory = playerState.inventory;
     return {
         seed,
@@ -57,6 +73,12 @@ export function buildSaveData(deps: SaveSnapshotDeps): Omit<SaveData, "version" 
             workbenches: workbenchStorage.toSaveData(),
         },
         warpGateStorage: warpGateStorage.toSaveData(),
+        manualProcessingStorage: {
+            facilities: manualProcessingStorage.toSaveData(),
+        },
+        dailyProcessingStorage: {
+            facilities: dailyProcessingStorage.toSaveData(),
+        },
         reputation: reputationSystem.toSaveData(),
     };
 }

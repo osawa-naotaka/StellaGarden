@@ -204,6 +204,8 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
                         forgeStorage,
                         workbenchStorage,
                         warpGateStorage,
+                        manualProcessingStorage,
+                        dailyProcessingStorage,
                         reputationSystem,
                     }),
                 )
