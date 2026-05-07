@@ -28,7 +28,7 @@ export function createInteractionHandler(
 ): () => void {
     const INTERACT_RANGE = 5; // タイル
 
-    // 右クリック: ツール使用（収穫・撤去・植え付け・掘削等）
+    // 左クリック: ツール使用（収穫・撤去・植え付け・掘削等）
     const d1 = eventBroker.subscribe("interact_world", (packet) => {
         if (uiState.mode === "placement") return;
         if (uiState.isPaused) return;
@@ -58,9 +58,12 @@ export function createInteractionHandler(
         if (terrainDef?.onInteract?.(ctx)) return;
     });
 
-    // 左クリック: 施設UIの起動等
+    // 右クリック: 施設UIの起動等
     const d2 = eventBroker.subscribe("interact_primary", (packet) => {
-        if (uiState.mode !== "normal") return;
+        // placement モード中だけは右クリックを通さない（配置プレビュー継続のため）。
+        // それ以外のサイドバー UI 表示中は通し、UIState 側の open_xxx_ui ハンドラが
+        // モードを上書きすることで「古い UI 閉じる → 新 UI 開く」を成立させる。
+        if (uiState.mode === "placement") return;
         const distX = packet.pos.x - playerState.posInWorld.x;
         const distZ = packet.pos.z - playerState.posInWorld.z;
         if (Math.abs(distX) > INTERACT_RANGE || Math.abs(distZ) > INTERACT_RANGE) return;
