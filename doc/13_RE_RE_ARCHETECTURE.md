@@ -328,8 +328,8 @@ registerEntity({
         return true;
     },
 
-    // 施設型の場合: 左クリックで UI を開く
-    onPrimaryInteract(ctx: InteractionContext): boolean {
+    // 施設型の場合: 右クリックで UI を開く
+    onOpenFacilityUI(ctx: InteractionContext): boolean {
         ctx.eventBroker.publish("open_craft_ui", { pos: ... });
         return true;
     },

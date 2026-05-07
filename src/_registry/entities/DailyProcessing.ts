@@ -4,7 +4,7 @@
  * 対象: compost_bin / soaking_basket / bonfire / kiln
  *
  * 操作:
- *  - 右クリック (onPrimaryInteract) → open_processing_daily_ui を発行（UI起動）
+ *  - 右クリック (onOpenFacilityUI) → open_processing_daily_ui を発行（UI起動）
  *  - 左クリック (onInteract) + axe → 撤去（empty 状態かつ storage 空のときのみ）
  *
  * 状態遷移は DailyProcessingStorage が voxel の entityType と growthStage を
@@ -90,7 +90,7 @@ export function registerDailyProcessingEntity(opts: DailyProcessingEntityOptions
             },
 
             // 右クリック: 処理 UI を開く（全状態で可）
-            onPrimaryInteract(ctx: InteractionContext): boolean {
+            onOpenFacilityUI(ctx: InteractionContext): boolean {
                 const anchor = findFacilityAnchor(ctx.voxelMap, ctx.surfacePos.x, ctx.surfacePos.z);
                 if (!anchor) return false;
                 const anchorPos = { x: anchor.anchorX, z: anchor.anchorZ };

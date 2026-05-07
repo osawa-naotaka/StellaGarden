@@ -4,7 +4,7 @@
  * 対象: threshing_machine / screw_presses / scutching_board / spinning_wheel / loom / anvil
  *
  * 操作:
- *  - 右クリック (onPrimaryInteract) → open_processing_manual_ui を発行（UI起動）
+ *  - 右クリック (onOpenFacilityUI) → open_processing_manual_ui を発行（UI起動）
  *  - 左クリック (onInteract) + axe → 撤去（ストレージが空のときのみ）
  */
 import type { ItemId } from "../../_boundary/interfaces";
@@ -54,7 +54,7 @@ export function registerManualProcessingEntity(opts: ManualProcessingEntityOptio
         },
 
         // 右クリック: 処理 UI を開く
-        onPrimaryInteract(ctx: InteractionContext): boolean {
+        onOpenFacilityUI(ctx: InteractionContext): boolean {
             const anchor = findFacilityAnchor(ctx.voxelMap, ctx.surfacePos.x, ctx.surfacePos.z);
             if (!anchor || anchor.entityType !== entityType) return false;
             const anchorPos = { x: anchor.anchorX, z: anchor.anchorZ };

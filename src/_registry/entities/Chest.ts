@@ -30,7 +30,7 @@ registerEntity({
         return true;
     },
 
-    onPrimaryInteract(ctx: InteractionContext): boolean {
+    onOpenFacilityUI(ctx: InteractionContext): boolean {
         ctx.eventBroker.publish("open_chest_ui", { pos: { x: ctx.surfacePos.x, z: ctx.surfacePos.z } });
         return true;
     },

@@ -116,7 +116,7 @@ Kiln の `kiln` / `kiln_burning` パターンに倣う。
 | `ENTITY_TYPES.forge_burning` | 新規追加（TerrainDefs.ts の entity type ID を割り当てる） |
 | スプライト | `ss_sprite_070_1.png` / `ss_sprite_070_2.png` / `ss_sprite_070_3.png`（3フレーム、300ms 間隔） |
 | サイズ | 2x2（既存の `forge` と同じ） |
-| インタラクト | `onPrimaryInteract`: 左クリックで炉UIを開く／`onInteract` での撤去は不可（燃焼中は触れない前提） |
+| インタラクト | `onOpenFacilityUI`: 右クリックで炉UIを開く／`onInteract` での撤去は不可（燃焼中は触れない前提） |
 
 ### 3.2 既存エンティティ: 消火中の炉（`forge`）
 
@@ -124,7 +124,7 @@ Kiln の `kiln` / `kiln_burning` パターンに倣う。
 
 | 変更点 | 内容 |
 |---|---|
-| `onPrimaryInteract` を追加 | 左クリックで炉UIを開く（`open_forge_ui` イベント発行） |
+| `onOpenFacilityUI` を追加 | 右クリックで炉UIを開く（`open_forge_ui` イベント発行） |
 | 配置時の初期ステート | `ENTITY_TYPES.forge`（消火中）で配置する。現行のまま |
 | `onInteract`（ピッケル撤去） | 現行のまま。ただし ForgeStorage 側の削除処理を追加 |
 
@@ -147,7 +147,7 @@ Forge は Kiln と違い、**日経過で遷移するのではなく、スロッ
 
 ### 3.4 金床（`anvil`）のインタラクト追加
 
-現在の `anvil` は撤去しかできない（`facilities.ts:52` の `registerAxeRemovableFacility`）。本仕様で `onPrimaryInteract` を追加する。
+現在の `anvil` は撤去しかできない（`facilities.ts:52` の `registerAxeRemovableFacility`）。本仕様で `onOpenFacilityUI` を追加する。
 
 | 条件 | 挙動 |
 |---|---|
@@ -372,7 +372,7 @@ ForgeView は UI ダイアログ内のスロットのみ描画する。炉本体
 
 ```typescript
 /** 炉を左クリックして炉UIを開く。
- *  発行: Forge.ts / ForgeBurning.ts の onPrimaryInteract。購読: App.tsx → ForgeView.show(pos)。 */
+ *  発行: Forge.ts / ForgeBurning.ts の onOpenFacilityUI。購読: App.tsx → ForgeView.show(pos)。 */
 open_forge_ui: { pos: Pos2D };
 ```
 

@@ -43,7 +43,7 @@ registerEntity({
         return true;
     },
 
-    onPrimaryInteract(ctx: InteractionContext): boolean {
+    onOpenFacilityUI(ctx: InteractionContext): boolean {
         const pos = resolveAnchorPos(ctx);
         if (!pos) return false;
         ctx.eventBroker.publish("open_forge_ui", { pos });
@@ -70,7 +70,7 @@ registerEntity({
         return true;
     },
 
-    onPrimaryInteract(ctx: InteractionContext): boolean {
+    onOpenFacilityUI(ctx: InteractionContext): boolean {
         const pos = resolveAnchorPos(ctx);
         if (!pos) return false;
         ctx.eventBroker.publish("open_forge_ui", { pos });

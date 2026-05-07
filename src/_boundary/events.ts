@@ -23,13 +23,13 @@ export type GameEventMap = {
     /** warp gate を右クリックして地球出荷UIを開く。 */
     open_warp_gate_ui: { pos: Pos2D };
     /** 炉を左クリックして炉UIを開く。
-     *  発行: Forge.ts の onPrimaryInteract（forge / forge_burning の両方）。購読: UIState → ForgeView.show(pos)。 */
+     *  発行: Forge.ts の onOpenFacilityUI（forge / forge_burning の両方）。購読: UIState → ForgeView.show(pos)。 */
     open_forge_ui: { pos: Pos2D };
     /** 手動処理施設（threshing_machine / screw_presses / scutching_board / spinning_wheel / loom / anvil）の UI を開く。
-     *  発行: 各エンティティの onPrimaryInteract（右クリック）。購読: UIState → ManualProcessingPanel。 */
+     *  発行: 各エンティティの onOpenFacilityUI（右クリック）。購読: UIState → ManualProcessingPanel。 */
     open_processing_manual_ui: { pos: Pos2D };
     /** 日次処理施設（compost_bin / soaking_basket / bonfire / kiln）の UI を開く。
-     *  発行: 各エンティティの onPrimaryInteract（右クリック）。購読: UIState → DailyProcessingPanel。 */
+     *  発行: 各エンティティの onOpenFacilityUI（右クリック）。購読: UIState → DailyProcessingPanel。 */
     open_processing_daily_ui: { pos: Pos2D };
 
     // ─── input → engine（Phase 3 以降で使用） ───────────────────────────────
@@ -37,10 +37,10 @@ export type GameEventMap = {
      *  dx, dz は正規化済みの方向ベクトル、deltaMS はフレーム時間(ms)。
      *  engine サブスクライバーは moveBy(dx, dz, deltaMS) を呼んで座標を更新する。 */
     player_move: { dx: number; dz: number; deltaMS: number };
-    /** ワールドへのインタラクション（右クリック）— ツール使用 */
+    /** ワールドへのインタラクション（左クリック）— ツール使用 */
     interact_world: { pos: Pos2D };
-    /** ワールドへの左クリック — 施設UIの起動等 */
-    interact_primary: { pos: Pos2D };
+    /** 右クリック — 施設UIの起動 */
+    open_facility_ui: { pos: Pos2D };
     /** ズーム変更 */
     zoom_change: { delta: number };
 

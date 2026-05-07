@@ -232,7 +232,7 @@ registerEntity({
         // axe / pickaxe で撤去するパターンは removeFacilityAtPos を使う
         // 撤去成功時に xxxStorage?.remove(pos) を呼ぶ
     },
-    onPrimaryInteract(ctx: InteractionContext): boolean {
+    onOpenFacilityUI(ctx: InteractionContext): boolean {
         ctx.eventBroker.publish("open_xxx_ui", { pos: { x: ctx.surfacePos.x, z: ctx.surfacePos.z } });
         return true;
     },

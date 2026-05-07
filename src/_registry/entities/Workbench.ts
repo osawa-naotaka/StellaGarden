@@ -37,7 +37,7 @@ registerEntity({
         return false;
     },
 
-    onPrimaryInteract(ctx: InteractionContext): boolean {
+    onOpenFacilityUI(ctx: InteractionContext): boolean {
         const anchorPos = resolveWorkbenchAnchor(ctx);
         if (!anchorPos) return false;
         ctx.eventBroker.publish("open_craft_ui", {

@@ -26,7 +26,7 @@ registerEntity({
         return false;
     },
 
-    onPrimaryInteract(ctx: InteractionContext): boolean {
+    onOpenFacilityUI(ctx: InteractionContext): boolean {
         ctx.eventBroker.publish("open_warp_gate_ui", { pos: { x: ctx.surfacePos.x, z: ctx.surfacePos.z } });
         return true;
     },

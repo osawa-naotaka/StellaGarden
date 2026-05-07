@@ -59,7 +59,7 @@ export function createInteractionHandler(
     });
 
     // 右クリック: 施設UIの起動等
-    const d2 = eventBroker.subscribe("interact_primary", (packet) => {
+    const d2 = eventBroker.subscribe("open_facility_ui", (packet) => {
         // placement モード中だけは右クリックを通さない（配置プレビュー継続のため）。
         // それ以外のサイドバー UI 表示中は通し、UIState 側の open_xxx_ui ハンドラが
         // モードを上書きすることで「古い UI 閉じる → 新 UI 開く」を成立させる。
@@ -77,7 +77,7 @@ export function createInteractionHandler(
         const ctx: InteractionContext = { voxelMap, inventory, eventBroker, surfacePos, voxel, tool: inventory.selectedTool, entityType };
 
         const entityDef = getEntityDef(entityType);
-        entityDef?.onPrimaryInteract?.(ctx);
+        entityDef?.onOpenFacilityUI?.(ctx);
     });
 
     return () => {

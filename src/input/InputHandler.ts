@@ -84,7 +84,7 @@ export class InputHandler {
                 }
             } else if (e.button === 2) {
                 // 右クリック: 施設UIの起動等
-                this.eventBroker.publish("interact_primary", { pos: { x, z } });
+                this.eventBroker.publish("open_facility_ui", { pos: { x, z } });
             }
         };
         this.target.on("pointerdown", onPointerDown);

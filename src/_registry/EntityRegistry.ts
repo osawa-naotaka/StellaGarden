@@ -39,7 +39,7 @@ export interface EntityDef {
 
     /** 左クリック: このエンティティが対象地点に存在する時に呼ばれる（例: 施設UIの起動）。
      *  true = 処理済み、false = 未処理。 */
-    onPrimaryInteract?(ctx: InteractionContext): boolean;
+    onOpenFacilityUI?(ctx: InteractionContext): boolean;
 
     /** ゲーム内1日経過時に呼ばれる（例: 作物の成長・焚き火の状態遷移）。 */
     onDailyTick?(ctx: DailyTickContext): void;
