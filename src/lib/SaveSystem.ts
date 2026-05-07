@@ -1,81 +1,18 @@
-import type { Direction8, ItemId, ItemStack } from "../_boundary/interfaces";
-import type { Pos2D } from "./VoxelMap";
+import { safeParse } from "valibot";
+import { SaveDataSchema, SlotHeaderSchema } from "./SaveSchema";
 
-// ─── セーブデータ型定義 ──────────────────────────────────────────────────────
-
-export interface SaveData {
-    version: number;
-    timestamp: number;
-    seed: string;
-    voxelMap: VoxelMapSaveData;
-    playerState: PlayerStateSaveData;
-    inventory: InventorySaveData;
-    gameTime: GameTimeSaveData;
-    chestStorage: ChestStorageSaveData;
-    forgeStorage: ForgeStorageSaveData;
-    workbenchStorage: WorkbenchStorageSaveData;
-    warpGateStorage: WarpGateStorageSaveData;
-    reputation: ReputationSaveData;
-}
-
-export interface VoxelMapSaveData {
-    width: number;
-    height: number;
-    depth: number;
-    horizonHeight: number;
-    voxels: BigUint64Array;
-    riversideCells: Uint32Array;
-}
-
-export interface PlayerStateSaveData {
-    posInWorld: Pos2D;
-    zoomLevel: number;
-    facing: Direction8;
-}
-
-export interface InventorySaveData {
-    toolbarSlots: (ItemStack | null)[];
-    inventorySlots: (ItemStack | null)[];
-    selectedIndex: number;
-}
-
-export interface GameTimeSaveData {
-    elapsedMs: number;
-}
-
-export interface ChestStorageSaveData {
-    chests: Array<{ key: string; slots: (ItemStack | null)[] }>;
-}
-
-export interface ForgeStorageSaveData {
-    forges: Array<{
-        key: string;
-        slots: {
-            ingredient: ItemStack | null;
-            fuel: ItemStack | null;
-            output: ItemStack | null;
-        };
-    }>;
-}
-
-export interface WorkbenchStorageSaveData {
-    workbenches: Array<{
-        key: string;
-        slots: {
-            tool: ItemStack | null;
-        };
-    }>;
-}
-
-export interface WarpGateStorageSaveData {
-    slots: (ItemStack | null)[];
-}
-
-export interface ReputationSaveData {
-    points: number;
-    /** 品目ごとの累計出荷数。Tier アンロック判定に使う。 */
-    cumulativeShipped: Array<[ItemId, number]>;
-}
+export type { SaveData } from "./SaveSchema";
+export type {
+    VoxelMapSaveData,
+    PlayerStateSaveData,
+    InventorySaveData,
+    GameTimeSaveData,
+    ChestStorageSaveData,
+    ForgeStorageSaveData,
+    WorkbenchStorageSaveData,
+    WarpGateStorageSaveData,
+    ReputationSaveData,
+} from "./SaveSchema";
 
 // ─── セーブスロット型 ──────────────────────────────────────────────────────────
 
@@ -108,10 +45,10 @@ const migrations: Record<number, (data: RawSave) => RawSave> = {
 };
 
 /**
- * 任意のバージョンのセーブデータを現在のバージョンに移行する。
- * マイグレーションパスが存在しない場合は null を返す。
+ * 任意のバージョンのセーブデータを現在のバージョンに移行し、スキーマで検証する。
+ * マイグレーションパスが存在しない、またはスキーマ検証に失敗した場合は null を返す。
  */
-function migrateToCurrent(raw: RawSave): SaveData | null {
+function migrateAndParse(raw: RawSave): import("./SaveSchema").SaveData | null {
     let data = raw;
     for (let v = data.version as number; v < CURRENT_SAVE_VERSION; v++) {
         const fn = migrations[v];
@@ -121,7 +58,12 @@ function migrateToCurrent(raw: RawSave): SaveData | null {
         }
         data = { ...fn(data), version: v + 1 };
     }
-    return data as unknown as SaveData;
+    const result = safeParse(SaveDataSchema, data);
+    if (!result.success) {
+        console.warn("Save data failed schema validation after migration:", result.issues);
+        return null;
+    }
+    return result.output;
 }
 
 // ─── IndexedDB ユーティリティ ────────────────────────────────────────────────
@@ -143,8 +85,8 @@ function openDB(): Promise<IDBDatabase> {
 // ─── 公開 API ────────────────────────────────────────────────────────────────
 
 /** ゲーム状態を IndexedDB に保存する。 */
-export async function saveGame(slot: SaveSlot, data: Omit<SaveData, "version" | "timestamp">): Promise<void> {
-    const saveData: SaveData = {
+export async function saveGame(slot: SaveSlot, data: Omit<import("./SaveSchema").SaveData, "version" | "timestamp">): Promise<void> {
+    const saveData = {
         ...data,
         version: CURRENT_SAVE_VERSION,
         timestamp: Date.now(),
@@ -165,7 +107,7 @@ export async function saveGame(slot: SaveSlot, data: Omit<SaveData, "version" | 
 }
 
 /** IndexedDB からセーブデータを読み込む。必要に応じてマイグレーションを実行する。データがなければ null を返す。 */
-export async function loadGame(slot: SaveSlot): Promise<SaveData | null> {
+export async function loadGame(slot: SaveSlot): Promise<import("./SaveSchema").SaveData | null> {
     try {
         const db = await openDB();
         return new Promise((resolve, reject) => {
@@ -173,27 +115,31 @@ export async function loadGame(slot: SaveSlot): Promise<SaveData | null> {
             const request = tx.objectStore(STORE_NAME).get(slotKey(slot));
             request.onsuccess = () => {
                 db.close();
-                const data = request.result as RawSave | undefined;
-                if (!data) {
+                const raw = request.result as RawSave | undefined;
+                if (!raw) {
                     resolve(null);
                     return;
                 }
-                const version = data.version as number | undefined;
+                const version = raw.version as number | undefined;
+                if (version === undefined || version < MIN_SUPPORTED_VERSION || version > CURRENT_SAVE_VERSION) {
+                    console.warn(`Save data version ${version} is outside supported range. Starting new game.`);
+                    resolve(null);
+                    return;
+                }
                 if (version === CURRENT_SAVE_VERSION) {
-                    resolve(data as unknown as SaveData);
+                    const result = safeParse(SaveDataSchema, raw);
+                    if (!result.success) {
+                        console.warn("Save data failed schema validation:", result.issues);
+                        resolve(null);
+                        return;
+                    }
+                    resolve(result.output);
                     return;
                 }
-                if (version === undefined || version < MIN_SUPPORTED_VERSION) {
-                    console.warn(`Save data version ${version} is too old to migrate. Starting new game.`);
-                    resolve(null);
-                    return;
+                const migrated = migrateAndParse(raw);
+                if (migrated) {
+                    console.info(`Save data migrated from version ${version} to ${CURRENT_SAVE_VERSION}.`);
                 }
-                const migrated = migrateToCurrent(data);
-                if (!migrated) {
-                    resolve(null);
-                    return;
-                }
-                console.info(`Save data migrated from version ${version} to ${CURRENT_SAVE_VERSION}.`);
                 resolve(migrated);
             };
             request.onerror = () => {
@@ -216,13 +162,18 @@ export async function getSlotInfo(slot: SaveSlot): Promise<{ exists: boolean; ti
             const request = tx.objectStore(STORE_NAME).get(slotKey(slot));
             request.onsuccess = () => {
                 db.close();
-                const data = request.result as RawSave | undefined;
-                const version = data?.version as number | undefined;
-                if (!data || version === undefined || version < MIN_SUPPORTED_VERSION || version > CURRENT_SAVE_VERSION) {
+                const raw = request.result as RawSave | undefined;
+                const version = raw?.version as number | undefined;
+                if (!raw || version === undefined || version < MIN_SUPPORTED_VERSION || version > CURRENT_SAVE_VERSION) {
                     resolve({ exists: false, timestamp: null });
                     return;
                 }
-                resolve({ exists: true, timestamp: data.timestamp as number });
+                const result = safeParse(SlotHeaderSchema, raw);
+                if (!result.success) {
+                    resolve({ exists: false, timestamp: null });
+                    return;
+                }
+                resolve({ exists: true, timestamp: result.output.timestamp });
             };
             request.onerror = () => {
                 db.close();

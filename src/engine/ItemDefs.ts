@@ -1,73 +1,76 @@
-/** インベントリに配置できるアイテムの ID 型。 */
-export type ItemId =
-    | "hand"
-    | "watering_can"
-    | "pickaxe"
-    | "axe"
-    | "sickle"
-    | "shovel"
-    | "hoes"
-    | "potato"
-    | "soybeans"
-    | "flaxseed"
-    | "dirt"
-    | "workbench"
-    | "stem"
-    | "leaves"
-    | "crop_residue"
-    | "pods"
-    | "soybean_oil"
-    | "bagged_soybeans"
-    | "bagged_potato"
-    | "flax_stalk"
-    | "flax_fiber"
-    | "thread"
-    | "rope"
-    | "cloth"
-    | "bag"
-    | "flaxseed_oil"
-    | "sunflower_seed"
-    | "trunk"
-    | "nuts"
-    | "compost"
-    | "plant_ashes"
-    | "oil_cake"
-    | "forge"
-    | "compost_bin"
-    | "threshing_machine"
-    | "screw_presses"
-    | "soaking_basket"
-    | "scutching_board"
-    | "spinning_wheel"
-    | "loom"
-    | "stone"
-    | "chest"
-    | "bonfire"
-    | "kiln"
-    | "charcoal"
-    | "clay"
-    | "meteoric_iron"
-    | "hot_meteoric_iron"
-    | "anvil"
-    | "tongs"
-    | "blade"
-    | "hardwood_teeth"
-    | "stone_hammer"
-    | "froe"
-    | "board"
-    | "screw_rod"
-    | "shaft"
-    | "chisel"
-    | "pipe"
-    | "frame"
-    | "processed_flax"
-    | "stone_pickaxe"
-    | "stone_axe"
-    | "stone_sickle"
-    | "wooden_shovel"
-    | "wooden_hoes"
-    | "clay_watering_can"
-    | "warp_gate"
-    | "ingot"
-    | "rail"
-    | "bagged_potatos";
+/** インベントリに配置できるアイテムの ID 一覧。valibot picklist にも使う。 */
+export const ITEM_IDS = [
+    "hand",
+    "watering_can",
+    "pickaxe",
+    "axe",
+    "sickle",
+    "shovel",
+    "hoes",
+    "potato",
+    "soybeans",
+    "flaxseed",
+    "dirt",
+    "workbench",
+    "stem",
+    "leaves",
+    "crop_residue",
+    "pods",
+    "soybean_oil",
+    "bagged_soybeans",
+    "bagged_potato",
+    "flax_stalk",
+    "flax_fiber",
+    "thread",
+    "rope",
+    "cloth",
+    "bag",
+    "flaxseed_oil",
+    "sunflower_seed",
+    "trunk",
+    "nuts",
+    "compost",
+    "plant_ashes",
+    "oil_cake",
+    "forge",
+    "compost_bin",
+    "threshing_machine",
+    "screw_presses",
+    "soaking_basket",
+    "scutching_board",
+    "spinning_wheel",
+    "loom",
+    "stone",
+    "chest",
+    "bonfire",
+    "kiln",
+    "charcoal",
+    "clay",
+    "meteoric_iron",
+    "hot_meteoric_iron",
+    "anvil",
+    "tongs",
+    "blade",
+    "hardwood_teeth",
+    "stone_hammer",
+    "froe",
+    "board",
+    "screw_rod",
+    "shaft",
+    "chisel",
+    "pipe",
+    "frame",
+    "processed_flax",
+    "stone_pickaxe",
+    "stone_axe",
+    "stone_sickle",
+    "wooden_shovel",
+    "wooden_hoes",
+    "clay_watering_can",
+    "warp_gate",
+    "ingot",
+    "rail",
+    "bagged_potatos",
+] as const;
+
+export type ItemId = (typeof ITEM_IDS)[number];
