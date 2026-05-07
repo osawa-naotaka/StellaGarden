@@ -6,6 +6,7 @@ import type { Pos2D } from "./VoxelMap";
 export interface SaveData {
     version: number;
     timestamp: number;
+    seed: string;
     voxelMap: VoxelMapSaveData;
     playerState: PlayerStateSaveData;
     inventory: InventorySaveData;
@@ -85,10 +86,42 @@ export type SaveSlot = 1 | 2 | 3;
 const DB_NAME = "stella-garden";
 const DB_VERSION = 1;
 const STORE_NAME = "saveData";
-const CURRENT_SAVE_VERSION = 6;
+const CURRENT_SAVE_VERSION = 7;
+/** これより古いバージョンはマイグレーションパスがなく、ロード不可。 */
+const MIN_SUPPORTED_VERSION = 6;
 
 function slotKey(slot: SaveSlot): string {
     return `save_slot_${slot}`;
+}
+
+// ─── マイグレーション ─────────────────────────────────────────────────────────
+
+type RawSave = Record<string, unknown>;
+
+/**
+ * バージョン N → N+1 の変換関数。添え字 N で管理する。
+ * 新バージョンを追加するときは `migrations[現在のCURRENT_SAVE_VERSION]` に追記し、
+ * CURRENT_SAVE_VERSION をインクリメントする。
+ */
+const migrations: Record<number, (data: RawSave) => RawSave> = {
+    6: (data) => ({ ...data, seed: "" }), // v6 → v7: seed フィールドを追加
+};
+
+/**
+ * 任意のバージョンのセーブデータを現在のバージョンに移行する。
+ * マイグレーションパスが存在しない場合は null を返す。
+ */
+function migrateToCurrent(raw: RawSave): SaveData | null {
+    let data = raw;
+    for (let v = data.version as number; v < CURRENT_SAVE_VERSION; v++) {
+        const fn = migrations[v];
+        if (!fn) {
+            console.warn(`No migration path from version ${v} to ${v + 1}.`);
+            return null;
+        }
+        data = { ...fn(data), version: v + 1 };
+    }
+    return data as unknown as SaveData;
 }
 
 // ─── IndexedDB ユーティリティ ────────────────────────────────────────────────
@@ -131,7 +164,7 @@ export async function saveGame(slot: SaveSlot, data: Omit<SaveData, "version" | 
     });
 }
 
-/** IndexedDB からセーブデータを読み込む。データがなければ null を返す。 */
+/** IndexedDB からセーブデータを読み込む。必要に応じてマイグレーションを実行する。データがなければ null を返す。 */
 export async function loadGame(slot: SaveSlot): Promise<SaveData | null> {
     try {
         const db = await openDB();
@@ -140,17 +173,28 @@ export async function loadGame(slot: SaveSlot): Promise<SaveData | null> {
             const request = tx.objectStore(STORE_NAME).get(slotKey(slot));
             request.onsuccess = () => {
                 db.close();
-                const data = request.result as SaveData | undefined;
+                const data = request.result as RawSave | undefined;
                 if (!data) {
                     resolve(null);
                     return;
                 }
-                if (data.version !== CURRENT_SAVE_VERSION) {
-                    console.warn(`Save data version mismatch: expected ${CURRENT_SAVE_VERSION}, got ${data.version}. Starting new game.`);
+                const version = data.version as number | undefined;
+                if (version === CURRENT_SAVE_VERSION) {
+                    resolve(data as unknown as SaveData);
+                    return;
+                }
+                if (version === undefined || version < MIN_SUPPORTED_VERSION) {
+                    console.warn(`Save data version ${version} is too old to migrate. Starting new game.`);
                     resolve(null);
                     return;
                 }
-                resolve(data);
+                const migrated = migrateToCurrent(data);
+                if (!migrated) {
+                    resolve(null);
+                    return;
+                }
+                console.info(`Save data migrated from version ${version} to ${CURRENT_SAVE_VERSION}.`);
+                resolve(migrated);
             };
             request.onerror = () => {
                 db.close();
@@ -172,12 +216,13 @@ export async function getSlotInfo(slot: SaveSlot): Promise<{ exists: boolean; ti
             const request = tx.objectStore(STORE_NAME).get(slotKey(slot));
             request.onsuccess = () => {
                 db.close();
-                const data = request.result as SaveData | undefined;
-                if (!data || data.version !== CURRENT_SAVE_VERSION) {
+                const data = request.result as RawSave | undefined;
+                const version = data?.version as number | undefined;
+                if (!data || version === undefined || version < MIN_SUPPORTED_VERSION || version > CURRENT_SAVE_VERSION) {
                     resolve({ exists: false, timestamp: null });
                     return;
                 }
-                resolve({ exists: true, timestamp: data.timestamp });
+                resolve({ exists: true, timestamp: data.timestamp as number });
             };
             request.onerror = () => {
                 db.close();

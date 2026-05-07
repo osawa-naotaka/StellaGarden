@@ -193,6 +193,7 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
                 return saveGame(
                     saveSlot,
                     buildSaveData({
+                        seed,
                         voxelMap,
                         playerState,
                         gameTime,

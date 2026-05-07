@@ -46,7 +46,6 @@ export function SeedInputScreen({ onConfirm, onBack }: Props) {
                     <Button
                         variant="contained"
                         size="large"
-                        disabled={seed.trim() === ""}
                         onClick={() => onConfirm(seed.trim())}
                         sx={{ bgcolor: "#4caf50", "&:hover": { bgcolor: "#388e3c" }, fontSize: "1.1rem", py: 1.5 }}
                     >
