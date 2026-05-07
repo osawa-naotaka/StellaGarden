@@ -82,7 +82,6 @@ export function registerCrop(
     sprites: EntitySpriteInfo[][],
     itemSprite: string,
     harvestFn: HarvestFn,
-    oilItemId: ItemId | null = null,
 ): void {
     const cropDef = CROP_DEFS[entityType];
     if (!cropDef) throw new Error(`Crop entity type ${entityType} not found`);
@@ -137,23 +136,6 @@ export function registerCrop(
         spriteName: itemSprite,
         maxStack: 64,
         onItemUse(ctx: InteractionContext): boolean {
-            // 油を絞れる場合
-            if (oilItemId) {
-                if (ctx.entityType === ENTITY_TYPES.screw_presses) {
-                    const count = 8;
-                    if (!ctx.inventory.canConsumeSelectedItem(count)) return false;
-                    if (
-                        !ctx.inventory.addItems([
-                            { itemId: oilItemId, count: 1 },
-                            { itemId: "oil_cake", count: 1 },
-                        ])
-                    )
-                        return false;
-                    ctx.inventory.consumeSelectedItem(count);
-                    return true;
-                }
-            }
-
             // 植え付け: アイテムを soil/wetSoil に使用
             const voxel = ctx.voxel;
             const terrainType = getTerrainTypeFromVoxel(voxel);
@@ -196,67 +178,18 @@ registerCrop(ENTITY_TYPES.potato, "potato", "じゃがいも", potetoSprites, "s
 ]);
 
 // flax
-registerCrop(
-    ENTITY_TYPES.flax,
-    "flaxseed",
-    "亜麻の種",
-    flaxSprites,
-    "ss_sprite_021.png",
-    (num) => [
-        { itemId: "flaxseed", count: num },
-        { itemId: "flax_stalk", count: num },
-    ],
-    "flaxseed_oil",
-);
+registerCrop(ENTITY_TYPES.flax, "flaxseed", "亜麻の種", flaxSprites, "ss_sprite_021.png", (num) => [
+    { itemId: "flaxseed", count: num },
+    { itemId: "flax_stalk", count: num },
+]);
 registerItem({ itemId: "flaxseed_oil", displayName: "亜麻仁油", spriteName: "ss_sprite_028.png", maxStack: 64 });
 registerItem({ itemId: "flax_stalk", displayName: "亜麻の茎", spriteName: "ss_sprite_022.png", maxStack: 64 });
-registerItem({
-    itemId: "processed_flax",
-    displayName: "浸漬済み亜麻",
-    spriteName: "ss_sprite_097.png",
-    maxStack: 64,
-    onItemUse: (ctx: InteractionContext): boolean => {
-        if (ctx.entityType === ENTITY_TYPES.scutching_board) {
-            if (!ctx.inventory.addItems([{ itemId: "flax_fiber", count: 1 }])) return false;
-            ctx.inventory.consumeSelectedItem(1);
-            return true;
-        }
-        return false;
-    },
-});
-registerItem({
-    itemId: "flax_fiber",
-    displayName: "亜麻繊維",
-    spriteName: "ss_sprite_023.png",
-    maxStack: 64,
-    onItemUse: (ctx: InteractionContext): boolean => {
-        if (ctx.entityType === ENTITY_TYPES.spinning_wheel) {
-            if (!ctx.inventory.addItems([{ itemId: "thread", count: 1 }])) return false;
-            ctx.inventory.consumeSelectedItem(1);
-            return true;
-        }
-        return false;
-    },
-});
-registerItem({
-    itemId: "thread",
-    displayName: "亜麻糸",
-    spriteName: "ss_sprite_024.png",
-    maxStack: 64,
-    onItemUse: (ctx: InteractionContext): boolean => {
-        const num_consume = 8;
-        if (ctx.entityType === ENTITY_TYPES.loom) {
-            if (!ctx.inventory.canConsumeSelectedItem(num_consume)) return false;
-            if (!ctx.inventory.addItems([{ itemId: "cloth", count: 1 }])) return false;
-            ctx.inventory.consumeSelectedItem(num_consume);
-            return true;
-        }
-        return false;
-    },
-});
+registerItem({ itemId: "processed_flax", displayName: "浸漬済み亜麻", spriteName: "ss_sprite_097.png", maxStack: 64 });
+registerItem({ itemId: "flax_fiber", displayName: "亜麻繊維", spriteName: "ss_sprite_023.png", maxStack: 64 });
+registerItem({ itemId: "thread", displayName: "亜麻糸", spriteName: "ss_sprite_024.png", maxStack: 64 });
 
 // soy
-registerCrop(ENTITY_TYPES.soy, "soybeans", "大豆", soySprites, "ss_sprite_015.png", (num) => [{ itemId: "pods", count: num }], "soybean_oil");
+registerCrop(ENTITY_TYPES.soy, "soybeans", "大豆", soySprites, "ss_sprite_015.png", (num) => [{ itemId: "pods", count: num }]);
 registerItem({
     itemId: "pods",
     displayName: "茎付き大豆",

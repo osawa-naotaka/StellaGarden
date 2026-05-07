@@ -94,3 +94,48 @@ registerManualProcessingEntity({
     inventorySpriteName: "ss_sprite_063.png",
     entitySize: { w: 2, h: 1 },
 });
+
+registerManualProcessingEntity({
+    entityType: ENTITY_TYPES.screw_presses,
+    itemId: "screw_presses",
+    displayName: "搾油機",
+    fieldSpriteName: "ss_sprite_055.png",
+    inventorySpriteName: "ss_sprite_064.png",
+    entitySize: { w: 2, h: 2 },
+});
+
+registerManualProcessingEntity({
+    entityType: ENTITY_TYPES.scutching_board,
+    itemId: "scutching_board",
+    displayName: "叩き台",
+    fieldSpriteName: "ss_sprite_057.png",
+    inventorySpriteName: "ss_sprite_057.png",
+    entitySize: { w: 1, h: 1 },
+});
+
+registerManualProcessingEntity({
+    entityType: ENTITY_TYPES.spinning_wheel,
+    itemId: "spinning_wheel",
+    displayName: "紡ぎ車",
+    fieldSpriteName: "ss_sprite_058.png",
+    inventorySpriteName: "ss_sprite_066.png",
+    entitySize: { w: 2, h: 1 },
+});
+
+registerManualProcessingEntity({
+    entityType: ENTITY_TYPES.loom,
+    itemId: "loom",
+    displayName: "織機",
+    fieldSpriteName: "ss_sprite_059.png",
+    inventorySpriteName: "ss_sprite_067.png",
+    entitySize: { w: 2, h: 2 },
+});
+
+registerManualProcessingEntity({
+    entityType: ENTITY_TYPES.anvil,
+    itemId: "anvil",
+    displayName: "金床",
+    fieldSpriteName: "ss_sprite_079.png",
+    inventorySpriteName: "ss_sprite_079.png",
+    entitySize: { w: 1, h: 1 },
+});

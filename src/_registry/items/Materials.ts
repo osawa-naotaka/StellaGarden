@@ -1,5 +1,3 @@
-import { ENTITY_TYPES } from "../../engine/TerrainDefs";
-import type { InteractionContext } from "../EntityRegistry";
 import { registerItem } from "../ItemRegistry";
 
 registerItem({ itemId: "leaves", displayName: "落ち葉", spriteName: "ss_sprite_006.png", maxStack: 64 });
@@ -16,18 +14,4 @@ registerItem({ itemId: "screw_rod", displayName: "木ネジ棒", spriteName: "ss
 registerItem({ itemId: "shaft", displayName: "車軸", spriteName: "ss_sprite_095.png", maxStack: 64 });
 registerItem({ itemId: "frame", displayName: "木の枠", spriteName: "ss_sprite_096.png", maxStack: 64 });
 registerItem({ itemId: "ingot", displayName: "鉄の棒", spriteName: "ss_sprite_083.png", maxStack: 64 });
-
-registerItem({
-    itemId: "hot_meteoric_iron",
-    displayName: "熱した隕鉄",
-    spriteName: "ss_sprite_088.png",
-    maxStack: 64,
-    onItemUse: (ctx: InteractionContext): boolean => {
-        if (ctx.entityType === ENTITY_TYPES.anvil) {
-            if (!ctx.inventory.addItems([{ itemId: "blade", count: 1 }])) return false;
-            ctx.inventory.consumeSelectedItem(1);
-            return true;
-        }
-        return false;
-    },
-});
+registerItem({ itemId: "hot_meteoric_iron", displayName: "熱した隕鉄", spriteName: "ss_sprite_088.png", maxStack: 64 });
