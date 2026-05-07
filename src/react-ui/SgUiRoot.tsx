@@ -56,7 +56,7 @@ function PanelDispatcher() {
 
     return (
         <>
-            <Toolbar inventory={engine.inventory} mode={mode} />
+            <Toolbar inventory={engine.inventory} mode={mode} uiState={engine.uiState} />
             {panels.map(({ mode: panelMode, component: PanelComponent }) => (
                 <PanelComponent key={panelMode} open={mode === panelMode} engine={engine} />
             ))}
