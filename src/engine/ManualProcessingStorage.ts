@@ -1,7 +1,7 @@
 import type { ItemStack, IVoxelWriter, Pos2D } from "../_boundary/interfaces";
 import { getItemDef } from "../_registry/ItemRegistry";
 import { KeyedSlotStorage } from "./KeyedSlotStorage";
-import { findRecipeForInput, getManualProcessingDef, isAcceptableInputItem } from "./ProcessingRecipes";
+import { findRecipeForInput, getManualProcessingDef, isAcceptableInputItem, type ManualProcessingDef, type ProcessingRecipe } from "./ProcessingRecipes";
 import { ENTITY_TYPES, getEntityTypeFromVoxel } from "./TerrainDefs";
 
 /** 1施設のスロット状態。outputs は最大2スロット（不要なスロットは null）。 */
@@ -73,6 +73,20 @@ export class ManualProcessingStorage extends KeyedSlotStorage<ManualProcessingSl
     }
 
     /**
+     * 副作用なしで「いま処理可能か」を判定する。
+     * UI 側で「ボタンを押した瞬間に進捗バーを動かしてよいか」を決めるのに使う。
+     */
+    canProcess(pos: Pos2D, voxelMap: IVoxelWriter): boolean {
+        const slots = this.getRaw(pos);
+        if (!slots) return false;
+        const entityType = this.getEntityTypeAt(pos, voxelMap);
+        if (entityType === ENTITY_TYPES.none) return false;
+        const def = getManualProcessingDef(entityType);
+        if (!def) return false;
+        return this.findApplicableRecipe(slots, def) !== null;
+    }
+
+    /**
      * 1サイクル分の処理を試みる。以下を全て満たす場合のみ実行する:
      *  - 入力スロットに対応レシピがある
      *  - 入力数 >= inputCountPerCycle
@@ -83,26 +97,12 @@ export class ManualProcessingStorage extends KeyedSlotStorage<ManualProcessingSl
     tryProcessOnce(pos: Pos2D, voxelMap: IVoxelWriter): boolean {
         const slots = this.getRaw(pos);
         if (!slots) return false;
-        if (!slots.input) return false;
-
         const entityType = this.getEntityTypeAt(pos, voxelMap);
         if (entityType === ENTITY_TYPES.none) return false;
         const def = getManualProcessingDef(entityType);
         if (!def) return false;
-
-        const recipe = findRecipeForInput(def, slots.input.itemId);
-        if (!recipe) return false;
-        if (slots.input.count < recipe.inputCountPerCycle) return false;
-
-        // 出力スロットへの収まり判定（アトミック）
-        for (let i = 0; i < recipe.outputs.length; i++) {
-            const out = recipe.outputs[i];
-            const slot = slots.outputs[i];
-            if (slot === null) continue;
-            if (slot.itemId !== out.itemId) return false;
-            const max = getItemDef(out.itemId)?.maxStack ?? 64;
-            if (slot.count + out.count > max) return false;
-        }
+        const recipe = this.findApplicableRecipe(slots, def);
+        if (!recipe || !slots.input) return false;
 
         // 入力消費
         slots.input.count -= recipe.inputCountPerCycle;
@@ -120,5 +120,25 @@ export class ManualProcessingStorage extends KeyedSlotStorage<ManualProcessingSl
         }
 
         return true;
+    }
+
+    /**
+     * 入力スロット・出力スロットの状態に対して、いま適用可能なレシピを返す（副作用なし）。
+     * 入力なし／レシピマッチなし／入力数不足／出力満杯のいずれかなら null。
+     */
+    private findApplicableRecipe(slots: ManualProcessingSlots, def: ManualProcessingDef): ProcessingRecipe | null {
+        if (!slots.input) return null;
+        const recipe = findRecipeForInput(def, slots.input.itemId);
+        if (!recipe) return null;
+        if (slots.input.count < recipe.inputCountPerCycle) return null;
+        for (let i = 0; i < recipe.outputs.length; i++) {
+            const out = recipe.outputs[i];
+            const slot = slots.outputs[i];
+            if (slot === null) continue;
+            if (slot.itemId !== out.itemId) return null;
+            const max = getItemDef(out.itemId)?.maxStack ?? 64;
+            if (slot.count + out.count > max) return null;
+        }
+        return recipe;
     }
 }

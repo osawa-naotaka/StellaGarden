@@ -92,25 +92,41 @@ export function ManualProcessingPanel({ open, inventory, manualProcessingStorage
         uiState.processingPos = null;
     }, [uiState]);
 
-    // 処理ボタン: 押下中だけ setInterval で1サイクルずつ処理する
+    // 処理ボタン: 押下を intervalMS だけ継続して初めて1サイクル実行する。
+    // 押下開始時刻を ref で持ち、useFrameTick による毎フレーム再描画で進捗 % を算出する。
     const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+    const holdStartRef = useRef<number | null>(null);
 
     const stopProcessing = useCallback(() => {
         if (intervalRef.current !== null) {
             clearInterval(intervalRef.current);
             intervalRef.current = null;
         }
+        holdStartRef.current = null;
     }, []);
 
     const startProcessing = useCallback(() => {
         if (!pos || !def) return;
         stopProcessing();
-        // 押下した瞬間に1回試す（初回反応）
-        manualProcessingStorage.tryProcessOnce(pos, voxelMap);
+        // いま処理不可（入力空・必要数不足・出力満杯 等）なら、進捗バーも動かさず何もしない。
+        if (!manualProcessingStorage.canProcess(pos, voxelMap)) return;
+        // 即時実行はしない。intervalMS 経過後に初めて1サイクル目を試みる。
+        holdStartRef.current = Date.now();
         intervalRef.current = setInterval(() => {
             const ok = manualProcessingStorage.tryProcessOnce(pos, voxelMap);
-            // 入力切れ・出力満杯で何もできなくなったら停止
-            if (!ok) stopProcessing();
+            if (!ok) {
+                // 入力切れ・出力満杯 → 停止（進捗もリセット）
+                stopProcessing();
+                return;
+            }
+            // 次サイクルへ。進捗バーを 0 から再カウント。
+            // ただし、消費後の状態でもう次サイクルが回せるかをチェックして、
+            // 不可なら次の intervalMS を待たずにすぐ停止する。
+            if (!manualProcessingStorage.canProcess(pos, voxelMap)) {
+                stopProcessing();
+                return;
+            }
+            holdStartRef.current = Date.now();
         }, def.intervalMS);
     }, [pos, def, manualProcessingStorage, voxelMap, stopProcessing]);
 
@@ -119,6 +135,19 @@ export function ManualProcessingPanel({ open, inventory, manualProcessingStorage
         if (!open) stopProcessing();
         return stopProcessing;
     }, [open, stopProcessing]);
+
+    // 押下中の進捗（0..1）。useFrameTick による毎フレーム再描画でスムースに更新される。
+    const holdProgress = (() => {
+        if (holdStartRef.current === null || !def) return 0;
+        const elapsed = Date.now() - holdStartRef.current;
+        return Math.min(1, elapsed / def.intervalMS);
+    })();
+    const holdPct = Math.round(holdProgress * 100);
+    // ボタン背景を進捗に応じて左から塗りつぶす（押下中以外は通常背景）。
+    const buttonStyle =
+        holdStartRef.current !== null
+            ? { background: `linear-gradient(90deg, var(--sg-accent-strong) ${holdPct}%, var(--sg-bg-elev2) ${holdPct}%)` }
+            : undefined;
 
     if (!def) {
         // 念のため: pos がない or 未対応 entity の場合は空の枠だけ表示
@@ -161,6 +190,7 @@ export function ManualProcessingPanel({ open, inventory, manualProcessingStorage
                     <button
                         type="button"
                         className="sg-processing-button"
+                        style={buttonStyle}
                         onMouseDown={startProcessing}
                         onMouseUp={stopProcessing}
                         onMouseLeave={stopProcessing}

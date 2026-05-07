@@ -371,8 +371,10 @@
     border-radius: var(--sg-radius);
     cursor: pointer;
     user-select: none;
+    /* background は押下中だけ inline style で linear-gradient を当てる。
+       transition で補間すると inline style 解除時に古い fill が一瞬残るため、
+       background は transition から外す。 */
     transition:
-        background var(--sg-duration) var(--sg-easing),
         border-color var(--sg-duration) var(--sg-easing),
         color var(--sg-duration) var(--sg-easing);
 }
@@ -382,10 +384,12 @@
     color: var(--sg-accent-strong);
 }
 
+/* 押下中の見た目変化は border-color / color のみで表現する。
+   背景は inline style の linear-gradient（進捗バー）に任せる。
+   :active で background を変えると inline style が外れた瞬間に
+   :active の color が出てしまうので、background は触らない。 */
 .sg-processing-button:active {
-    background: var(--sg-accent);
     border-color: var(--sg-accent-strong);
-    color: var(--sg-fg);
 }
 
 .sg-processing-progress {
