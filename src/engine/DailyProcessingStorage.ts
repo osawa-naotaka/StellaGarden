@@ -2,14 +2,7 @@ import type { ItemStack, IVoxelWriter, Pos2D } from "../_boundary/interfaces";
 import { getItemDef } from "../_registry/ItemRegistry";
 import { KeyedSlotStorage } from "./KeyedSlotStorage";
 import { findRecipeForInput, getDailyProcessingDef, hasEnoughInput, isAcceptableInputItem } from "./ProcessingRecipes";
-import {
-    ENTITY_TYPES,
-    getDaysElapsedFromVoxel,
-    getEntityTypeFromVoxel,
-    setDaysElapsedInVoxel,
-    setVariantInVoxel,
-    VOXEL_VARIANT,
-} from "./VoxelDefs";
+import { ENTITY_TYPES, getDaysElapsedFromVoxel, getEntityTypeFromVoxel, setDaysElapsedInVoxel, setVariantInVoxel, VOXEL_VARIANT } from "./VoxelDefs";
 
 /** カテゴリ3（日次処理）の状態。 */
 export type DailyProcessingState = "empty" | "loading" | "progressing" | "done";
@@ -66,7 +59,7 @@ export class DailyProcessingStorage extends KeyedSlotStorage<DailyProcessingSlot
         const newItemId = stack?.itemId ?? null;
         slots.input = stack;
 
-        if (newItemId === null) { 
+        if (newItemId === null) {
             this.resetDaysElapsed(pos, voxelMap, 0);
             return;
         }
@@ -107,10 +100,10 @@ export class DailyProcessingStorage extends KeyedSlotStorage<DailyProcessingSlot
             const surface = voxelMap.getSurfacePosition({ x: pos.x, y: 0, z: pos.z });
             const voxel = voxelMap.get(surface);
             if (stack === null) {
-                voxelMap.set(setVariantInVoxel(voxel, VOXEL_VARIANT.base), surface);                
+                voxelMap.set(setVariantInVoxel(voxel, VOXEL_VARIANT.base), surface);
             } else {
                 voxelMap.set(setVariantInVoxel(voxel, VOXEL_VARIANT.done), surface);
-            }            
+            }
         }
     }
 

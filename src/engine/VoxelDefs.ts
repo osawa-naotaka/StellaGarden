@@ -219,6 +219,6 @@ export function setVariantInVoxel(voxel: bigint, variant: number): bigint {
 }
 
 export const VOXEL_VARIANT = {
-    "base": 0,
-    "done": 1,
+    base: 0,
+    done: 1,
 };

@@ -39,7 +39,7 @@ export class Tile {
         this.m_top.addChild(hitAreaDebug);
     }
 
-    useNSprites(num: number) {
+    ensureNumSprites(num: number) {
         while (this.m_sprites.length < num) {
             const sprite = new Sprite();
             this.m_sprites.push(sprite);

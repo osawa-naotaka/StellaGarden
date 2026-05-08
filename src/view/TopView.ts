@@ -130,7 +130,7 @@ export class TopView {
 
 function setupTerrainTile(tile: Tile, voxels: bigint[], positions: Pos3D[], horizonHeight: number, pointerPos: Pos2D, pixelPerTile: number): void {
     const spriteNames = getTerrainSpriteNamesFromVoxel(voxels, positions, horizonHeight);
-    tile.useNSprites(spriteNames.length);
+    tile.ensureNumSprites(spriteNames.length);
 
     const isHovered = Math.floor(pointerPos.x) === positions[4].x && Math.floor(pointerPos.z) === positions[4].z;
 
@@ -166,7 +166,7 @@ function setupEntityTile(tile: Tile, voxels: bigint[], positions: Pos3D[], point
         }
     }
 
-    tile.useNSprites(infos.length);
+    tile.ensureNumSprites(infos.length);
     for (let i = 0; i < infos.length; i++) {
         tile.sprites[i].texture = Texture.from(infos[i][0]); // 0: spriteName
         tile.sprites[i].visible = true;

@@ -14,10 +14,7 @@ const ItemStackSchema = v.object({
 
 const NullableItemStackSchema = v.nullable(ItemStackSchema);
 
-const Direction8Schema = v.picklist([
-    "down", "up", "left", "right",
-    "down_left", "down_right", "up_left", "up_right",
-]);
+const Direction8Schema = v.picklist(["down", "up", "left", "right", "down_left", "down_right", "up_left", "up_right"]);
 
 // ─── サブスキーマ ─────────────────────────────────────────────────────────────
 

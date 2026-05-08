@@ -1,6 +1,6 @@
 import type { IInventoryWriter } from "../../_boundary/interfaces";
 import { getPlacementInfo, isPlaceable } from "../../_registry/ItemRegistry";
-import type { UIState, UIMode } from "../../view/UIState";
+import type { UIMode, UIState } from "../../view/UIState";
 import { useFrameTick } from "../hooks/useFrameTick";
 import { ItemIcon } from "./ItemIcon";
 

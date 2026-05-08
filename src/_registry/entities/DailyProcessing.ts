@@ -24,7 +24,6 @@ export function setDailyProcessingStorage(storage: DailyProcessingStorage): void
     dailyProcessingStorage = storage;
 }
 
-
 interface DailyProcessingEntityOptions {
     /** empty 状態 = ベース entityType。 */
     baseEntityType: number;
@@ -118,13 +117,19 @@ registerDailyProcessingEntity({
         if (variant === 1) {
             return "ss_sprite_053_3.png";
         }
-        switch(days) {
-            case 0: return "ss_sprite_071.png";
-            case 1: return "ss_sprite_053_1.png";
-            case 2: return "ss_sprite_053_2.png";
-            case 3: return "ss_sprite_053_2.png";
-            case 4: return "ss_sprite_053_2.png";
-            default: return "ss_sprite_053_3.png";
+        switch (days) {
+            case 0:
+                return "ss_sprite_071.png";
+            case 1:
+                return "ss_sprite_053_1.png";
+            case 2:
+                return "ss_sprite_053_2.png";
+            case 3:
+                return "ss_sprite_053_2.png";
+            case 4:
+                return "ss_sprite_053_2.png";
+            default:
+                return "ss_sprite_053_3.png";
         }
     },
     itemId: "compost_bin",
@@ -142,12 +147,17 @@ registerDailyProcessingEntity({
         if (variant === 1) {
             return "ss_sprite_073.png";
         }
-        switch(days) {
-            case 0: return "ss_sprite_072.png";
-            case 1: return "ss_sprite_056.png";
-            case 2: return "ss_sprite_056.png";
-            case 3: return "ss_sprite_056.png";
-            default: return "ss_sprite_073.png";
+        switch (days) {
+            case 0:
+                return "ss_sprite_072.png";
+            case 1:
+                return "ss_sprite_056.png";
+            case 2:
+                return "ss_sprite_056.png";
+            case 3:
+                return "ss_sprite_056.png";
+            default:
+                return "ss_sprite_073.png";
         }
     },
     itemId: "soaking_basket",
@@ -161,10 +171,13 @@ registerDailyProcessingEntity({
     baseEntityType: ENTITY_TYPES.bonfire,
     sprites: (voxel) => {
         const days = getDaysElapsedFromVoxel(voxel);
-        switch(days) {
-            case 0: return "ss_sprite_076.png";
-            case 1: return bonfireLitFrame();
-            default: return "ss_sprite_075.png";
+        switch (days) {
+            case 0:
+                return "ss_sprite_076.png";
+            case 1:
+                return bonfireLitFrame();
+            default:
+                return "ss_sprite_075.png";
         }
     },
     itemId: "bonfire",
@@ -179,12 +192,17 @@ registerDailyProcessingEntity({
     baseEntityType: ENTITY_TYPES.kiln,
     sprites: (voxel) => {
         const days = getDaysElapsedFromVoxel(voxel);
-        switch(days) {
-            case 0: return "ss_sprite_077.png";
-            case 1: return kilnBurningFrame();
-            case 2: return kilnBurningFrame();
-            case 3: return "ss_sprite_077.png";
-            default: return "ss_sprite_077.png";
+        switch (days) {
+            case 0:
+                return "ss_sprite_077.png";
+            case 1:
+                return kilnBurningFrame();
+            case 2:
+                return kilnBurningFrame();
+            case 3:
+                return "ss_sprite_077.png";
+            default:
+                return "ss_sprite_077.png";
         }
     },
     itemId: "kiln",
