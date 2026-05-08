@@ -1,5 +1,5 @@
 import type { ChestStorage } from "../../engine/ChestStorage";
-import { ENTITY_TYPES, getTerrainTypeFromVoxel } from "../../engine/TerrainDefs";
+import { ENTITY_TYPES, getTerrainTypeFromVoxel } from "../../engine/VoxelDefs";
 import { type EntitySpriteInfo, type InteractionContext, registerEntity } from "../EntityRegistry";
 import { placeFacility } from "../facilityUtil";
 import { registerItem } from "../ItemRegistry";

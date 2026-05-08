@@ -1,4 +1,4 @@
-import { ENTITY_TYPES, setEntityTypeInVoxel } from "../../engine/TerrainDefs";
+import { ENTITY_TYPES, setEntityTypeInVoxel } from "../../engine/VoxelDefs";
 import { type EntitySpriteInfo, type InteractionContext, registerEntity } from "../EntityRegistry";
 import { findFacilityAnchor, registerMultiTileEntitySize } from "../facilityUtil";
 import { registerItem } from "../ItemRegistry";

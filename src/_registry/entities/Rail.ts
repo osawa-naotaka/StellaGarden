@@ -1,4 +1,4 @@
-import { ENTITY_TYPES, getVariantFromVoxel, setVariantInVoxel } from "../../engine/TerrainDefs";
+import { ENTITY_TYPES, getVariantFromVoxel, setVariantInVoxel } from "../../engine/VoxelDefs";
 import { type EntitySpriteInfo, type InteractionContext, registerEntity } from "../EntityRegistry";
 import { placeFacility, removeFacilityAtPos } from "../facilityUtil";
 import { type PlacementVariant, registerItem } from "../ItemRegistry";

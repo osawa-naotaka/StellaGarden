@@ -8,10 +8,10 @@ import {
     getDroughtCounterFromVoxel,
     getEntityTypeFromVoxel,
     getTerrainTypeFromVoxel,
-    setDayselapsedInVoxel,
+    setDaysElapsedInVoxel,
     setDroughtCounterInVoxel,
     TERRAIN_TYPES,
-} from "./TerrainDefs";
+} from "./VoxelDefs";
 
 /** 水切れ枯死の閾値。この日数連続で水切れすると枯死する。 */
 const DROUGHT_DEATH_THRESHOLD = 3;
@@ -40,7 +40,7 @@ export function applyCropDailyTick(ctx: DailyTickContext, cropDef: CropDef): voi
         // --- 水やり必須作物 ---
         if (isWet) {
             // 水やり済み: 成長 + drought リセット + 乾燥
-            voxel = setDayselapsedInVoxel(voxel, dayCounter + 1);
+            voxel = setDaysElapsedInVoxel(voxel, dayCounter + 1);
             voxel = setDroughtCounterInVoxel(voxel, 0);
             voxel = (voxel & ~0xffn) | BigInt(TERRAIN_TYPES.soil);
         } else {
@@ -49,7 +49,7 @@ export function applyCropDailyTick(ctx: DailyTickContext, cropDef: CropDef): voi
             const newDrought = drought + 1;
             if (newDrought >= DROUGHT_DEATH_THRESHOLD) {
                 // 枯死
-                voxel = setDayselapsedInVoxel(voxel, cropDef.witherDay);
+                voxel = setDaysElapsedInVoxel(voxel, cropDef.witherDay);
                 voxel = setDroughtCounterInVoxel(voxel, 0);
             } else {
                 voxel = setDroughtCounterInVoxel(voxel, newDrought);
@@ -57,7 +57,7 @@ export function applyCropDailyTick(ctx: DailyTickContext, cropDef: CropDef): voi
         }
     } else {
         // --- 水やり不要作物（ジャガイモ等）: 常に成長 ---
-        voxel = setDayselapsedInVoxel(voxel, dayCounter + 1);
+        voxel = setDaysElapsedInVoxel(voxel, dayCounter + 1);
     }
 
     voxelMap.set(voxel, pos);

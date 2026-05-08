@@ -9,7 +9,7 @@
  */
 import type { ItemId } from "../../_boundary/interfaces";
 import type { ManualProcessingStorage } from "../../engine/ManualProcessingStorage";
-import { ENTITY_TYPES } from "../../engine/TerrainDefs";
+import { ENTITY_TYPES } from "../../engine/VoxelDefs";
 import { type EntitySpriteInfo, type InteractionContext, registerEntity } from "../EntityRegistry";
 import { findFacilityAnchor, placeFacility, removeFacility } from "../facilityUtil";
 import { registerItem } from "../ItemRegistry";

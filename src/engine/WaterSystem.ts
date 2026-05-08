@@ -1,6 +1,6 @@
 import { MAX_WATER_SPREAD_DISTANCE } from "../_boundary/constants";
 import type { IVoxelWriter } from "../_boundary/interfaces";
-import { getTerrainTypeFromVoxel, TERRAIN_TYPES } from "./TerrainDefs";
+import { getTerrainTypeFromVoxel, TERRAIN_TYPES } from "./VoxelDefs";
 
 const DIRS: [number, number][] = [
     [1, 0],

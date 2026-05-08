@@ -3,7 +3,7 @@ import type { IInventoryWriter, ItemStack, IVoxelWriter, SlotRef } from "../../_
 import { getItemDefByEntityType } from "../../_registry/ItemRegistry";
 import type { ManualProcessingStorage } from "../../engine/ManualProcessingStorage";
 import { getManualProcessingDef } from "../../engine/ProcessingRecipes";
-import { getEntityTypeFromVoxel } from "../../engine/TerrainDefs";
+import { getEntityTypeFromVoxel } from "../../engine/VoxelDefs";
 import type { UIState } from "../../view/UIState";
 import { CursorStack } from "../components/CursorStack";
 import { InventoryGrid } from "../components/InventoryGrid";

@@ -1,6 +1,6 @@
 import type { IVoxelWriter } from "../../_boundary/interfaces";
 import { recomputeAllPipeWaterFlow } from "../../engine/PipeWaterFlow";
-import { getTerrainTypeFromVoxel, initializeVoxel, TERRAIN_TYPES } from "../../engine/TerrainDefs";
+import { getTerrainTypeFromVoxel, initializeVoxel, TERRAIN_TYPES } from "../../engine/VoxelDefs";
 import { removeDisconnectedWater } from "../../engine/WaterSystem";
 import { registerItem } from "../ItemRegistry";
 

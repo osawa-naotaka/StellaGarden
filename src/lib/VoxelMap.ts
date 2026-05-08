@@ -1,5 +1,5 @@
 import type { IEventBroker, IVoxelWriter } from "../_boundary/interfaces";
-import { TERRAIN_TYPES } from "../engine/TerrainDefs";
+import { TERRAIN_TYPES } from "../engine/VoxelDefs";
 
 export type Pos2D = {
     x: number;

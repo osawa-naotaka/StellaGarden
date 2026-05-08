@@ -6,7 +6,7 @@ import {
     getTerrainTypeFromVoxel,
     setPipeConnectionsInVoxel,
     TERRAIN_TYPES,
-} from "./TerrainDefs";
+} from "./VoxelDefs";
 
 export const PIPE_CONNECTION_UP = 1 << 0;
 export const PIPE_CONNECTION_DOWN = 1 << 1;

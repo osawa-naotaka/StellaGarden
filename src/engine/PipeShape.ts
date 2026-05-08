@@ -1,4 +1,4 @@
-import { getPipeConnectionsFromVoxel, getVariantFromVoxel } from "./TerrainDefs";
+import { getPipeConnectionsFromVoxel, getVariantFromVoxel } from "./VoxelDefs";
 
 export type PipeShapeKey =
     | "h"

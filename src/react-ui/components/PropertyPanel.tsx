@@ -10,7 +10,7 @@ import {
     getFatigueFromVoxel,
     getFertilizerTypeFromVoxel,
     getLastCropFromVoxel,
-} from "../../engine/TerrainDefs";
+} from "../../engine/VoxelDefs";
 import { ENTITY_NAMES } from "../../view/DebugText";
 import { useEngine } from "../EngineContext";
 import { useFrameTick } from "../hooks/useFrameTick";

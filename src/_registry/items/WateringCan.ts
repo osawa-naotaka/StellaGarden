@@ -1,4 +1,4 @@
-import { getTerrainTypeFromVoxel, setTerrainTypeInVoxel, TERRAIN_TYPES } from "../../engine/TerrainDefs";
+import { getTerrainTypeFromVoxel, setTerrainTypeInVoxel, TERRAIN_TYPES } from "../../engine/VoxelDefs";
 import { registerItem } from "../ItemRegistry";
 
 registerItem({

@@ -14,7 +14,7 @@ import {
     setEntityTypeInVoxel,
     setTerrainTypeInVoxel,
     TERRAIN_TYPES,
-} from "../../engine/TerrainDefs";
+} from "../../engine/VoxelDefs";
 import { floodFillWater } from "../../engine/WaterSystem";
 import { registerTerrain } from "../TerrainRegistry";
 

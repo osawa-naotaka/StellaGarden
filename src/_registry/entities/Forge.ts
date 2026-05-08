@@ -1,5 +1,5 @@
 import type { ForgeStorage } from "../../engine/ForgeStorage";
-import { ENTITY_TYPES } from "../../engine/TerrainDefs";
+import { ENTITY_TYPES } from "../../engine/VoxelDefs";
 import { type EntitySpriteInfo, type InteractionContext, registerEntity } from "../EntityRegistry";
 import { findFacilityAnchor, placeFacility, removeFacilityAtPos } from "../facilityUtil";
 import { registerItem, registerItemAlias } from "../ItemRegistry";

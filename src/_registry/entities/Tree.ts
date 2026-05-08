@@ -3,10 +3,10 @@ import {
     getDaysElapsedFromVoxel,
     getEntityTypeFromVoxel,
     getTerrainTypeFromVoxel,
-    setDayselapsedInVoxel,
+    setDaysElapsedInVoxel,
     setEntityTypeInVoxel,
     TERRAIN_TYPES,
-} from "../../engine/TerrainDefs";
+} from "../../engine/VoxelDefs";
 import { type DailyTickContext, type EntitySpriteInfo, type InteractionContext, registerEntity } from "../EntityRegistry";
 import { registerItem } from "../ItemRegistry";
 
@@ -52,7 +52,7 @@ registerEntity({
         let voxel = ctx.voxel;
         const stage = getDaysElapsedFromVoxel(voxel);
         if (stage < TREE_MAX_GROWTH_STAGE) {
-            voxel = setDayselapsedInVoxel(voxel, stage + 1);
+            voxel = setDaysElapsedInVoxel(voxel, stage + 1);
         }
         if (isWet) {
             voxel = (voxel & ~0xffn) | BigInt(TERRAIN_TYPES.soil);
@@ -88,7 +88,7 @@ registerEntity({
             )
                 return false;
             // stage を 3 にリセットして再カウント開始
-            ctx.voxelMap.set(setDayselapsedInVoxel(ctx.voxel, 11), ctx.surfacePos);
+            ctx.voxelMap.set(setDaysElapsedInVoxel(ctx.voxel, 11), ctx.surfacePos);
             return true;
         }
 

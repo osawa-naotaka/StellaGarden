@@ -15,7 +15,7 @@ import {
     setFertilizerTypeInVoxel,
     setLastCropInVoxel,
     TERRAIN_TYPES,
-} from "../../engine/TerrainDefs";
+} from "../../engine/VoxelDefs";
 import { type DailyTickContext, type EntitySpriteInfo, type InteractionContext, registerEntity } from "../EntityRegistry";
 import { registerItem } from "../ItemRegistry";
 

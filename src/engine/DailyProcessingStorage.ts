@@ -7,9 +7,9 @@ import {
     ENTITY_TYPES,
     getDaysElapsedFromVoxel,
     getEntityTypeFromVoxel,
-    setDayselapsedInVoxel,
+    setDaysElapsedInVoxel,
     setEntityTypeInVoxel,
-} from "./TerrainDefs";
+} from "./VoxelDefs";
 
 /** カテゴリ3（日次処理）の状態。 */
 export type DailyProcessingState = "empty" | "loading" | "progressing" | "done";
@@ -113,7 +113,7 @@ export class DailyProcessingStorage extends KeyedSlotStorage<DailyProcessingSlot
 
             if (nextDays < def.daysRequired) {
                 // 進行中（loading → progressing への状態遷移は updateVoxelEntityType で）
-                voxelMap.set(setDayselapsedInVoxel(voxel, nextDays), surface);
+                voxelMap.set(setDaysElapsedInVoxel(voxel, nextDays), surface);
                 this.updateVoxelEntityType(pos, voxelMap);
                 continue;
             }
@@ -136,7 +136,7 @@ export class DailyProcessingStorage extends KeyedSlotStorage<DailyProcessingSlot
             }
             if (!canApply) {
                 // 出力満杯 → 進行を保留（daysElapsed を上限のまま据え置く）
-                voxelMap.set(setDayselapsedInVoxel(voxel, def.daysRequired - 1), surface);
+                voxelMap.set(setDaysElapsedInVoxel(voxel, def.daysRequired - 1), surface);
                 this.updateVoxelEntityType(pos, voxelMap);
                 continue;
             }
@@ -155,7 +155,7 @@ export class DailyProcessingStorage extends KeyedSlotStorage<DailyProcessingSlot
             }
 
             // 完了状態へ。daysElapsed をリセットしておく。
-            voxelMap.set(setDayselapsedInVoxel(voxel, 0), surface);
+            voxelMap.set(setDaysElapsedInVoxel(voxel, 0), surface);
             this.updateVoxelEntityType(pos, voxelMap);
         }
     }
@@ -172,7 +172,7 @@ export class DailyProcessingStorage extends KeyedSlotStorage<DailyProcessingSlot
     private resetDaysElapsed(pos: Pos2D, voxelMap: IVoxelWriter): void {
         const surface = voxelMap.getSurfacePosition({ x: pos.x, y: 0, z: pos.z });
         const voxel = voxelMap.get(surface);
-        voxelMap.set(setDayselapsedInVoxel(voxel, 0), surface);
+        voxelMap.set(setDaysElapsedInVoxel(voxel, 0), surface);
     }
 
     /** スロット内容と進行日数から状態を判定する。 */

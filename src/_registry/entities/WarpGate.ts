@@ -1,4 +1,4 @@
-import { ENTITY_TYPES } from "../../engine/TerrainDefs";
+import { ENTITY_TYPES } from "../../engine/VoxelDefs";
 import type { WarpGateStorage } from "../../engine/WarpGateStorage";
 import { type EntitySpriteInfo, type InteractionContext, registerEntity } from "../EntityRegistry";
 import { placeFacility, removeFacilityAtPos } from "../facilityUtil";

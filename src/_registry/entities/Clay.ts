@@ -1,4 +1,4 @@
-import { clearEntityTypeInVoxel, ENTITY_TYPES } from "../../engine/TerrainDefs";
+import { clearEntityTypeInVoxel, ENTITY_TYPES } from "../../engine/VoxelDefs";
 import { type EntitySpriteInfo, type InteractionContext, registerEntity } from "../EntityRegistry";
 import { registerItem } from "../ItemRegistry";
 

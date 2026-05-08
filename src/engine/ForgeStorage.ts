@@ -1,6 +1,6 @@
 import type { ItemStack, IVoxelWriter, Pos2D } from "../_boundary/interfaces";
 import { KeyedSlotStorage } from "./KeyedSlotStorage";
-import { ENTITY_TYPES, setEntityTypeInVoxel } from "./TerrainDefs";
+import { ENTITY_TYPES, setEntityTypeInVoxel } from "./VoxelDefs";
 
 export type ForgeSlotKind = "ingredient" | "fuel" | "output";
 

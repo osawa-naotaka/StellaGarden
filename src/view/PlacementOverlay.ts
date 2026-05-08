@@ -2,7 +2,7 @@ import { Container, Graphics, Sprite, Texture } from "pixi.js";
 import { PIXEL_PER_TILE } from "../_boundary/constants";
 import type { IInventoryWriter, IVoxelWriter, Pos2D } from "../_boundary/interfaces";
 import { getPlacementInfo, type PlacementInfo } from "../_registry/ItemRegistry";
-import { ENTITY_TYPES, getEntityTypeFromVoxel, getTerrainTypeFromVoxel, TERRAIN_TYPES } from "../engine/TerrainDefs";
+import { ENTITY_TYPES, getEntityTypeFromVoxel, getTerrainTypeFromVoxel, TERRAIN_TYPES } from "../engine/VoxelDefs";
 import type { UIState } from "./UIState";
 
 /** 配置可能な地形タイプの集合。 */

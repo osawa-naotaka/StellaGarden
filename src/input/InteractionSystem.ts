@@ -4,7 +4,7 @@ import { getEntityDef, type InteractionContext } from "../_registry/EntityRegist
 import { findFacilityAnchor } from "../_registry/facilityUtil";
 import { getItemDef } from "../_registry/ItemRegistry";
 import { getTerrainDef } from "../_registry/TerrainRegistry";
-import { ENTITY_TYPES, getEntityTypeFromVoxel, getTerrainTypeFromVoxel, TERRAIN_TYPES } from "../engine/TerrainDefs";
+import { ENTITY_TYPES, getEntityTypeFromVoxel, getTerrainTypeFromVoxel, TERRAIN_TYPES } from "../engine/VoxelDefs";
 import type { EventBroker } from "../lib/Event";
 import type { UIState } from "../view/UIState";
 

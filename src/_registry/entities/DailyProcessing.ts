@@ -12,7 +12,7 @@
  */
 import type { ItemId } from "../../_boundary/interfaces";
 import type { DailyProcessingStorage } from "../../engine/DailyProcessingStorage";
-import { ENTITY_TYPES } from "../../engine/TerrainDefs";
+import { ENTITY_TYPES } from "../../engine/VoxelDefs";
 import { setDailyStateMapping, type DailyStateMapping } from "../dailyProcessingRegistry";
 import { type EntitySpriteInfo, type InteractionContext, registerEntity } from "../EntityRegistry";
 import { findFacilityAnchor, placeFacility, removeFacility } from "../facilityUtil";

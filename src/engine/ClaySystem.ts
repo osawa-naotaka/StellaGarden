@@ -1,5 +1,5 @@
 import type { VoxelMap } from "../lib/VoxelMap";
-import { ENTITY_TYPES, getEntityTypeFromVoxel, getTerrainTypeFromVoxel, setEntityTypeInVoxel, TERRAIN_TYPES } from "./TerrainDefs";
+import { ENTITY_TYPES, getEntityTypeFromVoxel, getTerrainTypeFromVoxel, setEntityTypeInVoxel, TERRAIN_TYPES } from "./VoxelDefs";
 
 /** 1 日あたりの粘土再生成試行回数。 */
 const REGEN_PER_DAY = 8;

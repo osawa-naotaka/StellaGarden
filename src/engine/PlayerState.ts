@@ -2,7 +2,7 @@ import type { Direction8, IEventBroker, IPlayerStateWriter, IVoxelReader } from 
 import { CHUNK_RENDER_MARGIN } from "../lib/ChunkRenderer";
 import type { Pos2D, Size2D } from "../lib/VoxelMap";
 import { Inventory } from "./Inventory";
-import { ENTITY_TYPES, getEntityTypeFromVoxel, getTerrainTypeFromVoxel, TERRAIN_TYPES } from "./TerrainDefs";
+import { ENTITY_TYPES, getEntityTypeFromVoxel, getTerrainTypeFromVoxel, TERRAIN_TYPES } from "./VoxelDefs";
 
 const MIN_ZOOM = 0.5;
 const MAX_ZOOM = 4.0;

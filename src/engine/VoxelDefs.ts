@@ -110,7 +110,7 @@ export function getDaysElapsedFromVoxel(voxel: bigint): number {
  * ボクセル値に育成日カウンタを書き込んだ新しい値を返す（bits 16-19）。
  * 元の値は変更しない（純粋関数）。
  */
-export function setDayselapsedInVoxel(voxel: bigint, stage: number): bigint {
+export function setDaysElapsedInVoxel(voxel: bigint, stage: number): bigint {
     return (voxel & ~(0xfn << 16n)) | ((BigInt(stage) & 0xfn) << 16n);
 }
 

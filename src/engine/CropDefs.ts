@@ -1,4 +1,4 @@
-import { ENTITY_TYPES, FERTILIZER_TYPES } from "./TerrainDefs";
+import { ENTITY_TYPES, FERTILIZER_TYPES } from "./VoxelDefs";
 
 /** 作物ごとの栽培パラメータ定義。 */
 export interface CropDef {

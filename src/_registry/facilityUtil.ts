@@ -1,5 +1,5 @@
 import type { IInventoryWriter, ItemId, IVoxelReader, IVoxelWriter, Pos2D } from "../_boundary/interfaces";
-import { ENTITY_TYPES, getEntityTypeFromVoxel, setEntityTypeInVoxel } from "../engine/TerrainDefs";
+import { ENTITY_TYPES, getEntityTypeFromVoxel, setEntityTypeInVoxel } from "../engine/VoxelDefs";
 import { getItemDefByEntityType, type ItemDef } from "./ItemRegistry";
 
 /**

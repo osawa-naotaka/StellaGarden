@@ -1,4 +1,4 @@
-import { ENTITY_TYPES } from "../../engine/TerrainDefs";
+import { ENTITY_TYPES } from "../../engine/VoxelDefs";
 import type { WorkbenchStorage } from "../../engine/WorkbenchStorage";
 import { type EntitySpriteInfo, type InteractionContext, registerEntity } from "../EntityRegistry";
 import { findFacilityAnchor, placeFacility, removeFacilityAtPos } from "../facilityUtil";

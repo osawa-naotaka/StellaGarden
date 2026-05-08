@@ -2,7 +2,7 @@ import type { ItemStack, IVoxelWriter, Pos2D } from "../_boundary/interfaces";
 import { getItemDef } from "../_registry/ItemRegistry";
 import { KeyedSlotStorage } from "./KeyedSlotStorage";
 import { findRecipeForInput, getManualProcessingDef, isAcceptableInputItem, type ManualProcessingDef, type ProcessingRecipe } from "./ProcessingRecipes";
-import { ENTITY_TYPES, getEntityTypeFromVoxel } from "./TerrainDefs";
+import { ENTITY_TYPES, getEntityTypeFromVoxel } from "./VoxelDefs";
 
 /** 1施設のスロット状態。outputs は最大2スロット（不要なスロットは null）。 */
 export interface ManualProcessingSlots {

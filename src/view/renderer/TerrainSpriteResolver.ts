@@ -1,5 +1,5 @@
 import { type EntitySpriteInfo, getEntityDef } from "../../_registry/EntityRegistry";
-import { ENTITY_TYPES, getEntityTypeFromVoxel, getFertilizedFromVoxel, getTerrainTypeFromVoxel, TERRAIN_TYPES } from "../../engine/TerrainDefs";
+import { ENTITY_TYPES, getEntityTypeFromVoxel, getFertilizedFromVoxel, getTerrainTypeFromVoxel, TERRAIN_TYPES } from "../../engine/VoxelDefs";
 import type { Pos3D } from "../../lib/VoxelMap";
 
 // -----------------------------------------------------------------------------

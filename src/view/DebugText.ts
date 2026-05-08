@@ -13,7 +13,7 @@ import {
     getTerrainTypeFromVoxel,
     getVariantFromVoxel,
     TERRAIN_TYPES,
-} from "../engine/TerrainDefs";
+} from "../engine/VoxelDefs";
 
 const TERRAIN_NAMES: Record<number, string> = {
     [TERRAIN_TYPES.empty]: "empty",
