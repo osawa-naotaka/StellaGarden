@@ -1,7 +1,7 @@
 import alea from "alea";
 import { createNoise2D } from "simplex-noise";
 import { type Pos2D, VoxelMap } from "../lib/VoxelMap";
-import { ENTITY_TYPES, getTerrainTypeFromVoxel, setCropGrowthStageInVoxel, TERRAIN_TYPES } from "./TerrainDefs";
+import { ENTITY_TYPES, getTerrainTypeFromVoxel, setDayselapsedInVoxel, TERRAIN_TYPES } from "./TerrainDefs";
 
 export type GenerateTerrainOptions = {
     width: number;
@@ -466,7 +466,7 @@ function placeEntities(seed: string, map: VoxelMap): void {
                 }
             } else if (shouldPlaceTree) {
                 if (terrainType === TERRAIN_TYPES.soil || terrainType === TERRAIN_TYPES.grass) {
-                    map.set(setCropGrowthStageInVoxel(terrain | (BigInt(ENTITY_TYPES.tree) << 8n), 13), pos);
+                    map.set(setDayselapsedInVoxel(terrain | (BigInt(ENTITY_TYPES.tree) << 8n), 13), pos);
                 }
             }
         }

@@ -4,7 +4,7 @@ import { CROP_DEFS, getFertilizerYieldMultiplier, getVisualStage } from "../engi
 import {
     ENTITY_TYPES,
     FERTILIZER_TYPES,
-    getCropGrowthStageFromVoxel,
+    getDaysElapsedFromVoxel,
     getDroughtCounterFromVoxel,
     getEntityTypeFromVoxel,
     getFatigueFromVoxel,
@@ -126,7 +126,7 @@ export class DebugText {
 
         const terrain = getTerrainTypeFromVoxel(voxel);
         const entity = getEntityTypeFromVoxel(voxel);
-        const dayCounter = getCropGrowthStageFromVoxel(voxel);
+        const dayCounter = getDaysElapsedFromVoxel(voxel);
         const fertType = getFertilizerTypeFromVoxel(voxel);
         const drought = getDroughtCounterFromVoxel(voxel);
         const lastCrop = getLastCropFromVoxel(voxel);

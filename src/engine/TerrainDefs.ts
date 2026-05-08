@@ -102,7 +102,7 @@ export function clearEntityTypeInVoxel(voxel: bigint): bigint {
  * ボクセル値から作物の育成日カウンタを取り出す（bits 16-19、4bit）。
  * 0 = 植えたて、1〜 = 経過日数。
  */
-export function getCropGrowthStageFromVoxel(voxel: bigint): number {
+export function getDaysElapsedFromVoxel(voxel: bigint): number {
     return Number((voxel >> 16n) & 0xfn);
 }
 
@@ -110,7 +110,7 @@ export function getCropGrowthStageFromVoxel(voxel: bigint): number {
  * ボクセル値に育成日カウンタを書き込んだ新しい値を返す（bits 16-19）。
  * 元の値は変更しない（純粋関数）。
  */
-export function setCropGrowthStageInVoxel(voxel: bigint, stage: number): bigint {
+export function setDayselapsedInVoxel(voxel: bigint, stage: number): bigint {
     return (voxel & ~(0xfn << 16n)) | ((BigInt(stage) & 0xfn) << 16n);
 }
 

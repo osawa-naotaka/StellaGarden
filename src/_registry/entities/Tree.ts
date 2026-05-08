@@ -1,9 +1,9 @@
 import {
     ENTITY_TYPES,
-    getCropGrowthStageFromVoxel,
+    getDaysElapsedFromVoxel,
     getEntityTypeFromVoxel,
     getTerrainTypeFromVoxel,
-    setCropGrowthStageInVoxel,
+    setDayselapsedInVoxel,
     setEntityTypeInVoxel,
     TERRAIN_TYPES,
 } from "../../engine/TerrainDefs";
@@ -34,7 +34,7 @@ registerEntity({
     entityType: ENTITY_TYPES.tree,
 
     getSprites(voxel: bigint): EntitySpriteInfo[] {
-        const stage = getCropGrowthStageFromVoxel(voxel);
+        const stage = getDaysElapsedFromVoxel(voxel);
         if (stage >= LEAVES_STAGE) return spritesWithLeaves;
         if (stage <= 0) {
             return sprites[0];
@@ -50,9 +50,9 @@ registerEntity({
     onDailyTick(ctx: DailyTickContext): void {
         const { voxelMap, pos, isWet } = ctx;
         let voxel = ctx.voxel;
-        const stage = getCropGrowthStageFromVoxel(voxel);
+        const stage = getDaysElapsedFromVoxel(voxel);
         if (stage < TREE_MAX_GROWTH_STAGE) {
-            voxel = setCropGrowthStageInVoxel(voxel, stage + 1);
+            voxel = setDayselapsedInVoxel(voxel, stage + 1);
         }
         if (isWet) {
             voxel = (voxel & ~0xffn) | BigInt(TERRAIN_TYPES.soil);
@@ -77,7 +77,7 @@ registerEntity({
 
         // 落ち葉収集: 素手 + stage 15
         if (ctx.tool === "hand") {
-            const stage = getCropGrowthStageFromVoxel(ctx.voxel);
+            const stage = getDaysElapsedFromVoxel(ctx.voxel);
             if (stage < LEAVES_STAGE) return false;
             const leavesCount = 2 + Math.floor(Math.random() * 3); // 2〜4個
             if (
@@ -88,7 +88,7 @@ registerEntity({
             )
                 return false;
             // stage を 3 にリセットして再カウント開始
-            ctx.voxelMap.set(setCropGrowthStageInVoxel(ctx.voxel, 11), ctx.surfacePos);
+            ctx.voxelMap.set(setDayselapsedInVoxel(ctx.voxel, 11), ctx.surfacePos);
             return true;
         }
 

@@ -3,7 +3,7 @@ import { applyCropDailyTick } from "../../engine/CropSystem";
 import type { ItemId } from "../../engine/ItemDefs";
 import {
     ENTITY_TYPES,
-    getCropGrowthStageFromVoxel,
+    getDaysElapsedFromVoxel,
     getEntityTypeFromVoxel,
     getFatigueFromVoxel,
     getFertilizerTypeFromVoxel,
@@ -90,7 +90,7 @@ export function registerCrop(
         entityType: entityType,
 
         getSprites(voxel: bigint): EntitySpriteInfo[] {
-            const dayCounter = getCropGrowthStageFromVoxel(voxel);
+            const dayCounter = getDaysElapsedFromVoxel(voxel);
             const visualStage = getVisualStage(entityType, dayCounter);
             return sprites[visualStage] ?? sprites[0];
         },
@@ -104,7 +104,7 @@ export function registerCrop(
             if (ctx.tool !== "sickle") return false;
 
             const voxel = ctx.voxel;
-            const dayCounter = getCropGrowthStageFromVoxel(voxel);
+            const dayCounter = getDaysElapsedFromVoxel(voxel);
             if (dayCounter < cropDef.maturityDay || dayCounter >= cropDef.witherDay) return false;
 
             const baseCount = 2 + Math.random() * 3; // 2-4

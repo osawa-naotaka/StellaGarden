@@ -5,9 +5,9 @@ import { KeyedSlotStorage } from "./KeyedSlotStorage";
 import { findRecipeForInput, getDailyProcessingDef, isAcceptableInputItem } from "./ProcessingRecipes";
 import {
     ENTITY_TYPES,
-    getCropGrowthStageFromVoxel,
+    getDaysElapsedFromVoxel,
     getEntityTypeFromVoxel,
-    setCropGrowthStageInVoxel,
+    setDayselapsedInVoxel,
     setEntityTypeInVoxel,
 } from "./TerrainDefs";
 
@@ -55,7 +55,7 @@ export class DailyProcessingStorage extends KeyedSlotStorage<DailyProcessingSlot
     /** 進行日数を返す（voxel の growthStage を読む）。 */
     getDaysElapsed(pos: Pos2D, voxelMap: IVoxelWriter): number {
         const surface = voxelMap.getSurfacePosition({ x: pos.x, y: 0, z: pos.z });
-        return getCropGrowthStageFromVoxel(voxelMap.get(surface));
+        return getDaysElapsedFromVoxel(voxelMap.get(surface));
     }
 
     /** 入力スロットを更新する。itemId が変わる場合は進行日数（growthStage）を 0 にリセットする。 */
@@ -108,12 +108,12 @@ export class DailyProcessingStorage extends KeyedSlotStorage<DailyProcessingSlot
             const recipe = findRecipeForInput(def, slots.input.itemId);
             if (!recipe || slots.input.count < recipe.inputCountPerCycle) continue;
 
-            const daysElapsed = getCropGrowthStageFromVoxel(voxel);
+            const daysElapsed = getDaysElapsedFromVoxel(voxel);
             const nextDays = daysElapsed + 1;
 
             if (nextDays < def.daysRequired) {
                 // 進行中（loading → progressing への状態遷移は updateVoxelEntityType で）
-                voxelMap.set(setCropGrowthStageInVoxel(voxel, nextDays), surface);
+                voxelMap.set(setDayselapsedInVoxel(voxel, nextDays), surface);
                 this.updateVoxelEntityType(pos, voxelMap);
                 continue;
             }
@@ -136,7 +136,7 @@ export class DailyProcessingStorage extends KeyedSlotStorage<DailyProcessingSlot
             }
             if (!canApply) {
                 // 出力満杯 → 進行を保留（daysElapsed を上限のまま据え置く）
-                voxelMap.set(setCropGrowthStageInVoxel(voxel, def.daysRequired - 1), surface);
+                voxelMap.set(setDayselapsedInVoxel(voxel, def.daysRequired - 1), surface);
                 this.updateVoxelEntityType(pos, voxelMap);
                 continue;
             }
@@ -155,7 +155,7 @@ export class DailyProcessingStorage extends KeyedSlotStorage<DailyProcessingSlot
             }
 
             // 完了状態へ。daysElapsed をリセットしておく。
-            voxelMap.set(setCropGrowthStageInVoxel(voxel, 0), surface);
+            voxelMap.set(setDayselapsedInVoxel(voxel, 0), surface);
             this.updateVoxelEntityType(pos, voxelMap);
         }
     }
@@ -172,7 +172,7 @@ export class DailyProcessingStorage extends KeyedSlotStorage<DailyProcessingSlot
     private resetDaysElapsed(pos: Pos2D, voxelMap: IVoxelWriter): void {
         const surface = voxelMap.getSurfacePosition({ x: pos.x, y: 0, z: pos.z });
         const voxel = voxelMap.get(surface);
-        voxelMap.set(setCropGrowthStageInVoxel(voxel, 0), surface);
+        voxelMap.set(setDayselapsedInVoxel(voxel, 0), surface);
     }
 
     /** スロット内容と進行日数から状態を判定する。 */
@@ -201,7 +201,7 @@ export class DailyProcessingStorage extends KeyedSlotStorage<DailyProcessingSlot
         const mapping = getDailyStateMapping(info.base);
         if (!mapping) return;
 
-        const daysElapsed = getCropGrowthStageFromVoxel(voxel);
+        const daysElapsed = getDaysElapsedFromVoxel(voxel);
         const newState = this.computeState(slots, info.base, daysElapsed);
         const newEntityType = mapping[newState] ?? mapping.empty;
         if (newEntityType === currentEntityType) return;

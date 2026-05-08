@@ -4,7 +4,7 @@ import { CROP_DEFS, getFertilizerYieldMultiplier } from "../../engine/CropDefs";
 import {
     ENTITY_TYPES,
     FERTILIZER_TYPES,
-    getCropGrowthStageFromVoxel,
+    getDaysElapsedFromVoxel,
     getDroughtCounterFromVoxel,
     getEntityTypeFromVoxel,
     getFatigueFromVoxel,
@@ -39,7 +39,7 @@ function buildTileLines(voxelMap: IVoxelReader, playerState: IPlayerStateReader)
         }
     }
 
-    const dayCounter = getCropGrowthStageFromVoxel(voxel);
+    const dayCounter = getDaysElapsedFromVoxel(voxel);
     const fertType = getFertilizerTypeFromVoxel(voxel);
     const drought = getDroughtCounterFromVoxel(voxel);
     const lastCrop = getLastCropFromVoxel(voxel);

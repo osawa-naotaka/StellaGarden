@@ -4,11 +4,11 @@ import type { CropDef } from "./CropDefs";
 import { applyPipeIrrigation } from "./PipeIrrigation";
 import {
     ENTITY_TYPES,
-    getCropGrowthStageFromVoxel,
+    getDaysElapsedFromVoxel,
     getDroughtCounterFromVoxel,
     getEntityTypeFromVoxel,
     getTerrainTypeFromVoxel,
-    setCropGrowthStageInVoxel,
+    setDayselapsedInVoxel,
     setDroughtCounterInVoxel,
     TERRAIN_TYPES,
 } from "./TerrainDefs";
@@ -28,7 +28,7 @@ const DROUGHT_DEATH_THRESHOLD = 3;
 export function applyCropDailyTick(ctx: DailyTickContext, cropDef: CropDef): void {
     const { voxelMap, pos, isWet } = ctx;
     let voxel = ctx.voxel;
-    const dayCounter = getCropGrowthStageFromVoxel(voxel);
+    const dayCounter = getDaysElapsedFromVoxel(voxel);
 
     // 既に枯死済み: 乾燥のみ
     if (dayCounter >= cropDef.witherDay) {
@@ -40,7 +40,7 @@ export function applyCropDailyTick(ctx: DailyTickContext, cropDef: CropDef): voi
         // --- 水やり必須作物 ---
         if (isWet) {
             // 水やり済み: 成長 + drought リセット + 乾燥
-            voxel = setCropGrowthStageInVoxel(voxel, dayCounter + 1);
+            voxel = setDayselapsedInVoxel(voxel, dayCounter + 1);
             voxel = setDroughtCounterInVoxel(voxel, 0);
             voxel = (voxel & ~0xffn) | BigInt(TERRAIN_TYPES.soil);
         } else {
@@ -49,7 +49,7 @@ export function applyCropDailyTick(ctx: DailyTickContext, cropDef: CropDef): voi
             const newDrought = drought + 1;
             if (newDrought >= DROUGHT_DEATH_THRESHOLD) {
                 // 枯死
-                voxel = setCropGrowthStageInVoxel(voxel, cropDef.witherDay);
+                voxel = setDayselapsedInVoxel(voxel, cropDef.witherDay);
                 voxel = setDroughtCounterInVoxel(voxel, 0);
             } else {
                 voxel = setDroughtCounterInVoxel(voxel, newDrought);
@@ -57,7 +57,7 @@ export function applyCropDailyTick(ctx: DailyTickContext, cropDef: CropDef): voi
         }
     } else {
         // --- 水やり不要作物（ジャガイモ等）: 常に成長 ---
-        voxel = setCropGrowthStageInVoxel(voxel, dayCounter + 1);
+        voxel = setDayselapsedInVoxel(voxel, dayCounter + 1);
     }
 
     voxelMap.set(voxel, pos);
