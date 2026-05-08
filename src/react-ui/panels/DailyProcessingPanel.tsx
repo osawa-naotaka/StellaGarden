@@ -1,6 +1,5 @@
 import { useCallback, useMemo } from "react";
 import type { IInventoryWriter, ItemStack, IVoxelWriter, SlotRef } from "../../_boundary/interfaces";
-import { getDailyEntityStateInfo } from "../../_registry/dailyProcessingRegistry";
 import { getItemDefByEntityType } from "../../_registry/ItemRegistry";
 import type { DailyProcessingStorage } from "../../engine/DailyProcessingStorage";
 import { findRecipeForInput, getDailyProcessingDef } from "../../engine/ProcessingRecipes";
@@ -37,8 +36,7 @@ export function DailyProcessingPanel({ open, inventory, dailyProcessingStorage, 
     const baseEntityType = useMemo(() => {
         if (!pos) return null;
         const surface = voxelMap.getSurfacePosition({ x: pos.x, y: 0, z: pos.z });
-        const entityType = getEntityTypeFromVoxel(voxelMap.get(surface));
-        return getDailyEntityStateInfo(entityType)?.base ?? null;
+        return getEntityTypeFromVoxel(voxelMap.get(surface));
     }, [pos, voxelMap]);
 
     const def = baseEntityType !== null ? getDailyProcessingDef(baseEntityType) : null;
@@ -110,8 +108,8 @@ export function DailyProcessingPanel({ open, inventory, dailyProcessingStorage, 
     // 進捗の表示: 入力が必要数に達していて、レシピが見つかる場合のみカウントを表示
     const recipe = input ? findRecipeForInput(def, input.itemId) : null;
     const isProgressing = recipe !== null && input !== null && input.count >= recipe.inputCountPerCycle;
-    const progressPct = isProgressing ? Math.min(100, Math.round((daysElapsed / def.daysRequired) * 100)) : 0;
-    const progressLabel = isProgressing ? `${daysElapsed} / ${def.daysRequired} 日` : `必要量を投入してください`;
+    const progressPct = isProgressing ? Math.min(100, Math.round(((daysElapsed - 1) / def.daysRequired) * 100)) : 0;
+    const progressLabel = isProgressing ? `${daysElapsed - 1} / ${def.daysRequired} 日` : `必要量を投入してください`;
 
     return (
         <>

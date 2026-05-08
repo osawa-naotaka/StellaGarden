@@ -179,3 +179,8 @@ export function findRecipeForInput(def: { recipes: ReadonlyArray<ProcessingRecip
 export function isAcceptableInputItem(def: { recipes: ReadonlyArray<ProcessingRecipe> }, itemId: ItemId): boolean {
     return def.recipes.some((r) => r.inputItemId === itemId);
 }
+
+export function hasEnoughInput(def: { recipes: ReadonlyArray<ProcessingRecipe> }, inputItemId: ItemId, inputCount: number): boolean {
+    const recipe = findRecipeForInput(def, inputItemId);
+    return recipe !== null && recipe.inputCountPerCycle <= inputCount;
+}
