@@ -43,10 +43,10 @@ registerItem({
     maxStack: 64,
     placement: {
         entityType: ENTITY_TYPES.chest,
-        entitySize: { w: 1, h: 1 },
+        entitySize: { w: 2, h: 1 },
         fieldSpriteName: "chest.png",
         onPlace(voxelMap, pos) {
-            placeFacility(voxelMap, pos, ENTITY_TYPES.chest, { w: 1, h: 1 });
+            placeFacility(voxelMap, pos, ENTITY_TYPES.chest, { w: 2, h: 1 });
             chestStorage?.create(pos);
         },
     },
