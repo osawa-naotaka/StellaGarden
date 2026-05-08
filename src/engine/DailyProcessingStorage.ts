@@ -61,22 +61,40 @@ export class DailyProcessingStorage extends KeyedSlotStorage<DailyProcessingSlot
     /** 入力スロットを更新する。itemId が変わる場合は進行日数（growthStage）を 0 にリセットする。 */
     setInput(pos: Pos2D, stack: ItemStack | null, voxelMap: IVoxelWriter): void {
         const slots = this.getRaw(pos);
-        if (!slots) return;
+        if (!slots) throw new Error("cannot found slots.");
         const oldItemId = slots.input?.itemId ?? null;
         const newItemId = stack?.itemId ?? null;
         slots.input = stack;
-        if (oldItemId !== newItemId) {
-            if (newItemId === null) {
-                this.resetDaysElapsed(pos, voxelMap, 0);
-                return;
-            }
-            const baseEntityType = this.getBaseEntityTypeAt(pos, voxelMap);
-            if (baseEntityType === ENTITY_TYPES.none) return;
-            const def = getDailyProcessingDef(baseEntityType);
-            if (!def) return;
 
-            if (!hasEnoughInput(def, newItemId, slots.input?.count ?? 0)) return;            
-            this.resetDaysElapsed(pos, voxelMap, 1);
+        if (newItemId === null) { 
+            this.resetDaysElapsed(pos, voxelMap, 0);
+            return;
+        }
+
+        const baseEntityType = this.getBaseEntityTypeAt(pos, voxelMap);
+        if (baseEntityType === ENTITY_TYPES.none) throw new Error("cannot found entity.");
+        const def = getDailyProcessingDef(baseEntityType);
+        if (!def) throw new Error("cannot found daily processing def.");
+
+        const hasEnough = hasEnoughInput(def, newItemId, slots.input?.count ?? 0);
+
+        if (oldItemId !== newItemId) {
+            if (hasEnough) {
+                this.resetDaysElapsed(pos, voxelMap, 1);
+            } else {
+                this.resetDaysElapsed(pos, voxelMap, 0);
+            }
+        } else {
+            const currentDaysElapsed = this.getDaysElapsed(pos, voxelMap);
+            if (currentDaysElapsed > 0) {
+                if (!hasEnough) {
+                    this.resetDaysElapsed(pos, voxelMap, 0);
+                }
+            } else {
+                if (hasEnough) {
+                    this.resetDaysElapsed(pos, voxelMap, 1);
+                }
+            }
         }
     }
 
