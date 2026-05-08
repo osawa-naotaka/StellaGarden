@@ -153,7 +153,7 @@ export const DAILY_PROCESSING_DEFS: Readonly<Record<number, DailyProcessingDef>>
                 inputItemId: "trunk",
                 inputCountPerCycle: 12,
                 outputs: [
-                    { itemId: "charcoal", count: 12 },
+                    { itemId: "charcoal", count: 4 },
                 ],
             },
         ],

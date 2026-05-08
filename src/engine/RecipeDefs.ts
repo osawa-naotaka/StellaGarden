@@ -17,9 +17,8 @@ export const RECIPES: readonly RecipeDef[] = [
         id: "kiln",
         station: "hand",
         ingredients: [
-            { itemId: "trunk", count: 12 },
-            { itemId: "stem", count: 2 },
-            { itemId: "dirt", count: 2 },
+            { itemId: "trunk", count: 4 },
+            { itemId: "dirt", count: 12 },
         ],
         result: { itemId: "kiln", count: 1 },
     },
