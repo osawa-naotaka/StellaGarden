@@ -217,3 +217,8 @@ export function getVariantFromVoxel(voxel: bigint): number {
 export function setVariantInVoxel(voxel: bigint, variant: number): bigint {
     return (voxel & ~(0x7n << 36n)) | ((BigInt(variant) & 0x7n) << 36n);
 }
+
+export const VOXEL_VARIANT = {
+    "base": 0,
+    "done": 1,
+};

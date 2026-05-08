@@ -8,6 +8,7 @@ import {
     getEntityTypeFromVoxel,
     setDaysElapsedInVoxel,
     setVariantInVoxel,
+    VOXEL_VARIANT,
 } from "./VoxelDefs";
 
 /** カテゴリ3（日次処理）の状態。 */
@@ -88,9 +89,9 @@ export class DailyProcessingStorage extends KeyedSlotStorage<DailyProcessingSlot
             const surface = voxelMap.getSurfacePosition({ x: pos.x, y: 0, z: pos.z });
             const voxel = voxelMap.get(surface);
             if (stack === null) {
-                voxelMap.set(setVariantInVoxel(voxel, 0), surface);                
+                voxelMap.set(setVariantInVoxel(voxel, VOXEL_VARIANT.base), surface);                
             } else {
-                voxelMap.set(setVariantInVoxel(voxel, 1), surface);
+                voxelMap.set(setVariantInVoxel(voxel, VOXEL_VARIANT.done), surface);
             }            
         }
     }
@@ -154,7 +155,7 @@ export class DailyProcessingStorage extends KeyedSlotStorage<DailyProcessingSlot
 
             // 入力消費 + 出力加算
             slots.input.count -= recipe.inputCountPerCycle;
-            const newVariantVoxel = setVariantInVoxel(voxel, 1);
+            const newVariantVoxel = setVariantInVoxel(voxel, VOXEL_VARIANT.done);
             if (slots.input.count < recipe.inputCountPerCycle) {
                 voxelMap.set(setDaysElapsedInVoxel(newVariantVoxel, 0), surface);
             } else {
