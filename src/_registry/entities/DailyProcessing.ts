@@ -147,7 +147,7 @@ registerDailyProcessingEntity({
             case 1: return "ss_sprite_056.png";
             case 2: return "ss_sprite_056.png";
             case 3: return "ss_sprite_056.png";
-            default: return "ss_sprite_072.png";
+            default: return "ss_sprite_073.png";
         }
     },
     itemId: "soaking_basket",
@@ -164,7 +164,7 @@ registerDailyProcessingEntity({
         switch(days) {
             case 0: return "ss_sprite_076.png";
             case 1: return bonfireLitFrame();
-            default: return "ss_sprite_076.png";
+            default: return "ss_sprite_075.png";
         }
     },
     itemId: "bonfire",
