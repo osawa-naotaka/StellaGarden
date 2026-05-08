@@ -90,7 +90,11 @@ export function CraftPane({ craftSystem, station, pickedUp, onToolSlotLeftClick,
                 })}
                 {/* 空セル */}
                 {Array.from({ length: RECIPES_PER_PAGE - pageRecipes.length }).map((_, i) => (
-                    <div key={`empty-${i}`} className="sg-recipe-cell is-uncraftable" />
+                    <div
+                        // biome-ignore lint/suspicious/noArrayIndexKey: 空セルのためのキー
+                        key={`empty-${i}`}
+                        className="sg-recipe-cell is-uncraftable"
+                    />
                 ))}
             </div>
 
@@ -129,7 +133,11 @@ function RecipeDetail({ recipe }: { recipe: RecipeDef }) {
             <div className="sg-recipe-detail-row" style={{ flexDirection: "column", alignItems: "flex-start", gap: 4 }}>
                 <span>Materials:</span>
                 {recipe.ingredients.map((ing, i) => (
-                    <div key={i} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                    <div
+                        // biome-ignore lint/suspicious/noArrayIndexKey: 材料のためのキー
+                        key={i}
+                        style={{ display: "flex", alignItems: "center", gap: 6 }}
+                    >
                         <ItemIcon itemId={ing.itemId} size={20} />
                         <span>
                             x{ing.count} {ing.itemId}

@@ -22,6 +22,7 @@ export function Toolbar({ inventory, mode, uiState }: ToolbarProps) {
         <div className={`sg-toolbar${visible ? "" : " is-hidden"}`}>
             {slots.map((stack, i) => (
                 <div
+                    // biome-ignore lint/suspicious/noArrayIndexKey: ツールバースロットのためのキー
                     key={i}
                     className={`sg-toolbar-slot${i === selectedIndex ? " is-selected" : ""}`}
                     onClick={(e) => {
