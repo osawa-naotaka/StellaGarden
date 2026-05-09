@@ -8,9 +8,6 @@ const ZOOM_STEP = 0.1;
 const HOLD_DELAY = 200; // 最初のインタラクトまでの遅延(ms)
 const HOLD_INTERVAL = 200; // 連続インタラクトの間隔(ms)
 
-/** ホールド操作が必要なツールのID集合 */
-const HOLD_TOOL_IDS: ReadonlySet<string> = new Set(["axe", "hoes", "pickaxe", "sickle", "shovel", "watering_can"]);
-
 /** キーボード・マウスイベントを受け取り、PlayerState を更新する。
  *  インタラクションは EventBroker 経由で通知する。 */
 export class InputHandler {
@@ -73,14 +70,11 @@ export class InputHandler {
             if (e.button === 0) {
                 // 左クリック: ツール使用
                 const selectedTool = this.playerState.inventory.selectedTool;
-                if (selectedTool && HOLD_TOOL_IDS.has(selectedTool)) {
+                if (selectedTool) {
                     // ホールドツール: tick で遅延発動
                     this.leftHeld_ = true;
                     this.holdAccumulator_ = 0;
                     this.holdFired_ = false;
-                } else {
-                    // 非ホールドツール: 即時発動（従来通り）
-                    this.eventBroker.publish("interact_world", { pos: { x, z } });
                 }
             } else if (e.button === 2) {
                 // 右クリック: 施設UIの起動等
