@@ -151,20 +151,15 @@ function setupEntityTile(tile: Tile, voxels: bigint[], positions: Pos3D[], point
     if (centerEntityType === ENTITY_TYPES.none) return;
 
     const infos: EntitySpriteInfo[] = getEntitySpriteNameFromVoxel(voxels[4]);
-    let isHovered = false;
 
     const facilityAnchor = findFacilityAnchor(voxelMap, centerPos.x, centerPos.z);
-    if (facilityAnchor) {
-        const pointerX = Math.floor(pointerPos.x);
-        const pointerZ = Math.floor(pointerPos.z);
-        isHovered =
-            pointerX >= facilityAnchor.anchorX &&
-            pointerX < facilityAnchor.anchorX + facilityAnchor.size.w &&
-            pointerZ >= facilityAnchor.anchorZ &&
-            pointerZ < facilityAnchor.anchorZ + facilityAnchor.size.h;
-    } else {
-        isHovered = Math.floor(pointerPos.x) === centerPos.x && Math.floor(pointerPos.z) === centerPos.z;
-    }
+    const pointerX = Math.floor(pointerPos.x);
+    const pointerZ = Math.floor(pointerPos.z);
+    const isHovered =
+        pointerX >= facilityAnchor.anchorX &&
+        pointerX < facilityAnchor.anchorX + facilityAnchor.size.w &&
+        pointerZ >= facilityAnchor.anchorZ &&
+        pointerZ < facilityAnchor.anchorZ + facilityAnchor.size.h;
 
     tile.ensureNumSprites(infos.length);
     for (let i = 0; i < infos.length; i++) {

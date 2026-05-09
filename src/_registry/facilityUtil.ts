@@ -15,8 +15,8 @@ export function registerMultiTileEntitySize(entityType: number, size: { w: numbe
 }
 
 /** エンティティタイプからサイズを解決する。 placeable item > 非配置型レジストリ の順で参照。 */
-function getEntitySize(entityType: number): { w: number; h: number } | undefined {
-    return getEntityDef(entityType)?.entitySize;
+function getEntitySize(entityType: number): { w: number; h: number } {
+    return getEntityDef(entityType).entitySize;
 }
 
 /** 施設を撤去してインベントリに回収する。成功時 true。 */
@@ -26,7 +26,7 @@ export function removeFacility(voxelMap: IVoxelWriter, inventory: IInventoryWrit
     if (!def.placement) return false;
     if (!inventory.addItems([{ itemId: def.itemId as ItemId, count: 1 }])) return false;
 
-    const { w, h } = getEntitySize(def.placement.entityType) ?? { w: 1, h: 1};
+    const { w, h } = getEntitySize(def.placement.entityType);
     for (let dz = 0; dz < h; dz++) {
         for (let dx = 0; dx < w; dx++) {
             const pos = voxelMap.getSurfacePosition({ x: anchorX + dx, y: 0, z: anchorZ + dz });
@@ -65,22 +65,18 @@ export function findFacilityAnchor(
     voxelMap: IVoxelReader,
     x: number,
     z: number,
-): { anchorX: number; anchorZ: number; entityType: number; size: { w: number; h: number }; } | null {
+): { anchorX: number; anchorZ: number; entityType: number; size: { w: number; h: number }; } {
     const surfacePos = voxelMap.getSurfacePosition({ x, y: 0, z });
     const voxel = voxelMap.get(surfacePos);
     const entityType = getEntityTypeFromVoxel(voxel);
 
-    if (entityType === ENTITY_TYPES.none) return null;
+    if (entityType === ENTITY_TYPES.none) throw new Error('entity is empty.');
 
     // facility_part の場合: 近傍を探索してアンカーを見つける
     if (entityType !== ENTITY_TYPES.facility_part) {
         // アンカータイルの場合: 直接返す
         const size = getEntitySize(entityType);
-        if (size) {
-            return { anchorX: x, anchorZ: z, entityType, size };
-        }
-
-        return null;
+        return { anchorX: x, anchorZ: z, entityType, size };
     }
 
     // 最大施設サイズを考慮して探索（左に最大2、上に最大3）
@@ -99,7 +95,6 @@ export function findFacilityAnchor(
             if (nEntityType === ENTITY_TYPES.facility_part) continue;
 
             const nSize = getEntitySize(nEntityType);
-            if (!nSize) continue;
 
             // このアンカーの entitySize が (x, z) を包含するか確認
             if (x >= nx && x < nx + nSize.w && z >= nz && z < nz + nSize.h) {
@@ -108,5 +103,5 @@ export function findFacilityAnchor(
         }
     }
 
-    return null;
+    throw new Error('No anchor found');
 }

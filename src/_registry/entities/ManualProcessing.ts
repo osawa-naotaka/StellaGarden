@@ -46,7 +46,7 @@ export function registerManualProcessingEntity(opts: ManualProcessingEntityOptio
         onInteract(ctx: InteractionContext): boolean {
             if (ctx.tool !== "axe") return false;
             const anchor = findFacilityAnchor(ctx.voxelMap, ctx.surfacePos.x, ctx.surfacePos.z);
-            if (!anchor || anchor.entityType !== entityType) return false;
+            if (anchor.entityType !== entityType) throw new Error("anchor entity type mismatch");
             const anchorPos = { x: anchor.anchorX, z: anchor.anchorZ };
             if (manualProcessingStorage && !manualProcessingStorage.isEmpty(anchorPos)) return false;
             const removed = removeFacility(ctx.voxelMap, ctx.inventory, anchor.anchorX, anchor.anchorZ, anchor.entityType);
@@ -57,7 +57,7 @@ export function registerManualProcessingEntity(opts: ManualProcessingEntityOptio
         // 右クリック: 処理 UI を開く
         onOpenFacilityUI(ctx: InteractionContext): boolean {
             const anchor = findFacilityAnchor(ctx.voxelMap, ctx.surfacePos.x, ctx.surfacePos.z);
-            if (!anchor || anchor.entityType !== entityType) return false;
+            if (anchor.entityType !== entityType) throw new Error("anchor entity type mismatch");
             const anchorPos = { x: anchor.anchorX, z: anchor.anchorZ };
             // 念のためストレージを保証（既存施設のロード後など）
             manualProcessingStorage?.create(anchorPos);

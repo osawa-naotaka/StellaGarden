@@ -4,19 +4,9 @@ import { getEntityDef, type InteractionContext } from "../_registry/EntityRegist
 import { findFacilityAnchor } from "../_registry/facilityUtil";
 import { getItemDef } from "../_registry/ItemRegistry";
 import { getTerrainDef } from "../_registry/TerrainRegistry";
-import { ENTITY_TYPES, getEntityTypeFromVoxel, getTerrainTypeFromVoxel, TERRAIN_TYPES } from "../engine/VoxelDefs";
+import { ENTITY_TYPES, getTerrainTypeFromVoxel, TERRAIN_TYPES } from "../engine/VoxelDefs";
 import type { EventBroker } from "../lib/Event";
 import type { UIState } from "../view/UIState";
-
-/** resolve helper: facility_part をアンカーの entityType に解決する */
-function resolveEntityType(voxelMap: IVoxelWriter, voxel: bigint, x: number, z: number): number {
-    let entityType = getEntityTypeFromVoxel(voxel);
-    if (entityType === ENTITY_TYPES.facility_part) {
-        const anchor = findFacilityAnchor(voxelMap, x, z);
-        if (anchor) entityType = anchor.entityType;
-    }
-    return entityType;
-}
 
 /** インタラクションハンドラを EventBroker に登録し、解除用の dispose 関数を返す。 */
 export function createInteractionHandler(
@@ -40,14 +30,14 @@ export function createInteractionHandler(
         const terrainType = getTerrainTypeFromVoxel(voxel);
         const tool = inventory.selectedTool;
 
-        const entityType = resolveEntityType(voxelMap, voxel, packet.pos.x, packet.pos.z);
+        const { entityType } = findFacilityAnchor(voxelMap, packet.pos.x, packet.pos.z);
         const ctx: InteractionContext = { voxelMap, inventory, eventBroker, surfacePos, voxel, tool, entityType };
 
         if (entityType === ENTITY_TYPES.none) return;
 
         // パス1: EntityRegistry — エンティティベース
         const entityDef = getEntityDef(entityType);
-        if (entityDef?.onInteract?.(ctx)) return;
+        if (entityDef.onInteract?.(ctx)) return;
 
         // パス2: ItemRegistry — アイテムベース
         if (tool) {
@@ -75,7 +65,7 @@ export function createInteractionHandler(
 
         if (terrainType === TERRAIN_TYPES.waterSource) return;
 
-        const entityType = resolveEntityType(voxelMap, voxel, packet.pos.x, packet.pos.z);
+        const { entityType } = findFacilityAnchor(voxelMap, packet.pos.x, packet.pos.z);
         const ctx: InteractionContext = { voxelMap, inventory, eventBroker, surfacePos, voxel, tool: inventory.selectedTool, entityType };
 
         const entityDef = getEntityDef(entityType);

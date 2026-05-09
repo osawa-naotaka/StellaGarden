@@ -21,9 +21,8 @@ export function setForgeStorage(storage: ForgeStorage): void {
 // ── 炉（消火中）──
 
 /** ctx.surfacePos（クリックタイル）から 2x2 施設のアンカー座標を解決する。 */
-function resolveAnchorPos(ctx: InteractionContext): { x: number; z: number } | null {
+function resolveAnchorPos(ctx: InteractionContext): { x: number; z: number } {
     const anchor = findFacilityAnchor(ctx.voxelMap, ctx.surfacePos.x, ctx.surfacePos.z);
-    if (!anchor) return null;
     return { x: anchor.anchorX, z: anchor.anchorZ };
 }
 
@@ -39,7 +38,6 @@ registerEntity({
     onInteract(ctx: InteractionContext): boolean {
         if (ctx.tool !== "pickaxe") return false;
         const pos = resolveAnchorPos(ctx);
-        if (!pos) return false;
         if (!removeFacilityAtPos(ctx.voxelMap, ctx.inventory, pos.x, pos.z, ENTITY_TYPES.forge)) return false;
         forgeStorage?.remove(pos);
         return true;
@@ -47,7 +45,6 @@ registerEntity({
 
     onOpenFacilityUI(ctx: InteractionContext): boolean {
         const pos = resolveAnchorPos(ctx);
-        if (!pos) return false;
         ctx.eventBroker.publish("open_forge_ui", { pos });
         return true;
     },
@@ -67,7 +64,6 @@ registerEntity({
     onInteract(ctx: InteractionContext): boolean {
         if (ctx.tool !== "pickaxe") return false;
         const pos = resolveAnchorPos(ctx);
-        if (!pos) return false;
         if (!removeFacilityAtPos(ctx.voxelMap, ctx.inventory, pos.x, pos.z, ENTITY_TYPES.forge_burning)) return false;
         forgeStorage?.remove(pos);
         return true;
@@ -75,7 +71,6 @@ registerEntity({
 
     onOpenFacilityUI(ctx: InteractionContext): boolean {
         const pos = resolveAnchorPos(ctx);
-        if (!pos) return false;
         ctx.eventBroker.publish("open_forge_ui", { pos });
         return true;
     },

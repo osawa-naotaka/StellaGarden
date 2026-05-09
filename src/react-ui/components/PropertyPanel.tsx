@@ -27,17 +27,12 @@ function buildTileLines(voxelMap: IVoxelReader, playerState: IPlayerStateReader)
     const pz = Math.floor(playerState.pointerPosInWorld.z);
     if (px < 0 || px >= voxelMap.width || pz < 0 || pz >= voxelMap.depth) return null;
 
-    const pos = voxelMap.getSurfacePosition({ x: px, y: 0, z: pz });
-    let voxel = voxelMap.get(pos);
+    const v = voxelMap.get(voxelMap.getSurfacePosition({ x: px, y: 0, z: pz }));
+    if(getEntityTypeFromVoxel(v) === ENTITY_TYPES.none) return null;
 
-    let entity = getEntityTypeFromVoxel(voxel);
-    if (entity === ENTITY_TYPES.facility_part) {
-        const anchor = findFacilityAnchor(voxelMap, px, pz);
-        if (anchor) {
-            entity = anchor.entityType;
-            voxel = voxelMap.get(voxelMap.getSurfacePosition({ x: anchor.anchorX, y: 0, z: anchor.anchorZ }));
-        }
-    }
+    const anchor = findFacilityAnchor(voxelMap, px, pz);
+    const entity = anchor.entityType;
+    const voxel = voxelMap.get(voxelMap.getSurfacePosition({ x: anchor.anchorX, y: 0, z: anchor.anchorZ }));
 
     const dayCounter = getDaysElapsedFromVoxel(voxel);
     const fertType = getFertilizerTypeFromVoxel(voxel);

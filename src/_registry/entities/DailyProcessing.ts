@@ -57,7 +57,7 @@ export function registerDailyProcessingEntity(opts: DailyProcessingEntityOptions
             if (getDaysElapsedFromVoxel(ctx.voxel) !== 0) return false;
             if (ctx.tool !== "axe") return false;
             const anchor = findFacilityAnchor(ctx.voxelMap, ctx.surfacePos.x, ctx.surfacePos.z);
-            if (!anchor || anchor.entityType !== baseEntityType) return false;
+            if (anchor.entityType !== baseEntityType) throw new Error("anchor entity type mismatch");
             const anchorPos = { x: anchor.anchorX, z: anchor.anchorZ };
             if (dailyProcessingStorage && !dailyProcessingStorage.isEmpty(anchorPos)) return false;
             const removed = removeFacility(ctx.voxelMap, ctx.inventory, anchor.anchorX, anchor.anchorZ, anchor.entityType);
@@ -68,7 +68,6 @@ export function registerDailyProcessingEntity(opts: DailyProcessingEntityOptions
         // 右クリック: 処理 UI を開く（全状態で可）
         onOpenFacilityUI(ctx: InteractionContext): boolean {
             const anchor = findFacilityAnchor(ctx.voxelMap, ctx.surfacePos.x, ctx.surfacePos.z);
-            if (!anchor) return false;
             const anchorPos = { x: anchor.anchorX, z: anchor.anchorZ };
             dailyProcessingStorage?.create(anchorPos);
             ctx.eventBroker.publish("open_processing_daily_ui", { pos: anchorPos });

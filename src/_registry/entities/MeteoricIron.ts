@@ -19,7 +19,7 @@ registerEntity({
         if (ctx.tool !== "pickaxe") return false;
 
         const anchor = findFacilityAnchor(ctx.voxelMap, ctx.surfacePos.x, ctx.surfacePos.z);
-        if (!anchor || anchor.entityType !== ENTITY_TYPES.meteoric_iron) return false;
+        if (anchor.entityType !== ENTITY_TYPES.meteoric_iron) throw new Error("anchor entity type mismatch");
 
         if (!ctx.inventory.addItems([{ itemId: "meteoric_iron", count: 8 }])) return false;
 
