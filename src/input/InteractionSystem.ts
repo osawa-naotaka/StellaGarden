@@ -43,6 +43,8 @@ export function createInteractionHandler(
         const entityType = resolveEntityType(voxelMap, voxel, packet.pos.x, packet.pos.z);
         const ctx: InteractionContext = { voxelMap, inventory, eventBroker, surfacePos, voxel, tool, entityType };
 
+        if (entityType === ENTITY_TYPES.none) return;
+
         // パス1: EntityRegistry — エンティティベース
         const entityDef = getEntityDef(entityType);
         if (entityDef?.onInteract?.(ctx)) return;

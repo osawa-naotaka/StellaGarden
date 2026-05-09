@@ -59,6 +59,8 @@ export function registerEntity(def: EntityDef): void {
 }
 
 /** entityType からエンティティ定義を取得する */
-export function getEntityDef(entityType: number): EntityDef | undefined {
-    return entityByType.get(entityType);
+export function getEntityDef(entityType: number): EntityDef {
+    const def = entityByType.get(entityType);
+    if (!def) throw new Error(`Entity type ${entityType} is not registered`);
+    return def;
 }

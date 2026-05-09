@@ -4,7 +4,7 @@ import { findFacilityAnchor } from "../_registry/facilityUtil";
 import { ENTITY_TYPES, getEntityTypeFromVoxel } from "../engine/VoxelDefs";
 import { ChunkRenderer } from "../lib/ChunkRenderer";
 import type { Size2D } from "../lib/VoxelMap";
-import { getEntitySpriteNameFromVoxel, getTerrainSpriteNamesFromVoxel } from "./renderer/TerrainSpriteResolver";
+import { getEntitySpriteNameFromVoxel, getTerrainSpriteNamesFromVoxel, type EntitySpriteInfo } from "./renderer/TerrainSpriteResolver";
 import type { Tile } from "./Tile";
 
 // ホバー時のブライトネスフィルター（モジュールで一度だけ生成して使い回す）
@@ -148,8 +148,10 @@ function setupEntityTile(tile: Tile, voxels: bigint[], positions: Pos3D[], point
     const centerPos = positions[4];
     const centerEntityType = getEntityTypeFromVoxel(voxels[4]);
 
-    let infos = getEntitySpriteNameFromVoxel(voxels[4]);
-    let isHovered = Math.floor(pointerPos.x) === centerPos.x && Math.floor(pointerPos.z) === centerPos.z;
+    if (centerEntityType === ENTITY_TYPES.none) return;
+
+    const infos: EntitySpriteInfo[] = getEntitySpriteNameFromVoxel(voxels[4]);
+    let isHovered = false;
 
     const facilityAnchor = findFacilityAnchor(voxelMap, centerPos.x, centerPos.z);
     if (facilityAnchor) {
@@ -160,10 +162,8 @@ function setupEntityTile(tile: Tile, voxels: bigint[], positions: Pos3D[], point
             pointerX < facilityAnchor.anchorX + facilityAnchor.size.w &&
             pointerZ >= facilityAnchor.anchorZ &&
             pointerZ < facilityAnchor.anchorZ + facilityAnchor.size.h;
-
-        if (centerEntityType === ENTITY_TYPES.facility_part) {
-            infos = [];
-        }
+    } else {
+        isHovered = Math.floor(pointerPos.x) === centerPos.x && Math.floor(pointerPos.z) === centerPos.z;
     }
 
     tile.ensureNumSprites(infos.length);

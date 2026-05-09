@@ -57,10 +57,10 @@ export function registerDailyProcessingEntity(opts: DailyProcessingEntityOptions
             if (getDaysElapsedFromVoxel(ctx.voxel) !== 0) return false;
             if (ctx.tool !== "axe") return false;
             const anchor = findFacilityAnchor(ctx.voxelMap, ctx.surfacePos.x, ctx.surfacePos.z);
-            if (!anchor || anchor.entityType !== baseEntityType || !anchor.def) return false;
+            if (!anchor || anchor.entityType !== baseEntityType) return false;
             const anchorPos = { x: anchor.anchorX, z: anchor.anchorZ };
             if (dailyProcessingStorage && !dailyProcessingStorage.isEmpty(anchorPos)) return false;
-            const removed = removeFacility(ctx.voxelMap, ctx.inventory, anchor.anchorX, anchor.anchorZ, anchor.def);
+            const removed = removeFacility(ctx.voxelMap, ctx.inventory, anchor.anchorX, anchor.anchorZ, anchor.entityType);
             if (removed) dailyProcessingStorage?.remove(anchorPos);
             return removed;
         },
