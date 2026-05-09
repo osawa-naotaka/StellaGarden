@@ -74,7 +74,7 @@ function onGrassDirtInteract(ctx: import("../EntityRegistry").InteractionContext
         if (getEntityTypeFromVoxel(voxel) !== ENTITY_TYPES.none || !isSafeToRemove3x3(voxelMap, surfacePos.x, surfacePos.z)) {
             return false;
         }
-        if (surfacePos.y >= 1 && inventory.addItems([{ itemId: "dirt", count: 1 }])) {
+        if (surfacePos.y > voxelMap.horizonHeight && inventory.addItems([{ itemId: "dirt", count: 1 }])) {
             voxelMap.remove(surfacePos);
             revertNearbyInvalidTerrain(voxelMap, surfacePos.x, surfacePos.z);
             floodFillWater(voxelMap, surfacePos.x, surfacePos.z);
@@ -126,7 +126,8 @@ function onSoilInteract(ctx: import("../EntityRegistry").InteractionContext): bo
         if (getEntityTypeFromVoxel(voxel) !== ENTITY_TYPES.none || !isSafeToRemove3x3(voxelMap, surfacePos.x, surfacePos.z)) {
             return false;
         }
-        if (surfacePos.y >= 1 && inventory.addItems([{ itemId: "dirt", count: 1 }])) {
+        if (surfacePos.y > voxelMap.horizonHeight && inventory.addItems([{ itemId: "dirt", count: 1 }])) {
+            console.log(surfacePos);
             voxelMap.remove(surfacePos);
             revertNearbyInvalidTerrain(voxelMap, surfacePos.x, surfacePos.z);
             floodFillWater(voxelMap, surfacePos.x, surfacePos.z);
