@@ -30,7 +30,7 @@ export interface ManualProcessingPanelProps {
 
 export function ManualProcessingPanel({ open, inventory, manualProcessingStorage, voxelMap, uiState }: ManualProcessingPanelProps) {
     useFrameTick(open);
-    const pos = uiState.processingPos;
+    const pos = open ? uiState.processingPos : null;
 
     // pos からエンティティタイプとレシピ定義を引く
     const entityType = useMemo(() => {
