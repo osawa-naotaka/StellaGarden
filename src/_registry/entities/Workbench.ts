@@ -19,6 +19,7 @@ function resolveWorkbenchAnchor(ctx: InteractionContext): { x: number; z: number
 
 registerEntity({
     entityType: ENTITY_TYPES.workbench,
+    entitySize: { w: 2, h: 1 },
 
     getSprites(): EntitySpriteInfo[] {
         return [["ss_sprite_004.png", 0, 0]];
@@ -55,7 +56,6 @@ registerItem({
     maxStack: 64,
     placement: {
         entityType: ENTITY_TYPES.workbench,
-        entitySize: { w: 2, h: 1 },
         fieldSpriteName: "ss_sprite_004.png",
         onPlace(voxelMap, pos) {
             placeFacility(voxelMap, pos, ENTITY_TYPES.workbench, { w: 2, h: 1 });

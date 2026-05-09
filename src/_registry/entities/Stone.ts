@@ -4,6 +4,7 @@ import { registerItem } from "../ItemRegistry";
 
 registerEntity({
     entityType: ENTITY_TYPES.stone,
+    entitySize: { w: 1, h: 1 },
 
     getSprites(): EntitySpriteInfo[] {
         return [["stone1.png", 0, 0]];

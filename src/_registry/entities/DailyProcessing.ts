@@ -45,6 +45,7 @@ export function registerDailyProcessingEntity(opts: DailyProcessingEntityOptions
 
     registerEntity({
         entityType: baseEntityType,
+        entitySize,
 
         getSprites(voxel: bigint): EntitySpriteInfo[] {
             const name = sprites(voxel);
@@ -83,7 +84,6 @@ export function registerDailyProcessingEntity(opts: DailyProcessingEntityOptions
         maxStack: 64,
         placement: {
             entityType: baseEntityType,
-            entitySize,
             fieldSpriteName: sprites(0n),
             onPlace(voxelMap, pos) {
                 placeFacility(voxelMap, pos, baseEntityType, entitySize);

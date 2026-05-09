@@ -13,6 +13,7 @@ export function setChestStorage(storage: ChestStorage): void {
 
 registerEntity({
     entityType: ENTITY_TYPES.chest,
+    entitySize: { w: 2, h: 1 },
 
     getSprites(): EntitySpriteInfo[] {
         return [["chest.png", 0, 0]];
@@ -43,7 +44,6 @@ registerItem({
     maxStack: 64,
     placement: {
         entityType: ENTITY_TYPES.chest,
-        entitySize: { w: 2, h: 1 },
         fieldSpriteName: "chest.png",
         onPlace(voxelMap, pos) {
             placeFacility(voxelMap, pos, ENTITY_TYPES.chest, { w: 2, h: 1 });

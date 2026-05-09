@@ -88,6 +88,7 @@ export function registerCrop(
 
     registerEntity({
         entityType: entityType,
+        entitySize: { w: 1, h: 1 },
 
         getSprites(voxel: bigint): EntitySpriteInfo[] {
             const dayCounter = getDaysElapsedFromVoxel(voxel);

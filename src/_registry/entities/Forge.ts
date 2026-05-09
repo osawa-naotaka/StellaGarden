@@ -29,6 +29,8 @@ function resolveAnchorPos(ctx: InteractionContext): { x: number; z: number } | n
 
 registerEntity({
     entityType: ENTITY_TYPES.forge,
+    entitySize: { w: 2, h: 2 },
+
 
     getSprites(): EntitySpriteInfo[] {
         return [["ss_sprite_069.png", 0, 0]];
@@ -55,6 +57,7 @@ registerEntity({
 
 registerEntity({
     entityType: ENTITY_TYPES.forge_burning,
+    entitySize: { w: 2, h: 2 },
 
     getSprites(): EntitySpriteInfo[] {
         const frame = Math.floor(Date.now() / ANIM_FRAME_MS) % 3;
@@ -87,7 +90,6 @@ registerItem({
     maxStack: 64,
     placement: {
         entityType: ENTITY_TYPES.forge,
-        entitySize: { w: 2, h: 2 },
         fieldSpriteName: "ss_sprite_069.png",
         onPlace(voxelMap, pos) {
             placeFacility(voxelMap, pos, ENTITY_TYPES.forge, { w: 2, h: 2 });

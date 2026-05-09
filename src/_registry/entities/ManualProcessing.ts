@@ -36,6 +36,7 @@ export function registerManualProcessingEntity(opts: ManualProcessingEntityOptio
 
     registerEntity({
         entityType,
+        entitySize,
 
         getSprites(): EntitySpriteInfo[] {
             return [[fieldSpriteName, 0, 0]];
@@ -72,7 +73,6 @@ export function registerManualProcessingEntity(opts: ManualProcessingEntityOptio
         maxStack: 64,
         placement: {
             entityType,
-            entitySize,
             fieldSpriteName,
             onPlace(voxelMap, pos) {
                 placeFacility(voxelMap, pos, entityType, entitySize);

@@ -8,8 +8,6 @@ export type PlacementVariant = number;
 export interface PlacementInfo {
     /** 配置時に使うエンティティタイプ（ENTITY_TYPES の値）。 */
     readonly entityType: number;
-    /** 配置時のタイルサイズ（w=横タイル数, h=縦タイル数）。 */
-    readonly entitySize: { readonly w: number; readonly h: number };
     /** 配置開始時のデフォルトバリアント。省略時は 0。 */
     readonly defaultVariant?: PlacementVariant;
     /** 利用可能な最大バリアント番号。省略時は 0（バリアントなし）。 */

@@ -1,5 +1,6 @@
 import type { IInventoryWriter, ItemId, IVoxelReader, IVoxelWriter, Pos2D } from "../_boundary/interfaces";
 import { ENTITY_TYPES, getEntityTypeFromVoxel, setEntityTypeInVoxel } from "../engine/VoxelDefs";
+import { getEntityDef } from "./EntityRegistry";
 import { getItemDefByEntityType, type ItemDef } from "./ItemRegistry";
 
 /**
@@ -15,9 +16,7 @@ export function registerMultiTileEntitySize(entityType: number, size: { w: numbe
 
 /** エンティティタイプからサイズを解決する。 placeable item > 非配置型レジストリ の順で参照。 */
 function getEntitySize(entityType: number): { w: number; h: number } | undefined {
-    const def = getItemDefByEntityType(entityType);
-    if (def?.placement) return def.placement.entitySize;
-    return multiTileEntitySizes.get(entityType);
+    return getEntityDef(entityType)?.entitySize;
 }
 
 /** 施設を撤去してインベントリに回収する。成功時 true。 */
@@ -25,7 +24,7 @@ export function removeFacility(voxelMap: IVoxelWriter, inventory: IInventoryWrit
     if (!def.placement) return false;
     if (!inventory.addItems([{ itemId: def.itemId as ItemId, count: 1 }])) return false;
 
-    const { w, h } = def.placement.entitySize;
+    const { w, h } = getEntitySize(def.placement.entityType) ?? { w: 1, h: 1};
     for (let dz = 0; dz < h; dz++) {
         for (let dx = 0; dx < w; dx++) {
             const pos = voxelMap.getSurfacePosition({ x: anchorX + dx, y: 0, z: anchorZ + dz });

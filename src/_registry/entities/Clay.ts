@@ -4,6 +4,7 @@ import { registerItem } from "../ItemRegistry";
 
 registerEntity({
     entityType: ENTITY_TYPES.clay,
+    entitySize: { w: 1, h: 1 },
 
     getSprites(): EntitySpriteInfo[] {
         return [["ss_sprite_086.png", 0, 0]];
