@@ -4,6 +4,7 @@ import type { IInventoryWriter, IVoxelWriter, Pos2D } from "../_boundary/interfa
 import { getPlacementInfo, type PlacementInfo } from "../_registry/ItemRegistry";
 import { ENTITY_TYPES, getEntityTypeFromVoxel, getTerrainTypeFromVoxel, TERRAIN_TYPES } from "../engine/VoxelDefs";
 import type { UIState } from "./UIState";
+import { getEntityDef } from "../_registry/EntityRegistry";
 
 /** 配置可能な地形タイプの集合。 */
 const PLACEABLE_TERRAINS: ReadonlySet<number> = new Set([TERRAIN_TYPES.grass, TERRAIN_TYPES.dirt, TERRAIN_TYPES.soil]);
@@ -89,10 +90,10 @@ export class PlacementOverlay {
         if (!info) return;
 
         this.placementInfo = info;
-        this.entitySize = info.entitySize;
+        this.entitySize = getEntityDef(info.entityType)?.entitySize ?? { w: 1, h: 1 };
         this.updatePreviewSprite();
-        this.previewSprite.width = PIXEL_PER_TILE * info.entitySize.w;
-        this.previewSprite.height = PIXEL_PER_TILE * info.entitySize.h;
+        this.previewSprite.width = PIXEL_PER_TILE * this.entitySize.w;
+        this.previewSprite.height = PIXEL_PER_TILE * this.entitySize.h;
 
         this.active = true;
         this.container.visible = true;
