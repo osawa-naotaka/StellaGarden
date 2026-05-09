@@ -30,7 +30,6 @@ registerEntity({
     entityType: ENTITY_TYPES.forge,
     entitySize: { w: 2, h: 2 },
 
-
     getSprites(): EntitySpriteInfo[] {
         return [["ss_sprite_069.png", 0, 0]];
     },

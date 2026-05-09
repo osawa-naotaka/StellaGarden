@@ -10,6 +10,7 @@ import {
     getTerrainTypeFromVoxel,
     setDaysElapsedInVoxel,
     setDroughtCounterInVoxel,
+    setTerrainTypeInVoxel,
     TERRAIN_TYPES,
 } from "./VoxelDefs";
 
@@ -78,13 +79,15 @@ export function processDailyTick(voxelMap: IVoxelWriter): void {
             const entityType = getEntityTypeFromVoxel(voxel);
             const isWet = getTerrainTypeFromVoxel(voxel) === TERRAIN_TYPES.wetSoil;
 
-            if (entityType === ENTITY_TYPES.none) {
-                if (isWet) voxelMap.set((voxel & ~0xffn) | BigInt(TERRAIN_TYPES.soil), pos);
-                continue;
+            if (entityType !== ENTITY_TYPES.none && entityType !== ENTITY_TYPES.facility_part) {
+                const def = getEntityDef(entityType);
+                def.onDailyTick?.({ voxelMap, pos, voxel, isWet });
             }
 
-            const def = getEntityDef(entityType);
-            def?.onDailyTick?.({ voxelMap, pos, voxel, isWet });
+            // wetSoil を soil に戻す
+            if (entityType === ENTITY_TYPES.none) {
+                if (isWet) voxelMap.set(setTerrainTypeInVoxel(voxel, TERRAIN_TYPES.soil), pos);
+            }
         }
     }
 

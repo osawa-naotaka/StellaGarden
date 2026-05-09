@@ -65,12 +65,12 @@ export function findFacilityAnchor(
     voxelMap: IVoxelReader,
     x: number,
     z: number,
-): { anchorX: number; anchorZ: number; entityType: number; size: { w: number; h: number }; } {
+): { anchorX: number; anchorZ: number; entityType: number; size: { w: number; h: number } } {
     const surfacePos = voxelMap.getSurfacePosition({ x, y: 0, z });
     const voxel = voxelMap.get(surfacePos);
     const entityType = getEntityTypeFromVoxel(voxel);
 
-    if (entityType === ENTITY_TYPES.none) throw new Error('entity is empty.');
+    if (entityType === ENTITY_TYPES.none) throw new Error("entity is empty.");
 
     // facility_part の場合: 近傍を探索してアンカーを見つける
     if (entityType !== ENTITY_TYPES.facility_part) {
@@ -103,5 +103,5 @@ export function findFacilityAnchor(
         }
     }
 
-    throw new Error('No anchor found');
+    throw new Error("No anchor found");
 }

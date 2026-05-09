@@ -12,7 +12,7 @@
  */
 import type { ItemId } from "../../_boundary/interfaces";
 import type { DailyProcessingStorage } from "../../engine/DailyProcessingStorage";
-import { ENTITY_TYPES, getDaysElapsedFromVoxel, getVariantFromVoxel } from "../../engine/VoxelDefs";
+import { ENTITY_TYPES, getDaysElapsedFromVoxel, getVariantFromVoxel, VOXEL_VARIANT } from "../../engine/VoxelDefs";
 import { type EntitySpriteInfo, type InteractionContext, registerEntity } from "../EntityRegistry";
 import { findFacilityAnchor, placeFacility, removeFacility } from "../facilityUtil";
 import { registerItem } from "../ItemRegistry";
@@ -143,7 +143,7 @@ registerDailyProcessingEntity({
     sprites: (voxel) => {
         const days = getDaysElapsedFromVoxel(voxel);
         const variant = getVariantFromVoxel(voxel);
-        if (variant === 1) {
+        if (variant === VOXEL_VARIANT.done) {
             return "ss_sprite_073.png";
         }
         switch (days) {
@@ -170,9 +170,10 @@ registerDailyProcessingEntity({
     baseEntityType: ENTITY_TYPES.bonfire,
     sprites: (voxel) => {
         const days = getDaysElapsedFromVoxel(voxel);
+        const variant = getVariantFromVoxel(voxel);
         switch (days) {
             case 0:
-                return "ss_sprite_076.png";
+                return (variant === VOXEL_VARIANT.done) ? "ss_sprite_075.png" : "ss_sprite_076.png";
             case 1:
                 return bonfireLitFrame();
             default:
@@ -195,10 +196,11 @@ registerDailyProcessingEntity({
             case 0:
                 return "ss_sprite_077.png";
             case 1:
-                return kilnBurningFrame();
             case 2:
-                return kilnBurningFrame();
             case 3:
+            case 4:
+                return kilnBurningFrame();
+            case 5:
                 return "ss_sprite_077.png";
             default:
                 return "ss_sprite_077.png";

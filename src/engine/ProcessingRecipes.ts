@@ -164,13 +164,17 @@ export function getManualProcessingDef(entityType: number): ManualProcessingDef 
 }
 
 /** entity に対応する日次処理定義を返す。未登録なら null。 */
-export function getDailyProcessingDef(entityType: number): DailyProcessingDef | null {
-    return DAILY_PROCESSING_DEFS[entityType] ?? null;
+export function getDailyProcessingDef(entityType: number): DailyProcessingDef{
+    const def = DAILY_PROCESSING_DEFS[entityType];
+    if (def === undefined) throw new Error(`No daily processing def for entity type ${entityType}`);
+    return def;
 }
 
 /** 入力スロットの itemId に対応するレシピを返す。マッチなしなら null。 */
-export function findRecipeForInput(def: { recipes: ReadonlyArray<ProcessingRecipe> }, inputItemId: ItemId): ProcessingRecipe | null {
-    return def.recipes.find((r) => r.inputItemId === inputItemId) ?? null;
+export function findRecipeForInput(def: { recipes: ReadonlyArray<ProcessingRecipe> }, inputItemId: ItemId): ProcessingRecipe {
+    const r = def.recipes.find((r) => r.inputItemId === inputItemId);
+    if (r === undefined) throw new Error(`No recipe for input item ${inputItemId}`);
+    return r;
 }
 
 /** 入力スロットがこの施設で受理可能な itemId かどうか。 */

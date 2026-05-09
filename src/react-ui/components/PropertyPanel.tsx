@@ -28,20 +28,18 @@ function buildTileLines(voxelMap: IVoxelReader, playerState: IPlayerStateReader)
     if (px < 0 || px >= voxelMap.width || pz < 0 || pz >= voxelMap.depth) return null;
 
     const v = voxelMap.get(voxelMap.getSurfacePosition({ x: px, y: 0, z: pz }));
-    if(getEntityTypeFromVoxel(v) === ENTITY_TYPES.none) return null;
-
-    const anchor = findFacilityAnchor(voxelMap, px, pz);
-    const entity = anchor.entityType;
-    const voxel = voxelMap.get(voxelMap.getSurfacePosition({ x: anchor.anchorX, y: 0, z: anchor.anchorZ }));
-
-    const dayCounter = getDaysElapsedFromVoxel(voxel);
-    const fertType = getFertilizerTypeFromVoxel(voxel);
-    const drought = getDroughtCounterFromVoxel(voxel);
-    const lastCrop = getLastCropFromVoxel(voxel);
-    const fatigue = getFatigueFromVoxel(voxel);
 
     const lines: string[] = [];
-    if (entity !== ENTITY_TYPES.none) {
+
+    if (getEntityTypeFromVoxel(v) !== ENTITY_TYPES.none) {
+        const anchor = findFacilityAnchor(voxelMap, px, pz);
+        const entity = anchor.entityType;
+        const voxel = voxelMap.get(voxelMap.getSurfacePosition({ x: anchor.anchorX, y: 0, z: anchor.anchorZ }));
+
+        const dayCounter = getDaysElapsedFromVoxel(voxel);
+        const fertType = getFertilizerTypeFromVoxel(voxel);
+        const drought = getDroughtCounterFromVoxel(voxel);
+
         lines.push(`エンティティ: ${ENTITY_NAMES[entity] ?? entity}`);
         const cropDef = CROP_DEFS[entity];
         if (cropDef) {
@@ -57,11 +55,19 @@ function buildTileLines(voxelMap: IVoxelReader, playerState: IPlayerStateReader)
             }
             lines.push(`収量倍率: ${getFertilizerYieldMultiplier(entity, fertType).toFixed(2)}`);
         }
-    }
-
-    if (lastCrop !== 0 || fatigue !== 0) {
-        lines.push(`前回作物: ${ENTITY_NAMES[lastCrop] ?? lastCrop}`);
-        lines.push(`土地疲弊: ${fatigue}`);
+        const lastCrop = getLastCropFromVoxel(voxel);
+        const fatigue = getFatigueFromVoxel(voxel);
+        if (lastCrop !== 0 || fatigue !== 0) {
+            lines.push(`前回作物: ${ENTITY_NAMES[lastCrop] ?? lastCrop}`);
+            lines.push(`土地疲弊: ${fatigue}`);
+        }
+    } else {
+        const lastCrop = getLastCropFromVoxel(v);
+        const fatigue = getFatigueFromVoxel(v);
+        if (lastCrop !== 0 || fatigue !== 0) {
+            lines.push(`前回作物: ${ENTITY_NAMES[lastCrop] ?? lastCrop}`);
+            lines.push(`土地疲弊: ${fatigue}`);
+        }
     }
 
     return lines;

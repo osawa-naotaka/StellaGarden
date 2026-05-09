@@ -29,6 +29,7 @@ export interface DailyProcessingPanelProps {
 }
 
 export function DailyProcessingPanel({ open, inventory, dailyProcessingStorage, voxelMap, uiState }: DailyProcessingPanelProps) {
+    if(uiState.mode !== "processing-daily") return null;  // ad-hock: processing-manualの時もこのコンポーネントも呼ばれてしまう問題を解決するため
     useFrameTick(open);
     const pos = uiState.processingPos;
 

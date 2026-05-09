@@ -1,10 +1,10 @@
 import { Container, Graphics, Sprite, Texture } from "pixi.js";
 import { PIXEL_PER_TILE } from "../_boundary/constants";
 import type { IInventoryWriter, IVoxelWriter, Pos2D } from "../_boundary/interfaces";
+import { getEntityDef } from "../_registry/EntityRegistry";
 import { getPlacementInfo, type PlacementInfo } from "../_registry/ItemRegistry";
 import { ENTITY_TYPES, getEntityTypeFromVoxel, getTerrainTypeFromVoxel, TERRAIN_TYPES } from "../engine/VoxelDefs";
 import type { UIState } from "./UIState";
-import { getEntityDef } from "../_registry/EntityRegistry";
 
 /** 配置可能な地形タイプの集合。 */
 const PLACEABLE_TERRAINS: ReadonlySet<number> = new Set([TERRAIN_TYPES.grass, TERRAIN_TYPES.dirt, TERRAIN_TYPES.soil]);

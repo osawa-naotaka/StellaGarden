@@ -4,7 +4,7 @@ import { findFacilityAnchor } from "../_registry/facilityUtil";
 import { ENTITY_TYPES, getEntityTypeFromVoxel } from "../engine/VoxelDefs";
 import { ChunkRenderer } from "../lib/ChunkRenderer";
 import type { Size2D } from "../lib/VoxelMap";
-import { getEntitySpriteNameFromVoxel, getTerrainSpriteNamesFromVoxel, type EntitySpriteInfo } from "./renderer/TerrainSpriteResolver";
+import { type EntitySpriteInfo, getEntitySpriteNameFromVoxel, getTerrainSpriteNamesFromVoxel } from "./renderer/TerrainSpriteResolver";
 import type { Tile } from "./Tile";
 
 // ホバー時のブライトネスフィルター（モジュールで一度だけ生成して使い回す）

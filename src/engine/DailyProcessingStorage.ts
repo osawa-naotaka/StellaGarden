@@ -127,11 +127,10 @@ export class DailyProcessingStorage extends KeyedSlotStorage<DailyProcessingSlot
             const voxel = voxelMap.get(surface);
             const entityType = getEntityTypeFromVoxel(voxel);
             const def = getDailyProcessingDef(entityType);
-            if (!def) continue;
             if (!slots.input) continue;
 
             const recipe = findRecipeForInput(def, slots.input.itemId);
-            if (!recipe || slots.input.count < recipe.inputCountPerCycle) continue;
+            if (slots.input.count < recipe.inputCountPerCycle) continue;
 
             const daysElapsed = getDaysElapsedFromVoxel(voxel);
             const nextDays = daysElapsed + 1;
