@@ -20,9 +20,14 @@ export function TitleScreen({ onNewGame, onContinue }: Props) {
     return (
         <Box sx={TITLE_BG}>
             <Stack spacing={4} alignItems="center">
-                <Typography variant="h2" sx={TITLE_TEXT_SX}>
-                    Stella Garden
-                </Typography>
+                <Box sx={{ textAlign: "center" }}>
+                    <Typography variant="h2" sx={TITLE_TEXT_SX}>
+                        Stella Garden
+                    </Typography>
+                    <Typography variant="h6" sx={{ color: "rgba(255,255,255,0.5)", letterSpacing: 1 }}>
+                        v{__APP_VERSION__}
+                    </Typography>
+                </Box>
                 <Stack spacing={2} sx={{ minWidth: 240 }}>
                     <Button
                         variant="contained"
