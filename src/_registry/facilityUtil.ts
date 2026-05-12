@@ -79,9 +79,9 @@ export function findFacilityAnchor(
         return { anchorX: x, anchorZ: z, entityType, size };
     }
 
-    // 最大施設サイズを考慮して探索（左に最大2、上に最大3）
+    // 最大施設サイズを考慮して探索（左に最大3、上に最大3）
     for (let dz = 0; dz >= -3; dz--) {
-        for (let dx = 0; dx >= -2; dx--) {
+        for (let dx = 0; dx >= -3; dx--) {
             if (dx === 0 && dz === 0) continue;
             const nx = x + dx;
             const nz = z + dz;
