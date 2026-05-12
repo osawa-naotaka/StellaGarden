@@ -1,4 +1,4 @@
-import type { IVoxelWriter, Pos2D } from "../_boundary/interfaces";
+import type { IVoxelReader, IVoxelWriter, Pos2D } from "../_boundary/interfaces";
 import type { InteractionContext } from "./EntityRegistry";
 
 /** 配置可能アイテムのバリアント番号。0..7 を想定する。 */
@@ -16,6 +16,12 @@ export interface PlacementInfo {
     readonly fieldSpriteName?: string;
     /** 配置中プレビューに使うスプライト名を返す。 */
     getFieldSpriteName?(variant: PlacementVariant): string;
+    /**
+     * 配置可否を独自ロジックで判定する。定義されていれば PlacementOverlay の既定ロジック
+     * （地形ホワイトリスト・エンティティnone・surface y 一致）を完全にバイパスする。
+     * 水車のように特殊な地形（waterSource）に置く必要があるエンティティで使う。
+     */
+    canPlace?(voxelMap: IVoxelReader, pos: Pos2D, variant: PlacementVariant): boolean;
     /** 配置確定時に呼ばれる。voxelMap への書き込みを行う。 */
     onPlace(voxelMap: IVoxelWriter, pos: Pos2D, variant: PlacementVariant): void;
 }

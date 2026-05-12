@@ -16,6 +16,7 @@ import "./entities/Rail";
 import "./entities/Stone";
 import "./entities/Tree";
 import "./entities/WarpGate";
+import "./entities/Waterwheel";
 import "./entities/Workbench";
 import "./entities/ManualProcessing";
 import "./entities/DailyProcessing";

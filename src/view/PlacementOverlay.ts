@@ -117,6 +117,11 @@ export class PlacementOverlay {
             return false;
         }
 
+        // PlacementInfo.canPlace が定義されていれば既定ロジックを完全にバイパスする
+        if (this.placementInfo?.canPlace) {
+            return this.placementInfo.canPlace(map, { x, z }, this.uiState.placementVariant);
+        }
+
         const baseY = map.getSurfacePosition({ x, y: 0, z }).y;
 
         for (let dz = 0; dz < h; dz++) {
