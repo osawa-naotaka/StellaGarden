@@ -303,4 +303,13 @@ export const RECIPES: readonly RecipeDef[] = [
         ],
         result: { itemId: "bagged_potatos", count: 1 },
     },
+    {
+        id: "waterwheel",
+        station: "workbench",
+        ingredients: [
+            { itemId: "shaft", count: 1 },
+            { itemId: "board", count: 8 },
+        ],
+        result: { itemId: "waterwheel", count: 1 },
+    },
 ];
