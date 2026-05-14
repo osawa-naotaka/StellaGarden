@@ -48,6 +48,7 @@ export const ENTITY_TYPES = {
     // soaking_basket_done: 33,
     rail: 34,
     waterwheel: 35,
+    shaft: 36,
 } as const;
 
 // ---------------------------------------------------------------------------

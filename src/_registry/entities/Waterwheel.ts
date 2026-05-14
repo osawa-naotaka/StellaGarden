@@ -23,7 +23,7 @@ import { type PlacementVariant, registerItem } from "../ItemRegistry";
 const ENTITY_W = 3;
 const ENTITY_H = 3;
 
-const ANIM_FRAME_MS = 200;
+const ANIM_FRAME_MS = 300;
 
 const FRAMES_VERTICAL = ["ss_sprite_137_1.png", "ss_sprite_137_2.png", "ss_sprite_137_3.png"];
 const FRAMES_HORIZONTAL = ["ss_sprite_139_1.png", "ss_sprite_139_2.png", "ss_sprite_139_3.png"];
@@ -46,7 +46,8 @@ function isFreeLandAt(map: IVoxelReader, x: number, z: number): boolean {
 /** waterSource タイルが空エンティティかどうか。 */
 function isFreeWaterAt(map: IVoxelReader, x: number, z: number): boolean {
     const voxel = map.getSurface({ x, y: 0, z });
-    if (getTerrainTypeFromVoxel(voxel) !== TERRAIN_TYPES.waterSource) return false;
+    const terrainType = getTerrainTypeFromVoxel(voxel);
+    if (!(terrainType === TERRAIN_TYPES.waterSource || terrainType === TERRAIN_TYPES.water)) return false;
     if (getEntityTypeFromVoxel(voxel) !== ENTITY_TYPES.none) return false;
     return true;
 }
@@ -82,18 +83,13 @@ function canPlaceWaterwheel(map: IVoxelReader, pos: Pos2D, variant: PlacementVar
         return true;
     }
 
-    // 横方向 (variant=1): 中央行 z+1 が waterSource、上行 z または下行 z+2 のどちらか1行が land
+    // 横方向 (variant=1): 全てがwaterSource
     for (let dx = 0; dx < ENTITY_W; dx++) {
-        if (!isFreeWaterAt(map, x + dx, z + 1)) return false;
-    }
-    const topIsLand = isFreeLandAt(map, x, z) && isFreeLandAt(map, x + 1, z) && isFreeLandAt(map, x + 2, z);
-    const bottomIsLand = isFreeLandAt(map, x, z + 2) && isFreeLandAt(map, x + 1, z + 2) && isFreeLandAt(map, x + 2, z + 2);
-    if (!topIsLand && !bottomIsLand) return false;
-    if (!topIsLand) {
-        if (!(isFreeWaterAt(map, x, z) && isFreeWaterAt(map, x + 1, z) && isFreeWaterAt(map, x + 2, z))) return false;
-    }
-    if (!bottomIsLand) {
-        if (!(isFreeWaterAt(map, x, z + 2) && isFreeWaterAt(map, x + 1, z + 2) && isFreeWaterAt(map, x + 2, z + 2))) return false;
+        for (let dz = 0; dz < ENTITY_H; dz++) {
+            if (!isFreeWaterAt(map, x + dx, z + dz)) {
+                return false;
+            }
+        }
     }
     return true;
 }

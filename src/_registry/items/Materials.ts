@@ -11,7 +11,6 @@ registerItem({ itemId: "blade", displayName: "刃", spriteName: "ss_sprite_084.p
 registerItem({ itemId: "hardwood_teeth", displayName: "硬木の歯", spriteName: "ss_sprite_093.png", maxStack: 64 });
 registerItem({ itemId: "board", displayName: "板", spriteName: "ss_sprite_085.png", maxStack: 64 });
 registerItem({ itemId: "screw_rod", displayName: "木ネジ棒", spriteName: "ss_sprite_094.png", maxStack: 64 });
-registerItem({ itemId: "shaft", displayName: "車軸", spriteName: "ss_sprite_095.png", maxStack: 64 });
 registerItem({ itemId: "frame", displayName: "木の枠", spriteName: "ss_sprite_096.png", maxStack: 64 });
 registerItem({ itemId: "ingot", displayName: "鉄の棒", spriteName: "ss_sprite_083.png", maxStack: 64 });
 registerItem({ itemId: "hot_meteoric_iron", displayName: "熱した隕鉄", spriteName: "ss_sprite_088.png", maxStack: 64 });

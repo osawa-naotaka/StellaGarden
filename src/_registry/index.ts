@@ -13,6 +13,7 @@ import "./entities/Forge";
 import "./entities/MeteoricIron";
 import "./entities/Pipe";
 import "./entities/Rail";
+import "./entities/Shaft";
 import "./entities/Stone";
 import "./entities/Tree";
 import "./entities/WarpGate";

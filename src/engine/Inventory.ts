@@ -21,6 +21,8 @@ const DEFAULT_INVENTORY_ITEMS: readonly (DefaultItem | null)[] = [
     { itemId: "soybeans", count: 64 },
     { itemId: "flaxseed", count: 64 },
     { itemId: "sunflower_seed", count: 64 },
+    { itemId: "waterwheel", count: 8 },
+    { itemId: "shaft", count: 64 },
     // { itemId: "compost_bin", count: 64 },
     // { itemId: "threshing_machine", count: 64 },
     // { itemId: "screw_presses", count: 64 },
