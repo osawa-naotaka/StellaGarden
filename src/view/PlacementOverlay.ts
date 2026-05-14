@@ -148,6 +148,10 @@ export class PlacementOverlay {
             const stack = this.inventory.getSlot(this.uiState.placementSourceSlot);
             if (!stack) return;
 
+            // exitPlacementMode は placementVariant を 0 にリセットするため、
+            // 最後の 1 個を配置するときに variant が失われる。先に保持しておく。
+            const variant = this.uiState.placementVariant;
+
             if (stack.count === 1) {
                 this.inventory.setSlot(this.uiState.placementSourceSlot, null);
                 this.uiState.exitPlacementMode();
@@ -156,7 +160,7 @@ export class PlacementOverlay {
             }
 
             // 副作用: voxelMap に配置
-            this.placementInfo.onPlace(this.voxelMap, this.snappedPos, this.uiState.placementVariant);
+            this.placementInfo.onPlace(this.voxelMap, this.snappedPos, variant);
         }
     }
 

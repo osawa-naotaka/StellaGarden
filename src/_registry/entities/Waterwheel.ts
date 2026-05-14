@@ -116,7 +116,7 @@ registerEntity({
 registerItem({
     itemId: "waterwheel",
     displayName: "水車",
-    spriteName: "ss_sprite_136.png",
+    spriteName: "ss_sprite_137_1.png",
     maxStack: 64,
     placement: {
         entityType: ENTITY_TYPES.waterwheel,
