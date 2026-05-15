@@ -5,8 +5,8 @@ import { type PlacementVariant, registerItem } from "../ItemRegistry";
 
 const ANIM_FRAME_MS = 300;
 
-const SHAFT_V_FRAMES = ["ss_sprite_132_v_4.png", "ss_sprite_132_v_3.png", "ss_sprite_132_v_2.png", "ss_sprite_132_v_1.png"];
-const SHAFT_H_FRAMES = ["ss_sprite_132_h_4.png", "ss_sprite_132_h_3.png", "ss_sprite_132_h_2.png", "ss_sprite_132_h_1.png"];
+const SHAFT_V_FRAMES = ["ss_sprite_132_v_4.png", "ss_sprite_132_v_2.png", "ss_sprite_132_v_1.png"];
+const SHAFT_H_FRAMES = ["ss_sprite_132_h_4.png", "ss_sprite_132_h_2.png", "ss_sprite_132_h_1.png"];
 function shaftFrame(variant: PlacementVariant): string {
     switch (variant) {
         case 0:
