@@ -83,7 +83,17 @@ function canPlaceWaterwheel(map: IVoxelReader, pos: Pos2D, variant: PlacementVar
 
 registerEntity({
     entityType: ENTITY_TYPES.waterwheel,
-    entitySize: { w: ENTITY_H_W, h: ENTITY_H_H },
+    
+    getEntitySize(variant: PlacementVariant) {
+        switch(variant) {
+            case 0:
+                return { w: ENTITY_V_W, h: ENTITY_V_H };
+            case 1:
+                return { w: ENTITY_H_W, h: ENTITY_H_H };
+            default:
+                return { w: ENTITY_H_W, h: ENTITY_H_H };
+        }
+    },
 
     getSprites(voxel: bigint): EntitySpriteInfo[] {
         const variant = getVariantFromVoxel(voxel);
@@ -112,7 +122,11 @@ registerItem({
             return canPlaceWaterwheel(voxelMap, pos, variant);
         },
         onPlace(voxelMap, pos, variant) {
-            placeFacility(voxelMap, pos, ENTITY_TYPES.waterwheel, { w: ENTITY_H_W, h: ENTITY_H_H });
+            if(variant === 1) {
+                placeFacility(voxelMap, pos, ENTITY_TYPES.waterwheel, { w: ENTITY_H_W, h: ENTITY_H_H });
+            } else {
+                placeFacility(voxelMap, pos, ENTITY_TYPES.waterwheel, { w: ENTITY_V_W, h: ENTITY_V_H });
+            }
             const surfacePos = voxelMap.getSurfacePosition({ x: pos.x, y: 0, z: pos.z });
             const voxel = voxelMap.get(surfacePos);
             voxelMap.set(setVariantInVoxel(voxel, variant), surfacePos);

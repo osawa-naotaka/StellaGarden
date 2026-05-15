@@ -24,7 +24,8 @@ function getRailPreviewSpriteName(variant: PlacementVariant): string {
 
 registerEntity({
     entityType: ENTITY_TYPES.rail,
-    entitySize: { w: 1, h: 1 },
+
+    getEntitySize() { return { w: 1, h: 1 }; },
 
     getSprites(voxel: bigint): EntitySpriteInfo[] {
         return [[getRailPreviewSpriteName(getVariantFromVoxel(voxel)), 0, 0]];

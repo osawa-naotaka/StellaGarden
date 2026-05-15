@@ -1,7 +1,7 @@
 import type { IInventoryWriter, ItemId, IVoxelReader, IVoxelWriter, Pos2D } from "../_boundary/interfaces";
-import { ENTITY_TYPES, getEntityTypeFromVoxel, setEntityTypeInVoxel } from "../engine/VoxelDefs";
+import { ENTITY_TYPES, getEntityTypeFromVoxel, getVariantFromVoxel, setEntityTypeInVoxel } from "../engine/VoxelDefs";
 import { getEntityDef } from "./EntityRegistry";
-import { getItemDefByEntityType } from "./ItemRegistry";
+import { getItemDefByEntityType, type PlacementVariant } from "./ItemRegistry";
 
 /**
  * 配置不可（地形生成のみで出現）の多タイルエンティティのサイズ登録。
@@ -15,18 +15,18 @@ export function registerMultiTileEntitySize(entityType: number, size: { w: numbe
 }
 
 /** エンティティタイプからサイズを解決する。 placeable item > 非配置型レジストリ の順で参照。 */
-function getEntitySize(entityType: number): { w: number; h: number } {
-    return getEntityDef(entityType).entitySize;
+function getEntitySize(entityType: number, variant: PlacementVariant): { w: number; h: number } {
+    return getEntityDef(entityType).getEntitySize(variant);
 }
 
 /** 施設を撤去してインベントリに回収する。成功時 true。 */
-export function removeFacility(voxelMap: IVoxelWriter, inventory: IInventoryWriter, anchorX: number, anchorZ: number, entityType: number): boolean {
+export function removeFacility(voxelMap: IVoxelWriter, inventory: IInventoryWriter, anchorX: number, anchorZ: number, entityType: number, variant: PlacementVariant): boolean {
     const def = getItemDefByEntityType(entityType);
     if (!def) return false;
     if (!def.placement) return false;
     if (!inventory.addItems([{ itemId: def.itemId as ItemId, count: 1 }])) return false;
 
-    const { w, h } = getEntitySize(def.placement.entityType);
+    const { w, h } = getEntitySize(def.placement.entityType, variant);
     for (let dz = 0; dz < h; dz++) {
         for (let dx = 0; dx < w; dx++) {
             const pos = voxelMap.getSurfacePosition({ x: anchorX + dx, y: 0, z: anchorZ + dz });
@@ -41,7 +41,7 @@ export function removeFacility(voxelMap: IVoxelWriter, inventory: IInventoryWrit
 export function removeFacilityAtPos(voxelMap: IVoxelWriter, inventory: IInventoryWriter, x: number, z: number, expectedEntityType: number): boolean {
     const anchor = findFacilityAnchor(voxelMap, x, z);
     if (!anchor || anchor.entityType !== expectedEntityType) return false;
-    return removeFacility(voxelMap, inventory, anchor.anchorX, anchor.anchorZ, anchor.entityType);
+    return removeFacility(voxelMap, inventory, anchor.anchorX, anchor.anchorZ, anchor.entityType, anchor.variant);
 }
 
 /** 施設をフィールドに配置する（アンカー + facility_part の voxel 書き込み）。 */
@@ -65,18 +65,19 @@ export function findFacilityAnchor(
     voxelMap: IVoxelReader,
     x: number,
     z: number,
-): { anchorX: number; anchorZ: number; entityType: number; size: { w: number; h: number } } {
+): { anchorX: number; anchorZ: number; entityType: number; variant: PlacementVariant; size: { w: number; h: number } } {
     const surfacePos = voxelMap.getSurfacePosition({ x, y: 0, z });
     const voxel = voxelMap.get(surfacePos);
     const entityType = getEntityTypeFromVoxel(voxel);
+    const variant = getVariantFromVoxel(voxel);
 
     if (entityType === ENTITY_TYPES.none) throw new Error("entity is empty.");
 
     // facility_part の場合: 近傍を探索してアンカーを見つける
     if (entityType !== ENTITY_TYPES.facility_part) {
         // アンカータイルの場合: 直接返す
-        const size = getEntitySize(entityType);
-        return { anchorX: x, anchorZ: z, entityType, size };
+        const size = getEntitySize(entityType, variant);
+        return { anchorX: x, anchorZ: z, entityType, variant, size };
     }
 
     // 最大施設サイズを考慮して探索（左に最大3、上に最大3）
@@ -90,15 +91,16 @@ export function findFacilityAnchor(
             const nSurfacePos = voxelMap.getSurfacePosition({ x: nx, y: 0, z: nz });
             const nVoxel = voxelMap.get(nSurfacePos);
             const nEntityType = getEntityTypeFromVoxel(nVoxel);
+            const nVariant = getVariantFromVoxel(nVoxel);
 
             if (nEntityType === ENTITY_TYPES.none) continue;
             if (nEntityType === ENTITY_TYPES.facility_part) continue;
 
-            const nSize = getEntitySize(nEntityType);
+            const nSize = getEntitySize(nEntityType, nVariant);
 
             // このアンカーの entitySize が (x, z) を包含するか確認
             if (x >= nx && x < nx + nSize.w && z >= nz && z < nz + nSize.h) {
-                return { anchorX: nx, anchorZ: nz, entityType: nEntityType, size: nSize };
+                return { anchorX: nx, anchorZ: nz, entityType: nEntityType, variant: nVariant, size: nSize };
             }
         }
     }

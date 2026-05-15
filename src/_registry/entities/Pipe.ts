@@ -12,7 +12,8 @@ function getPipePreviewSpriteName(variant: PlacementVariant): string {
 
 registerEntity({
     entityType: ENTITY_TYPES.pipe1,
-    entitySize: { w: 1, h: 1 },
+    
+    getEntitySize() { return { w: 1, h: 1 }; },
 
     getSprites(voxel: bigint): EntitySpriteInfo[] {
         return [[getPipeSpriteName(voxel, getPipeFilledFromVoxel(voxel)), 0, 0]];

@@ -9,7 +9,8 @@ registerMultiTileEntitySize(ENTITY_TYPES.meteoric_iron, METEORIC_IRON_SIZE);
 
 registerEntity({
     entityType: ENTITY_TYPES.meteoric_iron,
-    entitySize: METEORIC_IRON_SIZE,
+
+    getEntitySize() { return METEORIC_IRON_SIZE; },
 
     getSprites(): EntitySpriteInfo[] {
         return [["ss_sprite_087.png", 0, 0]];

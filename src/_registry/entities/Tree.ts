@@ -32,7 +32,8 @@ const spritesWithLeaves: EntitySpriteInfo[] = [
 
 registerEntity({
     entityType: ENTITY_TYPES.tree,
-    entitySize: { w: 1, h: 1 },
+    
+    getEntitySize() { return { w: 1, h: 1 }; },
 
     getSprites(voxel: bigint): EntitySpriteInfo[] {
         const stage = getDaysElapsedFromVoxel(voxel);

@@ -1,4 +1,5 @@
 import type { IEventBroker, IInventoryWriter, ItemId, IVoxelWriter, Pos3D } from "../_boundary/interfaces";
+import type { PlacementVariant } from "./ItemRegistry";
 
 /** エンティティスプライト情報: [spriteName, offset-x, offset-y] */
 export type EntitySpriteInfo = [string, number, number];
@@ -31,7 +32,7 @@ export interface EntityDef {
     readonly entityType: number;
 
     /** 配置時のタイルサイズ（w=横タイル数, h=縦タイル数）。 */
-    readonly entitySize: { readonly w: number; readonly h: number };
+    getEntitySize(variant: PlacementVariant): { w: number; h: number };
 
     /** voxel 値からスプライト情報を返す */
     getSprites(voxel: bigint): EntitySpriteInfo[];

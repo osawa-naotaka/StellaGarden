@@ -32,7 +32,8 @@ function getShaftPreviewSpriteName(variant: PlacementVariant): string {
 
 registerEntity({
     entityType: ENTITY_TYPES.shaft,
-    entitySize: { w: 1, h: 1 },
+
+    getEntitySize() { return { w: 1, h: 1 }; },
 
     getSprites(voxel: bigint): EntitySpriteInfo[] {
         return [[shaftFrame(getVariantFromVoxel(voxel)), 0, 0]];

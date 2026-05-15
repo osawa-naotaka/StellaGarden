@@ -13,7 +13,8 @@ export function setChestStorage(storage: ChestStorage): void {
 
 registerEntity({
     entityType: ENTITY_TYPES.chest,
-    entitySize: { w: 2, h: 1 },
+
+    getEntitySize() { return { w: 2, h: 1 }; },
 
     getSprites(): EntitySpriteInfo[] {
         return [["chest.png", 0, 0]];

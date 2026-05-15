@@ -2,7 +2,7 @@ import { Container, Graphics, Sprite, Texture } from "pixi.js";
 import { PIXEL_PER_TILE } from "../_boundary/constants";
 import type { IInventoryWriter, IVoxelWriter, Pos2D } from "../_boundary/interfaces";
 import { getEntityDef } from "../_registry/EntityRegistry";
-import { getPlacementInfo, type PlacementInfo } from "../_registry/ItemRegistry";
+import { getPlacementInfo, type PlacementInfo, type PlacementVariant } from "../_registry/ItemRegistry";
 import { ENTITY_TYPES, getEntityTypeFromVoxel, getTerrainTypeFromVoxel, TERRAIN_TYPES } from "../engine/VoxelDefs";
 import type { UIState } from "./UIState";
 
@@ -22,7 +22,7 @@ export class PlacementOverlay {
     private uiState: UIState;
     private valid = false;
     private snappedPos: Pos2D = { x: 0, z: 0 };
-    private entitySize: { w: number; h: number } = { w: 1, h: 1 };
+    private entitySizeFn: (variant: PlacementVariant) => { w: number; h: number } = () => ({ w: 1, h: 1 });
     private active = false;
     private placementInfo: PlacementInfo | null = null;
 
@@ -75,7 +75,8 @@ export class PlacementOverlay {
         this.valid = this.canPlace(snappedX, snappedZ);
 
         this.tintOverlay.clear();
-        this.tintOverlay.rect(0, 0, PIXEL_PER_TILE * this.entitySize.w, PIXEL_PER_TILE * this.entitySize.h);
+        const { w, h } = this.entitySizeFn(this.uiState.placementVariant);
+        this.tintOverlay.rect(0, 0, PIXEL_PER_TILE * w, PIXEL_PER_TILE * h);
         if (this.valid) {
             this.tintOverlay.fill({ color: 0x00ff00, alpha: 0.3 });
         } else {
@@ -90,10 +91,10 @@ export class PlacementOverlay {
         if (!info) return;
 
         this.placementInfo = info;
-        this.entitySize = getEntityDef(info.entityType)?.entitySize ?? { w: 1, h: 1 };
+        this.entitySizeFn = getEntityDef(info.entityType).getEntitySize;
         this.updatePreviewSprite();
-        this.previewSprite.width = PIXEL_PER_TILE * this.entitySize.w;
-        this.previewSprite.height = PIXEL_PER_TILE * this.entitySize.h;
+        this.previewSprite.width = PIXEL_PER_TILE * this.entitySizeFn(this.uiState.placementVariant).w;
+        this.previewSprite.height = PIXEL_PER_TILE * this.entitySizeFn(this.uiState.placementVariant).h;
 
         this.active = true;
         this.container.visible = true;
@@ -111,7 +112,7 @@ export class PlacementOverlay {
 
     private canPlace(x: number, z: number): boolean {
         const map = this.voxelMap;
-        const { w, h } = this.entitySize;
+        const { w, h } = this.entitySizeFn(this.uiState.placementVariant);
 
         if (x < 0 || x + w > map.width || z < 0 || z + h > map.depth) {
             return false;
@@ -182,5 +183,8 @@ export class PlacementOverlay {
         const spriteName = this.placementInfo.getFieldSpriteName?.(this.uiState.placementVariant) ?? this.placementInfo.fieldSpriteName;
         if (!spriteName) return;
         this.previewSprite.texture = Texture.from(spriteName);
+        const { w, h } = this.entitySizeFn(this.uiState.placementVariant);
+        this.previewSprite.width = PIXEL_PER_TILE * w;
+        this.previewSprite.height = PIXEL_PER_TILE * h;
     }
 }

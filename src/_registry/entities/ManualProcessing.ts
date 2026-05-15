@@ -36,7 +36,8 @@ export function registerManualProcessingEntity(opts: ManualProcessingEntityOptio
 
     registerEntity({
         entityType,
-        entitySize,
+
+        getEntitySize() { return entitySize },
 
         getSprites(): EntitySpriteInfo[] {
             return [[fieldSpriteName, 0, 0]];
@@ -49,7 +50,7 @@ export function registerManualProcessingEntity(opts: ManualProcessingEntityOptio
             if (anchor.entityType !== entityType) throw new Error("anchor entity type mismatch");
             const anchorPos = { x: anchor.anchorX, z: anchor.anchorZ };
             if (manualProcessingStorage && !manualProcessingStorage.isEmpty(anchorPos)) return false;
-            const removed = removeFacility(ctx.voxelMap, ctx.inventory, anchor.anchorX, anchor.anchorZ, anchor.entityType);
+            const removed = removeFacility(ctx.voxelMap, ctx.inventory, anchor.anchorX, anchor.anchorZ, anchor.entityType, 0);
             if (removed) manualProcessingStorage?.remove(anchorPos);
             return removed;
         },

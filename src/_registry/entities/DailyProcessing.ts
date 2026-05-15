@@ -45,7 +45,8 @@ export function registerDailyProcessingEntity(opts: DailyProcessingEntityOptions
 
     registerEntity({
         entityType: baseEntityType,
-        entitySize,
+        
+        getEntitySize() { return entitySize; },
 
         getSprites(voxel: bigint): EntitySpriteInfo[] {
             const name = sprites(voxel);
@@ -60,7 +61,7 @@ export function registerDailyProcessingEntity(opts: DailyProcessingEntityOptions
             if (anchor.entityType !== baseEntityType) throw new Error("anchor entity type mismatch");
             const anchorPos = { x: anchor.anchorX, z: anchor.anchorZ };
             if (dailyProcessingStorage && !dailyProcessingStorage.isEmpty(anchorPos)) return false;
-            const removed = removeFacility(ctx.voxelMap, ctx.inventory, anchor.anchorX, anchor.anchorZ, anchor.entityType);
+            const removed = removeFacility(ctx.voxelMap, ctx.inventory, anchor.anchorX, anchor.anchorZ, anchor.entityType, 0);
             if (removed) dailyProcessingStorage?.remove(anchorPos);
             return removed;
         },
