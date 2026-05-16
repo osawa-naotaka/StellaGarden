@@ -5,7 +5,6 @@ import {
     getPipeConnectionsFromVoxel,
     getVariantFromVoxel,
     setPipeConnectionsInVoxel,
-    TERRAIN_TYPES,
     VOXEL_VARIANT,
 } from "./VoxelDefs";
 
@@ -56,34 +55,53 @@ export function computeShaftConnectionMask(voxelMap: IVoxelWriter, pos: Pos2D): 
 
     const variant = getVariantFromVoxel(voxel);
 
+  　　const left = getSurfaceVoxelWithShaftAt(voxelMap, pos.x - 1, pos.z);
+  　　const right = getSurfaceVoxelWithShaftAt(voxelMap, pos.x + 1, pos.z);
+    const top = getSurfaceVoxelWithShaftAt(voxelMap, pos.x, pos.z - 1);
+    const bottom = getSurfaceVoxelWithShaftAt(voxelMap, pos.x, pos.z + 1);
+
+    const leftVariant = left === null ? 0 : getVariantFromVoxel(left);
+    const rightVariant = right === null ? 0 : getVariantFromVoxel(right);
+    const topVariant = top === null ? 0 : getVariantFromVoxel(top);
+    const bottomVariant = bottom === null ? 0 : getVariantFromVoxel(bottom);
+
     if (variant === VOXEL_VARIANT.horizontal) {
-        mask |= SHAFT_CONNECTION_LEFT | SHAFT_CONNECTION_RIGHT;
-        const top = getSurfaceVoxelWithShaftAt(voxelMap, pos.x, pos.z - 1);
+        if (left !== null) {
+            mask |= SHAFT_CONNECTION_LEFT;
+        }
+        if (right !== null) {
+            mask |= SHAFT_CONNECTION_RIGHT;
+        }
+        if (left === null && right === null) {
+            mask |= SHAFT_CONNECTION_LEFT | SHAFT_CONNECTION_RIGHT;
+        }
         if (top != null) {
-            const topVariant = getVariantFromVoxel(top);
             if (topVariant === VOXEL_VARIANT.vertical) {
                 mask |= SHAFT_CONNECTION_UP;
             }
         }
-        const bottom = getSurfaceVoxelWithShaftAt(voxelMap, pos.x, pos.z + 1);
         if (bottom != null) {
-            const bottomVariant = getVariantFromVoxel(bottom);
             if (bottomVariant === VOXEL_VARIANT.vertical) {
                 mask |= SHAFT_CONNECTION_DOWN;
             }
         }
     } else if (variant === VOXEL_VARIANT.vertical) {
-        mask |= SHAFT_CONNECTION_UP | SHAFT_CONNECTION_DOWN;
-        const left = getSurfaceVoxelWithShaftAt(voxelMap, pos.x - 1, pos.z);
+        if (top !== null) {
+            mask |= SHAFT_CONNECTION_UP;
+        }
+        if (bottom !== null) {
+            mask |= SHAFT_CONNECTION_DOWN;
+        }
+        if (top === null && bottom === null) {
+            mask |= SHAFT_CONNECTION_UP | SHAFT_CONNECTION_DOWN;
+        }
+        
         if (left != null) {
-            const leftVariant = getVariantFromVoxel(left);
             if (leftVariant === VOXEL_VARIANT.horizontal) {
                 mask |= SHAFT_CONNECTION_LEFT;
             }
         }
-        const right = getSurfaceVoxelWithShaftAt(voxelMap, pos.x + 1, pos.z);
         if (right != null) {
-            const rightVariant = getVariantFromVoxel(right);
             if (rightVariant === VOXEL_VARIANT.horizontal) {
                 mask |= SHAFT_CONNECTION_RIGHT;
             }
