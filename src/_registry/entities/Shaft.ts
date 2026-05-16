@@ -1,5 +1,6 @@
 import { refreshShaftConnectionsAround } from "../../engine/ShaftConnection";
 import { getShaftSpriteName } from "../../engine/ShaftShape";
+import { recomputeAllShaftPowerFlow } from "../../engine/ShaftPowerFlow";
 import { ENTITY_TYPES, setVariantInVoxel } from "../../engine/VoxelDefs";
 import { type EntitySpriteInfo, type InteractionContext, registerEntity } from "../EntityRegistry";
 import { placeFacility, removeFacilityAtPos } from "../facilityUtil";
@@ -28,7 +29,12 @@ registerEntity({
     onInteract(ctx: InteractionContext): boolean {
         if (ctx.tool !== "axe") return false;
 
-        return removeFacilityAtPos(ctx.voxelMap, ctx.inventory, ctx.surfacePos.x, ctx.surfacePos.z, ENTITY_TYPES.shaft);
+        const removed = removeFacilityAtPos(ctx.voxelMap, ctx.inventory, ctx.surfacePos.x, ctx.surfacePos.z, ENTITY_TYPES.shaft);
+        if (removed) {
+            refreshShaftConnectionsAround(ctx.voxelMap, { x: ctx.surfacePos.x, z: ctx.surfacePos.z });
+            recomputeAllShaftPowerFlow(ctx.voxelMap);
+        }
+        return removed;
     },
 });
 
@@ -50,6 +56,7 @@ registerItem({
             const voxel = voxelMap.get(surfacePos);
             voxelMap.set(setVariantInVoxel(voxel, variant), surfacePos);
             refreshShaftConnectionsAround(voxelMap, pos);
+            recomputeAllShaftPowerFlow(voxelMap);
         },
     },
 });

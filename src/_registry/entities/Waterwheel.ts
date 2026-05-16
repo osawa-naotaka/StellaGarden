@@ -8,6 +8,7 @@
  * - 操作: 左クリック + axe で撤去（インベントリに回収）。
  */
 import type { IVoxelReader, Pos2D } from "../../_boundary/interfaces";
+import { recomputeAllShaftPowerFlow } from "../../engine/ShaftPowerFlow";
 import {
     ENTITY_TYPES,
     getEntityTypeFromVoxel,
@@ -102,7 +103,11 @@ registerEntity({
 
     onInteract(ctx: InteractionContext): boolean {
         if (ctx.tool !== "axe") return false;
-        return removeFacilityAtPos(ctx.voxelMap, ctx.inventory, ctx.surfacePos.x, ctx.surfacePos.z, ENTITY_TYPES.waterwheel);
+        const removed = removeFacilityAtPos(ctx.voxelMap, ctx.inventory, ctx.surfacePos.x, ctx.surfacePos.z, ENTITY_TYPES.waterwheel);
+        if (removed) {
+            recomputeAllShaftPowerFlow(ctx.voxelMap);
+        }
+        return removed;
     },
 });
 
@@ -130,6 +135,7 @@ registerItem({
             const surfacePos = voxelMap.getSurfacePosition({ x: pos.x, y: 0, z: pos.z });
             const voxel = voxelMap.get(surfacePos);
             voxelMap.set(setVariantInVoxel(voxel, variant), surfacePos);
+            recomputeAllShaftPowerFlow(voxelMap);
         },
     },
 });

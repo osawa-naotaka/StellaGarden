@@ -1,4 +1,4 @@
-import { getPipeConnectionsFromVoxel, getVariantFromVoxel } from "./VoxelDefs";
+import { getPipeConnectionsFromVoxel, getPipeFilledFromVoxel, getVariantFromVoxel } from "./VoxelDefs";
 
 export type ShaftShapeKey =
     | "132_h"
@@ -55,5 +55,7 @@ export function getAnimationKey(): string {
 
 export function getShaftSpriteName(voxel: bigint): string {
     const prefix = "ss_sprite_";
-    return `${prefix}${getShaftShapeKey(voxel)}${getAnimationKey()}.png`;
+    const powered = getPipeFilledFromVoxel(voxel);
+    const akey = powered ? getAnimationKey() : ANIMATION_FRAMES[0];
+    return `${prefix}${getShaftShapeKey(voxel)}${akey}.png`;
 }
