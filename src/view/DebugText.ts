@@ -53,7 +53,8 @@ export const ENTITY_NAMES: Record<number, string> = {
     [ENTITY_TYPES.forge_burning]: "炉（点火中）",
     [ENTITY_TYPES.pipe1]: "畝間水路",
     [ENTITY_TYPES.warp_gate]: "転移ゲート",
-    [ENTITY_TYPES.rail]: "rail",
+    [ENTITY_TYPES.rail]: "レール",
+    [ENTITY_TYPES.shaft]: "シャフト",
 };
 
 const FERTILIZER_NAMES: Record<number, string> = {

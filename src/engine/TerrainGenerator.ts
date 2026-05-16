@@ -1,7 +1,7 @@
 import alea from "alea";
 import { createNoise2D } from "simplex-noise";
 import { type Pos2D, VoxelMap } from "../lib/VoxelMap";
-import { ENTITY_TYPES, getTerrainTypeFromVoxel, placeEntity, setDaysElapsedInVoxel, setDisplacementXInVoxel, setDisplacementZInVoxel, TERRAIN_TYPES } from "./VoxelDefs";
+import { ENTITY_TYPES, getEntityTypeFromVoxel, getTerrainTypeFromVoxel, placeEntity, setDaysElapsedInVoxel, setDisplacementXInVoxel, setDisplacementZInVoxel, setEntityTypeInVoxel, TERRAIN_TYPES } from "./VoxelDefs";
 
 export type GenerateTerrainOptions = {
     width: number;
@@ -458,15 +458,15 @@ function placeEntities(seed: string, map: VoxelMap): void {
             const terrain = map.get(pos);
             const terrainType = getTerrainTypeFromVoxel(terrain);
             // 既存エンティティ（隕鉄・facility_part 等）があるタイルは上書きしない
-            if (Number((terrain >> 8n) & 0xffn) !== ENTITY_TYPES.none) continue;
+            if (getEntityTypeFromVoxel(terrain) !== ENTITY_TYPES.none) continue;
 
             if (shouldPlaceStone) {
                 if (terrainType === TERRAIN_TYPES.soil || terrainType === TERRAIN_TYPES.grass) {
-                    map.set(terrain | (BigInt(ENTITY_TYPES.stone) << 8n), pos);
+                    map.set(setEntityTypeInVoxel(terrain, ENTITY_TYPES.stone), pos);
                 }
             } else if (shouldPlaceTree) {
                 if (terrainType === TERRAIN_TYPES.soil || terrainType === TERRAIN_TYPES.grass) {
-                    map.set(setDaysElapsedInVoxel(terrain | (BigInt(ENTITY_TYPES.tree) << 8n), 13), pos);
+                    map.set(setDaysElapsedInVoxel(setEntityTypeInVoxel(terrain, ENTITY_TYPES.tree), 13), pos);
                 }
             }
         }
@@ -511,7 +511,7 @@ function canPlaceMeteoricIron(map: VoxelMap, x: number, z: number): boolean {
             const pos = map.getSurfacePosition({ x: x + dx, y: 0, z: z + dz });
             const v = map.get(pos);
             if (getTerrainTypeFromVoxel(v) !== TERRAIN_TYPES.grass) return false;
-            if (Number((v >> 8n) & 0xffn) !== ENTITY_TYPES.none) return false;
+            if (getEntityTypeFromVoxel(v) !== ENTITY_TYPES.none) return false;
             if (anchorY === -1) anchorY = pos.y;
             else if (pos.y !== anchorY) return false;
         }
