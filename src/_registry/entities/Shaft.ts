@@ -1,3 +1,5 @@
+import { refreshShaftConnectionsAround } from "../../engine/ShaftConnection";
+import { getShaftSpriteName } from "../../engine/ShaftShape";
 import { ENTITY_TYPES, getVariantFromVoxel, setVariantInVoxel } from "../../engine/VoxelDefs";
 import { type EntitySpriteInfo, type InteractionContext, registerEntity } from "../EntityRegistry";
 import { placeFacility, removeFacilityAtPos } from "../facilityUtil";
@@ -36,7 +38,7 @@ registerEntity({
     getEntitySize() { return { w: 1, h: 1 }; },
 
     getSprites(voxel: bigint): EntitySpriteInfo[] {
-        return [[shaftFrame(getVariantFromVoxel(voxel)), 0, 0]];
+        return [[getShaftSpriteName(voxel), 0, 0]];
     },
 
     onInteract(ctx: InteractionContext): boolean {
@@ -63,6 +65,7 @@ registerItem({
             const surfacePos = voxelMap.getSurfacePosition({ x: pos.x, y: 0, z: pos.z });
             const voxel = voxelMap.get(surfacePos);
             voxelMap.set(setVariantInVoxel(voxel, variant), surfacePos);
+            refreshShaftConnectionsAround(voxelMap, pos);
         },
     },
 });
