@@ -52,8 +52,8 @@ function isWaterwheelAdjacentToShaft(voxelMap: IVoxelWriter, x: number, z: numbe
         if (entityType === ENTITY_TYPES.waterwheel) {
             return true;
         }
-        if (entityType !== ENTITY_TYPES.facility_part) {
-            const anchor = findFacilityAnchor(voxelMap, x, z);
+        if (entityType === ENTITY_TYPES.facility_part) {
+            const anchor = findFacilityAnchor(voxelMap, x + dir.dx, z + dir.dz);
             if (anchor === null) continue;
             if (anchor.entityType === ENTITY_TYPES.waterwheel) {
                 return true;

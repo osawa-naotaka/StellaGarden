@@ -64,6 +64,9 @@ export const ENTITY_TYPES = {
 //   bit     30: pipe variant      (1bit, 0=horizontal/1=vertical)
 //   bits 31-34: pipe connections  (4bit, up/down/left/right)
 //   bit     35: pipe filled       (1bit, 0=dry/1=filled)
+//   bit  30-32: displacement to anchor X (3bit, 0-7)
+//   bit  33-35: displacement to anchor Z (3bit, 0-7)
+// 　　bit  36-38: entity variant    (3bit, 0-7)
 // ---------------------------------------------------------------------------
 
 /** 肥料タイプの定数。 */
@@ -180,16 +183,6 @@ export function setFatigueInVoxel(voxel: bigint, fatigue: number): bigint {
     return (voxel & ~(0x7n << 27n)) | ((BigInt(fatigue) & 0x7n) << 27n);
 }
 
-// /** 畝間水路の向き。false = horizontal, true = vertical。 */
-// export function getPipeVariantFromVoxel(voxel: bigint): boolean {
-//     return ((voxel >> 30n) & 0x1n) === 0x1n;
-// }
-
-// /** 畝間水路の向きビットを書き込んだ新しい値を返す（bit 30）。 */
-// export function setPipeVariantInVoxel(voxel: bigint, vertical: boolean): bigint {
-//     return (voxel & ~(0x1n << 30n)) | ((vertical ? 1n : 0n) << 30n);
-// }
-
 /** 畝間水路の接続マスクを取り出す（bits 31-34）。 */
 export function getPipeConnectionsFromVoxel(voxel: bigint): number {
     return Number((voxel >> 31n) & 0xfn);
@@ -210,6 +203,26 @@ export function setPipeFilledInVoxel(voxel: bigint, filled: boolean): bigint {
     return (voxel & ~(0x1n << 35n)) | ((filled ? 1n : 0n) << 35n);
 }
 
+/** エンティティのディスプレイスメント(X)を取り出す（bit 30-32）。 */
+export function getDisplacementXFromVoxel(voxel: bigint): number {
+    return Number((voxel >> 30n) & 0x7n);
+}
+
+/** エンティティのディスプレイスメント(X)を書き込んだ新しい値を返す（bit 30-32）。 */
+export function setDisplacementXInVoxel(voxel: bigint, displacement: number): bigint {
+    return (voxel & ~(0x7n << 30n)) | ((BigInt(displacement) & 0x7n) << 30n);
+}
+
+/** エンティティのディスプレイスメント(Z)を取り出す（bit 33-35）。 */
+export function getDisplacementZFromVoxel(voxel: bigint): number {
+    return Number((voxel >> 33n) & 0x7n);
+}
+
+/** エンティティのディスプレイスメント(Z)を書き込んだ新しい値を返す（bit 33-35）。 */
+export function setDisplacementZInVoxel(voxel: bigint, displacement: number): bigint {
+    return (voxel & ~(0x7n << 33n)) | ((BigInt(displacement) & 0x7n) << 33n);
+}
+
 /** エンティティのバリアントを取り出す（bit 36-38）。 */
 export function getVariantFromVoxel(voxel: bigint): number {
     return Number((voxel >> 36n) & 0x7n);
@@ -218,6 +231,14 @@ export function getVariantFromVoxel(voxel: bigint): number {
 /** エンティティのバリアントを書き込んだ新しい値を返す（bit 36-38）。 */
 export function setVariantInVoxel(voxel: bigint, variant: number): bigint {
     return (voxel & ~(0x7n << 36n)) | ((BigInt(variant) & 0x7n) << 36n);
+}
+
+export function placeEntity(voxel:bigint, entityType: number): bigint {
+    let updatedVoxel = setEntityTypeInVoxel(voxel, entityType);
+    updatedVoxel = setDisplacementXInVoxel(updatedVoxel, 0);
+    updatedVoxel = setDisplacementZInVoxel(updatedVoxel, 0);
+    updatedVoxel = setVariantInVoxel(updatedVoxel, 0);
+    return updatedVoxel;
 }
 
 export const VOXEL_VARIANT = {

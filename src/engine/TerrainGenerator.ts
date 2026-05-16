@@ -1,7 +1,7 @@
 import alea from "alea";
 import { createNoise2D } from "simplex-noise";
 import { type Pos2D, VoxelMap } from "../lib/VoxelMap";
-import { ENTITY_TYPES, getTerrainTypeFromVoxel, setDaysElapsedInVoxel, TERRAIN_TYPES } from "./VoxelDefs";
+import { ENTITY_TYPES, getTerrainTypeFromVoxel, placeEntity, setDaysElapsedInVoxel, setDisplacementXInVoxel, setDisplacementZInVoxel, TERRAIN_TYPES } from "./VoxelDefs";
 
 export type GenerateTerrainOptions = {
     width: number;
@@ -490,9 +490,14 @@ function placeMeteoricIron(seed: string, map: VoxelMap): void {
             for (let dz = 0; dz < 2; dz++) {
                 for (let dx = 0; dx < 2; dx++) {
                     const pos = map.getSurfacePosition({ x: x + dx, y: 0, z: z + dz });
-                    const v = map.get(pos);
+                    let v = map.get(pos);
                     const entity = dx === 0 && dz === 0 ? ENTITY_TYPES.meteoric_iron : ENTITY_TYPES.facility_part;
-                    map.set((v & ~(0xffn << 8n)) | (BigInt(entity) << 8n), pos);
+                    v = placeEntity(v, entity);
+                    if (dx !== 0 || dz !== 0) {
+                        v = setDisplacementXInVoxel(v, dx);
+                        v = setDisplacementZInVoxel(v, dz);
+                    } 
+                    map.set(v, pos);
                 }
             }
         }

@@ -141,7 +141,8 @@ export class PlayerState implements IPlayerStateWriter {
             entityType === ENTITY_TYPES.soy ||
             entityType === ENTITY_TYPES.flax ||
             entityType === ENTITY_TYPES.sunflower ||
-            entityType === ENTITY_TYPES.pipe1
+            entityType === ENTITY_TYPES.pipe1 ||
+            entityType === ENTITY_TYPES.shaft
         )
             return false;
 

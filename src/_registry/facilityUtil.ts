@@ -1,5 +1,5 @@
 import type { IInventoryWriter, ItemId, IVoxelReader, IVoxelWriter, Pos2D } from "../_boundary/interfaces";
-import { ENTITY_TYPES, getEntityTypeFromVoxel, getVariantFromVoxel, setEntityTypeInVoxel } from "../engine/VoxelDefs";
+import { ENTITY_TYPES, getDisplacementXFromVoxel, getDisplacementZFromVoxel, getEntityTypeFromVoxel, getVariantFromVoxel, placeEntity, setDisplacementXInVoxel, setDisplacementZInVoxel, setEntityTypeInVoxel } from "../engine/VoxelDefs";
 import { getEntityDef } from "./EntityRegistry";
 import { getItemDefByEntityType, type PlacementVariant } from "./ItemRegistry";
 
@@ -50,8 +50,15 @@ export function placeFacility(voxelMap: IVoxelWriter, pos: Pos2D, entityType: nu
         for (let dx = 0; dx < entitySize.w; dx++) {
             const surfacePos = voxelMap.getSurfacePosition({ x: pos.x + dx, y: 0, z: pos.z + dz });
             const voxel = voxelMap.get(surfacePos);
-            const entity = dx === 0 && dz === 0 ? entityType : ENTITY_TYPES.facility_part;
-            voxelMap.set(setEntityTypeInVoxel(voxel, entity), surfacePos);
+            if (dx === 0 && dz === 0) {
+                const anchorVoxel = placeEntity(voxel, entityType);
+                voxelMap.set(anchorVoxel, surfacePos);
+            } else {
+                let facilityVoxel = placeEntity(voxel, ENTITY_TYPES.facility_part);
+                facilityVoxel = setDisplacementXInVoxel(facilityVoxel, dx);
+                facilityVoxel = setDisplacementZInVoxel(facilityVoxel, dz);
+                voxelMap.set(facilityVoxel, surfacePos);
+            }
         }
     }
 }
@@ -80,30 +87,14 @@ export function findFacilityAnchor(
         return { anchorX: x, anchorZ: z, entityType, variant, size };
     }
 
-    // 最大施設サイズを考慮して探索（左に最大3、上に最大3）
-    for (let dz = 0; dz >= -3; dz--) {
-        for (let dx = 0; dx >= -3; dx--) {
-            if (dx === 0 && dz === 0) continue;
-            const nx = x + dx;
-            const nz = z + dz;
-            if (nx < 0 || nz < 0 || nx >= voxelMap.width || nz >= voxelMap.depth) continue;
+    // voxel内のdisplacementを取得してアンカーを見つける
+    const anchorX = x - getDisplacementXFromVoxel(voxel);
+    const anchorZ = z - getDisplacementZFromVoxel(voxel);
+    const nSurfacePos = voxelMap.getSurfacePosition({ x: anchorX, y: 0, z: anchorZ });
+    const nVoxel = voxelMap.get(nSurfacePos);
+    const nEntityType = getEntityTypeFromVoxel(nVoxel);
+    const nVariant = getVariantFromVoxel(nVoxel);
+    const nSize = getEntitySize(nEntityType, nVariant);
 
-            const nSurfacePos = voxelMap.getSurfacePosition({ x: nx, y: 0, z: nz });
-            const nVoxel = voxelMap.get(nSurfacePos);
-            const nEntityType = getEntityTypeFromVoxel(nVoxel);
-            const nVariant = getVariantFromVoxel(nVoxel);
-
-            if (nEntityType === ENTITY_TYPES.none) continue;
-            if (nEntityType === ENTITY_TYPES.facility_part) continue;
-
-            const nSize = getEntitySize(nEntityType, nVariant);
-
-            // このアンカーの entitySize が (x, z) を包含するか確認
-            if (x >= nx && x < nx + nSize.w && z >= nz && z < nz + nSize.h) {
-                return { anchorX: nx, anchorZ: nz, entityType: nEntityType, variant: nVariant, size: nSize };
-            }
-        }
-    }
-
-    throw new Error("No anchor found");
+    return { anchorX, anchorZ, entityType: nEntityType, variant: nVariant, size: nSize };
 }
