@@ -1,7 +1,7 @@
 import alea from "alea";
 import { createNoise2D } from "simplex-noise";
 import { type Pos2D, VoxelMap } from "../lib/VoxelMap";
-import { ENTITY_TYPES, getEntityTypeFromVoxel, getTerrainTypeFromVoxel, placeEntity, setDaysElapsedInVoxel, setDisplacementXInVoxel, setDisplacementZInVoxel, setEntityTypeInVoxel, TERRAIN_TYPES } from "./VoxelDefs";
+import { ENTITY_TYPES, getEntityTypeFromVoxel, getTerrainTypeFromVoxel, initializeVoxel, placeEntity, setDaysElapsedInVoxel, setDisplacementXInVoxel, setDisplacementZInVoxel, setEntityTypeInVoxel, TERRAIN_TYPES } from "./VoxelDefs";
 
 export type GenerateTerrainOptions = {
     width: number;
@@ -158,13 +158,13 @@ function createVoxelMap(hm: Int8Array, opt: GenerateTerrainOptions): VoxelMap {
             const idx = z * W + x;
             const h = hm[idx];
             if (h < opt.horizonHeight) {
-                for (let y = 0; y <= h; y++) map.set(BigInt(TERRAIN_TYPES.dirt), { x, y, z });
-                for (let y = h + 1; y <= opt.horizonHeight; y++) map.set(BigInt(TERRAIN_TYPES.waterSource), { x, y, z });
+                for (let y = 0; y <= h; y++) map.set(initializeVoxel(TERRAIN_TYPES.dirt), { x, y, z });
+                for (let y = h + 1; y <= opt.horizonHeight; y++) map.set(initializeVoxel(TERRAIN_TYPES.waterSource), { x, y, z });
             } else {
-                for (let y = 0; y < h; y++) map.set(BigInt(TERRAIN_TYPES.dirt), { x, y, z });
+                for (let y = 0; y < h; y++) map.set(initializeVoxel(TERRAIN_TYPES.dirt), { x, y, z });
                 // 水辺判定: h == horizonHeight かつ 4近傍に h < horizonHeight があれば grass ではなく dirt
                 const isWaterside = h === opt.horizonHeight && isAdjacentToWater(hm, x, z, W, D, opt.horizonHeight);
-                map.set(BigInt(isWaterside ? TERRAIN_TYPES.dirt : TERRAIN_TYPES.grass), { x, y: h, z });
+                map.set(initializeVoxel(isWaterside ? TERRAIN_TYPES.dirt : TERRAIN_TYPES.grass), { x, y: h, z });
             }
         }
     }
@@ -223,10 +223,10 @@ function placeClay(seed: string, map: VoxelMap, hm: Int8Array, majorRivers: Rive
         if (rng() >= CLAY_RATE) continue;
         const pos = { x: idx % W, y: opt.horizonHeight, z: (idx / W) | 0 };
         const voxel = map.get(pos);
-        const terrain = Number(voxel & 0xffn);
-        const entity = Number((voxel >> 8n) & 0xffn);
+        const terrain = getTerrainTypeFromVoxel(voxel);
+        const entity = getEntityTypeFromVoxel(voxel);
         if (terrain === TERRAIN_TYPES.dirt && entity === ENTITY_TYPES.none) {
-            map.set(voxel | (BigInt(ENTITY_TYPES.clay) << 8n), pos);
+            map.set(placeEntity(voxel, ENTITY_TYPES.clay), pos);
         }
     }
 

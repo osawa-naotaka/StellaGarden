@@ -1,5 +1,5 @@
 import type { ChestStorage } from "../../engine/ChestStorage";
-import { ENTITY_TYPES, getTerrainTypeFromVoxel } from "../../engine/VoxelDefs";
+import { ENTITY_TYPES, placeEntity } from "../../engine/VoxelDefs";
 import { type EntitySpriteInfo, type InteractionContext, registerEntity } from "../EntityRegistry";
 import { placeFacility } from "../facilityUtil";
 import { registerItem } from "../ItemRegistry";
@@ -25,8 +25,7 @@ registerEntity({
         if (!chestStorage) return false;
         const pos = { x: ctx.surfacePos.x, z: ctx.surfacePos.z };
         if (!chestStorage.isEmpty(pos)) return false;
-        const terrain = getTerrainTypeFromVoxel(ctx.voxel);
-        ctx.voxelMap.set(BigInt(terrain), ctx.surfacePos);
+        ctx.voxelMap.set(placeEntity(ctx.voxel, ENTITY_TYPES.none), ctx.surfacePos);
         ctx.inventory.addItems([{ itemId: "chest", count: 1 }]);
         chestStorage.remove(pos);
         return true;
