@@ -46,7 +46,7 @@ export function getShaftShapeKey(voxel: bigint): ShaftShapeKey {
     }
 }
 
-const ANIMATION_FRAMES = ["_4", "_3", "_2", "_1"];
+const ANIMATION_FRAMES = ["_1", "_2", "_3", "_4"];
 const ANIM_FRAME_MS = 300;
 
 export function getAnimationKey(): string {

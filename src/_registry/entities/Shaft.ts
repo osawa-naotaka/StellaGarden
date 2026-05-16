@@ -1,25 +1,9 @@
 import { refreshShaftConnectionsAround } from "../../engine/ShaftConnection";
 import { getShaftSpriteName } from "../../engine/ShaftShape";
-import { ENTITY_TYPES, getVariantFromVoxel, setVariantInVoxel } from "../../engine/VoxelDefs";
+import { ENTITY_TYPES, setVariantInVoxel } from "../../engine/VoxelDefs";
 import { type EntitySpriteInfo, type InteractionContext, registerEntity } from "../EntityRegistry";
 import { placeFacility, removeFacilityAtPos } from "../facilityUtil";
 import { type PlacementVariant, registerItem } from "../ItemRegistry";
-
-const ANIM_FRAME_MS = 300;
-
-const SHAFT_V_FRAMES = ["ss_sprite_132_v_4.png", "ss_sprite_132_v_2.png", "ss_sprite_132_v_1.png"];
-const SHAFT_H_FRAMES = ["ss_sprite_132_h_4.png", "ss_sprite_132_h_2.png", "ss_sprite_132_h_1.png"];
-function shaftFrame(variant: PlacementVariant): string {
-    switch (variant) {
-        case 0:
-            return SHAFT_H_FRAMES[Math.floor(Date.now() / ANIM_FRAME_MS) % SHAFT_H_FRAMES.length];
-        case 1:
-            return SHAFT_V_FRAMES[Math.floor(Date.now() / ANIM_FRAME_MS) % SHAFT_V_FRAMES.length];
-        default:
-            return SHAFT_H_FRAMES[Math.floor(Date.now() / ANIM_FRAME_MS) % SHAFT_H_FRAMES.length];
-    }
-}
-
 
 function getShaftPreviewSpriteName(variant: PlacementVariant): string {
     switch (variant) {
