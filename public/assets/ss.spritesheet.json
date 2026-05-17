@@ -1336,10 +1336,10 @@
 "meta": {
 	"app": "https://www.codeandweb.com/texturepacker",
 	"version": "1.1",
-	"image": "ss.spritesheet.png?v=65a0ca107183",
+	"image": "ss.spritesheet.png?v=2532b11381ff",
 	"format": "RGBA8888",
 	"size": {"w":128,"h":605},
 	"scale": "1",
-	"smartupdate": "$TexturePacker:SmartUpdate:eb9d5ba282e030c013e6a25b9bdb02ce:c0a113813e698e16c3a937be30c39007:2f0f5bbe411d9a2269bf4936dba52ea0$"
+	"smartupdate": "$TexturePacker:SmartUpdate:402c5171cdebf8700963e6eee201ca47:f607754f7bc09b4da2c363e0542f1441:2f0f5bbe411d9a2269bf4936dba52ea0$"
 }
 }

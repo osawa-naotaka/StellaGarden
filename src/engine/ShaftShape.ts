@@ -72,7 +72,7 @@ export function getShaftShapeKey(voxel: bigint): ShaftShapeKey {
 }
 
 const ANIM_FRAMES_FORWARD = ["_1", "_2", "_3", "_4"];
-const ANIM_FRAMES_REVERSED = ["_1", "_4", "_3", "_2"];
+const ANIM_FRAMES_REVERSED = ["_4", "_3", "_2", "_1"];
 const ANIM_FRAME_MS = 300;
 
 export function getShaftSpriteName(voxel: bigint): string {
