@@ -10,6 +10,7 @@ import {
     getFatigueFromVoxel,
     getFertilizerTypeFromVoxel,
     getLastCropFromVoxel,
+    getVariantFromVoxel,
 } from "../../engine/VoxelDefs";
 import { ENTITY_NAMES } from "../../view/DebugText";
 import { useEngine } from "../EngineContext";
@@ -41,6 +42,7 @@ function buildTileLines(voxelMap: IVoxelReader, playerState: IPlayerStateReader)
         const drought = getDroughtCounterFromVoxel(voxel);
 
         lines.push(`エンティティ: ${ENTITY_NAMES[entity] ?? entity}`);
+        lines.push(`バリアント: ${getVariantFromVoxel(voxel)}`);
         const cropDef = CROP_DEFS[entity];
         if (cropDef) {
             const mature = dayCounter >= cropDef.maturityDay;

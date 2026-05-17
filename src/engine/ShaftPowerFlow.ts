@@ -134,6 +134,8 @@ export function recomputeAllShaftPowerFlow(voxelMap: IVoxelWriter): void {
         const current = queue[index++];
         const currentKey = keyOf(voxelMap, current.x, current.z);
         const currentReversed = reversedMap.get(currentKey) ?? false;
+        const currentVoxel = voxelMap.getSurface({ x: current.x, y: 0, z: current.z });
+        const currentMask = getPipeConnectionsFromVoxel(currentVoxel);
 
         for (const dir of CARDINAL_DIRS) {
             const nx = current.x + dir.dx;
@@ -144,10 +146,48 @@ export function recomputeAllShaftPowerFlow(voxelMap: IVoxelWriter): void {
             if (visited.has(key)) continue;
             if (!canPowerFlowBetween(voxelMap, current.x, current.z, dir.dx, dir.dz, dir.bit, dir.oppositeBit)) continue;
 
-            const nextVoxel = getSurfaceVoxelAt(voxelMap, nx, nz);
-            if (nextVoxel == null) continue;
+            const nextVoxel = voxelMap.getSurface({ x: nx, y: 0, z: nz });
             const nextMask = getPipeConnectionsFromVoxel(nextVoxel);
-            const nextReversed = isShaftStraightMask(nextMask) ? currentReversed : !currentReversed;
+            let nextReversed = false;
+            if (isShaftStraightMask(currentMask)) {
+                if (isShaftStraightMask(nextMask)) {
+                    nextReversed = currentReversed;
+                } else {
+                    switch (dir.oppositeBit) {
+                        case SHAFT_CONNECTION_UP:
+                            nextReversed = currentReversed;
+                            break;
+                        case SHAFT_CONNECTION_DOWN:
+                            nextReversed = !currentReversed;
+                            break;
+                        case SHAFT_CONNECTION_LEFT:
+                            nextReversed = currentReversed;
+                            break;
+                        case SHAFT_CONNECTION_RIGHT:
+                            nextReversed = !currentReversed;
+                            break;
+                    }                    
+                }
+            } else {
+                if (isShaftStraightMask(nextMask)) {
+                  switch (dir.bit) {
+                      case SHAFT_CONNECTION_UP:
+                          nextReversed = currentReversed;
+                          break;
+                      case SHAFT_CONNECTION_DOWN:
+                          nextReversed = !currentReversed;
+                          break;
+                      case SHAFT_CONNECTION_LEFT:
+                          nextReversed = currentReversed;
+                          break;
+                      case SHAFT_CONNECTION_RIGHT:
+                          nextReversed = !currentReversed;
+                          break;
+                  }
+              } else {
+                  nextReversed = !currentReversed;
+              }
+            }
 
             visited.add(key);
             reversedMap.set(key, nextReversed);

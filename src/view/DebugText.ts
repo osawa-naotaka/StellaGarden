@@ -55,6 +55,7 @@ export const ENTITY_NAMES: Record<number, string> = {
     [ENTITY_TYPES.warp_gate]: "転移ゲート",
     [ENTITY_TYPES.rail]: "レール",
     [ENTITY_TYPES.shaft]: "シャフト",
+    [ENTITY_TYPES.waterwheel]: "水車",
 };
 
 const FERTILIZER_NAMES: Record<number, string> = {
