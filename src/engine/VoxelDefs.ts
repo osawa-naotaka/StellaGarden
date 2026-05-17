@@ -246,4 +246,6 @@ export const VOXEL_VARIANT = {
     done: 1,
     horizontal: 0,
     vertical: 1,
+    horizontal_inv: 2,
+    vertical_inv: 3,
 };

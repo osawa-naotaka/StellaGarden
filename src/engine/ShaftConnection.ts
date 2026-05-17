@@ -53,17 +53,17 @@ export function computeShaftConnectionMask(voxelMap: IVoxelWriter, pos: Pos2D): 
     const voxel = getSurfaceVoxelWithShaftAt(voxelMap, pos.x, pos.z);
     if (voxel == null) return mask;
 
-    const variant = getVariantFromVoxel(voxel);
+    const variant = getVariantFromVoxel(voxel) & 0x1;
 
-  　　const left = getSurfaceVoxelWithShaftAt(voxelMap, pos.x - 1, pos.z);
-  　　const right = getSurfaceVoxelWithShaftAt(voxelMap, pos.x + 1, pos.z);
+    const left = getSurfaceVoxelWithShaftAt(voxelMap, pos.x - 1, pos.z);
+    const right = getSurfaceVoxelWithShaftAt(voxelMap, pos.x + 1, pos.z);
     const top = getSurfaceVoxelWithShaftAt(voxelMap, pos.x, pos.z - 1);
     const bottom = getSurfaceVoxelWithShaftAt(voxelMap, pos.x, pos.z + 1);
 
-    const leftVariant = left === null ? 0 : getVariantFromVoxel(left);
-    const rightVariant = right === null ? 0 : getVariantFromVoxel(right);
-    const topVariant = top === null ? 0 : getVariantFromVoxel(top);
-    const bottomVariant = bottom === null ? 0 : getVariantFromVoxel(bottom);
+    const leftVariant = left === null ? 0 : getVariantFromVoxel(left) & 0x1;
+    const rightVariant = right === null ? 0 : getVariantFromVoxel(right) & 0x1;
+    const topVariant = top === null ? 0 : getVariantFromVoxel(top) & 0x1;
+    const bottomVariant = bottom === null ? 0 : getVariantFromVoxel(bottom) & 0x1;
 
     if (variant === VOXEL_VARIANT.horizontal) {
         if (left !== null) {
