@@ -5,4 +5,4 @@ node_modules
 dist
 wrangler.jsonc
 public/assets/non-redis/*
-.claude/agent-memory/*
+.claude/agent-memory
