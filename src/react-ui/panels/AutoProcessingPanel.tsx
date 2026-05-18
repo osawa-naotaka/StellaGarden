@@ -83,10 +83,30 @@ export function AutoProcessingPanel({ open, inventory, autoProcessingStorage, vo
         [autoProcessingStorage, voxelMap, pos],
     );
 
+    const getQuickTransferTargets = useCallback(
+        (ref: AutoProcessingRef): AutoProcessingRef[] | undefined => {
+            if (!pos || !def) return undefined;
+            const invTotal = INV_ROWS * COLS;
+            // 出力 or 入力 → プレイヤーインベントリへ取り出し
+            if (ref.area === "processing_output" || ref.area === "processing_input") {
+                const targets: AutoProcessingRef[] = [];
+                for (let i = 0; i < invTotal; i++) targets.push({ area: "inventory", index: i });
+                for (let i = 1; i <= TOOLBAR_COLS; i++) targets.push({ area: "toolbar", index: i });
+                return targets;
+            }
+            // インベントリ/ツールバー → 入力スロット（canPlaceTo がレシピでフィルタ）
+            const targets: AutoProcessingRef[] = [];
+            for (let i = 0; i < def.inputSlotCount; i++) targets.push({ area: "processing_input", index: i });
+            return targets;
+        },
+        [pos, def],
+    );
+
     const { pickedUp, cursorPos, handleLeftClick, handleRightClick } = usePickup<AutoProcessingRef>(open, {
         getSlot,
         setSlot,
         canPlaceTo,
+        getQuickTransferTargets,
     });
 
     const close = useCallback(() => {
@@ -119,7 +139,7 @@ export function AutoProcessingPanel({ open, inventory, autoProcessingStorage, vo
                         rows={INPUT_ROWS}
                         cols={INPUT_COLS}
                         getStack={(i) => (i < inputCount ? autoProcessingStorage.getInput(pos, i) : null)}
-                        onLeftClick={(i) => handleLeftClick({ area: "processing_input", index: i })}
+                        onLeftClick={(i, e) => handleLeftClick({ area: "processing_input", index: i }, e.nativeEvent)}
                         onRightClick={(i) => handleRightClick({ area: "processing_input", index: i })}
                     />
                 </section>
@@ -130,7 +150,7 @@ export function AutoProcessingPanel({ open, inventory, autoProcessingStorage, vo
                         rows={OUTPUT_ROWS}
                         cols={OUTPUT_COLS}
                         getStack={(i) => (i < outputCount ? autoProcessingStorage.getOutput(pos, i) : null)}
-                        onLeftClick={(i) => handleLeftClick({ area: "processing_output", index: i })}
+                        onLeftClick={(i, e) => handleLeftClick({ area: "processing_output", index: i }, e.nativeEvent)}
                         onRightClick={(i) => handleRightClick({ area: "processing_output", index: i })}
                     />
                 </section>
@@ -151,7 +171,7 @@ export function AutoProcessingPanel({ open, inventory, autoProcessingStorage, vo
                         rows={INV_ROWS}
                         cols={COLS}
                         getStack={(i) => inventory.getSlot({ area: "inventory", index: i })}
-                        onLeftClick={(i) => handleLeftClick({ area: "inventory", index: i })}
+                        onLeftClick={(i, e) => handleLeftClick({ area: "inventory", index: i }, e.nativeEvent)}
                         onRightClick={(i) => handleRightClick({ area: "inventory", index: i })}
                     />
                 </section>
@@ -162,7 +182,7 @@ export function AutoProcessingPanel({ open, inventory, autoProcessingStorage, vo
                         rows={1}
                         cols={TOOLBAR_COLS}
                         getStack={(i) => inventory.getSlot({ area: "toolbar", index: i + 1 })}
-                        onLeftClick={(i) => handleLeftClick({ area: "toolbar", index: i + 1 })}
+                        onLeftClick={(i, e) => handleLeftClick({ area: "toolbar", index: i + 1 }, e.nativeEvent)}
                         onRightClick={(i) => handleRightClick({ area: "toolbar", index: i + 1 })}
                     />
                 </section>

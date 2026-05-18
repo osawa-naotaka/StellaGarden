@@ -15,12 +15,18 @@ export interface UsePickupConfig<R> {
     onPlaceableRightClick?: (ref: R, stack: ItemStack) => boolean;
     /** スロット種別ごとに配置を制限する場合のフィルタ。false を返すと配置不可。 */
     canPlaceTo?: (ref: R, stack: ItemStack) => boolean;
+    /**
+     * Ctrl/Cmd + 左クリック時、source ref のアイテムを順に試す転送先 ref のリストを返す。
+     * 試行順は配列の先頭から（pass1: 同 itemId に top-up、pass2: 空スロットに新規）。
+     * undefined / 空配列を返すと quickTransfer は無効。canPlaceTo が定義されていれば各 target に対するフィルタとしてそのまま流用する。
+     */
+    getQuickTransferTargets?: (ref: R, stack: ItemStack) => R[] | undefined;
 }
 
 export interface PickupState<R> {
     pickedUp: ItemStack | null;
     cursorPos: { x: number; y: number };
-    handleLeftClick: (ref: R) => void;
+    handleLeftClick: (ref: R, e?: MouseEvent | { ctrlKey?: boolean; metaKey?: boolean }) => void;
     handleRightClick: (ref: R) => void;
     /** 持っているアイテムを source に戻して null にする。 */
     returnToSource: () => void;
@@ -69,11 +75,48 @@ export function usePickup<R>(active: boolean, config: UsePickupConfig<R>): Picku
         return () => window.removeEventListener("keydown", onKey, true);
     }, [active, picked]);
 
-    const handleLeftClick = useCallback((ref: R) => {
+    const handleLeftClick = useCallback((ref: R, e?: MouseEvent | { ctrlKey?: boolean; metaKey?: boolean }) => {
         const cfg = cfgRef.current;
+        const isQuickTransfer = !!(e && (e.ctrlKey || e.metaKey));
 
         setPicked((prev) => {
             const target = cfg.getSlot(ref);
+
+            // Ctrl/Cmd + クリック: ピックアップ中ではない & 対象あり & getQuickTransferTargets 定義済み のとき quickTransfer
+            if (isQuickTransfer && !prev && target && cfg.getQuickTransferTargets) {
+                const targets = cfg.getQuickTransferTargets(ref, target);
+                if (!targets || targets.length === 0) return null;
+                const max = getItemDef(target.itemId)?.maxStack ?? 64;
+                let remaining = target.count;
+
+                // pass1: 既存スタックに追加（同 itemId、max まで）
+                for (const t of targets) {
+                    if (remaining === 0) break;
+                    if (cfg.canPlaceTo && !cfg.canPlaceTo(t, target)) continue;
+                    const slot = cfg.getSlot(t);
+                    if (!slot || slot.itemId !== target.itemId) continue;
+                    const space = max - slot.count;
+                    if (space <= 0) continue;
+                    const move = Math.min(space, remaining);
+                    cfg.setSlot(t, { itemId: slot.itemId, count: slot.count + move });
+                    remaining -= move;
+                }
+
+                // pass2: 空スロットに新規（maxStack 単位で詰める）
+                for (const t of targets) {
+                    if (remaining === 0) break;
+                    if (cfg.canPlaceTo && !cfg.canPlaceTo(t, target)) continue;
+                    if (cfg.getSlot(t)) continue;
+                    const move = Math.min(max, remaining);
+                    cfg.setSlot(t, { itemId: target.itemId, count: move });
+                    remaining -= move;
+                }
+
+                // source slot を更新
+                if (remaining === 0) cfg.setSlot(ref, null);
+                else if (remaining !== target.count) cfg.setSlot(ref, { itemId: target.itemId, count: remaining });
+                return null;
+            }
 
             // 何も持っていない → ピックアップ
             if (!prev) {

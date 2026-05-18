@@ -49,9 +49,30 @@ export function ChestPanel({ open, inventory, chestStorage, uiState }: ChestPane
         [inventory, chestStorage, chestPos],
     );
 
+    const getQuickTransferTargets = useCallback(
+        (ref: ChestSlotRef): ChestSlotRef[] | undefined => {
+            const chestTotal = CHEST_ROWS * COLS;
+            const invTotal = INV_ROWS * COLS;
+            if (ref.area === "chest") {
+                // chest → inventory → toolbar 1..9 (hand=0 を除外)
+                const targets: ChestSlotRef[] = [];
+                for (let i = 0; i < invTotal; i++) targets.push({ area: "inventory", index: i });
+                for (let i = 1; i <= TOOLBAR_COLS; i++) targets.push({ area: "toolbar", index: i });
+                return targets;
+            }
+            // inventory / toolbar → chest
+            if (!chestPos) return undefined;
+            const targets: ChestSlotRef[] = [];
+            for (let i = 0; i < chestTotal; i++) targets.push({ area: "chest", index: i });
+            return targets;
+        },
+        [chestPos],
+    );
+
     const { pickedUp, cursorPos, handleLeftClick, handleRightClick } = usePickup<ChestSlotRef>(open, {
         getSlot,
         setSlot,
+        getQuickTransferTargets,
     });
 
     const close = useCallback(() => {
@@ -68,7 +89,7 @@ export function ChestPanel({ open, inventory, chestStorage, uiState }: ChestPane
                         rows={CHEST_ROWS}
                         cols={COLS}
                         getStack={(i) => (chestPos ? chestStorage.getSlot(chestPos, i) : null)}
-                        onLeftClick={(i) => handleLeftClick({ area: "chest", index: i })}
+                        onLeftClick={(i, e) => handleLeftClick({ area: "chest", index: i }, e.nativeEvent)}
                         onRightClick={(i) => handleRightClick({ area: "chest", index: i })}
                     />
                 </section>
@@ -81,7 +102,7 @@ export function ChestPanel({ open, inventory, chestStorage, uiState }: ChestPane
                         rows={INV_ROWS}
                         cols={COLS}
                         getStack={(i) => inventory.getSlot({ area: "inventory", index: i })}
-                        onLeftClick={(i) => handleLeftClick({ area: "inventory", index: i })}
+                        onLeftClick={(i, e) => handleLeftClick({ area: "inventory", index: i }, e.nativeEvent)}
                         onRightClick={(i) => handleRightClick({ area: "inventory", index: i })}
                     />
                 </section>
@@ -92,7 +113,7 @@ export function ChestPanel({ open, inventory, chestStorage, uiState }: ChestPane
                         rows={1}
                         cols={TOOLBAR_COLS}
                         getStack={(i) => inventory.getSlot({ area: "toolbar", index: i + 1 })}
-                        onLeftClick={(i) => handleLeftClick({ area: "toolbar", index: i + 1 })}
+                        onLeftClick={(i, e) => handleLeftClick({ area: "toolbar", index: i + 1 }, e.nativeEvent)}
                         onRightClick={(i) => handleRightClick({ area: "toolbar", index: i + 1 })}
                     />
                 </section>

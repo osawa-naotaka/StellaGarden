@@ -72,10 +72,30 @@ export function ForgePanel({ open, inventory, forgeStorage, voxelMap, uiState }:
         [slotAreaToKind],
     );
 
+    const getQuickTransferTargets = useCallback(
+        (ref: ForgeSlotRef): ForgeSlotRef[] | undefined => {
+            const invTotal = INV_ROWS * COLS;
+            // forge スロット → インベントリ + toolbar 1..9
+            if (ref.area === "forge_ingredient" || ref.area === "forge_fuel" || ref.area === "forge_output") {
+                const targets: ForgeSlotRef[] = [];
+                for (let i = 0; i < invTotal; i++) targets.push({ area: "inventory", index: i });
+                for (let i = 1; i <= TOOLBAR_COLS; i++) targets.push({ area: "toolbar", index: i });
+                return targets;
+            }
+            // インベントリ/ツールバー → ingredient と fuel のみ（output は完成品スロットなので含めない。canPlaceTo がアイテム種別で振り分ける）
+            return [
+                { area: "forge_ingredient", index: 0 },
+                { area: "forge_fuel", index: 0 },
+            ];
+        },
+        [],
+    );
+
     const { pickedUp, cursorPos, handleLeftClick, handleRightClick } = usePickup<ForgeSlotRef>(open, {
         getSlot,
         setSlot,
         canPlaceTo,
+        getQuickTransferTargets,
     });
 
     const close = useCallback(() => {
@@ -98,7 +118,7 @@ export function ForgePanel({ open, inventory, forgeStorage, voxelMap, uiState }:
                             <span className="sg-forge-row-label">Ingredient</span>
                             <Slot
                                 stack={ingredient}
-                                onLeftClick={() => handleLeftClick({ area: "forge_ingredient", index: 0 })}
+                                onLeftClick={(e) => handleLeftClick({ area: "forge_ingredient", index: 0 }, e.nativeEvent)}
                                 onRightClick={() => handleRightClick({ area: "forge_ingredient", index: 0 })}
                             />
                         </div>
@@ -106,7 +126,7 @@ export function ForgePanel({ open, inventory, forgeStorage, voxelMap, uiState }:
                             <span className="sg-forge-row-label">Fuel</span>
                             <Slot
                                 stack={fuel}
-                                onLeftClick={() => handleLeftClick({ area: "forge_fuel", index: 0 })}
+                                onLeftClick={(e) => handleLeftClick({ area: "forge_fuel", index: 0 }, e.nativeEvent)}
                                 onRightClick={() => handleRightClick({ area: "forge_fuel", index: 0 })}
                             />
                         </div>
@@ -114,7 +134,7 @@ export function ForgePanel({ open, inventory, forgeStorage, voxelMap, uiState }:
                             <span className="sg-forge-row-label">Output</span>
                             <Slot
                                 stack={output}
-                                onLeftClick={() => handleLeftClick({ area: "forge_output", index: 0 })}
+                                onLeftClick={(e) => handleLeftClick({ area: "forge_output", index: 0 }, e.nativeEvent)}
                                 onRightClick={() => handleRightClick({ area: "forge_output", index: 0 })}
                             />
                         </div>
@@ -129,7 +149,7 @@ export function ForgePanel({ open, inventory, forgeStorage, voxelMap, uiState }:
                         rows={INV_ROWS}
                         cols={COLS}
                         getStack={(i) => inventory.getSlot({ area: "inventory", index: i })}
-                        onLeftClick={(i) => handleLeftClick({ area: "inventory", index: i })}
+                        onLeftClick={(i, e) => handleLeftClick({ area: "inventory", index: i }, e.nativeEvent)}
                         onRightClick={(i) => handleRightClick({ area: "inventory", index: i })}
                     />
                 </section>
@@ -140,7 +160,7 @@ export function ForgePanel({ open, inventory, forgeStorage, voxelMap, uiState }:
                         rows={1}
                         cols={TOOLBAR_COLS}
                         getStack={(i) => inventory.getSlot({ area: "toolbar", index: i + 1 })}
-                        onLeftClick={(i) => handleLeftClick({ area: "toolbar", index: i + 1 })}
+                        onLeftClick={(i, e) => handleLeftClick({ area: "toolbar", index: i + 1 }, e.nativeEvent)}
                         onRightClick={(i) => handleRightClick({ area: "toolbar", index: i + 1 })}
                     />
                 </section>

@@ -81,10 +81,28 @@ export function ManualProcessingPanel({ open, inventory, manualProcessingStorage
         [manualProcessingStorage, voxelMap, pos],
     );
 
+    const getQuickTransferTargets = useCallback(
+        (ref: ManualProcessingRef): ManualProcessingRef[] | undefined => {
+            if (!pos || !def) return undefined;
+            const invTotal = INV_ROWS * COLS;
+            // 出力 or 入力 → プレイヤーインベントリへ取り出し
+            if (ref.area === "processing_output" || ref.area === "processing_input") {
+                const targets: ManualProcessingRef[] = [];
+                for (let i = 0; i < invTotal; i++) targets.push({ area: "inventory", index: i });
+                for (let i = 1; i <= TOOLBAR_COLS; i++) targets.push({ area: "toolbar", index: i });
+                return targets;
+            }
+            // インベントリ/ツールバー → 入力スロット（手動処理は入力1スロットのみ）
+            return [{ area: "processing_input", index: 0 }];
+        },
+        [pos, def],
+    );
+
     const { pickedUp, cursorPos, handleLeftClick, handleRightClick } = usePickup<ManualProcessingRef>(open, {
         getSlot,
         setSlot,
         canPlaceTo,
+        getQuickTransferTargets,
     });
 
     const close = useCallback(() => {
@@ -170,19 +188,19 @@ export function ManualProcessingPanel({ open, inventory, manualProcessingStorage
                     <div className="sg-processing-row">
                         <Slot
                             stack={input}
-                            onLeftClick={() => handleLeftClick({ area: "processing_input", index: 0 })}
+                            onLeftClick={(e) => handleLeftClick({ area: "processing_input", index: 0 }, e.nativeEvent)}
                             onRightClick={() => handleRightClick({ area: "processing_input", index: 0 })}
                         />
                         <span className="sg-processing-arrow">→</span>
                         <Slot
                             stack={output0}
-                            onLeftClick={() => handleLeftClick({ area: "processing_output", index: 0 })}
+                            onLeftClick={(e) => handleLeftClick({ area: "processing_output", index: 0 }, e.nativeEvent)}
                             onRightClick={() => handleRightClick({ area: "processing_output", index: 0 })}
                         />
                         {def.outputSlotCount === 2 && (
                             <Slot
                                 stack={output1}
-                                onLeftClick={() => handleLeftClick({ area: "processing_output", index: 1 })}
+                                onLeftClick={(e) => handleLeftClick({ area: "processing_output", index: 1 }, e.nativeEvent)}
                                 onRightClick={() => handleRightClick({ area: "processing_output", index: 1 })}
                             />
                         )}
@@ -210,7 +228,7 @@ export function ManualProcessingPanel({ open, inventory, manualProcessingStorage
                         rows={INV_ROWS}
                         cols={COLS}
                         getStack={(i) => inventory.getSlot({ area: "inventory", index: i })}
-                        onLeftClick={(i) => handleLeftClick({ area: "inventory", index: i })}
+                        onLeftClick={(i, e) => handleLeftClick({ area: "inventory", index: i }, e.nativeEvent)}
                         onRightClick={(i) => handleRightClick({ area: "inventory", index: i })}
                     />
                 </section>
@@ -221,7 +239,7 @@ export function ManualProcessingPanel({ open, inventory, manualProcessingStorage
                         rows={1}
                         cols={TOOLBAR_COLS}
                         getStack={(i) => inventory.getSlot({ area: "toolbar", index: i + 1 })}
-                        onLeftClick={(i) => handleLeftClick({ area: "toolbar", index: i + 1 })}
+                        onLeftClick={(i, e) => handleLeftClick({ area: "toolbar", index: i + 1 }, e.nativeEvent)}
                         onRightClick={(i) => handleRightClick({ area: "toolbar", index: i + 1 })}
                     />
                 </section>

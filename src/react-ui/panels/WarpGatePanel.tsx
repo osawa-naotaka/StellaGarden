@@ -48,9 +48,27 @@ export function WarpGatePanel({ open, inventory, warpGateStorage, reputationSyst
         [inventory, warpGateStorage],
     );
 
+    const getQuickTransferTargets = useCallback(
+        (ref: WarpGateSlotRef): WarpGateSlotRef[] | undefined => {
+            const warpTotal = EARTH_INV_ROWS * COLS;
+            const invTotal = INV_ROWS * COLS;
+            if (ref.area === "warp_gate") {
+                const targets: WarpGateSlotRef[] = [];
+                for (let i = 0; i < invTotal; i++) targets.push({ area: "inventory", index: i });
+                for (let i = 1; i <= TOOLBAR_COLS; i++) targets.push({ area: "toolbar", index: i });
+                return targets;
+            }
+            const targets: WarpGateSlotRef[] = [];
+            for (let i = 0; i < warpTotal; i++) targets.push({ area: "warp_gate", index: i });
+            return targets;
+        },
+        [],
+    );
+
     const { pickedUp, cursorPos, handleLeftClick, handleRightClick } = usePickup<WarpGateSlotRef>(open, {
         getSlot,
         setSlot,
+        getQuickTransferTargets,
     });
 
     const close = useCallback(() => {
@@ -84,7 +102,7 @@ export function WarpGatePanel({ open, inventory, warpGateStorage, reputationSyst
                         rows={EARTH_INV_ROWS}
                         cols={COLS}
                         getStack={(i) => warpGateStorage.getSlot(i)}
-                        onLeftClick={(i) => handleLeftClick({ area: "warp_gate", index: i })}
+                        onLeftClick={(i, e) => handleLeftClick({ area: "warp_gate", index: i }, e.nativeEvent)}
                         onRightClick={(i) => handleRightClick({ area: "warp_gate", index: i })}
                     />
                 </section>
@@ -104,7 +122,7 @@ export function WarpGatePanel({ open, inventory, warpGateStorage, reputationSyst
                         rows={INV_ROWS}
                         cols={COLS}
                         getStack={(i) => inventory.getSlot({ area: "inventory", index: i })}
-                        onLeftClick={(i) => handleLeftClick({ area: "inventory", index: i })}
+                        onLeftClick={(i, e) => handleLeftClick({ area: "inventory", index: i }, e.nativeEvent)}
                         onRightClick={(i) => handleRightClick({ area: "inventory", index: i })}
                     />
                 </section>
@@ -115,7 +133,7 @@ export function WarpGatePanel({ open, inventory, warpGateStorage, reputationSyst
                         rows={1}
                         cols={TOOLBAR_COLS}
                         getStack={(i) => inventory.getSlot({ area: "toolbar", index: i + 1 })}
-                        onLeftClick={(i) => handleLeftClick({ area: "toolbar", index: i + 1 })}
+                        onLeftClick={(i, e) => handleLeftClick({ area: "toolbar", index: i + 1 }, e.nativeEvent)}
                         onRightClick={(i) => handleRightClick({ area: "toolbar", index: i + 1 })}
                     />
                 </section>
