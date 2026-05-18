@@ -158,6 +158,39 @@ export const DAILY_PROCESSING_DEFS: Readonly<Record<number, DailyProcessingDef>>
     },
 };
 
+/** 自動処理（シャフト動力 ON のとき day_changed で全入力を一括処理）。 */
+export interface AutoProcessingDef {
+    /** 入力スロット数。 */
+    readonly inputSlotCount: number;
+    /** 出力スロット数。 */
+    readonly outputSlotCount: number;
+    /** entity ごとの全レシピ。入力スロットの itemId に応じて切り替える。 */
+    readonly recipes: ReadonlyArray<ProcessingRecipe>;
+}
+
+/** カテゴリ4: 自動処理施設のレシピテーブル。 */
+export const AUTO_PROCESSING_DEFS: Readonly<Record<number, AutoProcessingDef>> = {
+    [ENTITY_TYPES.auto_thresher]: {
+        inputSlotCount: 8,
+        outputSlotCount: 16,
+        recipes: [
+            {
+                inputItemId: "pods",
+                inputCountPerCycle: 1,
+                outputs: [
+                    { itemId: "soybeans", count: 1 },
+                    { itemId: "stem", count: 1 },
+                ],
+            },
+        ],
+    },
+};
+
+/** entity に対応する自動処理定義を返す。未登録なら null。 */
+export function getAutoProcessingDef(entityType: number): AutoProcessingDef | null {
+    return AUTO_PROCESSING_DEFS[entityType] ?? null;
+}
+
 /** entity に対応する手動処理定義を返す。未登録なら null。 */
 export function getManualProcessingDef(entityType: number): ManualProcessingDef | null {
     return MANUAL_PROCESSING_DEFS[entityType] ?? null;

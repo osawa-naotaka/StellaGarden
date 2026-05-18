@@ -49,6 +49,7 @@ export const ENTITY_TYPES = {
     rail: 34,
     waterwheel: 35,
     shaft: 36,
+    auto_thresher: 37,
 } as const;
 
 // ---------------------------------------------------------------------------

@@ -116,7 +116,7 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
             const placementOverlay = new PlacementOverlay(voxelMap, playerState.inventory, uiState);
             worldContainer.addChild(placementOverlay.top);
 
-            const { chestStorage, forgeStorage, workbenchStorage, warpGateStorage, manualProcessingStorage, dailyProcessingStorage } =
+            const { chestStorage, forgeStorage, workbenchStorage, warpGateStorage, manualProcessingStorage, dailyProcessingStorage, autoProcessingStorage } =
                 bootstrapStorages(saveData);
 
             const reputationSystem = new ReputationSystem({
@@ -143,7 +143,7 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
             const gameTime = new GameTime(saveData?.gameTime.elapsedMs);
 
             // 日次処理対象のストレージ群（KeyedSlotStorage 派生）。新規ストレージ追加時はここに足すだけで day_changed に乗る。
-            const dailyTickStorages = [chestStorage, forgeStorage, workbenchStorage, dailyProcessingStorage];
+            const dailyTickStorages = [chestStorage, forgeStorage, workbenchStorage, dailyProcessingStorage, autoProcessingStorage];
 
             disposers.push(
                 eventBroker.subscribe("day_changed", () => {
@@ -173,6 +173,7 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
                 forgeStorage,
                 manualProcessingStorage,
                 dailyProcessingStorage,
+                autoProcessingStorage,
                 craftSystem,
                 voxelMap,
                 uiState,
@@ -206,6 +207,7 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
                         warpGateStorage,
                         manualProcessingStorage,
                         dailyProcessingStorage,
+                        autoProcessingStorage,
                         reputationSystem,
                     }),
                 )

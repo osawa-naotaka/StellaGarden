@@ -1,10 +1,12 @@
 import type { IEventBroker } from "../../_boundary/interfaces";
+import { setAutoProcessingStorage } from "../../_registry/entities/AutoProcessing";
 import { setChestStorage } from "../../_registry/entities/Chest";
 import { setDailyProcessingStorage } from "../../_registry/entities/DailyProcessing";
 import { setForgeStorage } from "../../_registry/entities/Forge";
 import { setManualProcessingStorage } from "../../_registry/entities/ManualProcessing";
 import { setWarpGateStorage } from "../../_registry/entities/WarpGate";
 import { setWorkbenchStorage } from "../../_registry/entities/Workbench";
+import { AutoProcessingStorage } from "../../engine/AutoProcessingStorage";
 import { ChestStorage } from "../../engine/ChestStorage";
 import { DailyProcessingStorage } from "../../engine/DailyProcessingStorage";
 import { ForgeStorage } from "../../engine/ForgeStorage";
@@ -41,6 +43,7 @@ export interface Storages {
     warpGateStorage: WarpGateStorage;
     manualProcessingStorage: ManualProcessingStorage;
     dailyProcessingStorage: DailyProcessingStorage;
+    autoProcessingStorage: AutoProcessingStorage;
 }
 
 /**
@@ -72,5 +75,9 @@ export function bootstrapStorages(saveData: SaveData | null): Storages {
     if (saveData) dailyProcessingStorage.loadSaveData(saveData.dailyProcessingStorage.facilities);
     setDailyProcessingStorage(dailyProcessingStorage);
 
-    return { chestStorage, forgeStorage, workbenchStorage, warpGateStorage, manualProcessingStorage, dailyProcessingStorage };
+    const autoProcessingStorage = new AutoProcessingStorage();
+    if (saveData) autoProcessingStorage.loadSaveData(saveData.autoProcessingStorage.facilities);
+    setAutoProcessingStorage(autoProcessingStorage);
+
+    return { chestStorage, forgeStorage, workbenchStorage, warpGateStorage, manualProcessingStorage, dailyProcessingStorage, autoProcessingStorage };
 }

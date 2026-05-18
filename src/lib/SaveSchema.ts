@@ -108,6 +108,22 @@ export const DailyProcessingStorageSaveDataSchema = v.object({
     ),
 });
 
+// 自動処理施設（auto_thresher 等）は入力 8 / 出力 16 のプール構造。
+// スロット数を将来変更しやすいよう、配列は固定長 tuple ではなく可変長にしている。
+const AutoProcessingSlotsSchema = v.object({
+    inputs: v.array(NullableItemStackSchema),
+    outputs: v.array(NullableItemStackSchema),
+});
+
+export const AutoProcessingStorageSaveDataSchema = v.object({
+    facilities: v.array(
+        v.object({
+            key: v.string(),
+            slots: AutoProcessingSlotsSchema,
+        }),
+    ),
+});
+
 export const ReputationSaveDataSchema = v.object({
     points: v.number(),
     cumulativeShipped: v.array(v.tuple([ItemIdSchema, v.number()])),
@@ -129,6 +145,7 @@ export const SaveDataSchema = v.object({
     warpGateStorage: WarpGateStorageSaveDataSchema,
     manualProcessingStorage: ManualProcessingStorageSaveDataSchema,
     dailyProcessingStorage: DailyProcessingStorageSaveDataSchema,
+    autoProcessingStorage: AutoProcessingStorageSaveDataSchema,
     reputation: ReputationSaveDataSchema,
 });
 
@@ -151,4 +168,5 @@ export type WorkbenchStorageSaveData = v.InferOutput<typeof WorkbenchStorageSave
 export type WarpGateStorageSaveData = v.InferOutput<typeof WarpGateStorageSaveDataSchema>;
 export type ManualProcessingStorageSaveData = v.InferOutput<typeof ManualProcessingStorageSaveDataSchema>;
 export type DailyProcessingStorageSaveData = v.InferOutput<typeof DailyProcessingStorageSaveDataSchema>;
+export type AutoProcessingStorageSaveData = v.InferOutput<typeof AutoProcessingStorageSaveDataSchema>;
 export type ReputationSaveData = v.InferOutput<typeof ReputationSaveDataSchema>;

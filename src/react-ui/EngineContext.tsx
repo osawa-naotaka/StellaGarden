@@ -8,6 +8,7 @@ import type {
     IReputationSystemReader,
     IVoxelWriter,
 } from "../_boundary/interfaces";
+import type { AutoProcessingStorage } from "../engine/AutoProcessingStorage";
 import type { ChestStorage } from "../engine/ChestStorage";
 import type { DailyProcessingStorage } from "../engine/DailyProcessingStorage";
 import type { ForgeStorage } from "../engine/ForgeStorage";
@@ -29,6 +30,7 @@ export interface EngineRefs {
     forgeStorage: ForgeStorage;
     manualProcessingStorage: ManualProcessingStorage;
     dailyProcessingStorage: DailyProcessingStorage;
+    autoProcessingStorage: AutoProcessingStorage;
     craftSystem: ICraftSystem;
     voxelMap: IVoxelWriter;
     uiState: UIState;

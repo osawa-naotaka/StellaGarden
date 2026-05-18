@@ -65,6 +65,15 @@ export const RECIPES: readonly RecipeDef[] = [
         result: { itemId: "threshing_machine", count: 1 },
     },
     {
+        id: "auto_thresher",
+        station: "workbench",
+        ingredients: [
+            { itemId: "trunk", count: 2 },
+            { itemId: "hardwood_teeth", count: 1 },
+        ],
+        result: { itemId: "auto_thresher", count: 1 },
+    },
+    {
         id: "stone_hammer",
         station: "workbench",
         ingredients: [

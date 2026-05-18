@@ -2,6 +2,7 @@ import { safeParse } from "valibot";
 import { SaveDataSchema, SlotHeaderSchema } from "./SaveSchema";
 
 export type {
+    AutoProcessingStorageSaveData,
     ChestStorageSaveData,
     DailyProcessingStorageSaveData,
     ForgeStorageSaveData,
@@ -25,7 +26,7 @@ export type SaveSlot = 1 | 2 | 3;
 const DB_NAME = "stella-garden";
 const DB_VERSION = 1;
 const STORE_NAME = "saveData";
-const CURRENT_SAVE_VERSION = 8;
+const CURRENT_SAVE_VERSION = 9;
 /** これより古いバージョンはマイグレーションパスがなく、ロード不可。 */
 const MIN_SUPPORTED_VERSION = 6;
 
@@ -49,6 +50,11 @@ const migrations: Record<number, (data: RawSave) => RawSave> = {
         ...data,
         manualProcessingStorage: { facilities: [] },
         dailyProcessingStorage: { facilities: [] },
+    }),
+    // v8 → v9: 自動処理ストレージを追加。既存セーブにはまだ自動処理施設が無いため空配列で OK。
+    8: (data) => ({
+        ...data,
+        autoProcessingStorage: { facilities: [] },
     }),
 };
 

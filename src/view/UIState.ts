@@ -1,7 +1,7 @@
 import type { CraftStation, IEventBroker, ItemId, Pos2D, SlotRef } from "../_boundary/interfaces";
 import type { PlacementVariant } from "../_registry/ItemRegistry";
 
-export type UIMode = "normal" | "inventory-craft" | "placement" | "chest" | "forge" | "warp_gate" | "processing-manual" | "processing-daily";
+export type UIMode = "normal" | "inventory-craft" | "placement" | "chest" | "forge" | "warp_gate" | "processing-manual" | "processing-daily" | "processing-auto";
 export type TimeSpeed = "paused" | "normal" | "fast";
 
 /**
@@ -88,6 +88,12 @@ export class UIState {
             this.processingPos = pos;
         });
 
+        const d8 = broker.subscribe("open_processing_auto_ui", ({ pos }) => {
+            if (this.mode === "placement") return;
+            this.mode = "processing-auto";
+            this.processingPos = pos;
+        });
+
         return () => {
             d1();
             d2();
@@ -96,6 +102,7 @@ export class UIState {
             d5();
             d6();
             d7();
+            d8();
         };
     }
 

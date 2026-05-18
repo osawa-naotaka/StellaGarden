@@ -36,6 +36,7 @@ StellaGarden は Vite + React 19 + TypeScript + PixiJS 8 で作られたチル�
 | `CropSystem.ts` | 作物育成システム。`advanceDayAllCrops(voxelMap)` で全芋タイル（y=horizonHeight）の育成カウンタを+1（上限5）。 |
 | `ChestStorage.ts` | チェストのスロット状態を座標ベースで保持する（64スロット配列）。セーブ/ロード対応。 |
 | `ForgeStorage.ts` | 炉（Forge）のスロット状態を座標ベースで保持する（ingredient / fuel / output の3スロット）。`advanceDayAllForges(voxelMap)` で日次精錬処理。セーブ/ロード対応。 |
+| `AutoProcessingStorage.ts` | 自動加工機（auto_thresher 等）のスロット状態を座標ベースで管理する（入力 8 スロット / 出力 16 スロット）。`onDailyTick` で動力伝達済みシャフト隣接判定 → 全入力一括処理。セーブ/ロード対応。 |
 
 ## あなたが発行するイベント（EventBroker.publish）
 

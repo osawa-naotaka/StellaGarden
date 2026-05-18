@@ -5,6 +5,7 @@ import { useUIMode } from "./hooks/useUIMode";
 
 // パネルの自己登録（モジュールロード時の副作用）
 // 新しいパネルを追加する時はここに 1 行追加するだけ。
+import "./panels/AutoProcessingPanel";
 import "./panels/ChestPanel";
 import "./panels/DailyProcessingPanel";
 import "./panels/ForgePanel";
