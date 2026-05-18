@@ -52,11 +52,79 @@ const migrations: Record<number, (data: RawSave) => RawSave> = {
         dailyProcessingStorage: { facilities: [] },
     }),
     // v8 → v9: 自動処理ストレージを追加。既存セーブにはまだ自動処理施設が無いため空配列で OK。
-    8: (data) => ({
-        ...data,
-        autoProcessingStorage: { facilities: [] },
-    }),
+    // 加えて、facility_part ボクセルの Displacement X/Z を旧 findFacilityAnchor アルゴリズムで再構築する。
+    // v8 まではアンカー探索が左上3タイル走査だったため Displacement が常に 0 で保存されていた。
+    8: (data) => {
+        fillFacilityPartDisplacementsV8(data);
+        return {
+            ...data,
+            autoProcessingStorage: { facilities: [] },
+        };
+    },
 };
+
+/**
+ * v8 セーブの voxels を走査し、facility_part の Displacement X/Z を埋める。
+ * 旧 findFacilityAnchor の挙動（左上方向 3 タイル走査）を再現してアンカーを発見し、
+ * アンカーからの相対座標 (dx, dz) を bit 30-32 / 33-35 に書き込む。
+ *
+ * voxel ビットレイアウト（engine/VoxelDefs.ts 参照）:
+ *   bits  0- 7: terrain type
+ *   bits  8-15: entity type    (facility_part = 7)
+ *   bits 30-32: displacement X
+ *   bits 33-35: displacement Z
+ */
+function fillFacilityPartDisplacementsV8(data: RawSave): void {
+    const vm = data.voxelMap as
+        | { width: number; height: number; depth: number; voxels: unknown }
+        | undefined;
+    if (!vm) return;
+    const { width, height, depth } = vm;
+    if (typeof width !== "number" || typeof height !== "number" || typeof depth !== "number") return;
+    if (!(vm.voxels instanceof BigUint64Array)) return;
+    const voxels = vm.voxels;
+
+    const FACILITY_PART = 7; // ENTITY_TYPES.facility_part
+
+    const idx = (x: number, y: number, z: number): number => x + y * width * depth + z * width;
+    const surfaceY = (x: number, z: number): number => {
+        for (let y = height - 1; y >= 0; y--) {
+            if (voxels[idx(x, y, z)] !== 0n) return y;
+        }
+        return -1;
+    };
+    const entityTypeOf = (v: bigint): number => Number((v >> 8n) & 0xffn);
+
+    for (let z = 0; z < depth; z++) {
+        for (let x = 0; x < width; x++) {
+            const y = surfaceY(x, z);
+            if (y < 0) continue;
+            const v = voxels[idx(x, y, z)];
+            if (entityTypeOf(v) !== FACILITY_PART) continue;
+
+            let found = false;
+            for (let dz = 0; dz <= 2 && !found; dz++) {
+                for (let dx = 0; dx <= 2 && !found; dx++) {
+                    if (dx === 0 && dz === 0) continue;
+                    const nx = x - dx;
+                    const nz = z - dz;
+                    if (nx < 0 || nz < 0) continue;
+                    const ny = surfaceY(nx, nz);
+                    if (ny < 0) continue;
+                    const et = entityTypeOf(voxels[idx(nx, ny, nz)]);
+                    if (et === 0 || et === FACILITY_PART) continue;
+
+                    let nv = v & ~(0x7n << 30n) & ~(0x7n << 33n);
+                    nv |= (BigInt(dx) & 0x7n) << 30n;
+                    nv |= (BigInt(dz) & 0x7n) << 33n;
+                    voxels[idx(x, y, z)] = nv;
+                    found = true;
+                }
+            }
+            if (!found) console.warn(`v8→v9 migration: facility_part at (${x}, ${z}) — anchor not found.`);
+        }
+    }
+}
 
 /**
  * 任意のバージョンのセーブデータを現在のバージョンに移行し、スキーマで検証する。
