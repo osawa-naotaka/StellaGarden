@@ -33,7 +33,7 @@ export interface AutoProcessingPanelProps {
 
 export function AutoProcessingPanel({ open, inventory, autoProcessingStorage, voxelMap, uiState }: AutoProcessingPanelProps) {
     useFrameTick(open);
-    const pos = open ? uiState.processingPos : null;
+    const pos = open ? uiState.targetPos : null;
 
     const entityType = useMemo(() => {
         if (!pos) return null;
@@ -111,7 +111,7 @@ export function AutoProcessingPanel({ open, inventory, autoProcessingStorage, vo
 
     const close = useCallback(() => {
         uiState.mode = "normal";
-        uiState.processingPos = null;
+        uiState.targetPos = null;
     }, [uiState]);
 
     // 動力状態（毎フレーム useFrameTick で再読み込み）

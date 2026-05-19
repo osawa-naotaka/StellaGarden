@@ -14,26 +14,26 @@ export interface WinchPanelProps {
 
 export function WinchPanel({ open, voxelMap, uiState }: WinchPanelProps) {
     useFrameTick(open);
-    const winchPos = uiState.winchPos;
+    const targetPos = uiState.targetPos;
 
     const isOn = (() => {
-        if (!winchPos) return false;
-        const surface = voxelMap.getSurfacePosition({ x: winchPos.x, y: 0, z: winchPos.z });
+        if (!targetPos) return false;
+        const surface = voxelMap.getSurfacePosition({ x: targetPos.x, y: 0, z: targetPos.z });
         const voxel = voxelMap.get(surface);
         return getVariantFromVoxel(voxel) === VOXEL_VARIANT.on;
     })();
 
     const handleToggle = useCallback(() => {
-        if (!winchPos) return;
-        const surface = voxelMap.getSurfacePosition({ x: winchPos.x, y: 0, z: winchPos.z });
+        if (!targetPos) return;
+        const surface = voxelMap.getSurfacePosition({ x: targetPos.x, y: 0, z: targetPos.z });
         const voxel = voxelMap.get(surface);
         const next = getVariantFromVoxel(voxel) === VOXEL_VARIANT.on ? VOXEL_VARIANT.off : VOXEL_VARIANT.on;
         voxelMap.set(setVariantInVoxel(voxel, next), surface);
-    }, [winchPos, voxelMap]);
+    }, [targetPos, voxelMap]);
 
     const close = useCallback(() => {
         uiState.mode = "normal";
-        uiState.winchPos = null;
+        uiState.targetPos = null;
     }, [uiState]);
 
     return (

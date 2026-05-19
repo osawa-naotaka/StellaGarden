@@ -30,7 +30,7 @@ export interface ManualProcessingPanelProps {
 
 export function ManualProcessingPanel({ open, inventory, manualProcessingStorage, voxelMap, uiState }: ManualProcessingPanelProps) {
     useFrameTick(open);
-    const pos = open ? uiState.processingPos : null;
+    const pos = open ? uiState.targetPos : null;
 
     // pos からエンティティタイプとレシピ定義を引く
     const entityType = useMemo(() => {
@@ -107,7 +107,7 @@ export function ManualProcessingPanel({ open, inventory, manualProcessingStorage
 
     const close = useCallback(() => {
         uiState.mode = "normal";
-        uiState.processingPos = null;
+        uiState.targetPos = null;
     }, [uiState]);
 
     // 処理ボタン: 押下を intervalMS だけ継続して初めて1サイクル実行する。

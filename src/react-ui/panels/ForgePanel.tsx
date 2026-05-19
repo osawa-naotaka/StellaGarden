@@ -33,7 +33,7 @@ export interface ForgePanelProps {
 
 export function ForgePanel({ open, inventory, forgeStorage, voxelMap, uiState }: ForgePanelProps) {
     useFrameTick(open);
-    const forgePos = uiState.forgePos;
+    const targetPos = uiState.targetPos;
 
     const slotAreaToKind = useCallback((area: ForgeSlotArea): ForgeSlotKind | null => {
         if (area === "forge_ingredient") return "ingredient";
@@ -45,22 +45,22 @@ export function ForgePanel({ open, inventory, forgeStorage, voxelMap, uiState }:
     const getSlot = useCallback(
         (ref: ForgeSlotRef): ItemStack | null => {
             const kind = slotAreaToKind(ref.area);
-            if (kind) return forgePos ? forgeStorage.getSlot(forgePos, kind) : null;
+            if (kind) return targetPos ? forgeStorage.getSlot(targetPos, kind) : null;
             return inventory.getSlot(ref as SlotRef);
         },
-        [inventory, forgeStorage, forgePos, slotAreaToKind],
+        [inventory, forgeStorage, targetPos, slotAreaToKind],
     );
 
     const setSlot = useCallback(
         (ref: ForgeSlotRef, stack: ItemStack | null) => {
             const kind = slotAreaToKind(ref.area);
             if (kind) {
-                if (forgePos) forgeStorage.setSlot(forgePos, kind, stack, voxelMap);
+                if (targetPos) forgeStorage.setSlot(targetPos, kind, stack, voxelMap);
                 return;
             }
             inventory.setSlot(ref as SlotRef, stack);
         },
-        [inventory, forgeStorage, voxelMap, forgePos, slotAreaToKind],
+        [inventory, forgeStorage, voxelMap, targetPos, slotAreaToKind],
     );
 
     const canPlaceTo = useCallback(
@@ -100,13 +100,13 @@ export function ForgePanel({ open, inventory, forgeStorage, voxelMap, uiState }:
 
     const close = useCallback(() => {
         uiState.mode = "normal";
-        uiState.forgePos = null;
+        uiState.targetPos = null;
     }, [uiState]);
 
-    const ingredient = forgePos ? forgeStorage.getSlot(forgePos, "ingredient") : null;
-    const fuel = forgePos ? forgeStorage.getSlot(forgePos, "fuel") : null;
-    const output = forgePos ? forgeStorage.getSlot(forgePos, "output") : null;
-    const isBurning = forgePos ? forgeStorage.isBurning(forgePos) : false;
+    const ingredient = targetPos ? forgeStorage.getSlot(targetPos, "ingredient") : null;
+    const fuel = targetPos ? forgeStorage.getSlot(targetPos, "fuel") : null;
+    const output = targetPos ? forgeStorage.getSlot(targetPos, "output") : null;
+    const isBurning = targetPos ? forgeStorage.isBurning(targetPos) : false;
 
     return (
         <>

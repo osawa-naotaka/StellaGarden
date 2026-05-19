@@ -30,7 +30,7 @@ export interface DailyProcessingPanelProps {
 
 export function DailyProcessingPanel({ open, inventory, dailyProcessingStorage, voxelMap, uiState }: DailyProcessingPanelProps) {
     useFrameTick(open);
-    const pos = open ? uiState.processingPos : null;
+    const pos = open ? uiState.targetPos : null;
 
     // pos からエンティティタイプとレシピ定義を引く（ベース entityType を使う）
     const baseEntityType = useMemo(() => {
@@ -107,7 +107,7 @@ export function DailyProcessingPanel({ open, inventory, dailyProcessingStorage, 
 
     const close = useCallback(() => {
         uiState.mode = "normal";
-        uiState.processingPos = null;
+        uiState.targetPos = null;
     }, [uiState]);
 
     if (!def || !pos) {

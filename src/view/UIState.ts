@@ -12,15 +12,11 @@ export type TimeSpeed = "paused" | "normal" | "fast";
 export class UIState {
     mode: UIMode = "normal";
     craftStation: CraftStation = "hand";
-    craftWorkbenchPos: Pos2D | null = null;
+    /** 現在開いているパネルが対象とする座標。mode と必ずセットで更新する。 */
+    targetPos: Pos2D | null = null;
     placementItemId: ItemId | null = null;
     placementSourceSlot: SlotRef | null = null;
     placementVariant: PlacementVariant = 0;
-    chestPos: Pos2D | null = null;
-    forgePos: Pos2D | null = null;
-    warpGatePos: Pos2D | null = null;
-    processingPos: Pos2D | null = null;
-    winchPos: Pos2D | null = null;
     timeSpeed: TimeSpeed = "normal";
 
     /** 後方互換ゲッター。isPaused === (timeSpeed === "paused") */
@@ -40,16 +36,11 @@ export class UIState {
             if (this.mode === "normal") {
                 this.mode = "inventory-craft";
                 this.craftStation = "hand";
-                this.craftWorkbenchPos = null;
+                this.targetPos = null;
             } else {
                 this.mode = "normal";
                 this.craftStation = "hand";
-                this.craftWorkbenchPos = null;
-                this.chestPos = null;
-                this.forgePos = null;
-                this.warpGatePos = null;
-                this.processingPos = null;
-                this.winchPos = null;
+                this.targetPos = null;
             }
         });
 
@@ -57,49 +48,49 @@ export class UIState {
             if (this.mode === "placement") return;
             this.mode = "inventory-craft";
             this.craftStation = "workbench";
-            this.craftWorkbenchPos = workbenchPos;
+            this.targetPos = workbenchPos;
         });
 
         const d3 = broker.subscribe("open_chest_ui", ({ pos }) => {
             if (this.mode === "placement") return;
             this.mode = "chest";
-            this.chestPos = pos;
+            this.targetPos = pos;
         });
 
         const d4 = broker.subscribe("open_forge_ui", ({ pos }) => {
             if (this.mode === "placement") return;
             this.mode = "forge";
-            this.forgePos = pos;
+            this.targetPos = pos;
         });
 
         const d5 = broker.subscribe("open_warp_gate_ui", ({ pos }) => {
             if (this.mode === "placement") return;
             this.mode = "warp_gate";
-            this.warpGatePos = pos;
+            this.targetPos = pos;
         });
 
         const d6 = broker.subscribe("open_processing_manual_ui", ({ pos }) => {
             if (this.mode === "placement") return;
             this.mode = "processing-manual";
-            this.processingPos = pos;
+            this.targetPos = pos;
         });
 
         const d7 = broker.subscribe("open_processing_daily_ui", ({ pos }) => {
             if (this.mode === "placement") return;
             this.mode = "processing-daily";
-            this.processingPos = pos;
+            this.targetPos = pos;
         });
 
         const d8 = broker.subscribe("open_processing_auto_ui", ({ pos }) => {
             if (this.mode === "placement") return;
             this.mode = "processing-auto";
-            this.processingPos = pos;
+            this.targetPos = pos;
         });
 
         const d9 = broker.subscribe("open_winch_ui", ({ pos }) => {
             if (this.mode === "placement") return;
             this.mode = "winch";
-            this.winchPos = pos;
+            this.targetPos = pos;
         });
 
         return () => {
