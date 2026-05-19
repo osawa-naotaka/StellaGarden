@@ -1,0 +1,56 @@
+{
+  "meta": {
+    "app": "gen-splitesheet.ts",
+    "version": "1.0.0",
+    "image": "non-redis/PropsMine.png",
+    "format": "RGBA8888",
+    "size": {
+      "w": 320,
+      "h": 240
+    },
+    "scale": "1"
+  },
+  "animations": {},
+  "frames": {
+    "cart_h": {
+      "frame": {
+        "x": 0,
+        "y": 144,
+        "w": 16,
+        "h": 32
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 16,
+        "h": 32
+      },
+      "sourceSize": {
+        "w": 16,
+        "h": 32
+      }
+    },
+    "cart_v": {
+      "frame": {
+        "x": 0,
+        "y": 176,
+        "w": 16,
+        "h": 32
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 16,
+        "h": 32
+      },
+      "sourceSize": {
+        "w": 16,
+        "h": 32
+      }
+    }
+  }
+}
