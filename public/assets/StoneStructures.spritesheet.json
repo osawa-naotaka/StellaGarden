@@ -1,0 +1,36 @@
+{
+  "meta": {
+    "app": "gen-splitesheet.ts",
+    "version": "1.0.0",
+    "image": "non-redis/StoneStructures.png",
+    "format": "RGBA8888",
+    "size": {
+      "w": 80,
+      "h": 96
+    },
+    "scale": "1"
+  },
+  "animations": {},
+  "frames": {
+    "winch": {
+      "frame": {
+        "x": 0,
+        "y": 32,
+        "w": 16,
+        "h": 32
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 16,
+        "h": 32
+      },
+      "sourceSize": {
+        "w": 16,
+        "h": 32
+      }
+    }
+  }
+}

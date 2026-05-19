@@ -1,0 +1,15 @@
+{
+  "meta": {
+    "image": "non-redis/StoneStructures.png",
+    "format": "RGBA8888",
+    "px": 16,
+    "py": 32
+  },
+  "displacements": {
+  },
+  "animations": {
+  },
+  "frames": {
+    "winch": [0,1]
+  }
+}
