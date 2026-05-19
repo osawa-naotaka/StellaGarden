@@ -12,9 +12,9 @@
   "frames": {
     "rail_v": [0,6],
     "rail_h": [1,6],
-    "rail_r_1": [2,6],
-    "rail_r_2": [4,6],
-    "rail_r_3": [2,8],
-    "rail_r_4": [4,8]
+    "rail_l_rd": [2,6],
+    "rail_l_ld": [4,6],
+    "rail_l_ru": [2,8],
+    "rail_l_lu": [4,8]
   }
 }
