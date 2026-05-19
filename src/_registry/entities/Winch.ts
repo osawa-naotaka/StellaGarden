@@ -1,6 +1,6 @@
 import { ENTITY_TYPES, placeEntity } from "../../engine/VoxelDefs";
 import { type EntitySpriteInfo, type InteractionContext, registerEntity } from "../EntityRegistry";
-import { placeFacility } from "../facilityUtil";
+import { findFacilityAnchor, placeFacility } from "../facilityUtil";
 import { registerItem } from "../ItemRegistry";
 
 registerEntity({
@@ -20,7 +20,8 @@ registerEntity({
     },
 
     onOpenFacilityUI(ctx: InteractionContext): boolean {
-        // ctx.eventBroker.publish("open_winch_ui", { pos: { x: ctx.surfacePos.x, z: ctx.surfacePos.z } });
+        const anchor = findFacilityAnchor(ctx.voxelMap, ctx.surfacePos.x, ctx.surfacePos.z);
+        ctx.eventBroker.publish("open_winch_ui", { pos: { x: anchor.anchorX, z: anchor.anchorZ } });
         return true;
     },
 });

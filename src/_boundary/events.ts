@@ -34,6 +34,9 @@ export type GameEventMap = {
     /** 自動処理施設（auto_thresher 等。シャフト動力で day_changed 時に一括処理）の UI を開く。
      *  発行: 各エンティティの onOpenFacilityUI（右クリック）。購読: UIState → AutoProcessingPanel。 */
     open_processing_auto_ui: { pos: Pos2D };
+    /** ウインチを右クリックして ON/OFF パネルを開く。
+     *  発行: Winch.ts の onOpenFacilityUI。購読: UIState → WinchPanel。 */
+    open_winch_ui: { pos: Pos2D };
 
     // ─── input → engine（Phase 3 以降で使用） ───────────────────────────────
     /** プレイヤー移動要求。移動量が 0 でない場合のみ発行すること。

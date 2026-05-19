@@ -3,7 +3,7 @@ import type { GameEventMap } from "../../_boundary/events";
 import type { IEventBroker } from "../../_boundary/interfaces";
 import type { UIMode, UIState } from "../../view/UIState";
 
-const MODE_CHANGING_EVENTS: ReadonlyArray<keyof GameEventMap> = ["toggle_inventory", "open_craft_ui", "open_chest_ui", "open_forge_ui", "open_warp_gate_ui"];
+const MODE_CHANGING_EVENTS: ReadonlyArray<keyof GameEventMap> = ["toggle_inventory", "open_craft_ui", "open_chest_ui", "open_forge_ui", "open_warp_gate_ui", "open_winch_ui"];
 
 /**
  * UIState.mode の変化を React state として観測するフック。

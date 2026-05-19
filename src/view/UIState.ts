@@ -1,7 +1,7 @@
 import type { CraftStation, IEventBroker, ItemId, Pos2D, SlotRef } from "../_boundary/interfaces";
 import type { PlacementVariant } from "../_registry/ItemRegistry";
 
-export type UIMode = "normal" | "inventory-craft" | "placement" | "chest" | "forge" | "warp_gate" | "processing-manual" | "processing-daily" | "processing-auto";
+export type UIMode = "normal" | "inventory-craft" | "placement" | "chest" | "forge" | "warp_gate" | "processing-manual" | "processing-daily" | "processing-auto" | "winch";
 export type TimeSpeed = "paused" | "normal" | "fast";
 
 /**
@@ -20,6 +20,7 @@ export class UIState {
     forgePos: Pos2D | null = null;
     warpGatePos: Pos2D | null = null;
     processingPos: Pos2D | null = null;
+    winchPos: Pos2D | null = null;
     timeSpeed: TimeSpeed = "normal";
 
     /** 後方互換ゲッター。isPaused === (timeSpeed === "paused") */
@@ -48,6 +49,7 @@ export class UIState {
                 this.forgePos = null;
                 this.warpGatePos = null;
                 this.processingPos = null;
+                this.winchPos = null;
             }
         });
 
@@ -94,6 +96,12 @@ export class UIState {
             this.processingPos = pos;
         });
 
+        const d9 = broker.subscribe("open_winch_ui", ({ pos }) => {
+            if (this.mode === "placement") return;
+            this.mode = "winch";
+            this.winchPos = pos;
+        });
+
         return () => {
             d1();
             d2();
@@ -103,6 +111,7 @@ export class UIState {
             d6();
             d7();
             d8();
+            d9();
         };
     }
 
