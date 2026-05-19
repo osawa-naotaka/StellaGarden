@@ -34,7 +34,8 @@ registerEntity({
 
 registerItem({
     itemId: "rail",
-    spriteName: "rail_h",
+    displayName: "レール",
+    spriteName: "rail_h",    
     maxStack: 64,
     placement: {
         entityType: ENTITY_TYPES.rail,

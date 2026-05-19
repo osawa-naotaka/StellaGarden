@@ -25,6 +25,7 @@ const DEFAULT_INVENTORY_ITEMS: readonly (DefaultItem | null)[] = [
     { itemId: "shaft", count: 64 },
     { itemId: "pods", count: 64 },
     { itemId: "rail", count: 64 },
+    { itemId: "winch", count: 64 },
     // { itemId: "compost_bin", count: 64 },
     // { itemId: "threshing_machine", count: 64 },
     // { itemId: "screw_presses", count: 64 },
