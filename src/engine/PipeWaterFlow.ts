@@ -1,5 +1,5 @@
 import type { IVoxelWriter, Pos2D } from "../_boundary/interfaces";
-import { ENTITY_TYPES, getEntityTypeFromVoxel, getPipeConnectionsFromVoxel, getTerrainTypeFromVoxel, setPipeFilledInVoxel, TERRAIN_TYPES } from "./VoxelDefs";
+import { ENTITY_TYPES, getEntityTypeFromVoxel, getConnectionsFromVoxel, getTerrainTypeFromVoxel, setEnabledInVoxel, TERRAIN_TYPES } from "./VoxelDefs";
 
 export const PIPE_WATER_MAX_DISTANCE = 16;
 
@@ -59,8 +59,8 @@ function canFlowBetween(voxelMap: IVoxelWriter, x: number, z: number, dx: number
     if (fromVoxel == null || toVoxel == null) return false;
     if (getEntityTypeFromVoxel(toVoxel) !== ENTITY_TYPES.pipe1) return false;
 
-    const fromMask = getPipeConnectionsFromVoxel(fromVoxel);
-    const toMask = getPipeConnectionsFromVoxel(toVoxel);
+    const fromMask = getConnectionsFromVoxel(fromVoxel);
+    const toMask = getConnectionsFromVoxel(toVoxel);
 
     return (fromMask & bit) !== 0 && (toMask & oppositeBit) !== 0;
 }
@@ -119,6 +119,6 @@ export function recomputeAllPipeWaterFlow(voxelMap: IVoxelWriter, maxDistance: n
         const surfacePos = voxelMap.getSurfacePosition({ x: pos.x, y: 0, z: pos.z });
         const voxel = voxelMap.get(surfacePos);
         const filled = visited.has(keyOf(voxelMap, pos.x, pos.z));
-        voxelMap.set(setPipeFilledInVoxel(voxel, filled), surfacePos);
+        voxelMap.set(setEnabledInVoxel(voxel, filled), surfacePos);
     }
 }

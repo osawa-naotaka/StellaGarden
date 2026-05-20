@@ -2,9 +2,9 @@ import type { IVoxelWriter, Pos2D } from "../_boundary/interfaces";
 import {
     ENTITY_TYPES,
     getEntityTypeFromVoxel,
-    getPipeConnectionsFromVoxel,
+    getConnectionsFromVoxel,
     getTerrainTypeFromVoxel,
-    setPipeConnectionsInVoxel,
+    setConnectionsInVoxel,
     TERRAIN_TYPES,
 } from "./VoxelDefs";
 
@@ -83,10 +83,10 @@ export function refreshPipeConnectionAt(voxelMap: IVoxelWriter, pos: Pos2D): voi
     if (!isPipeVoxel(voxel)) return;
 
     const nextMask = computePipeConnectionMask(voxelMap, pos);
-    const currentMask = getPipeConnectionsFromVoxel(voxel);
+    const currentMask = getConnectionsFromVoxel(voxel);
     if (currentMask === nextMask) return;
 
-    voxelMap.set(setPipeConnectionsInVoxel(voxel, nextMask), surfacePos);
+    voxelMap.set(setConnectionsInVoxel(voxel, nextMask), surfacePos);
 }
 
 /** 指定タイルと上下左右4マスの畝間水路接続を局所再計算する。 */

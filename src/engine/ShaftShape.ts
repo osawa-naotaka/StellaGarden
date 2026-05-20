@@ -1,4 +1,4 @@
-import { getPipeConnectionsFromVoxel, getPipeFilledFromVoxel, getVariantFromVoxel } from "./VoxelDefs";
+import { getConnectionsFromVoxel, getEnabledFromVoxel, getDirectionFromVoxel, getVariantFromVoxel, VOXEL_SUB_DIRECTION } from "./VoxelDefs";
 
 export type ShaftShapeKey =
     | "132_h"
@@ -18,14 +18,14 @@ export type ShaftShapeKey =
  * variantのbit 0 のみ参照（bit 1 は逆回転フラグ）。
  */
 export function getShaftOrientation(voxel: bigint): number {
-    return getVariantFromVoxel(voxel) & 0x1;
+    return getVariantFromVoxel(voxel);
 }
 
 /**
  * シャフトが逆回転状態かどうか。variantのbit 1 を参照。
  */
 export function isShaftReversed(voxel: bigint): boolean {
-    return (getVariantFromVoxel(voxel) & 0x2) !== 0;
+    return getDirectionFromVoxel(voxel) === VOXEL_SUB_DIRECTION.backword;
 }
 
 /**
@@ -39,7 +39,7 @@ export function isShaftStraightMask(mask: number): boolean {
 }
 
 export function getShaftShapeKey(voxel: bigint): ShaftShapeKey {
-    const mask = getPipeConnectionsFromVoxel(voxel);
+    const mask = getConnectionsFromVoxel(voxel);
 
     switch (mask) {
         case 0:
@@ -77,7 +77,7 @@ const ANIM_FRAME_MS = 300;
 
 export function getShaftSpriteName(voxel: bigint): string {
     const prefix = "ss_sprite_";
-    const powered = getPipeFilledFromVoxel(voxel);
+    const powered = getEnabledFromVoxel(voxel);
     const reversed = isShaftReversed(voxel);
     const frames = reversed ? ANIM_FRAMES_REVERSED : ANIM_FRAMES_FORWARD;
     const akey = powered ? frames[Math.floor(Date.now() / ANIM_FRAME_MS) % frames.length] : frames[0];

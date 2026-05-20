@@ -1,7 +1,7 @@
 import { refreshPipeConnectionsAround } from "../../engine/ChannelConnection";
 import { getPipeSpriteName } from "../../engine/PipeShape";
 import { recomputeAllPipeWaterFlow } from "../../engine/PipeWaterFlow";
-import { ENTITY_TYPES, getPipeFilledFromVoxel, setVariantInVoxel } from "../../engine/VoxelDefs";
+import { ENTITY_TYPES, getEnabledFromVoxel, setVariantInVoxel } from "../../engine/VoxelDefs";
 import { type EntitySpriteInfo, type InteractionContext, registerEntity } from "../EntityRegistry";
 import { placeFacility, removeFacilityAtPos } from "../facilityUtil";
 import { type PlacementVariant, registerItem } from "../ItemRegistry";
@@ -12,11 +12,11 @@ function getPipePreviewSpriteName(variant: PlacementVariant): string {
 
 registerEntity({
     entityType: ENTITY_TYPES.pipe1,
-    
+
     getEntitySize() { return { w: 1, h: 1 }; },
 
     getSprites(voxel: bigint): EntitySpriteInfo[] {
-        return [[getPipeSpriteName(voxel, getPipeFilledFromVoxel(voxel)), 0, 0]];
+        return [[getPipeSpriteName(voxel, getEnabledFromVoxel(voxel)), 0, 0]];
     },
 
     onInteract(ctx: InteractionContext): boolean {

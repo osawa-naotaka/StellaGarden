@@ -7,7 +7,7 @@ import {
     getAutoProcessingDef,
     isAcceptableInputItem,
 } from "./ProcessingRecipes";
-import { ENTITY_TYPES, getEntityTypeFromVoxel, getPipeFilledFromVoxel } from "./VoxelDefs";
+import { ENTITY_TYPES, getEntityTypeFromVoxel, getEnabledFromVoxel } from "./VoxelDefs";
 
 /** 1施設のスロット状態。inputs が入力 8 スロット、outputs が出力 16 スロット。 */
 export interface AutoProcessingSlots {
@@ -54,7 +54,7 @@ function isPoweredShaftAdjacent(
         const surface = voxelMap.getSurfacePosition({ x: p.x, y: 0, z: p.z });
         const v = voxelMap.get(surface);
         if (getEntityTypeFromVoxel(v) !== ENTITY_TYPES.shaft) continue;
-        if (getPipeFilledFromVoxel(v)) return true;
+        if (getEnabledFromVoxel(v)) return true;
     }
     return false;
 }

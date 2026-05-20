@@ -62,9 +62,9 @@ export const ENTITY_TYPES = {
 //   bits 22-23: drought counter   (2bit, 0-3)
 //   bits 24-26: last_crop         (3bit, entity type of previous crop)
 //   bits 27-29: fatigue           (3bit, 0-7)
-//   bit     30: pipe variant      (1bit, 0=horizontal/1=vertical)
-//   bits 31-34: pipe connections  (4bit, up/down/left/right)
-//   bit     35: pipe filled       (1bit, 0=dry/1=filled)
+//   bit     30: direction         (1bit, 0=forward/1=backword)
+//   bits 31-34: connections       (4bit, up/down/left/right)
+//   bit     35: enabled           (1bit, 0=dry,disable/1=filled,enable)
 //   bit  30-32: displacement to anchor X (3bit, 0-7)
 //   bit  33-35: displacement to anchor Z (3bit, 0-7)
 // 　　bit  36-38: entity variant    (3bit, 0-7)
@@ -184,23 +184,33 @@ export function setFatigueInVoxel(voxel: bigint, fatigue: number): bigint {
     return (voxel & ~(0x7n << 27n)) | ((BigInt(fatigue) & 0x7n) << 27n);
 }
 
-/** 畝間水路の接続マスクを取り出す（bits 31-34）。 */
-export function getPipeConnectionsFromVoxel(voxel: bigint): number {
+/** ボクセル値からサブダイレクションを取り出す（bits 30）。 */
+export function getDirectionFromVoxel(voxel: bigint): number {
+    return Number((voxel >> 30n) & 0x1n);
+}
+
+/** ボクセル値にサブダイレクションを書き込んだ新しい値を返す（bit 30）。 */
+export function setDirectionInVoxel(voxel: bigint, direction: number): bigint {
+    return (voxel & ~(0x1n << 30n)) | ((BigInt(direction) & 0x1n) << 30n);
+}
+
+/** 畝間水路、シャフト、レールなどの接続マスクを取り出す（bits 31-34）。 */
+export function getConnectionsFromVoxel(voxel: bigint): number {
     return Number((voxel >> 31n) & 0xfn);
 }
 
-/** 畝間水路の接続マスクを書き込んだ新しい値を返す（bits 31-34）。 */
-export function setPipeConnectionsInVoxel(voxel: bigint, mask: number): bigint {
+/** 畝間水路、シャフト、レールなどのの接続マスクを書き込んだ新しい値を返す（bits 31-34）。 */
+export function setConnectionsInVoxel(voxel: bigint, mask: number): bigint {
     return (voxel & ~(0xfn << 31n)) | ((BigInt(mask) & 0xfn) << 31n);
 }
 
 /** 畝間水路に水が満たされているかどうかを返す（bit 35）。 */
-export function getPipeFilledFromVoxel(voxel: bigint): boolean {
+export function getEnabledFromVoxel(voxel: bigint): boolean {
     return ((voxel >> 35n) & 0x1n) === 0x1n;
 }
 
 /** 畝間水路の通水ビットを書き込んだ新しい値を返す（bit 35）。 */
-export function setPipeFilledInVoxel(voxel: bigint, filled: boolean): bigint {
+export function setEnabledInVoxel(voxel: bigint, filled: boolean): bigint {
     return (voxel & ~(0x1n << 35n)) | ((filled ? 1n : 0n) << 35n);
 }
 
@@ -247,6 +257,9 @@ export const VOXEL_VARIANT = {
     done: 1,
     horizontal: 0,
     vertical: 1,
-    horizontal_inv: 2,
-    vertical_inv: 3,
+};
+
+export const VOXEL_SUB_DIRECTION = {
+    forward: 0,
+    backword: 1,
 };

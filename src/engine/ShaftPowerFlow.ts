@@ -4,18 +4,16 @@ import { isShaftStraightMask } from "./ShaftShape";
 import {
     ENTITY_TYPES,
     getEntityTypeFromVoxel,
-    getPipeConnectionsFromVoxel,
-    getVariantFromVoxel,
-    setPipeFilledInVoxel,
-    setVariantInVoxel,
+    getConnectionsFromVoxel,
+    setEnabledInVoxel,
+    setDirectionInVoxel,
+    VOXEL_SUB_DIRECTION,
 } from "./VoxelDefs";
 
 const SHAFT_CONNECTION_UP = 1 << 0;
 const SHAFT_CONNECTION_DOWN = 1 << 1;
 const SHAFT_CONNECTION_LEFT = 1 << 2;
 const SHAFT_CONNECTION_RIGHT = 1 << 3;
-
-const VARIANT_REVERSED_BIT = 0x2;
 
 const CARDINAL_DIRS: ReadonlyArray<{
     readonly dx: number;
@@ -82,8 +80,8 @@ function canPowerFlowBetween(
     if (fromVoxel == null || toVoxel == null) return false;
     if (getEntityTypeFromVoxel(toVoxel) !== ENTITY_TYPES.shaft) return false;
 
-    const fromMask = getPipeConnectionsFromVoxel(fromVoxel);
-    const toMask = getPipeConnectionsFromVoxel(toVoxel);
+    const fromMask = getConnectionsFromVoxel(fromVoxel);
+    const toMask = getConnectionsFromVoxel(toVoxel);
 
     return (fromMask & bit) !== 0 && (toMask & oppositeBit) !== 0;
 }
@@ -135,7 +133,7 @@ export function recomputeAllShaftPowerFlow(voxelMap: IVoxelWriter): void {
         const currentKey = keyOf(voxelMap, current.x, current.z);
         const currentReversed = reversedMap.get(currentKey) ?? false;
         const currentVoxel = voxelMap.getSurface({ x: current.x, y: 0, z: current.z });
-        const currentMask = getPipeConnectionsFromVoxel(currentVoxel);
+        const currentMask = getConnectionsFromVoxel(currentVoxel);
 
         for (const dir of CARDINAL_DIRS) {
             const nx = current.x + dir.dx;
@@ -147,7 +145,7 @@ export function recomputeAllShaftPowerFlow(voxelMap: IVoxelWriter): void {
             if (!canPowerFlowBetween(voxelMap, current.x, current.z, dir.dx, dir.dz, dir.bit, dir.oppositeBit)) continue;
 
             const nextVoxel = voxelMap.getSurface({ x: nx, y: 0, z: nz });
-            const nextMask = getPipeConnectionsFromVoxel(nextVoxel);
+            const nextMask = getConnectionsFromVoxel(nextVoxel);
             let nextReversed = false;
             if (isShaftStraightMask(currentMask)) {
                 if (isShaftStraightMask(nextMask)) {
@@ -166,7 +164,7 @@ export function recomputeAllShaftPowerFlow(voxelMap: IVoxelWriter): void {
                         case SHAFT_CONNECTION_RIGHT:
                             nextReversed = !currentReversed;
                             break;
-                    }                    
+                    }
                 }
             } else {
                 if (isShaftStraightMask(nextMask)) {
@@ -202,10 +200,8 @@ export function recomputeAllShaftPowerFlow(voxelMap: IVoxelWriter): void {
         const powered = visited.has(key);
         const reversed = powered && (reversedMap.get(key) ?? false);
 
-        let updated = setPipeFilledInVoxel(voxel, powered);
-        const oldVariant = getVariantFromVoxel(updated);
-        const newVariant = reversed ? oldVariant | VARIANT_REVERSED_BIT : oldVariant & ~VARIANT_REVERSED_BIT;
-        updated = setVariantInVoxel(updated, newVariant);
+        let updated = setEnabledInVoxel(voxel, powered);
+        updated = setDirectionInVoxel(updated, reversed ? VOXEL_SUB_DIRECTION.backword : VOXEL_SUB_DIRECTION.forward)
 
         voxelMap.set(updated, surfacePos);
     }

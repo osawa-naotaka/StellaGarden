@@ -1,4 +1,4 @@
-import { getPipeConnectionsFromVoxel, getVariantFromVoxel } from "./VoxelDefs";
+import { getConnectionsFromVoxel, getVariantFromVoxel } from "./VoxelDefs";
 
 export type PipeShapeKey =
     | "h"
@@ -18,7 +18,7 @@ export type PipeShapeKey =
     | "cross";
 
 export function getPipeShapeKey(voxel: bigint): PipeShapeKey {
-    const mask = getPipeConnectionsFromVoxel(voxel);
+    const mask = getConnectionsFromVoxel(voxel);
 
     switch (mask) {
         case 0:

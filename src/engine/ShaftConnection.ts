@@ -2,9 +2,9 @@ import type { IVoxelWriter, Pos2D } from "../_boundary/interfaces";
 import {
     ENTITY_TYPES,
     getEntityTypeFromVoxel,
-    getPipeConnectionsFromVoxel,
+    getConnectionsFromVoxel,
     getVariantFromVoxel,
-    setPipeConnectionsInVoxel,
+    setConnectionsInVoxel,
     VOXEL_VARIANT,
 } from "./VoxelDefs";
 
@@ -60,10 +60,10 @@ export function computeShaftConnectionMask(voxelMap: IVoxelWriter, pos: Pos2D): 
     const top = getSurfaceVoxelWithShaftAt(voxelMap, pos.x, pos.z - 1);
     const bottom = getSurfaceVoxelWithShaftAt(voxelMap, pos.x, pos.z + 1);
 
-    const leftVariant = left === null ? 0 : getVariantFromVoxel(left) & 0x1;
-    const rightVariant = right === null ? 0 : getVariantFromVoxel(right) & 0x1;
-    const topVariant = top === null ? 0 : getVariantFromVoxel(top) & 0x1;
-    const bottomVariant = bottom === null ? 0 : getVariantFromVoxel(bottom) & 0x1;
+    const leftVariant = left === null ? 0 : getVariantFromVoxel(left);
+    const rightVariant = right === null ? 0 : getVariantFromVoxel(right);
+    const topVariant = top === null ? 0 : getVariantFromVoxel(top);
+    const bottomVariant = bottom === null ? 0 : getVariantFromVoxel(bottom);
 
     if (variant === VOXEL_VARIANT.horizontal) {
         if (left !== null) {
@@ -95,7 +95,7 @@ export function computeShaftConnectionMask(voxelMap: IVoxelWriter, pos: Pos2D): 
         if (top === null && bottom === null) {
             mask |= SHAFT_CONNECTION_UP | SHAFT_CONNECTION_DOWN;
         }
-        
+
         if (left != null) {
             if (leftVariant === VOXEL_VARIANT.horizontal) {
                 mask |= SHAFT_CONNECTION_LEFT;
@@ -123,10 +123,10 @@ export function refreshShaftConnectionAt(voxelMap: IVoxelWriter, pos: Pos2D): vo
     if (!isShaftVoxel(voxel)) return;
 
     const nextMask = computeShaftConnectionMask(voxelMap, pos);
-    const currentMask = getPipeConnectionsFromVoxel(voxel);
+    const currentMask = getConnectionsFromVoxel(voxel);
     if (currentMask === nextMask) return;
 
-    voxelMap.set(setPipeConnectionsInVoxel(voxel, nextMask), surfacePos);
+    voxelMap.set(setConnectionsInVoxel(voxel, nextMask), surfacePos);
 }
 
 /** 指定タイルと上下左右4マスのシャフト接続を局所再計算する。 */
