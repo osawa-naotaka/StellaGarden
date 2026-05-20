@@ -28,17 +28,19 @@ export function createInteractionHandler(
         if (Math.abs(distX) > INTERACT_RANGE || Math.abs(distZ) > INTERACT_RANGE) return;
         const tool = inventory.selectedTool;
 
-        // 台車検出（axe で撤去）: voxel 外管理のため通常のパスより先に判定する
-        if (tool === "axe") {
-            const cartReadOnly = cartStorage.findAt(packet.pos, 0.5);
-            if (cartReadOnly) {
+        // 台車検出: voxel 外管理のため通常のパスより先に判定する。
+        // カートが存在するタイルでは下層の voxel エンティティ（レール等）への操作を遮断する。
+        // 例: 斧でカートをクリックしても、カートが空でなければ撤去しないが、下のレールも撤去させない。
+        const cartReadOnly = cartStorage.findAt(packet.pos, 0.5);
+        if (cartReadOnly) {
+            if (tool === "axe") {
                 const cart = cartStorage.getByIdWritable(cartReadOnly.id);
                 if (cart && cart.isInventoryEmpty() && cart.attachmentSlot === null) {
                     cartStorage.remove(cart.id);
                     inventory.addItems([{ itemId: "cart", count: 1 }]);
-                    return;
                 }
             }
+            return;
         }
 
         const surfacePos = voxelMap.getSurfacePosition({ x: packet.pos.x, y: 0, z: packet.pos.z });
