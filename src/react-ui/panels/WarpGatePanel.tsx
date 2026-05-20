@@ -73,7 +73,7 @@ export function WarpGatePanel({ open, inventory, warpGateStorage, reputationSyst
 
     const close = useCallback(() => {
         uiState.mode = "normal";
-        uiState.warpGatePos = null;
+        uiState.targetPos = null;
     }, [uiState]);
 
     const tiers = reputationSystem.getAllTierProgress();

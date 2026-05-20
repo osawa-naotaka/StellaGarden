@@ -30,7 +30,7 @@ type Animation = Record<string, string[]>;
 
 function frameOf(x: number, y: number, px: number, py: number): Frame {
     return {
-        frame: { x: x * px, y: y * px, w: px, h: py },
+        frame: { x: x * px, y: y * py, w: px, h: py },
         rotated: false,
         trimmed: false,
         spriteSourceSize: { x: 0, y: 0, w: px, h: py },

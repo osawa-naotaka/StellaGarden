@@ -23,13 +23,13 @@ export class CraftSystem implements ICraftSystem {
     }
 
     getToolSlot(): ItemStack | null {
-        const pos = this.uiState.craftWorkbenchPos;
+        const pos = this.uiState.targetPos;
         if (!pos) return null;
         return this.workbenchStorage.getTool(pos);
     }
 
     setToolSlot(stack: ItemStack | null): void {
-        const pos = this.uiState.craftWorkbenchPos;
+        const pos = this.uiState.targetPos;
         if (!pos) return;
         this.workbenchStorage.setTool(pos, stack);
     }

@@ -741,3 +741,38 @@
 [data-tooltip]:hover::after {
     opacity: 1;
 }
+
+/* ─── トグルスイッチ（WinchPanel 等） ──────────────────────── */
+.sg-toggle-switch {
+    align-self: flex-start;
+    background: var(--sg-bg-elev2);
+    border: 1px solid var(--sg-border);
+    color: var(--sg-fg-dim);
+    font-family: var(--sg-font);
+    font-size: var(--sg-font-size);
+    font-weight: 700;
+    letter-spacing: 1px;
+    padding: 8px 32px;
+    border-radius: var(--sg-radius);
+    cursor: pointer;
+    user-select: none;
+    transition:
+        background var(--sg-duration) var(--sg-easing),
+        border-color var(--sg-duration) var(--sg-easing),
+        color var(--sg-duration) var(--sg-easing);
+}
+
+.sg-toggle-switch:hover {
+    border-color: var(--sg-fg-dim);
+    color: var(--sg-fg);
+}
+
+.sg-toggle-switch.is-on {
+    background: rgba(136, 192, 112, 0.15);
+    border-color: var(--sg-success);
+    color: var(--sg-success);
+}
+
+.sg-toggle-switch.is-on:hover {
+    background: rgba(136, 192, 112, 0.25);
+}

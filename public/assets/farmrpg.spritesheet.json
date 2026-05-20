@@ -2,15 +2,15 @@
 
 "axe.png":
 {
-	"frame": {"x":63,"y":18,"w":12,"h":15},
-	"rotated": true,
+	"frame": {"x":79,"y":1,"w":12,"h":15},
+	"rotated": false,
 	"trimmed": true,
 	"spriteSourceSize": {"x":1,"y":0,"w":12,"h":15},
 	"sourceSize": {"w":16,"h":16}
 },
 "chest.png":
 {
-	"frame": {"x":45,"y":1,"w":17,"h":14},
+	"frame": {"x":93,"y":1,"w":17,"h":14},
 	"rotated": false,
 	"trimmed": true,
 	"spriteSourceSize": {"x":7,"y":2,"w":17,"h":14},
@@ -18,7 +18,7 @@
 },
 "pickaxe.png":
 {
-	"frame": {"x":98,"y":1,"w":14,"h":14},
+	"frame": {"x":93,"y":17,"w":14,"h":14},
 	"rotated": false,
 	"trimmed": true,
 	"spriteSourceSize": {"x":1,"y":1,"w":14,"h":14},
@@ -26,7 +26,7 @@
 },
 "shovel.png":
 {
-	"frame": {"x":98,"y":17,"w":13,"h":13},
+	"frame": {"x":63,"y":18,"w":13,"h":13},
 	"rotated": false,
 	"trimmed": true,
 	"spriteSourceSize": {"x":1,"y":2,"w":13,"h":13},
@@ -34,15 +34,15 @@
 },
 "sickle.png":
 {
-	"frame": {"x":80,"y":18,"w":12,"h":13},
-	"rotated": true,
+	"frame": {"x":78,"y":18,"w":12,"h":13},
+	"rotated": false,
 	"trimmed": true,
 	"spriteSourceSize": {"x":1,"y":2,"w":12,"h":13},
 	"sourceSize": {"w":16,"h":16}
 },
 "stone-icon.png":
 {
-	"frame": {"x":64,"y":1,"w":15,"h":15},
+	"frame": {"x":45,"y":1,"w":15,"h":15},
 	"rotated": false,
 	"trimmed": true,
 	"spriteSourceSize": {"x":0,"y":1,"w":15,"h":15},
@@ -50,7 +50,7 @@
 },
 "stone1.png":
 {
-	"frame": {"x":45,"y":17,"w":16,"h":13},
+	"frame": {"x":45,"y":18,"w":16,"h":13},
 	"rotated": false,
 	"trimmed": true,
 	"spriteSourceSize": {"x":0,"y":3,"w":16,"h":13},
@@ -66,7 +66,7 @@
 },
 "stone3.png":
 {
-	"frame": {"x":81,"y":1,"w":15,"h":15},
+	"frame": {"x":62,"y":1,"w":15,"h":15},
 	"rotated": false,
 	"trimmed": true,
 	"spriteSourceSize": {"x":1,"y":1,"w":15,"h":15},
@@ -102,10 +102,10 @@
 "meta": {
 	"app": "https://www.codeandweb.com/texturepacker",
 	"version": "1.1",
-	"image": "farmrpg.spritesheet.png",
+	"image": "farmrpg.spritesheet.png?v=70eda799dcf6",
 	"format": "RGBA8888",
-	"size": {"w":113,"h":31},
+	"size": {"w":111,"h":32},
 	"scale": "1",
-	"smartupdate": "$TexturePacker:SmartUpdate:c738ded8c7f1898234d907076921e327:1e771ecb17da0c3abddbab99e9f76fc4:80469885900836017734f93f2267571b$"
+	"smartupdate": "$TexturePacker:SmartUpdate:c1d129135c0a4641e7e02eb582290ae7:1e771ecb17da0c3abddbab99e9f76fc4:80469885900836017734f93f2267571b$"
 }
 }

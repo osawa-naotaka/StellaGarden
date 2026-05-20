@@ -66,7 +66,7 @@ export function InventoryPanel({ open, inventory, craftSystem, uiState }: Invent
 
     const close = useCallback(() => {
         uiState.mode = "normal";
-        uiState.craftWorkbenchPos = null;
+        uiState.targetPos = null;
         uiState.craftStation = "hand";
     }, [uiState]);
 

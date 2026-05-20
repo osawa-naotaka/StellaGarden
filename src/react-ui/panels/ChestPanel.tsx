@@ -26,27 +26,27 @@ export interface ChestPanelProps {
 
 export function ChestPanel({ open, inventory, chestStorage, uiState }: ChestPanelProps) {
     useFrameTick(open);
-    const chestPos = uiState.chestPos;
+    const targetPos = uiState.targetPos;
 
     const getSlot = useCallback(
         (ref: ChestSlotRef): ItemStack | null => {
             if (ref.area === "chest") {
-                return chestPos ? chestStorage.getSlot(chestPos, ref.index) : null;
+                return targetPos ? chestStorage.getSlot(targetPos, ref.index) : null;
             }
             return inventory.getSlot(ref as SlotRef);
         },
-        [inventory, chestStorage, chestPos],
+        [inventory, chestStorage, targetPos],
     );
 
     const setSlot = useCallback(
         (ref: ChestSlotRef, stack: ItemStack | null) => {
             if (ref.area === "chest") {
-                if (chestPos) chestStorage.setSlot(chestPos, ref.index, stack);
+                if (targetPos) chestStorage.setSlot(targetPos, ref.index, stack);
                 return;
             }
             inventory.setSlot(ref as SlotRef, stack);
         },
-        [inventory, chestStorage, chestPos],
+        [inventory, chestStorage, targetPos],
     );
 
     const getQuickTransferTargets = useCallback(
@@ -61,12 +61,12 @@ export function ChestPanel({ open, inventory, chestStorage, uiState }: ChestPane
                 return targets;
             }
             // inventory / toolbar → chest
-            if (!chestPos) return undefined;
+            if (!targetPos) return undefined;
             const targets: ChestSlotRef[] = [];
             for (let i = 0; i < chestTotal; i++) targets.push({ area: "chest", index: i });
             return targets;
         },
-        [chestPos],
+        [targetPos],
     );
 
     const { pickedUp, cursorPos, handleLeftClick, handleRightClick } = usePickup<ChestSlotRef>(open, {
@@ -77,7 +77,7 @@ export function ChestPanel({ open, inventory, chestStorage, uiState }: ChestPane
 
     const close = useCallback(() => {
         uiState.mode = "normal";
-        uiState.chestPos = null;
+        uiState.targetPos = null;
     }, [uiState]);
 
     return (
@@ -88,7 +88,7 @@ export function ChestPanel({ open, inventory, chestStorage, uiState }: ChestPane
                     <InventoryGrid
                         rows={CHEST_ROWS}
                         cols={COLS}
-                        getStack={(i) => (chestPos ? chestStorage.getSlot(chestPos, i) : null)}
+                        getStack={(i) => (targetPos ? chestStorage.getSlot(targetPos, i) : null)}
                         onLeftClick={(i, e) => handleLeftClick({ area: "chest", index: i }, e.nativeEvent)}
                         onRightClick={(i) => handleRightClick({ area: "chest", index: i })}
                     />

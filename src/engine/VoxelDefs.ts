@@ -50,6 +50,7 @@ export const ENTITY_TYPES = {
     waterwheel: 35,
     shaft: 36,
     auto_thresher: 37,
+    winch: 38,
 } as const;
 
 // ---------------------------------------------------------------------------
@@ -257,9 +258,6 @@ export const VOXEL_VARIANT = {
     done: 1,
     horizontal: 0,
     vertical: 1,
-};
-
-export const VOXEL_SUB_DIRECTION = {
-    forward: 0,
-    backword: 1,
+    off: 0,
+    on: 1,
 };
