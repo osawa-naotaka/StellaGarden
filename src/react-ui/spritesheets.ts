@@ -37,6 +37,8 @@ const SPRITESHEET_PATHS: readonly string[] = [
     "/assets/farmrpg.spritesheet.json",
     "/assets/Pipes.spritesheet.json",
     "/assets/PropsMine.spritesheet.json",
+    "/assets/PropsMineCart.spritesheet.json",
+    "/assets/StoneStructures.spritesheet.json",
 ];
 
 let frameMap: Map<string, SpritesheetFrameInfo> | null = null;
