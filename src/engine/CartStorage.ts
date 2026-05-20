@@ -18,109 +18,67 @@ import {
 
 const CART_MOVE_SPEED = 3; // タイル/秒
 
-// ---------------------------------------------------------------------------
-// forward 出口辺テーブル
-//
-// direction == forward の場合、connectionMask から出口辺（exitBit）を決定する。
-// 各エントリ: [connectionMask, exitBit, dx, dz, facing]
-//
-// 導出根拠（RailTractionFlow.setTractionDirectionAndEnable のロジックより）:
-//   LEFT | RIGHT  → 牽引が RIGHT 側から入り RIGHT 方向へ進む  (dx=+1)
-//   UP   | DOWN   → 牽引が DOWN  側から入り DOWN  方向へ進む  (dz=+1)
-//   UP   | RIGHT  → 牽引が UP   側から入り RIGHT 方向へ出る   (dx=+1)
-//   UP   | LEFT   → 牽引が LEFT 側から入り UP    方向へ出る   (dz=-1)
-//   DOWN | RIGHT  → 牽引が RIGHT側から入り DOWN  方向へ出る   (dz=+1)
-//   DOWN | LEFT   → 牽引が DOWN 側から入り LEFT  方向へ出る   (dx=-1)
-//
-// direction == backward の場合は opposite: dx, dz, facing を反転し exitBit も逆にする。
-// ---------------------------------------------------------------------------
-
 type ExitEntry = {
     readonly connectionMask: number;
+    /** direction == forward のときの出射辺（タイル外へ抜ける辺のビット）。 */
     readonly exitBit: number;
-    readonly dx: number;
-    readonly dz: number;
-    readonly facing: Direction8;
 };
 
-// ── 行番号 36 付近: テーブル定義開始 ──
+// ---------------------------------------------------------------------------
+// FORWARD_EXIT_TABLE: 各レール形状について direction == forward の出射辺を定義
+//
+// 移動は「タイル内線分（進入辺中央 → 脱出辺中央）」方式で行い、辺中央でスナップ
+// するため、dx/dz/facing はここでは持たない（facing は exitBit から導出）。
+// ---------------------------------------------------------------------------
 const FORWARD_EXIT_TABLE: ReadonlyArray<ExitEntry> = [
-    {
-        connectionMask: RAIL_CONNECTION_LEFT | RAIL_CONNECTION_RIGHT,
-        exitBit: RAIL_CONNECTION_RIGHT,
-        dx: +1,
-        dz: 0,
-        facing: "right",
-    },
-    {
-        connectionMask: RAIL_CONNECTION_UP | RAIL_CONNECTION_DOWN,
-        exitBit: RAIL_CONNECTION_DOWN,
-        dx: 0,
-        dz: +1,
-        facing: "down",
-    },
-    {
-        connectionMask: RAIL_CONNECTION_UP | RAIL_CONNECTION_RIGHT,
-        exitBit: RAIL_CONNECTION_UP,
-        dx: -1,
-        dz: -1,
-        facing: "right",
-    },
-    {
-        connectionMask: RAIL_CONNECTION_UP | RAIL_CONNECTION_LEFT,
-        exitBit: RAIL_CONNECTION_LEFT,
-        dx: -1,
-        dz: +1,
-        facing: "up",
-    },
-    {
-        connectionMask: RAIL_CONNECTION_DOWN | RAIL_CONNECTION_RIGHT,
-        exitBit: RAIL_CONNECTION_RIGHT,
-        dx: +1,
-        dz: -1,
-        facing: "down",
-    },
-    {
-        connectionMask: RAIL_CONNECTION_DOWN | RAIL_CONNECTION_LEFT,
-        exitBit: RAIL_CONNECTION_DOWN,
-        dx: +1,
-        dz: +1,
-        facing: "left",
-    },
+    { connectionMask: RAIL_CONNECTION_LEFT | RAIL_CONNECTION_RIGHT, exitBit: RAIL_CONNECTION_RIGHT },
+    { connectionMask: RAIL_CONNECTION_UP | RAIL_CONNECTION_DOWN, exitBit: RAIL_CONNECTION_DOWN },
+    { connectionMask: RAIL_CONNECTION_UP | RAIL_CONNECTION_RIGHT, exitBit: RAIL_CONNECTION_UP },
+    { connectionMask: RAIL_CONNECTION_UP | RAIL_CONNECTION_LEFT, exitBit: RAIL_CONNECTION_LEFT },
+    { connectionMask: RAIL_CONNECTION_DOWN | RAIL_CONNECTION_RIGHT, exitBit: RAIL_CONNECTION_RIGHT },
+    { connectionMask: RAIL_CONNECTION_DOWN | RAIL_CONNECTION_LEFT, exitBit: RAIL_CONNECTION_DOWN },
 ];
-// ── テーブル定義終了 ──
 
-/** 単一の接続辺ビットから移動ベクトル / facing に変換する。 */
-function bitToMove(bit: number): { dx: number; dz: number; facing: Direction8 } | null {
+/** connectionMask と direction から出射辺ビットを返す。解決できなければ null。 */
+function resolveExitBit(connectionMask: number, direction: number): number | null {
+    const entry = FORWARD_EXIT_TABLE.find((e) => e.connectionMask === connectionMask);
+    if (!entry) return null;
+    if (direction === VOXEL_DIRECTION.forward) return entry.exitBit;
+    // backward: もう一方の接続辺
+    return connectionMask & ~entry.exitBit;
+}
+
+/** 単一の接続辺ビットから facing（描画向き）を返す。 */
+function bitToFacing(bit: number): Direction8 | null {
     switch (bit) {
-        case RAIL_CONNECTION_UP: return { dx: 0, dz: -1, facing: "up" };
-        case RAIL_CONNECTION_DOWN: return { dx: 0, dz: +1, facing: "down" };
-        case RAIL_CONNECTION_LEFT: return { dx: -1, dz: 0, facing: "left" };
-        case RAIL_CONNECTION_RIGHT: return { dx: +1, dz: 0, facing: "right" };
+        case RAIL_CONNECTION_UP: return "up";
+        case RAIL_CONNECTION_DOWN: return "down";
+        case RAIL_CONNECTION_LEFT: return "left";
+        case RAIL_CONNECTION_RIGHT: return "right";
         default: return null;
     }
 }
 
-/**
- * connectionMask と direction から移動ベクトルと facing を返す。
- *
- * forward の場合は FORWARD_EXIT_TABLE で定義した出射辺を使う。
- * backward の場合は connectionMask からその出射辺ビットを除いた残りの辺が出射辺になる
- * （カーブでは「forward の dx/dz を単純反転」では正しい出射辺にならないため）。
- */
-function resolveExit(
-    connectionMask: number,
-    direction: number,
-): { dx: number; dz: number; facing: Direction8 } | null {
-    const entry = FORWARD_EXIT_TABLE.find((e) => e.connectionMask === connectionMask);
-    if (!entry) return null;
-
-    if (direction === VOXEL_DIRECTION.forward) {
-        return { dx: entry.dx, dz: entry.dz, facing: entry.facing };
+/** タイル(tx, tz) の指定辺の中央のワールド座標を返す（ボクセル単位）。 */
+function edgeCenterWorld(tx: number, tz: number, bit: number): Pos2D {
+    switch (bit) {
+        case RAIL_CONNECTION_UP: return { x: tx + 0.5, z: tz };
+        case RAIL_CONNECTION_DOWN: return { x: tx + 0.5, z: tz + 1.0 };
+        case RAIL_CONNECTION_LEFT: return { x: tx, z: tz + 0.5 };
+        case RAIL_CONNECTION_RIGHT: return { x: tx + 1.0, z: tz + 0.5 };
+        default: return { x: tx + 0.5, z: tz + 0.5 };
     }
-    // backward: もう一方の接続辺へ向かう
-    const backwardExitBit = connectionMask & ~entry.exitBit;
-    return bitToMove(backwardExitBit);
+}
+
+/** exitBit に従って隣接タイル座標を返す。 */
+function neighborTile(tx: number, tz: number, bit: number): { tx: number; tz: number } {
+    switch (bit) {
+        case RAIL_CONNECTION_UP: return { tx, tz: tz - 1 };
+        case RAIL_CONNECTION_DOWN: return { tx, tz: tz + 1 };
+        case RAIL_CONNECTION_LEFT: return { tx: tx - 1, tz };
+        case RAIL_CONNECTION_RIGHT: return { tx: tx + 1, tz };
+        default: return { tx, tz };
+    }
 }
 
 /**
@@ -137,19 +95,18 @@ export class CartStorage implements ICartStorageWriter {
         return this.carts.values();
     }
 
-    findAt(worldPos: Pos2D, radius: number): ICartReader | null {
-        let best: Cart | null = null;
-        let bestDist = radius;
+    findAt(worldPos: Pos2D, _radius: number): ICartReader | null {
+        // worldPos と同じタイル上にいるカートを返す（タイル単位の判定）。
+        // 入力 worldPos はタイル単位の整数座標も浮動小数座標も許容するため floor で正規化する。
+        // radius は API 互換性のため残しているが現状は未使用。
+        const targetTx = Math.floor(worldPos.x);
+        const targetTz = Math.floor(worldPos.z);
         for (const cart of this.carts.values()) {
-            const dx = cart.posInWorld.x - worldPos.x;
-            const dz = cart.posInWorld.z - worldPos.z;
-            const dist = Math.sqrt(dx * dx + dz * dz);
-            if (dist <= bestDist) {
-                bestDist = dist;
-                best = cart;
-            }
+            const cartTx = Math.floor(cart.posInWorld.x);
+            const cartTz = Math.floor(cart.posInWorld.z);
+            if (cartTx === targetTx && cartTz === targetTz) return cart;
         }
-        return best;
+        return null;
     }
 
     getById(id: number): ICartReader | undefined {
@@ -176,40 +133,98 @@ export class CartStorage implements ICartStorageWriter {
     /**
      * 全台車の移動処理を 1 フレーム分実行する。
      *
-     * 各カートについて:
-     *   1. 現在タイルの surface voxel を取得
-     *   2. rail エンティティかつ enabled でなければ停止
-     *   3. connectionMask と direction からテーブルで出口方向を決定
-     *   4. posInWorld を更新し、facing を書き換え
+     * タイル内線分方式:
+     *   各タイル内で「現在位置 → 脱出辺中央」の線分に沿って残距離 (speed * dt) を消費する。
+     *   タイル境界に到達したら posInWorld を辺中央にスナップ（誤差ゼロ）し、隣タイル番号を
+     *   明示的に進めてループ継続。残距離が脱出辺中央に届かなければ線分上で中間停止。
      */
     tickAll(voxelMap: IVoxelReader, deltaMS: number): void {
         const dt = deltaMS / 1000;
-        const speed = CART_MOVE_SPEED;
+        const MAX_HOPS = 8; // 1フレームで跨げる最大タイル数（無限ループ防止）
 
         for (const cart of this.carts.values()) {
-            const cx = Math.floor(cart.posInWorld.x);
-            const cz = Math.floor(cart.posInWorld.z);
+            let remaining = CART_MOVE_SPEED * dt;
+            let tx = Math.floor(cart.posInWorld.x);
+            let tz = Math.floor(cart.posInWorld.z);
 
-            const surfacePos = voxelMap.getSurfacePosition({ x: cx, y: 0, z: cz });
-            const voxel = voxelMap.get(surfacePos);
+            for (let hop = 0; hop < MAX_HOPS && remaining > 0; hop++) {
+                const surfacePos = voxelMap.getSurfacePosition({ x: tx, y: 0, z: tz });
+                const voxel = voxelMap.get(surfacePos);
 
-            // rail エンティティかつ enabled でなければ停止
-            if (getEntityTypeFromVoxel(voxel) !== ENTITY_TYPES.rail) continue;
-            if (!getEnabledFromVoxel(voxel)) continue;
+                if (getEntityTypeFromVoxel(voxel) !== ENTITY_TYPES.rail) break;
+                if (!getEnabledFromVoxel(voxel)) break;
 
-            const connectionMask = getConnectionsFromVoxel(voxel);
-            const direction = getDirectionFromVoxel(voxel);
+                const connectionMask = getConnectionsFromVoxel(voxel);
+                const exitBit = resolveExitBit(connectionMask, getDirectionFromVoxel(voxel));
+                if (exitBit === null) break;
 
-            const exit = resolveExit(connectionMask, direction);
-            if (!exit) continue;
+                const facing = bitToFacing(exitBit);
+                if (facing !== null) cart.setFacing(facing);
 
-            // 位置を更新
-            cart.setPosInWorld({
-                x: cart.posInWorld.x + exit.dx * speed * dt,
-                z: cart.posInWorld.z + exit.dz * speed * dt,
-            });
+                // 次タイルが進入可能（rail）かどうかをチェック
+                // 不可なら線分終点をタイル中央に切り替えてカートをタイル中央で停止させる
+                const next = neighborTile(tx, tz, exitBit);
+                const nextSurfacePos = voxelMap.getSurfacePosition({ x: next.tx, y: 0, z: next.tz });
+                const nextVoxel = voxelMap.get(nextSurfacePos);
+                const nextIsRail = getEntityTypeFromVoxel(nextVoxel) === ENTITY_TYPES.rail;
 
-            cart.setFacing(exit.facing);
+                // 線分終点を決定
+                let segmentEnd: Pos2D;
+                if (nextIsRail) {
+                    segmentEnd = edgeCenterWorld(tx, tz, exitBit);
+                } else {
+                    // 進入辺中央〜脱出辺中央の線分上で、現在位置 t を計算
+                    // t < 0.5: タイル中央未到達 → タイル中央が終点
+                    // t >= 0.5: タイル中央通過済み → 現在地で停止
+                    const enterBit = connectionMask & ~exitBit;
+                    const entryCenter = edgeCenterWorld(tx, tz, enterBit);
+                    const exitCenter = edgeCenterWorld(tx, tz, exitBit);
+                    const vx = exitCenter.x - entryCenter.x;
+                    const vz = exitCenter.z - entryCenter.z;
+                    const ux = cart.posInWorld.x - entryCenter.x;
+                    const uz = cart.posInWorld.z - entryCenter.z;
+                    const vLenSq = vx * vx + vz * vz;
+                    const t = vLenSq > 0 ? (ux * vx + uz * vz) / vLenSq : 0;
+                    if (t >= 0.5) break; // タイル中央通過済み: 現在地で停止
+                    segmentEnd = { x: tx + 0.5, z: tz + 0.5 };
+                }
+
+                const dx = segmentEnd.x - cart.posInWorld.x;
+                const dz = segmentEnd.z - cart.posInWorld.z;
+                const distToEnd = Math.sqrt(dx * dx + dz * dz);
+
+                if (distToEnd <= 0) {
+                    if (nextIsRail) {
+                        // 既に脱出辺中央: 隣タイルに踏み込んでループ継続
+                        tx = next.tx;
+                        tz = next.tz;
+                        continue;
+                    }
+                    // タイル中央でちょうど停止
+                    break;
+                }
+
+                if (remaining >= distToEnd) {
+                    cart.setPosInWorld({ x: segmentEnd.x, z: segmentEnd.z });
+                    remaining -= distToEnd;
+                    if (nextIsRail) {
+                        // 脱出辺中央にスナップ → 次タイルへ
+                        tx = next.tx;
+                        tz = next.tz;
+                    } else {
+                        // タイル中央到達 → 停止
+                        break;
+                    }
+                } else {
+                    // 中間で停止
+                    const t = remaining / distToEnd;
+                    cart.setPosInWorld({
+                        x: cart.posInWorld.x + dx * t,
+                        z: cart.posInWorld.z + dz * t,
+                    });
+                    remaining = 0;
+                }
+            }
         }
     }
 

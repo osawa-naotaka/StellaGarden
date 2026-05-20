@@ -36,7 +36,7 @@ export class CartView {
             }
 
             // タイル座標 → ピクセル座標変換（アンカーを中央にするため PIXEL_PER_TILE / 2 オフセット）
-            gfx.x = (cart.posInWorld.x - viewportOrigin.x) * PIXEL_PER_TILE - PIXEL_PER_TILE / 2;
+            gfx.x = (cart.posInWorld.x - viewportOrigin.x) * PIXEL_PER_TILE　- PIXEL_PER_TILE / 2;
             gfx.y = (cart.posInWorld.z - viewportOrigin.z) * PIXEL_PER_TILE - PIXEL_PER_TILE / 2;
         }
 
