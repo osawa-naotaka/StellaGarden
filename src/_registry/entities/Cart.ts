@@ -30,11 +30,11 @@ registerEntity({
 registerItem({
     itemId: "cart",
     displayName: "台車",
-    spriteName: "cart_h.png",
-    maxStack: 1,
+    spriteName: "cart_h",
+    maxStack: 8,
     placement: {
         entityType: ENTITY_TYPES.cart,
-        fieldSpriteName: "cart_h.png",
+        fieldSpriteName: "cart_h",
         canPlace(voxelMap, pos, _variant) {
             // rail エンティティの上のみ配置可
             const surfacePos = voxelMap.getSurfacePosition({ x: pos.x, y: 0, z: pos.z });
