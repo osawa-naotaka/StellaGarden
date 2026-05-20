@@ -30,12 +30,12 @@ export function getRailOrientation(voxel: bigint): number {
  * 接続なし(0)、縦直線(3=UP+DOWN)、横直線(12=LEFT+RIGHT) を直線扱い。
  * これ以外はL字・T字・十字でベベルギアを介する。
  */
-export function isShaftStraightMask(mask: number): boolean {
+export function isRailStraightMask(mask: number): boolean {
   // return mask === 0 || mask === 3 || mask === 12;
   return mask === 0 || mask === 1 || mask === 2 || mask === 3 || mask === 4 || mask == 8 || mask === 12;
 }
 
-export function getShaftShapeKey(voxel: bigint): RailShapeKey {
+export function getRailShapeKey(voxel: bigint): RailShapeKey {
     const mask = getConnectionsFromVoxel(voxel);
 
     switch (mask) {
@@ -64,5 +64,5 @@ export function getShaftShapeKey(voxel: bigint): RailShapeKey {
 
 
 export function getRailSpriteName(voxel: bigint): string {
-    return getShaftShapeKey(voxel);
+    return getRailShapeKey(voxel);
 }

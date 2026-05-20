@@ -1,5 +1,6 @@
 import { refreshRailConnectionsAround } from "../../engine/RailConnection";
 import { getRailSpriteName } from "../../engine/RailShape";
+import { recomputeAllRailTractionFlow } from "../../engine/RailTractionFlow";
 import { ENTITY_TYPES, setVariantInVoxel } from "../../engine/VoxelDefs";
 import { type EntitySpriteInfo, type InteractionContext, registerEntity } from "../EntityRegistry";
 import { placeFacility, removeFacilityAtPos } from "../facilityUtil";
@@ -28,7 +29,11 @@ registerEntity({
     onInteract(ctx: InteractionContext): boolean {
         if (ctx.tool !== "axe") return false;
 
-        return removeFacilityAtPos(ctx.voxelMap, ctx.inventory, ctx.surfacePos.x, ctx.surfacePos.z, ENTITY_TYPES.rail);
+        const result = removeFacilityAtPos(ctx.voxelMap, ctx.inventory, ctx.surfacePos.x, ctx.surfacePos.z, ENTITY_TYPES.rail);
+        refreshRailConnectionsAround(ctx.voxelMap, ctx.surfacePos);
+        recomputeAllRailTractionFlow(ctx.voxelMap);
+
+        return result;
     },
 });
 
@@ -50,6 +55,7 @@ registerItem({
             const voxel = voxelMap.get(surfacePos);
             voxelMap.set(setVariantInVoxel(voxel, variant), surfacePos);
             refreshRailConnectionsAround(voxelMap, pos);
+            recomputeAllRailTractionFlow(voxelMap);
         },
     },
 });

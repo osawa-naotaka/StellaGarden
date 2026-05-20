@@ -4,8 +4,11 @@ import { CROP_DEFS, getFertilizerYieldMultiplier } from "../../engine/CropDefs";
 import {
     ENTITY_TYPES,
     FERTILIZER_TYPES,
+    getConnectionsFromVoxel,
     getDaysElapsedFromVoxel,
+    getDirectionFromVoxel,
     getDroughtCounterFromVoxel,
+    getEnabledFromVoxel,
     getEntityTypeFromVoxel,
     getFatigueFromVoxel,
     getFertilizerTypeFromVoxel,
@@ -32,6 +35,8 @@ function buildTileLines(voxelMap: IVoxelReader, playerState: IPlayerStateReader)
 
     const lines: string[] = [];
 
+    lines.push(`位置: ${px}, ${pz}`);
+
     if (getEntityTypeFromVoxel(v) !== ENTITY_TYPES.none) {
         const anchor = findFacilityAnchor(voxelMap, px, pz);
         const entity = anchor.entityType;
@@ -43,6 +48,9 @@ function buildTileLines(voxelMap: IVoxelReader, playerState: IPlayerStateReader)
 
         lines.push(`エンティティ: ${ENTITY_NAMES[entity] ?? entity}`);
         lines.push(`バリアント: ${getVariantFromVoxel(voxel)}`);
+        lines.push(`enable: ${getEnabledFromVoxel(voxel)}`);
+        lines.push(`接続: ${getConnectionsFromVoxel(voxel)}`);
+        lines.push(`方向: ${getDirectionFromVoxel(voxel)}`);
         const cropDef = CROP_DEFS[entity];
         if (cropDef) {
             const mature = dayCounter >= cropDef.maturityDay;
