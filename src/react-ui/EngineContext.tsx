@@ -9,6 +9,7 @@ import type {
     IVoxelWriter,
 } from "../_boundary/interfaces";
 import type { AutoProcessingStorage } from "../engine/AutoProcessingStorage";
+import type { CartStorage } from "../engine/CartStorage";
 import type { ChestStorage } from "../engine/ChestStorage";
 import type { DailyProcessingStorage } from "../engine/DailyProcessingStorage";
 import type { ForgeStorage } from "../engine/ForgeStorage";
@@ -28,6 +29,7 @@ export interface EngineRefs {
     reputationSystem: IReputationSystemReader;
     chestStorage: ChestStorage;
     forgeStorage: ForgeStorage;
+    cartStorage: CartStorage;
     manualProcessingStorage: ManualProcessingStorage;
     dailyProcessingStorage: DailyProcessingStorage;
     autoProcessingStorage: AutoProcessingStorage;

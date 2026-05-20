@@ -1,10 +1,11 @@
 import type { Application, ColorMatrixFilter, Container, Ticker } from "pixi.js";
 import { PIXEL_PER_TILE, TILE_PER_CHUNK } from "../../_boundary/constants";
-import type { IEventBroker } from "../../_boundary/interfaces";
+import type { ICartStorageWriter, IEventBroker, IVoxelReader } from "../../_boundary/interfaces";
 import type { GameTime } from "../../engine/GameTime";
 import type { PlayerState } from "../../engine/PlayerState";
 import type { InputHandler } from "../../input/InputHandler";
 import type { Pos2D, Size2D } from "../../lib/VoxelMap";
+import type { CartView } from "../../view/CartView";
 import type { PlacementOverlay } from "../../view/PlacementOverlay";
 import type { PlayerCharacterView } from "../../view/PlayerCharacterView";
 import type { TopView } from "../../view/TopView";
@@ -20,6 +21,7 @@ export interface GameTickDeps {
     topView: TopView;
     placementOverlay: PlacementOverlay;
     playerCharView: PlayerCharacterView;
+    cartView: CartView;
     inputHandler: InputHandler;
     playerState: PlayerState;
     gameTime: GameTime;
@@ -27,6 +29,8 @@ export interface GameTickDeps {
     eventBroker: IEventBroker;
     initialChunks: Size2D;
     requestSave: () => Promise<void>;
+    cartStorage: ICartStorageWriter;
+    voxelMap: IVoxelReader;
 }
 
 /**
@@ -41,6 +45,7 @@ export function createGameTickHandler(deps: GameTickDeps): (ticker: Ticker) => v
         topView,
         placementOverlay,
         playerCharView,
+        cartView,
         inputHandler,
         playerState,
         gameTime,
@@ -48,6 +53,8 @@ export function createGameTickHandler(deps: GameTickDeps): (ticker: Ticker) => v
         eventBroker,
         initialChunks,
         requestSave,
+        cartStorage,
+        voxelMap,
     } = deps;
 
     let prevChunksW = initialChunks.w;
@@ -59,6 +66,7 @@ export function createGameTickHandler(deps: GameTickDeps): (ticker: Ticker) => v
             const timeMultiplier = uiState.timeSpeed === "fast" ? 8 : 1;
             gameTime.tick(ticker.deltaMS * timeMultiplier, eventBroker);
             inputHandler.tick(ticker.deltaMS);
+            cartStorage.tickAll(voxelMap, ticker.deltaMS * timeMultiplier);
         }
         dayNightFilter.brightness(gameTime.worldBrightness, false);
 
@@ -100,5 +108,6 @@ export function createGameTickHandler(deps: GameTickDeps): (ticker: Ticker) => v
             z: playerState.posInWorld.z - chunkHalfH,
         };
         placementOverlay.tick(playerState.pointerPosInWorld, viewportOrigin);
+        cartView.tick(cartStorage, viewportOrigin);
     };
 }

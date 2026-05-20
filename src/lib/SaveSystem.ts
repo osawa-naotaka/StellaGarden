@@ -26,7 +26,7 @@ export type SaveSlot = 1 | 2 | 3;
 const DB_NAME = "stella-garden";
 const DB_VERSION = 1;
 const STORE_NAME = "saveData";
-const CURRENT_SAVE_VERSION = 9;
+const CURRENT_SAVE_VERSION = 10;
 /** これより古いバージョンはマイグレーションパスがなく、ロード不可。 */
 const MIN_SUPPORTED_VERSION = 6;
 
@@ -61,6 +61,11 @@ const migrations: Record<number, (data: RawSave) => RawSave> = {
             autoProcessingStorage: { facilities: [] },
         };
     },
+    // v9 → v10: cartStorage を追加。既存セーブには台車がないため空で初期化。
+    9: (data) => ({
+        ...data,
+        cartStorage: { nextId: 1, carts: [] },
+    }),
 };
 
 /**

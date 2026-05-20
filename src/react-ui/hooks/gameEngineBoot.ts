@@ -1,5 +1,6 @@
 import type { IEventBroker } from "../../_boundary/interfaces";
 import { setAutoProcessingStorage } from "../../_registry/entities/AutoProcessing";
+import { setCartStorage } from "../../_registry/entities/Cart";
 import { setChestStorage } from "../../_registry/entities/Chest";
 import { setDailyProcessingStorage } from "../../_registry/entities/DailyProcessing";
 import { setForgeStorage } from "../../_registry/entities/Forge";
@@ -7,6 +8,7 @@ import { setManualProcessingStorage } from "../../_registry/entities/ManualProce
 import { setWarpGateStorage } from "../../_registry/entities/WarpGate";
 import { setWorkbenchStorage } from "../../_registry/entities/Workbench";
 import { AutoProcessingStorage } from "../../engine/AutoProcessingStorage";
+import { CartStorage } from "../../engine/CartStorage";
 import { ChestStorage } from "../../engine/ChestStorage";
 import { DailyProcessingStorage } from "../../engine/DailyProcessingStorage";
 import { ForgeStorage } from "../../engine/ForgeStorage";
@@ -44,6 +46,7 @@ export interface Storages {
     manualProcessingStorage: ManualProcessingStorage;
     dailyProcessingStorage: DailyProcessingStorage;
     autoProcessingStorage: AutoProcessingStorage;
+    cartStorage: CartStorage;
 }
 
 /**
@@ -79,5 +82,9 @@ export function bootstrapStorages(saveData: SaveData | null): Storages {
     if (saveData) autoProcessingStorage.loadSaveData(saveData.autoProcessingStorage.facilities);
     setAutoProcessingStorage(autoProcessingStorage);
 
-    return { chestStorage, forgeStorage, workbenchStorage, warpGateStorage, manualProcessingStorage, dailyProcessingStorage, autoProcessingStorage };
+    const cartStorage = new CartStorage();
+    if (saveData) cartStorage.loadSaveData(saveData.cartStorage);
+    setCartStorage(cartStorage);
+
+    return { chestStorage, forgeStorage, workbenchStorage, warpGateStorage, manualProcessingStorage, dailyProcessingStorage, autoProcessingStorage, cartStorage };
 }

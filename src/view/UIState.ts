@@ -1,7 +1,7 @@
 import type { CraftStation, IEventBroker, ItemId, Pos2D, SlotRef } from "../_boundary/interfaces";
 import type { PlacementVariant } from "../_registry/ItemRegistry";
 
-export type UIMode = "normal" | "inventory-craft" | "placement" | "chest" | "forge" | "warp_gate" | "processing-manual" | "processing-daily" | "processing-auto" | "winch";
+export type UIMode = "normal" | "inventory-craft" | "placement" | "chest" | "forge" | "warp_gate" | "processing-manual" | "processing-daily" | "processing-auto" | "winch" | "cart";
 export type TimeSpeed = "paused" | "normal" | "fast";
 
 /**
@@ -14,6 +14,8 @@ export class UIState {
     craftStation: CraftStation = "hand";
     /** 現在開いているパネルが対象とする座標。mode と必ずセットで更新する。 */
     targetPos: Pos2D | null = null;
+    /** 現在開いているカートの ID。mode === "cart" の時にセットされる。 */
+    targetCartId: number | null = null;
     placementItemId: ItemId | null = null;
     placementSourceSlot: SlotRef | null = null;
     placementVariant: PlacementVariant = 0;
@@ -93,6 +95,13 @@ export class UIState {
             this.targetPos = pos;
         });
 
+        const d10 = broker.subscribe("open_cart_ui", ({ cartId }) => {
+            if (this.mode === "placement") return;
+            this.mode = "cart";
+            this.targetCartId = cartId;
+            this.targetPos = null;
+        });
+
         return () => {
             d1();
             d2();
@@ -103,6 +112,7 @@ export class UIState {
             d7();
             d8();
             d9();
+            d10();
         };
     }
 

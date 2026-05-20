@@ -74,6 +74,7 @@ export const ITEM_IDS = [
     "waterwheel",
     "auto_thresher",
     "winch",
+    "cart",
 ] as const;
 
 export type ItemId = (typeof ITEM_IDS)[number];

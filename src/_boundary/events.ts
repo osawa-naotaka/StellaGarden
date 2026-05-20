@@ -37,6 +37,10 @@ export type GameEventMap = {
     /** ウインチを右クリックして ON/OFF パネルを開く。
      *  発行: Winch.ts の onOpenFacilityUI。購読: UIState → WinchPanel。 */
     open_winch_ui: { pos: Pos2D };
+    /** 台車を右クリックして台車UIを開く。
+     *  発行: InteractionSystem（cartStorage.findAt がヒットした時、施設パスより先に発行）。
+     *  購読: UIState → CartPanel。台車は voxel 外管理のため pos ではなく cartId で特定する。 */
+    open_cart_ui: { cartId: number };
 
     // ─── input → engine（Phase 3 以降で使用） ───────────────────────────────
     /** プレイヤー移動要求。移動量が 0 でない場合のみ発行すること。

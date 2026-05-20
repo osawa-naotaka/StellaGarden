@@ -1,5 +1,5 @@
 import type { GameEventMap } from "../_boundary/events";
-import type { IInventoryWriter, IPlayerStateReader, IVoxelWriter } from "../_boundary/interfaces";
+import type { ICartStorageWriter, IInventoryWriter, IPlayerStateReader, IVoxelWriter } from "../_boundary/interfaces";
 import { getEntityDef, type InteractionContext } from "../_registry/EntityRegistry";
 import { findFacilityAnchor } from "../_registry/facilityUtil";
 import { getItemDef } from "../_registry/ItemRegistry";
@@ -15,6 +15,7 @@ export function createInteractionHandler(
     eventBroker: EventBroker<GameEventMap>,
     uiState: UIState,
     playerState: IPlayerStateReader,
+    cartStorage: ICartStorageWriter,
 ): () => void {
     const INTERACT_RANGE = 5; // タイル
 
@@ -25,10 +26,24 @@ export function createInteractionHandler(
         const distX = packet.pos.x - playerState.posInWorld.x;
         const distZ = packet.pos.z - playerState.posInWorld.z;
         if (Math.abs(distX) > INTERACT_RANGE || Math.abs(distZ) > INTERACT_RANGE) return;
+        const tool = inventory.selectedTool;
+
+        // 台車検出（axe で撤去）: voxel 外管理のため通常のパスより先に判定する
+        if (tool === "axe") {
+            const cartReadOnly = cartStorage.findAt(packet.pos, 0.5);
+            if (cartReadOnly) {
+                const cart = cartStorage.getByIdWritable(cartReadOnly.id);
+                if (cart && cart.isInventoryEmpty() && cart.attachmentSlot === null) {
+                    cartStorage.remove(cart.id);
+                    inventory.addItems([{ itemId: "cart", count: 1 }]);
+                    return;
+                }
+            }
+        }
+
         const surfacePos = voxelMap.getSurfacePosition({ x: packet.pos.x, y: 0, z: packet.pos.z });
         const voxel = voxelMap.get(surfacePos);
         const terrainType = getTerrainTypeFromVoxel(voxel);
-        const tool = inventory.selectedTool;
 
         let entityType = getEntityTypeFromVoxel(voxel);
 
@@ -64,6 +79,14 @@ export function createInteractionHandler(
         const distX = packet.pos.x - playerState.posInWorld.x;
         const distZ = packet.pos.z - playerState.posInWorld.z;
         if (Math.abs(distX) > INTERACT_RANGE || Math.abs(distZ) > INTERACT_RANGE) return;
+
+        // 台車検出: voxel 外管理のため施設パスより先に判定する
+        const cartReadOnly = cartStorage.findAt(packet.pos, 0.5);
+        if (cartReadOnly) {
+            eventBroker.publish("open_cart_ui", { cartId: cartReadOnly.id });
+            return;
+        }
+
         const surfacePos = voxelMap.getSurfacePosition({ x: packet.pos.x, y: 0, z: packet.pos.z });
         const voxel = voxelMap.get(surfacePos);
         const terrainType = getTerrainTypeFromVoxel(voxel);

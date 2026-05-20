@@ -51,6 +51,7 @@ export const ENTITY_TYPES = {
     shaft: 36,
     auto_thresher: 37,
     winch: 38,
+    cart: 39,
 } as const;
 
 // ---------------------------------------------------------------------------

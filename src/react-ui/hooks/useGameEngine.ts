@@ -15,6 +15,7 @@ import { DEBUG } from "../../lib/debugFlag";
 import { createEventBroker } from "../../lib/Event";
 import { loadGame, type SaveSlot, saveGame } from "../../lib/SaveSystem";
 import type { Size2D } from "../../lib/VoxelMap";
+import { CartView } from "../../view/CartView";
 import { DebugText } from "../../view/DebugText";
 import { PlacementOverlay } from "../../view/PlacementOverlay";
 import { PlayerCharacterView } from "../../view/PlayerCharacterView";
@@ -116,7 +117,7 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
             const placementOverlay = new PlacementOverlay(voxelMap, playerState.inventory, uiState);
             worldContainer.addChild(placementOverlay.top);
 
-            const { chestStorage, forgeStorage, workbenchStorage, warpGateStorage, manualProcessingStorage, dailyProcessingStorage, autoProcessingStorage } =
+            const { chestStorage, forgeStorage, workbenchStorage, warpGateStorage, manualProcessingStorage, dailyProcessingStorage, autoProcessingStorage, cartStorage } =
                 bootstrapStorages(saveData);
 
             const reputationSystem = new ReputationSystem({
@@ -138,7 +139,10 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
             const playerCharView = new PlayerCharacterView();
             worldContainer.addChild(playerCharView.top);
 
-            disposers.push(createInteractionHandler(voxelMap, playerState.inventory, eventBroker, uiState, playerState));
+            const cartView = new CartView();
+            worldContainer.addChild(cartView.top);
+
+            disposers.push(createInteractionHandler(voxelMap, playerState.inventory, eventBroker, uiState, playerState, cartStorage));
 
             const gameTime = new GameTime(saveData?.gameTime.elapsedMs);
 
@@ -174,6 +178,7 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
                 manualProcessingStorage,
                 dailyProcessingStorage,
                 autoProcessingStorage,
+                cartStorage,
                 craftSystem,
                 voxelMap,
                 uiState,
@@ -208,6 +213,7 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
                         manualProcessingStorage,
                         dailyProcessingStorage,
                         autoProcessingStorage,
+                        cartStorage,
                         reputationSystem,
                     }),
                 )
@@ -228,6 +234,7 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
                     topView,
                     placementOverlay,
                     playerCharView,
+                    cartView,
                     inputHandler,
                     playerState,
                     gameTime,
@@ -235,6 +242,8 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
                     eventBroker,
                     initialChunks,
                     requestSave: performSave,
+                    cartStorage,
+                    voxelMap,
                 }),
             );
         }

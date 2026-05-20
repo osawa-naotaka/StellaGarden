@@ -241,6 +241,63 @@ export interface IReputationSystemReader {
     getAllTierProgress(): readonly TierProgress[];
 }
 
+// ─── Cart インターフェース（移動層エンティティ） ─────────────────────────────
+
+/**
+ * 台車（Cart）の読み取りインターフェース。
+ * view が tick で参照する。Cart クラスはこれを implements する。
+ *
+ * 座標系: posInWorld はプレイヤーと同じ浮動小数の世界座標（xz 平面）。
+ * facing は描画用に毎フレーム CartStorage が voxel から動的算出する。
+ */
+export interface ICartReader {
+    readonly id: number;
+    readonly posInWorld: Pos2D;
+    readonly facing: Direction8;
+    readonly inventorySlots: ReadonlyArray<ItemStack | null>;
+    readonly attachmentSlot: ItemStack | null;
+}
+
+/**
+ * 台車の書き込みインターフェース。
+ * engine / UI（CartPanel）が使う。インベントリ操作のみ可能で、posInWorld / facing は
+ * エンジン内部（CartStorage.tickAll）からのみ更新する。
+ */
+export interface ICartWriter extends ICartReader {
+    /** インベントリスロットの内容を設定する。 */
+    setInventorySlot(index: number, stack: ItemStack | null): void;
+    /** インベントリ全体が空かどうか（撤去可否判定に使う）。 */
+    isInventoryEmpty(): boolean;
+}
+
+/**
+ * CartStorage の読み取りインターフェース。
+ * view（CartView）と input（InteractionSystem の右クリック判定）が使う。
+ */
+export interface ICartStorageReader {
+    /** 全カートの反復処理（描画用）。 */
+    getAll(): Iterable<ICartReader>;
+    /** ワールド座標 worldPos の半径 radius 以内にいるカートを返す。なければ null。 */
+    findAt(worldPos: Pos2D, radius: number): ICartReader | null;
+    /** ID 指定でカートを取得する。 */
+    getById(id: number): ICartReader | undefined;
+}
+
+/**
+ * CartStorage の書き込みインターフェース。
+ * engine のみが使う。生成・撤去・毎フレーム移動更新を行う。
+ */
+export interface ICartStorageWriter extends ICartStorageReader {
+    /** 指定位置に台車を新規生成する。ID は内部で採番。 */
+    spawn(pos: Pos2D): ICartWriter;
+    /** ID 指定で台車を撤去する。撤去に成功すれば true。 */
+    remove(id: number): boolean;
+    /** ID 指定で書き込み可能なカート参照を返す。 */
+    getByIdWritable(id: number): ICartWriter | undefined;
+    /** 全カートに対して移動ロジックを 1 フレーム分実行する。 */
+    tickAll(voxelMap: IVoxelReader, deltaMS: number): void;
+}
+
 // ─── EventBroker インターフェース ────────────────────────────────────────────
 
 /**

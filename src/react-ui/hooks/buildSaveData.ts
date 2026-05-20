@@ -1,4 +1,5 @@
 import type { AutoProcessingStorage } from "../../engine/AutoProcessingStorage";
+import type { CartStorage } from "../../engine/CartStorage";
 import type { ChestStorage } from "../../engine/ChestStorage";
 import type { DailyProcessingStorage } from "../../engine/DailyProcessingStorage";
 import type { ForgeStorage } from "../../engine/ForgeStorage";
@@ -23,6 +24,7 @@ export interface SaveSnapshotDeps {
     manualProcessingStorage: ManualProcessingStorage;
     dailyProcessingStorage: DailyProcessingStorage;
     autoProcessingStorage: AutoProcessingStorage;
+    cartStorage: CartStorage;
     reputationSystem: ReputationSystem;
 }
 
@@ -40,6 +42,7 @@ export function buildSaveData(deps: SaveSnapshotDeps): Omit<SaveData, "version" 
         manualProcessingStorage,
         dailyProcessingStorage,
         autoProcessingStorage,
+        cartStorage,
         reputationSystem,
     } = deps;
     const inventory = playerState.inventory;
@@ -85,6 +88,7 @@ export function buildSaveData(deps: SaveSnapshotDeps): Omit<SaveData, "version" 
         autoProcessingStorage: {
             facilities: autoProcessingStorage.toSaveData(),
         },
+        cartStorage: cartStorage.toSaveData(),
         reputation: reputationSystem.toSaveData(),
     };
 }

@@ -124,6 +124,18 @@ export const AutoProcessingStorageSaveDataSchema = v.object({
     ),
 });
 
+export const CartStorageSaveDataSchema = v.object({
+    nextId: v.number(),
+    carts: v.array(
+        v.object({
+            id: v.number(),
+            posInWorld: Pos2DSchema,
+            inventorySlots: v.array(NullableItemStackSchema),
+            attachmentSlot: NullableItemStackSchema,
+        }),
+    ),
+});
+
 export const ReputationSaveDataSchema = v.object({
     points: v.number(),
     cumulativeShipped: v.array(v.tuple([ItemIdSchema, v.number()])),
@@ -146,6 +158,7 @@ export const SaveDataSchema = v.object({
     manualProcessingStorage: ManualProcessingStorageSaveDataSchema,
     dailyProcessingStorage: DailyProcessingStorageSaveDataSchema,
     autoProcessingStorage: AutoProcessingStorageSaveDataSchema,
+    cartStorage: CartStorageSaveDataSchema,
     reputation: ReputationSaveDataSchema,
 });
 
@@ -169,4 +182,5 @@ export type WarpGateStorageSaveData = v.InferOutput<typeof WarpGateStorageSaveDa
 export type ManualProcessingStorageSaveData = v.InferOutput<typeof ManualProcessingStorageSaveDataSchema>;
 export type DailyProcessingStorageSaveData = v.InferOutput<typeof DailyProcessingStorageSaveDataSchema>;
 export type AutoProcessingStorageSaveData = v.InferOutput<typeof AutoProcessingStorageSaveDataSchema>;
+export type CartStorageSaveData = v.InferOutput<typeof CartStorageSaveDataSchema>;
 export type ReputationSaveData = v.InferOutput<typeof ReputationSaveDataSchema>;
