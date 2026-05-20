@@ -2,9 +2,9 @@ import type { IVoxelWriter, Pos2D } from "../_boundary/interfaces";
 import {
     ENTITY_TYPES,
     getEntityTypeFromVoxel,
-    getPipeConnectionsFromVoxel,
+    getConnectionsFromVoxel,
     getVariantFromVoxel,
-    setPipeConnectionsInVoxel,
+    setConnectionsInVoxel,
     VOXEL_VARIANT,
 } from "./VoxelDefs";
 
@@ -73,7 +73,7 @@ export function computeRailConnectionMask(voxelMap: IVoxelWriter, pos: Pos2D, cu
             } else {
                 mask |= RAIL_CONNECTION_UP | RAIL_CONNECTION_DOWN;
             }
-            return mask;            
+            return mask;
         }
         if (currentMask !== 0) {
             return currentMask;
@@ -116,7 +116,7 @@ export function computeRailConnectionMask(voxelMap: IVoxelWriter, pos: Pos2D, cu
         if (top === null && bottom === null) {
             mask |= RAIL_CONNECTION_UP | RAIL_CONNECTION_DOWN;
         }
-        
+
         if (left != null) {
             if (leftVariant === VOXEL_VARIANT.horizontal) {
                 mask |= RAIL_CONNECTION_LEFT;
@@ -143,11 +143,11 @@ export function refreshRailConnectionAt(voxelMap: IVoxelWriter, pos: Pos2D): voi
     const voxel = voxelMap.get(surfacePos);
     if (!isRailVoxel(voxel)) return;
 
-    const currentMask = getPipeConnectionsFromVoxel(voxel);
+    const currentMask = getConnectionsFromVoxel(voxel);
     const nextMask = computeRailConnectionMask(voxelMap, pos, currentMask);
     if (currentMask === nextMask) return;
 
-    voxelMap.set(setPipeConnectionsInVoxel(voxel, nextMask), surfacePos);
+    voxelMap.set(setConnectionsInVoxel(voxel, nextMask), surfacePos);
 }
 
 /** 指定タイルと上下左右4マスのシャフト接続を局所再計算する。 */

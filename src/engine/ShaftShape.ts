@@ -1,4 +1,4 @@
-import { getConnectionsFromVoxel, getEnabledFromVoxel, getDirectionFromVoxel, getVariantFromVoxel, VOXEL_SUB_DIRECTION } from "./VoxelDefs";
+import { getConnectionsFromVoxel, getEnabledFromVoxel, getDirectionFromVoxel, getVariantFromVoxel, VOXEL_DIRECTION } from "./VoxelDefs";
 
 export type ShaftShapeKey =
     | "132_h"
@@ -25,7 +25,7 @@ export function getShaftOrientation(voxel: bigint): number {
  * シャフトが逆回転状態かどうか。variantのbit 1 を参照。
  */
 export function isShaftReversed(voxel: bigint): boolean {
-    return getDirectionFromVoxel(voxel) === VOXEL_SUB_DIRECTION.backword;
+    return getDirectionFromVoxel(voxel) === VOXEL_DIRECTION.backward;
 }
 
 /**

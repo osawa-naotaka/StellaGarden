@@ -185,12 +185,12 @@ export function setFatigueInVoxel(voxel: bigint, fatigue: number): bigint {
     return (voxel & ~(0x7n << 27n)) | ((BigInt(fatigue) & 0x7n) << 27n);
 }
 
-/** ボクセル値からサブダイレクションを取り出す（bits 30）。 */
+/** ボクセル値からダイレクションを取り出す（bits 30）。 */
 export function getDirectionFromVoxel(voxel: bigint): number {
     return Number((voxel >> 30n) & 0x1n);
 }
 
-/** ボクセル値にサブダイレクションを書き込んだ新しい値を返す（bit 30）。 */
+/** ボクセル値にダイレクションを書き込んだ新しい値を返す（bit 30）。 */
 export function setDirectionInVoxel(voxel: bigint, direction: number): bigint {
     return (voxel & ~(0x1n << 30n)) | ((BigInt(direction) & 0x1n) << 30n);
 }
@@ -260,4 +260,9 @@ export const VOXEL_VARIANT = {
     vertical: 1,
     off: 0,
     on: 1,
+};
+
+export const VOXEL_DIRECTION = {
+    forward: 0,
+    backward: 1,
 };

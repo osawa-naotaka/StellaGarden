@@ -7,7 +7,7 @@ import {
     getConnectionsFromVoxel,
     setEnabledInVoxel,
     setDirectionInVoxel,
-    VOXEL_SUB_DIRECTION,
+    VOXEL_DIRECTION,
 } from "./VoxelDefs";
 
 const SHAFT_CONNECTION_UP = 1 << 0;
@@ -201,7 +201,7 @@ export function recomputeAllShaftPowerFlow(voxelMap: IVoxelWriter): void {
         const reversed = powered && (reversedMap.get(key) ?? false);
 
         let updated = setEnabledInVoxel(voxel, powered);
-        updated = setDirectionInVoxel(updated, reversed ? VOXEL_SUB_DIRECTION.backword : VOXEL_SUB_DIRECTION.forward)
+        updated = setDirectionInVoxel(updated, reversed ? VOXEL_DIRECTION.backward : VOXEL_DIRECTION.forward)
 
         voxelMap.set(updated, surfacePos);
     }

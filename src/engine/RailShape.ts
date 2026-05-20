@@ -1,5 +1,5 @@
 import { RAIL_CONNECTION_DOWN, RAIL_CONNECTION_LEFT, RAIL_CONNECTION_RIGHT, RAIL_CONNECTION_UP } from "./RailConnection";
-import { getPipeConnectionsFromVoxel, getVariantFromVoxel, VOXEL_VARIANT } from "./VoxelDefs";
+import { getConnectionsFromVoxel, getVariantFromVoxel, VOXEL_VARIANT } from "./VoxelDefs";
 
 export type RailShapeKey =
     | "rail_h"
@@ -36,7 +36,7 @@ export function isShaftStraightMask(mask: number): boolean {
 }
 
 export function getShaftShapeKey(voxel: bigint): RailShapeKey {
-    const mask = getPipeConnectionsFromVoxel(voxel);
+    const mask = getConnectionsFromVoxel(voxel);
 
     switch (mask) {
         case 0:
