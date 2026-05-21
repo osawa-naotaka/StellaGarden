@@ -84,10 +84,14 @@ export const WarpGateStorageSaveDataSchema = v.object({
     slots: v.array(NullableItemStackSchema),
 });
 
-// 手動処理 / 日次処理は同一スロット構造（入力1 + 出力2）を共有する
+// 手動処理 / 日次処理は入力1 + 出力2のスロット構造を共有する。
+// 手動処理は同じ入力に複数レシピが登録される施設（金床: 刃 / 扱き歯）があるため、
+// 選択中の recipe index を `selectedRecipeIndex` として保持する。日次処理側にこの分岐は無いが、
+// スキーマ簡素化のため両者で共有する。
 const ProcessingSlotsSchema = v.object({
     input: NullableItemStackSchema,
     outputs: v.tuple([NullableItemStackSchema, NullableItemStackSchema]),
+    selectedRecipeIndex: v.number(),
 });
 
 export const ManualProcessingStorageSaveDataSchema = v.object({

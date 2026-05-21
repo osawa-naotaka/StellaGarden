@@ -4,10 +4,16 @@ import { KeyedSlotStorage } from "./KeyedSlotStorage";
 import { findRecipeForInput, getManualProcessingDef, isAcceptableInputItem, type ManualProcessingDef, type ProcessingRecipe } from "./ProcessingRecipes";
 import { ENTITY_TYPES, getEntityTypeFromVoxel } from "./VoxelDefs";
 
-/** 1施設のスロット状態。outputs は最大2スロット（不要なスロットは null）。 */
+/** 1施設のスロット状態。outputs は最大2スロット（不要なスロットは null）。
+ *
+ * `selectedRecipeIndex` は、同じ入力 itemId に対して複数レシピが登録されている施設（例: 金床）で
+ * プレイヤーがどのレシピを選んだかを保持する。マッチするレシピが1件しかない施設では使われない。
+ * `findRecipeForInput` 側で範囲外は 0 にクランプされるため、ここでは単純な number として扱う。
+ */
 export interface ManualProcessingSlots {
     input: ItemStack | null;
     outputs: [ItemStack | null, ItemStack | null];
+    selectedRecipeIndex: number;
 }
 
 /**
@@ -19,10 +25,11 @@ export interface ManualProcessingSlots {
  */
 export class ManualProcessingStorage extends KeyedSlotStorage<ManualProcessingSlots> {
     protected createDefaultSlots(): ManualProcessingSlots {
-        return { input: null, outputs: [null, null] };
+        return { input: null, outputs: [null, null], selectedRecipeIndex: 0 };
     }
 
     protected isSlotsEmpty(slots: ManualProcessingSlots): boolean {
+        // selectedRecipeIndex は施設選択状態（=ユーザー設定）であり、空判定には含めない。
         return slots.input === null && slots.outputs[0] === null && slots.outputs[1] === null;
     }
 
@@ -30,6 +37,7 @@ export class ManualProcessingStorage extends KeyedSlotStorage<ManualProcessingSl
         return {
             input: slots.input ? { ...slots.input } : null,
             outputs: [slots.outputs[0] ? { ...slots.outputs[0] } : null, slots.outputs[1] ? { ...slots.outputs[1] } : null],
+            selectedRecipeIndex: slots.selectedRecipeIndex,
         };
     }
 
@@ -62,6 +70,18 @@ export class ManualProcessingStorage extends KeyedSlotStorage<ManualProcessingSl
         const slots = this.getRaw(pos);
         if (!slots) return;
         slots.outputs[index] = stack;
+    }
+
+    /** 同一入力に対する複数レシピのうち、現在選択されているインデックスを返す。施設が存在しなければ 0。 */
+    getSelectedRecipeIndex(pos: Pos2D): number {
+        return this.getRaw(pos)?.selectedRecipeIndex ?? 0;
+    }
+
+    /** プレイヤーが UI のドロップダウンで選択した recipe index を保存する。 */
+    setSelectedRecipeIndex(pos: Pos2D, index: number): void {
+        const slots = this.getRaw(pos);
+        if (!slots) return;
+        slots.selectedRecipeIndex = index;
     }
 
     /** 入力スロットがこの施設で受理可能な itemId かどうか。 */
@@ -128,7 +148,7 @@ export class ManualProcessingStorage extends KeyedSlotStorage<ManualProcessingSl
      */
     private findApplicableRecipe(slots: ManualProcessingSlots, def: ManualProcessingDef): ProcessingRecipe | null {
         if (!slots.input) return null;
-        const recipe = findRecipeForInput(def, slots.input.itemId);
+        const recipe = findRecipeForInput(def, slots.input.itemId, slots.selectedRecipeIndex);
         if (!recipe) return null;
         if (slots.input.count < recipe.inputCountPerCycle) return null;
         for (let i = 0; i < recipe.outputs.length; i++) {

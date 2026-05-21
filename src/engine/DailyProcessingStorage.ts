@@ -7,10 +7,15 @@ import { ENTITY_TYPES, getDaysElapsedFromVoxel, getEntityTypeFromVoxel, setDaysE
 /** カテゴリ3（日次処理）の状態。 */
 export type DailyProcessingState = "empty" | "loading" | "progressing" | "done";
 
-/** 1施設のスロット状態。outputs は最大2スロット（不要なスロットは null）。 */
+/** 1施設のスロット状態。outputs は最大2スロット（不要なスロットは null）。
+ *
+ * `selectedRecipeIndex` は ManualProcessingSlots と共有スキーマのため形式上保持するが、
+ * 現状の日次処理施設には同一入力で複数レシピの分岐がないため未使用。常に 0。
+ */
 export interface DailyProcessingSlots {
     input: ItemStack | null;
     outputs: [ItemStack | null, ItemStack | null];
+    selectedRecipeIndex: number;
 }
 
 /**
@@ -23,7 +28,7 @@ export interface DailyProcessingSlots {
  */
 export class DailyProcessingStorage extends KeyedSlotStorage<DailyProcessingSlots> {
     protected createDefaultSlots(): DailyProcessingSlots {
-        return { input: null, outputs: [null, null] };
+        return { input: null, outputs: [null, null], selectedRecipeIndex: 0 };
     }
 
     protected isSlotsEmpty(slots: DailyProcessingSlots): boolean {
@@ -34,6 +39,7 @@ export class DailyProcessingStorage extends KeyedSlotStorage<DailyProcessingSlot
         return {
             input: slots.input ? { ...slots.input } : null,
             outputs: [slots.outputs[0] ? { ...slots.outputs[0] } : null, slots.outputs[1] ? { ...slots.outputs[1] } : null],
+            selectedRecipeIndex: slots.selectedRecipeIndex,
         };
     }
 

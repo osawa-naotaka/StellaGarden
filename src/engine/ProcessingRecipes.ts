@@ -111,6 +111,11 @@ export const MANUAL_PROCESSING_DEFS: Readonly<Record<number, ManualProcessingDef
                 inputCountPerCycle: 1,
                 outputs: [{ itemId: "blade", count: 1 }],
             },
+            {
+                inputItemId: "hot_meteoric_iron",
+                inputCountPerCycle: 1,
+                outputs: [{ itemId: "iron_teeth", count: 4 }],
+            },
         ],
     },
 };
@@ -203,11 +208,24 @@ export function getDailyProcessingDef(entityType: number): DailyProcessingDef {
     return def;
 }
 
-/** 入力スロットの itemId に対応するレシピを返す。マッチなしなら null。 */
-export function findRecipeForInput(def: { recipes: ReadonlyArray<ProcessingRecipe> }, inputItemId: ItemId): ProcessingRecipe {
-    const r = def.recipes.find((r) => r.inputItemId === inputItemId);
-    if (r === undefined) throw new Error(`No recipe for input item ${inputItemId}`);
-    return r;
+/**
+ * 入力スロットの itemId にマッチするレシピを全て返す。マッチなしなら空配列。
+ * 同じ入力で複数のレシピ（例: 金床の刃と扱き歯）が登録されていることがあるため、
+ * 単数取得の `findRecipeForInput` と併用する。
+ */
+export function findAllRecipesForInput(def: { recipes: ReadonlyArray<ProcessingRecipe> }, inputItemId: ItemId): ProcessingRecipe[] {
+    return def.recipes.filter((r) => r.inputItemId === inputItemId);
+}
+
+/**
+ * 入力スロットの itemId に対応するレシピを返す。マッチなしなら例外。
+ * 同じ入力に複数レシピが存在する場合は `selectedIndex` で選択する（範囲外なら 0 にクランプ）。
+ */
+export function findRecipeForInput(def: { recipes: ReadonlyArray<ProcessingRecipe> }, inputItemId: ItemId, selectedIndex = 0): ProcessingRecipe {
+    const matches = findAllRecipesForInput(def, inputItemId);
+    if (matches.length === 0) throw new Error(`No recipe for input item ${inputItemId}`);
+    const idx = selectedIndex >= 0 && selectedIndex < matches.length ? selectedIndex : 0;
+    return matches[idx];
 }
 
 /** 入力スロットがこの施設で受理可能な itemId かどうか。 */

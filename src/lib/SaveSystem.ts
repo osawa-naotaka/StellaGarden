@@ -26,7 +26,7 @@ export type SaveSlot = 1 | 2 | 3;
 const DB_NAME = "stella-garden";
 const DB_VERSION = 1;
 const STORE_NAME = "saveData";
-const CURRENT_SAVE_VERSION = 11;
+const CURRENT_SAVE_VERSION = 12;
 /** これより古いバージョンはマイグレーションパスがなく、ロード不可。 */
 const MIN_SUPPORTED_VERSION = 6;
 
@@ -72,7 +72,30 @@ const migrations: Record<number, (data: RawSave) => RawSave> = {
         renamePipeToFurrowCanal(data);
         return data;
     },
+    // v11 → v12: 手動処理 / 日次処理ストレージのスロットに `selectedRecipeIndex: 0` を追加。
+    // 金床に「刃 / 扱き歯」の選択ドロップダウンを導入したため、既存セーブの slots に該当フィールドが無い。
+    // 既存スロットは全て初期値 0（最初に登録されたレシピ＝刃）として扱う。
+    11: (data) => {
+        addSelectedRecipeIndexV11(data);
+        return data;
+    },
 };
+
+/**
+ * v11 セーブの manualProcessingStorage / dailyProcessingStorage 内の全スロットに
+ * `selectedRecipeIndex: 0` を補完する。v11→v12 マイグレーション用。
+ */
+function addSelectedRecipeIndexV11(data: RawSave): void {
+    for (const key of ["manualProcessingStorage", "dailyProcessingStorage"] as const) {
+        const ps = data[key] as { facilities?: { slots?: { selectedRecipeIndex?: number } }[] } | undefined;
+        if (!ps?.facilities) continue;
+        for (const f of ps.facilities) {
+            if (f.slots && f.slots.selectedRecipeIndex === undefined) {
+                f.slots.selectedRecipeIndex = 0;
+            }
+        }
+    }
+}
 
 /**
  * セーブデータ中のアイテムスタックに登場する旧 itemId "pipe" をすべて "furrow_canal" に置換する。

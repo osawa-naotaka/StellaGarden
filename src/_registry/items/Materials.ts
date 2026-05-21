@@ -21,4 +21,4 @@ registerItem({ itemId: "bevel_gear", displayName: "ベベルギア", spriteName:
 registerItem({ itemId: "wheel", displayName: "木製ホイール", spriteName: null, placeholderColor: 0xc08654, maxStack: 64 });
 registerItem({ itemId: "drum", displayName: "ドラム", spriteName: null, placeholderColor: 0x946028, maxStack: 64 });
 registerItem({ itemId: "pulley", displayName: "プーリー", spriteName: null, placeholderColor: 0xb47840, maxStack: 64 });
-registerItem({ itemId: "iron_teeth", displayName: "鉄の歯", spriteName: null, placeholderColor: 0x707080, maxStack: 64 });
+registerItem({ itemId: "iron_teeth", displayName: "扱き歯", spriteName: null, placeholderColor: 0x707080, maxStack: 64 });

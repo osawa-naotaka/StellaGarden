@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import type { IInventoryWriter, ItemStack, IVoxelWriter, SlotRef } from "../../_boundary/interfaces";
-import { getItemDefByEntityType } from "../../_registry/ItemRegistry";
+import { getItemDefByEntityType, getItemDisplayName } from "../../_registry/ItemRegistry";
 import type { ManualProcessingStorage } from "../../engine/ManualProcessingStorage";
-import { getManualProcessingDef } from "../../engine/ProcessingRecipes";
+import { findAllRecipesForInput, getManualProcessingDef } from "../../engine/ProcessingRecipes";
 import { getEntityTypeFromVoxel } from "../../engine/VoxelDefs";
 import type { UIState } from "../../view/UIState";
 import { CursorStack } from "../components/CursorStack";
@@ -180,11 +180,37 @@ export function ManualProcessingPanel({ open, inventory, manualProcessingStorage
     const output0 = pos ? manualProcessingStorage.getOutput(pos, 0) : null;
     const output1 = pos ? manualProcessingStorage.getOutput(pos, 1) : null;
 
+    // 同一入力に複数レシピが登録されているとき（例: 金床の刃 / 扱き歯）にドロップダウンを表示する。
+    // input が空のときや、入力 itemId にマッチするレシピが1件以下のときはドロップダウンを出さない。
+    const matchingRecipes = input ? findAllRecipesForInput(def, input.itemId) : [];
+    const showRecipeSelector = matchingRecipes.length > 1;
+    const selectedRecipeIndex = pos ? manualProcessingStorage.getSelectedRecipeIndex(pos) : 0;
+    const onSelectRecipe = (index: number) => {
+        if (!pos) return;
+        manualProcessingStorage.setSelectedRecipeIndex(pos, index);
+    };
+
     return (
         <>
             <SidePanel open={open} title={title} onClose={close}>
                 <section className="sg-sidepanel-section">
                     <h3 className="sg-section-title">Process</h3>
+                    {showRecipeSelector && (
+                        <div className="sg-processing-recipe-selector">
+                            <label htmlFor="sg-processing-recipe-select">出力:</label>
+                            <select
+                                id="sg-processing-recipe-select"
+                                value={selectedRecipeIndex}
+                                onChange={(e) => onSelectRecipe(Number(e.target.value))}
+                            >
+                                {matchingRecipes.map((r, i) => (
+                                    <option key={i} value={i}>
+                                        {getItemDisplayName(r.outputs[0].itemId)} ×{r.outputs[0].count}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                    )}
                     <div className="sg-processing-row">
                         <Slot
                             stack={input}

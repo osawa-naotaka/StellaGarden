@@ -346,6 +346,30 @@
 }
 
 /* ─── 処理パネル（ManualProcessing / DailyProcessing 共通） ─── */
+.sg-processing-recipe-selector {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    font-size: var(--sg-font-size);
+    color: var(--sg-fg-dim);
+}
+
+.sg-processing-recipe-selector select {
+    background: var(--sg-bg-elev2);
+    border: 1px solid var(--sg-border);
+    color: var(--sg-fg);
+    font-family: var(--sg-font);
+    font-size: var(--sg-font-size);
+    padding: 4px 8px;
+    border-radius: var(--sg-radius);
+    cursor: pointer;
+}
+
+.sg-processing-recipe-selector select:hover {
+    border-color: var(--sg-accent);
+}
+
 .sg-processing-row {
     display: flex;
     align-items: center;

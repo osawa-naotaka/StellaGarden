@@ -274,12 +274,9 @@ export const RECIPES: readonly RecipeDef[] = [
         ],
         result: { itemId: "pulley", count: 1 },
     },
-    {
-        id: "iron_teeth",
-        station: "workbench",
-        ingredients: [{ itemId: "blade", count: 1 }],
-        result: { itemId: "iron_teeth", count: 8 },
-    },
+    // 扱き歯（iron_teeth）は作業台ではなく金床で熱した隕鉄から鍛造する。
+    // 金床は刃と扱き歯のレシピを併せ持ち、UI のドロップダウンで出力先を選択する。
+    // → engine/ProcessingRecipes.ts の MANUAL_PROCESSING_DEFS を参照。
 
     // ────────────────────────────────────────────────────────────────
     // 動力系
