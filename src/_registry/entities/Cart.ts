@@ -31,7 +31,7 @@ registerItem({
     itemId: "cart",
     displayName: "台車",
     spriteName: "cart_h",
-    maxStack: 8,
+    maxStack: 64,
     placement: {
         entityType: ENTITY_TYPES.cart,
         fieldSpriteName: "cart_h",

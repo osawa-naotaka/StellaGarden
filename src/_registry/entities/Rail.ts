@@ -30,8 +30,10 @@ registerEntity({
         if (ctx.tool !== "axe") return false;
 
         const result = removeFacilityAtPos(ctx.voxelMap, ctx.inventory, ctx.surfacePos.x, ctx.surfacePos.z, ENTITY_TYPES.rail);
-        refreshRailConnectionsAround(ctx.voxelMap, ctx.surfacePos);
-        recomputeAllRailTractionFlow(ctx.voxelMap);
+        if (result) {
+            refreshRailConnectionsAround(ctx.voxelMap, ctx.surfacePos);
+            recomputeAllRailTractionFlow(ctx.voxelMap);
+        }
 
         return result;
     },

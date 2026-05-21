@@ -1,6 +1,6 @@
-import { ENTITY_TYPES, placeEntity } from "../../engine/VoxelDefs";
+import { ENTITY_TYPES } from "../../engine/VoxelDefs";
 import { type EntitySpriteInfo, type InteractionContext, registerEntity } from "../EntityRegistry";
-import { findFacilityAnchor, placeFacility } from "../facilityUtil";
+import { findFacilityAnchor, placeFacility, removeFacilityAtPos } from "../facilityUtil";
 import { registerItem } from "../ItemRegistry";
 
 registerEntity({
@@ -13,10 +13,11 @@ registerEntity({
     },
 
     onInteract(ctx: InteractionContext): boolean {
-        if (ctx.tool !== "axe") return false;
-        ctx.voxelMap.set(placeEntity(ctx.voxel, ENTITY_TYPES.none), ctx.surfacePos);
-        ctx.inventory.addItems([{ itemId: "winch", count: 1 }]);
-        return true;
+        // axe で撤去
+        if (ctx.tool === "axe") {
+            return removeFacilityAtPos(ctx.voxelMap, ctx.inventory, ctx.surfacePos.x, ctx.surfacePos.z, ENTITY_TYPES.winch);
+        }
+        return false;
     },
 
     onOpenFacilityUI(ctx: InteractionContext): boolean {

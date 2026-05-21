@@ -67,11 +67,12 @@ registerItem({
         const surfaceTerrainType = getTerrainTypeFromVoxel(ctx.voxel);
         const isWaterSurface = surfaceTerrainType === TERRAIN_TYPES.waterSource;
         if (
-            (isWaterSurface || groundTerrainType === TERRAIN_TYPES.grass || groundTerrainType === TERRAIN_TYPES.dirt) &&
+            (isWaterSurface || groundTerrainType === TERRAIN_TYPES.grass || groundTerrainType === TERRAIN_TYPES.dirt || groundTerrainType === TERRAIN_TYPES.soil || groundTerrainType === TERRAIN_TYPES.wetSoil) &&
             groundPos.y + 1 < ctx.voxelMap.height &&
             (isWaterSurface || isSafeToAdd3x3(ctx.voxelMap, ctx.surfacePos.x, ctx.surfacePos.z)) &&
             ctx.inventory.consumeSelectedItem(1)
         ) {
+            ctx.voxelMap.set(initializeVoxel(TERRAIN_TYPES.dirt), { x: groundPos.x, y: groundPos.y, z: groundPos.z });
             ctx.voxelMap.set(initializeVoxel(TERRAIN_TYPES.dirt), { x: groundPos.x, y: groundPos.y + 1, z: groundPos.z });
             revertNearbyInvalidTerrain(ctx.voxelMap, ctx.surfacePos.x, ctx.surfacePos.z);
             removeDisconnectedWater(ctx.voxelMap, ctx.surfacePos.x, ctx.surfacePos.z);
