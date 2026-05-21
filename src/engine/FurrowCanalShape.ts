@@ -1,6 +1,6 @@
 import { getConnectionsFromVoxel, getVariantFromVoxel } from "./VoxelDefs";
 
-export type PipeShapeKey =
+export type FullowCanalShapeKey =
     | "h"
     | "v"
     | "end_u"
@@ -17,7 +17,7 @@ export type PipeShapeKey =
     | "t_r"
     | "cross";
 
-export function getPipeShapeKey(voxel: bigint): PipeShapeKey {
+export function getFullowCanalShapeKey(voxel: bigint): FullowCanalShapeKey {
     const mask = getConnectionsFromVoxel(voxel);
 
     switch (mask) {
@@ -58,11 +58,23 @@ export function getPipeShapeKey(voxel: bigint): PipeShapeKey {
     }
 }
 
-export function isIrrigatingPipeShape(shape: PipeShapeKey): boolean {
-    return shape === "h" || shape === "v" || shape === "end_u" || shape === "end_d" || shape === "end_l" || shape === "end_r";
+export function isIrrigatingFurrowCanalShape(
+    shape: FullowCanalShapeKey,
+): boolean {
+    return (
+        shape === "h" ||
+        shape === "v" ||
+        shape === "end_u" ||
+        shape === "end_d" ||
+        shape === "end_l" ||
+        shape === "end_r"
+    );
 }
 
-export function getPipeSpriteName(voxel: bigint, filled: boolean): string {
+export function getFurrowCanalSpriteName(
+    voxel: bigint,
+    filled: boolean,
+): string {
     const prefix = filled ? "pipe3_" : "pipe1_";
-    return `${prefix}${getPipeShapeKey(voxel)}`;
+    return `${prefix}${getFullowCanalShapeKey(voxel)}`;
 }

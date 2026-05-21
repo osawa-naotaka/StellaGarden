@@ -1,5 +1,8 @@
 import type { IVoxelWriter } from "../_boundary/interfaces";
-import { getPipeShapeKey, isIrrigatingPipeShape } from "./FurrowCanalShape";
+import {
+    getFullowCanalShapeKey,
+    isIrrigatingFurrowCanalShape,
+} from "./FurrowCanalShape";
 import {
     ENTITY_TYPES,
     getEntityTypeFromVoxel,
@@ -9,7 +12,7 @@ import {
     TERRAIN_TYPES,
 } from "./VoxelDefs";
 
-export const PIPE_IRRIGATION_RANGE = 3;
+export const FURROW_CANAL_IRRIGATION_RANGE = 3;
 
 type Direction2D = {
     readonly dx: number;
@@ -17,7 +20,7 @@ type Direction2D = {
 };
 
 function getIrrigationDirections(
-    shape: ReturnType<typeof getPipeShapeKey>,
+    shape: ReturnType<typeof getFullowCanalShapeKey>,
 ): ReadonlyArray<Direction2D> {
     switch (shape) {
         case "h":
@@ -54,9 +57,9 @@ function isInBounds(voxelMap: IVoxelWriter, x: number, z: number): boolean {
  *
  * この関数は日次処理の最後に呼ばれる想定。
  */
-export function applyPipeIrrigation(
+export function applyFullowCanalIrrigation(
     voxelMap: IVoxelWriter,
-    range: number = PIPE_IRRIGATION_RANGE,
+    range: number = FURROW_CANAL_IRRIGATION_RANGE,
 ): void {
     for (let x = 0; x < voxelMap.width; x++) {
         for (let z = 0; z < voxelMap.depth; z++) {
@@ -67,8 +70,8 @@ export function applyPipeIrrigation(
                 continue;
             if (!getEnabledFromVoxel(pipeVoxel)) continue;
 
-            const shape = getPipeShapeKey(pipeVoxel);
-            if (!isIrrigatingPipeShape(shape)) continue;
+            const shape = getFullowCanalShapeKey(pipeVoxel);
+            if (!isIrrigatingFurrowCanalShape(shape)) continue;
 
             const directions = getIrrigationDirections(shape);
             for (const dir of directions) {

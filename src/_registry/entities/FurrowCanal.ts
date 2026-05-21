@@ -1,6 +1,6 @@
 import { refreshFurrowCanalConnectionsAround } from "../../engine/FurrowCanalConnection";
-import { getPipeSpriteName } from "../../engine/FurrowCanalShape";
-import { recomputeAllPipeWaterFlow } from "../../engine/FurrowCanalWaterFlow";
+import { getFurrowCanalSpriteName } from "../../engine/FurrowCanalShape";
+import { recomputeAllFullowCanalWaterFlow } from "../../engine/FurrowCanalWaterFlow";
 import {
     ENTITY_TYPES,
     getEnabledFromVoxel,
@@ -14,7 +14,7 @@ import {
 import { placeFacility, removeFacilityAtPos } from "../facilityUtil";
 import { type PlacementVariant, registerItem } from "../ItemRegistry";
 
-function getPipePreviewSpriteName(variant: PlacementVariant): string {
+function getFullowCanalPreviewSpriteName(variant: PlacementVariant): string {
     return `pipe1_${variant === 1 ? "v" : "h"}`;
 }
 
@@ -26,7 +26,9 @@ registerEntity({
     },
 
     getSprites(voxel: bigint): EntitySpriteInfo[] {
-        return [[getPipeSpriteName(voxel, getEnabledFromVoxel(voxel)), 0, 0]];
+        return [
+            [getFurrowCanalSpriteName(voxel, getEnabledFromVoxel(voxel)), 0, 0],
+        ];
     },
 
     onInteract(ctx: InteractionContext): boolean {
@@ -43,7 +45,7 @@ registerEntity({
                 x: ctx.surfacePos.x,
                 z: ctx.surfacePos.z,
             });
-            recomputeAllPipeWaterFlow(ctx.voxelMap);
+            recomputeAllFullowCanalWaterFlow(ctx.voxelMap);
         }
         return removed;
     },
@@ -59,7 +61,7 @@ registerItem({
         defaultVariant: 0,
         maxVariant: 1,
         getFieldSpriteName(variant: PlacementVariant) {
-            return getPipePreviewSpriteName(variant);
+            return getFullowCanalPreviewSpriteName(variant);
         },
         onPlace(voxelMap, pos, variant: PlacementVariant) {
             placeFacility(voxelMap, pos, ENTITY_TYPES.furrow_canal, {
@@ -74,7 +76,7 @@ registerItem({
             const voxel = voxelMap.get(surfacePos);
             voxelMap.set(setVariantInVoxel(voxel, variant), surfacePos);
             refreshFurrowCanalConnectionsAround(voxelMap, pos);
-            recomputeAllPipeWaterFlow(voxelMap);
+            recomputeAllFullowCanalWaterFlow(voxelMap);
         },
     },
 });

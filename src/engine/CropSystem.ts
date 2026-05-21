@@ -1,7 +1,10 @@
 import type { IVoxelWriter } from "../_boundary/interfaces";
-import { type DailyTickContext, getEntityDef } from "../_registry/EntityRegistry";
+import {
+    type DailyTickContext,
+    getEntityDef,
+} from "../_registry/EntityRegistry";
 import type { CropDef } from "./CropDefs";
-import { applyPipeIrrigation } from "./FurrowCanalIrrigation";
+import { applyFullowCanalIrrigation } from "./FurrowCanalIrrigation";
 import {
     ENTITY_TYPES,
     getDaysElapsedFromVoxel,
@@ -26,14 +29,18 @@ const DROUGHT_DEATH_THRESHOLD = 3;
  * - ジャガイモ等（needsWater=false）:
  *   - 常に成長。wetSoil → watered count+=1 + 乾燥
  */
-export function applyCropDailyTick(ctx: DailyTickContext, cropDef: CropDef): void {
+export function applyCropDailyTick(
+    ctx: DailyTickContext,
+    cropDef: CropDef,
+): void {
     const { voxelMap, pos, isWet } = ctx;
     let voxel = ctx.voxel;
     const dayCounter = getDaysElapsedFromVoxel(voxel);
 
     // 既に枯死済み: 乾燥のみ
     if (dayCounter >= cropDef.witherDay) {
-        if (isWet) voxelMap.set((voxel & ~0xffn) | BigInt(TERRAIN_TYPES.soil), pos);
+        if (isWet)
+            voxelMap.set((voxel & ~0xffn) | BigInt(TERRAIN_TYPES.soil), pos);
         return;
     }
 
@@ -77,21 +84,29 @@ export function processDailyTick(voxelMap: IVoxelWriter): void {
             const pos = voxelMap.getSurfacePosition({ x, y: 0, z });
             const voxel = voxelMap.get(pos);
             const entityType = getEntityTypeFromVoxel(voxel);
-            const isWet = getTerrainTypeFromVoxel(voxel) === TERRAIN_TYPES.wetSoil;
+            const isWet =
+                getTerrainTypeFromVoxel(voxel) === TERRAIN_TYPES.wetSoil;
 
-            if (entityType !== ENTITY_TYPES.none && entityType !== ENTITY_TYPES.facility_part) {
+            if (
+                entityType !== ENTITY_TYPES.none &&
+                entityType !== ENTITY_TYPES.facility_part
+            ) {
                 const def = getEntityDef(entityType);
                 def.onDailyTick?.({ voxelMap, pos, voxel, isWet });
             }
 
             // wetSoil を soil に戻す
             if (entityType === ENTITY_TYPES.none) {
-                if (isWet) voxelMap.set(setTerrainTypeInVoxel(voxel, TERRAIN_TYPES.soil), pos);
+                if (isWet)
+                    voxelMap.set(
+                        setTerrainTypeInVoxel(voxel, TERRAIN_TYPES.soil),
+                        pos,
+                    );
             }
         }
     }
 
-    applyPipeIrrigation(voxelMap);
+    applyFullowCanalIrrigation(voxelMap);
 }
 
 export function isCrop(entityType: number): boolean {

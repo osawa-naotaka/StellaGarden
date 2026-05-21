@@ -5,7 +5,7 @@
  */
 import type { IVoxelWriter } from "../../_boundary/interfaces";
 import { isCrop } from "../../engine/CropSystem";
-import { recomputeAllPipeWaterFlow } from "../../engine/FurrowCanalWaterFlow";
+import { recomputeAllFullowCanalWaterFlow } from "../../engine/FurrowCanalWaterFlow";
 import {
     ENTITY_TYPES,
     getEntityTypeFromVoxel,
@@ -139,7 +139,7 @@ function onGrassDirtInteract(
             voxelMap.remove(surfacePos);
             revertNearbyInvalidTerrain(voxelMap, surfacePos.x, surfacePos.z);
             floodFillWater(voxelMap, surfacePos.x, surfacePos.z);
-            recomputeAllPipeWaterFlow(voxelMap);
+            recomputeAllFullowCanalWaterFlow(voxelMap);
             return true;
         }
         return false;
@@ -203,7 +203,7 @@ function onSoilInteract(
             voxelMap.remove(surfacePos);
             revertNearbyInvalidTerrain(voxelMap, surfacePos.x, surfacePos.z);
             floodFillWater(voxelMap, surfacePos.x, surfacePos.z);
-            recomputeAllPipeWaterFlow(voxelMap);
+            recomputeAllFullowCanalWaterFlow(voxelMap);
             return true;
         }
         return false;

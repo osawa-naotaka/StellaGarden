@@ -1,5 +1,5 @@
 import type { IVoxelWriter } from "../../_boundary/interfaces";
-import { recomputeAllPipeWaterFlow } from "../../engine/FurrowCanalWaterFlow";
+import { recomputeAllFullowCanalWaterFlow } from "../../engine/FurrowCanalWaterFlow";
 import {
     getTerrainTypeFromVoxel,
     initializeVoxel,
@@ -158,7 +158,7 @@ registerItem({
                 ctx.surfacePos.x,
                 ctx.surfacePos.z,
             );
-            recomputeAllPipeWaterFlow(ctx.voxelMap);
+            recomputeAllFullowCanalWaterFlow(ctx.voxelMap);
             return true;
         }
         return false;
