@@ -5,7 +5,7 @@
  */
 import type { IVoxelWriter } from "../../_boundary/interfaces";
 import { isCrop } from "../../engine/CropSystem";
-import { recomputeAllPipeWaterFlow } from "../../engine/PipeWaterFlow";
+import { recomputeAllPipeWaterFlow } from "../../engine/FurrowCanalWaterFlow";
 import {
     ENTITY_TYPES,
     getEntityTypeFromVoxel,
@@ -19,30 +19,63 @@ import { floodFillWater } from "../../engine/WaterSystem";
 import { registerTerrain } from "../TerrainRegistry";
 
 /** 3x3 範囲の表面 y がすべて同じかどうかを返す。 */
-function isFlat3x3(voxelMap: IVoxelWriter, centerX: number, centerZ: number, centerY: number): boolean {
+function isFlat3x3(
+    voxelMap: IVoxelWriter,
+    centerX: number,
+    centerZ: number,
+    centerY: number,
+): boolean {
     for (let dz = -1; dz <= 1; dz++) {
         for (let dx = -1; dx <= 1; dx++) {
             if (dx === 0 && dz === 0) continue;
             const nx = centerX + dx;
             const nz = centerZ + dz;
-            if (nx < 0 || nx >= voxelMap.width || nz < 0 || nz >= voxelMap.depth) return false;
-            if (voxelMap.getGroundSurfacePosition({ x: nx, y: 0, z: nz }).y !== centerY) return false;
+            if (
+                nx < 0 ||
+                nx >= voxelMap.width ||
+                nz < 0 ||
+                nz >= voxelMap.depth
+            )
+                return false;
+            if (
+                voxelMap.getGroundSurfacePosition({ x: nx, y: 0, z: nz }).y !==
+                centerY
+            )
+                return false;
         }
     }
     return true;
 }
 
 /** 中心を削った後（y - 1）でも、3x3 範囲の各セルとの高さ差が 1 以下に収まるか返す。 */
-function isSafeToRemove3x3(voxelMap: IVoxelWriter, centerX: number, centerZ: number): boolean {
-    const centerY = voxelMap.getGroundSurfacePosition({ x: centerX, y: 0, z: centerZ }).y;
+function isSafeToRemove3x3(
+    voxelMap: IVoxelWriter,
+    centerX: number,
+    centerZ: number,
+): boolean {
+    const centerY = voxelMap.getGroundSurfacePosition({
+        x: centerX,
+        y: 0,
+        z: centerZ,
+    }).y;
     const newCenterY = centerY - 1;
     for (let dz = -1; dz <= 1; dz++) {
         for (let dx = -1; dx <= 1; dx++) {
             if (dx === 0 && dz === 0) continue;
             const nx = centerX + dx;
             const nz = centerZ + dz;
-            if (nx < 0 || nx >= voxelMap.width || nz < 0 || nz >= voxelMap.depth) return false;
-            const y = voxelMap.getGroundSurfacePosition({ x: nx, y: 0, z: nz }).y;
+            if (
+                nx < 0 ||
+                nx >= voxelMap.width ||
+                nz < 0 ||
+                nz >= voxelMap.depth
+            )
+                return false;
+            const y = voxelMap.getGroundSurfacePosition({
+                x: nx,
+                y: 0,
+                z: nz,
+            }).y;
             if (Math.abs(newCenterY - y) > 1) return false;
         }
     }
@@ -50,31 +83,59 @@ function isSafeToRemove3x3(voxelMap: IVoxelWriter, centerX: number, centerZ: num
 }
 
 /** 高さ変化によって isFlat3x3 条件が崩れた近傍 soil/wetSoil タイルを dirt に戻す。 */
-function revertNearbyInvalidTerrain(voxelMap: IVoxelWriter, cx: number, cz: number): void {
+function revertNearbyInvalidTerrain(
+    voxelMap: IVoxelWriter,
+    cx: number,
+    cz: number,
+): void {
     for (let dz = -1; dz <= 1; dz++) {
         for (let dx = -1; dx <= 1; dx++) {
             const nx = cx + dx;
             const nz = cz + dz;
-            if (nx < 0 || nx >= voxelMap.width || nz < 0 || nz >= voxelMap.depth) continue;
-            const pos = voxelMap.getGroundSurfacePosition({ x: nx, y: 0, z: nz });
+            if (
+                nx < 0 ||
+                nx >= voxelMap.width ||
+                nz < 0 ||
+                nz >= voxelMap.depth
+            )
+                continue;
+            const pos = voxelMap.getGroundSurfacePosition({
+                x: nx,
+                y: 0,
+                z: nz,
+            });
             const voxel = voxelMap.get(pos);
             const terrain = getTerrainTypeFromVoxel(voxel);
             if (isFlat3x3(voxelMap, nx, nz, pos.y)) continue;
-            if (terrain === TERRAIN_TYPES.soil || terrain === TERRAIN_TYPES.wetSoil) {
-                voxelMap.set(setTerrainTypeInVoxel(voxel, TERRAIN_TYPES.dirt), pos);
+            if (
+                terrain === TERRAIN_TYPES.soil ||
+                terrain === TERRAIN_TYPES.wetSoil
+            ) {
+                voxelMap.set(
+                    setTerrainTypeInVoxel(voxel, TERRAIN_TYPES.dirt),
+                    pos,
+                );
             }
         }
     }
 }
 
-function onGrassDirtInteract(ctx: import("../EntityRegistry").InteractionContext): boolean {
+function onGrassDirtInteract(
+    ctx: import("../EntityRegistry").InteractionContext,
+): boolean {
     const { voxelMap, inventory, surfacePos, voxel, tool } = ctx;
 
     if (tool === "shovel") {
-        if (getEntityTypeFromVoxel(voxel) !== ENTITY_TYPES.none || !isSafeToRemove3x3(voxelMap, surfacePos.x, surfacePos.z)) {
+        if (
+            getEntityTypeFromVoxel(voxel) !== ENTITY_TYPES.none ||
+            !isSafeToRemove3x3(voxelMap, surfacePos.x, surfacePos.z)
+        ) {
             return false;
         }
-        if (surfacePos.y > voxelMap.horizonHeight && inventory.addItems([{ itemId: "dirt", count: 1 }])) {
+        if (
+            surfacePos.y > voxelMap.horizonHeight &&
+            inventory.addItems([{ itemId: "dirt", count: 1 }])
+        ) {
             voxelMap.remove(surfacePos);
             revertNearbyInvalidTerrain(voxelMap, surfacePos.x, surfacePos.z);
             floodFillWater(voxelMap, surfacePos.x, surfacePos.z);
@@ -108,14 +169,19 @@ registerTerrain({
     onInteract: onGrassDirtInteract,
 });
 
-function onSoilInteract(ctx: import("../EntityRegistry").InteractionContext): boolean {
+function onSoilInteract(
+    ctx: import("../EntityRegistry").InteractionContext,
+): boolean {
     if (ctx.tool === "hoes") {
         const entityType = getEntityTypeFromVoxel(ctx.voxel);
         if (entityType === ENTITY_TYPES.none) return false;
 
         // 作物エンティティを削除（虚空へ消滅、アイテム追加なし）
         if (isCrop(entityType)) {
-            ctx.voxelMap.set(setEntityTypeInVoxel(ctx.voxel, ENTITY_TYPES.none), ctx.surfacePos);
+            ctx.voxelMap.set(
+                setEntityTypeInVoxel(ctx.voxel, ENTITY_TYPES.none),
+                ctx.surfacePos,
+            );
             return true;
         }
         return false;
@@ -123,10 +189,16 @@ function onSoilInteract(ctx: import("../EntityRegistry").InteractionContext): bo
         const { voxelMap, surfacePos, inventory } = ctx;
         const voxel = voxelMap.get(surfacePos);
 
-        if (getEntityTypeFromVoxel(voxel) !== ENTITY_TYPES.none || !isSafeToRemove3x3(voxelMap, surfacePos.x, surfacePos.z)) {
+        if (
+            getEntityTypeFromVoxel(voxel) !== ENTITY_TYPES.none ||
+            !isSafeToRemove3x3(voxelMap, surfacePos.x, surfacePos.z)
+        ) {
             return false;
         }
-        if (surfacePos.y > voxelMap.horizonHeight && inventory.addItems([{ itemId: "dirt", count: 1 }])) {
+        if (
+            surfacePos.y > voxelMap.horizonHeight &&
+            inventory.addItems([{ itemId: "dirt", count: 1 }])
+        ) {
             console.log(surfacePos);
             voxelMap.remove(surfacePos);
             revertNearbyInvalidTerrain(voxelMap, surfacePos.x, surfacePos.z);

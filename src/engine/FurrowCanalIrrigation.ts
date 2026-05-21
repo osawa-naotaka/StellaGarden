@@ -1,6 +1,13 @@
 import type { IVoxelWriter } from "../_boundary/interfaces";
-import { getPipeShapeKey, isIrrigatingPipeShape } from "./PipeShape";
-import { ENTITY_TYPES, getEntityTypeFromVoxel, getEnabledFromVoxel, getTerrainTypeFromVoxel, setTerrainTypeInVoxel, TERRAIN_TYPES } from "./VoxelDefs";
+import { getPipeShapeKey, isIrrigatingPipeShape } from "./FurrowCanalShape";
+import {
+    ENTITY_TYPES,
+    getEntityTypeFromVoxel,
+    getEnabledFromVoxel,
+    getTerrainTypeFromVoxel,
+    setTerrainTypeInVoxel,
+    TERRAIN_TYPES,
+} from "./VoxelDefs";
 
 export const PIPE_IRRIGATION_RANGE = 3;
 
@@ -9,7 +16,9 @@ type Direction2D = {
     readonly dz: number;
 };
 
-function getIrrigationDirections(shape: ReturnType<typeof getPipeShapeKey>): ReadonlyArray<Direction2D> {
+function getIrrigationDirections(
+    shape: ReturnType<typeof getPipeShapeKey>,
+): ReadonlyArray<Direction2D> {
     switch (shape) {
         case "h":
         case "end_l":
@@ -45,13 +54,17 @@ function isInBounds(voxelMap: IVoxelWriter, x: number, z: number): boolean {
  *
  * この関数は日次処理の最後に呼ばれる想定。
  */
-export function applyPipeIrrigation(voxelMap: IVoxelWriter, range: number = PIPE_IRRIGATION_RANGE): void {
+export function applyPipeIrrigation(
+    voxelMap: IVoxelWriter,
+    range: number = PIPE_IRRIGATION_RANGE,
+): void {
     for (let x = 0; x < voxelMap.width; x++) {
         for (let z = 0; z < voxelMap.depth; z++) {
             const pipeSurfacePos = voxelMap.getSurfacePosition({ x, y: 0, z });
             const pipeVoxel = voxelMap.get(pipeSurfacePos);
 
-            if (getEntityTypeFromVoxel(pipeVoxel) !== ENTITY_TYPES.furrow_canal) continue;
+            if (getEntityTypeFromVoxel(pipeVoxel) !== ENTITY_TYPES.furrow_canal)
+                continue;
             if (!getEnabledFromVoxel(pipeVoxel)) continue;
 
             const shape = getPipeShapeKey(pipeVoxel);
@@ -64,12 +77,22 @@ export function applyPipeIrrigation(voxelMap: IVoxelWriter, range: number = PIPE
                     const nz = z + dir.dz * step;
                     if (!isInBounds(voxelMap, nx, nz)) break;
 
-                    const targetSurfacePos = voxelMap.getSurfacePosition({ x: nx, y: 0, z: nz });
+                    const targetSurfacePos = voxelMap.getSurfacePosition({
+                        x: nx,
+                        y: 0,
+                        z: nz,
+                    });
                     const targetVoxel = voxelMap.get(targetSurfacePos);
                     const terrainType = getTerrainTypeFromVoxel(targetVoxel);
 
                     if (terrainType === TERRAIN_TYPES.soil) {
-                        voxelMap.set(setTerrainTypeInVoxel(targetVoxel, TERRAIN_TYPES.wetSoil), targetSurfacePos);
+                        voxelMap.set(
+                            setTerrainTypeInVoxel(
+                                targetVoxel,
+                                TERRAIN_TYPES.wetSoil,
+                            ),
+                            targetSurfacePos,
+                        );
                     }
                 }
             }

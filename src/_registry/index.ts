@@ -11,7 +11,7 @@ import "./entities/Clay";
 import "./entities/Crops";
 import "./entities/Forge";
 import "./entities/MeteoricIron";
-import "./entities/Pipe";
+import "./entities/FurrowCanal";
 import "./entities/Rail";
 import "./entities/Cart";
 import "./entities/Shaft";

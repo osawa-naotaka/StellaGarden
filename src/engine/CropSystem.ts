@@ -1,7 +1,7 @@
 import type { IVoxelWriter } from "../_boundary/interfaces";
 import { type DailyTickContext, getEntityDef } from "../_registry/EntityRegistry";
 import type { CropDef } from "./CropDefs";
-import { applyPipeIrrigation } from "./PipeIrrigation";
+import { applyPipeIrrigation } from "./FurrowCanalIrrigation";
 import {
     ENTITY_TYPES,
     getDaysElapsedFromVoxel,
