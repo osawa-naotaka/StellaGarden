@@ -42,7 +42,7 @@ export const ENTITY_TYPES = {
     meteoric_iron: 27,
     anvil: 28,
     forge_burning: 29,
-    pipe1: 30,
+    furrow_canal: 30,
     warp_gate: 31,
     // soaking_basket_loaded: 32,
     // soaking_basket_done: 33,

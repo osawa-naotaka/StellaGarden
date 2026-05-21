@@ -37,7 +37,7 @@ function getSurfaceVoxelAt(voxelMap: IVoxelWriter, x: number, z: number): bigint
 function isPipeAt(voxelMap: IVoxelWriter, x: number, z: number): boolean {
     const voxel = getSurfaceVoxelAt(voxelMap, x, z);
     if (voxel == null) return false;
-    return getEntityTypeFromVoxel(voxel) === ENTITY_TYPES.pipe1;
+    return getEntityTypeFromVoxel(voxel) === ENTITY_TYPES.furrow_canal;
 }
 
 function isWaterAdjacentToPipe(voxelMap: IVoxelWriter, x: number, z: number): boolean {
@@ -57,7 +57,7 @@ function canFlowBetween(voxelMap: IVoxelWriter, x: number, z: number, dx: number
     const fromVoxel = getSurfaceVoxelAt(voxelMap, x, z);
     const toVoxel = getSurfaceVoxelAt(voxelMap, x + dx, z + dz);
     if (fromVoxel == null || toVoxel == null) return false;
-    if (getEntityTypeFromVoxel(toVoxel) !== ENTITY_TYPES.pipe1) return false;
+    if (getEntityTypeFromVoxel(toVoxel) !== ENTITY_TYPES.furrow_canal) return false;
 
     const fromMask = getConnectionsFromVoxel(fromVoxel);
     const toMask = getConnectionsFromVoxel(toVoxel);

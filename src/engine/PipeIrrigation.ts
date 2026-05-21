@@ -51,7 +51,7 @@ export function applyPipeIrrigation(voxelMap: IVoxelWriter, range: number = PIPE
             const pipeSurfacePos = voxelMap.getSurfacePosition({ x, y: 0, z });
             const pipeVoxel = voxelMap.get(pipeSurfacePos);
 
-            if (getEntityTypeFromVoxel(pipeVoxel) !== ENTITY_TYPES.pipe1) continue;
+            if (getEntityTypeFromVoxel(pipeVoxel) !== ENTITY_TYPES.furrow_canal) continue;
             if (!getEnabledFromVoxel(pipeVoxel)) continue;
 
             const shape = getPipeShapeKey(pipeVoxel);

@@ -1,4 +1,4 @@
-import { refreshPipeConnectionsAround } from "../../engine/ChannelConnection";
+import { refreshFurrowCanalConnectionsAround } from "../../engine/ChannelConnection";
 import { getPipeSpriteName } from "../../engine/PipeShape";
 import { recomputeAllPipeWaterFlow } from "../../engine/PipeWaterFlow";
 import { ENTITY_TYPES, getEnabledFromVoxel, setVariantInVoxel } from "../../engine/VoxelDefs";
@@ -11,7 +11,7 @@ function getPipePreviewSpriteName(variant: PlacementVariant): string {
 }
 
 registerEntity({
-    entityType: ENTITY_TYPES.pipe1,
+    entityType: ENTITY_TYPES.furrow_canal,
 
     getEntitySize() { return { w: 1, h: 1 }; },
 
@@ -21,9 +21,9 @@ registerEntity({
 
     onInteract(ctx: InteractionContext): boolean {
         if (ctx.tool !== "axe") return false;
-        const removed = removeFacilityAtPos(ctx.voxelMap, ctx.inventory, ctx.surfacePos.x, ctx.surfacePos.z, ENTITY_TYPES.pipe1);
+        const removed = removeFacilityAtPos(ctx.voxelMap, ctx.inventory, ctx.surfacePos.x, ctx.surfacePos.z, ENTITY_TYPES.furrow_canal);
         if (removed) {
-            refreshPipeConnectionsAround(ctx.voxelMap, { x: ctx.surfacePos.x, z: ctx.surfacePos.z });
+            refreshFurrowCanalConnectionsAround(ctx.voxelMap, { x: ctx.surfacePos.x, z: ctx.surfacePos.z });
             recomputeAllPipeWaterFlow(ctx.voxelMap);
         }
         return removed;
@@ -36,18 +36,18 @@ registerItem({
     spriteName: "pipe1_h",
     maxStack: 64,
     placement: {
-        entityType: ENTITY_TYPES.pipe1,
+        entityType: ENTITY_TYPES.furrow_canal,
         defaultVariant: 0,
         maxVariant: 1,
         getFieldSpriteName(variant: PlacementVariant) {
             return getPipePreviewSpriteName(variant);
         },
         onPlace(voxelMap, pos, variant: PlacementVariant) {
-            placeFacility(voxelMap, pos, ENTITY_TYPES.pipe1, { w: 1, h: 1 });
+            placeFacility(voxelMap, pos, ENTITY_TYPES.furrow_canal, { w: 1, h: 1 });
             const surfacePos = voxelMap.getSurfacePosition({ x: pos.x, y: 0, z: pos.z });
             const voxel = voxelMap.get(surfacePos);
             voxelMap.set(setVariantInVoxel(voxel, variant), surfacePos);
-            refreshPipeConnectionsAround(voxelMap, pos);
+            refreshFurrowCanalConnectionsAround(voxelMap, pos);
             recomputeAllPipeWaterFlow(voxelMap);
         },
     },

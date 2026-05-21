@@ -51,7 +51,7 @@ export const ENTITY_NAMES: Record<number, string> = {
     [ENTITY_TYPES.meteoric_iron]: "隕鉄",
     [ENTITY_TYPES.anvil]: "金床",
     [ENTITY_TYPES.forge_burning]: "炉（点火中）",
-    [ENTITY_TYPES.pipe1]: "畝間水路",
+    [ENTITY_TYPES.furrow_canal]: "畝間水路",
     [ENTITY_TYPES.warp_gate]: "転移ゲート",
     [ENTITY_TYPES.rail]: "レール",
     [ENTITY_TYPES.shaft]: "シャフト",

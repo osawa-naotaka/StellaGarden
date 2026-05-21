@@ -8,25 +8,25 @@ import {
     TERRAIN_TYPES,
 } from "./VoxelDefs";
 
-export const PIPE_CONNECTION_UP = 1 << 0;
-export const PIPE_CONNECTION_DOWN = 1 << 1;
-export const PIPE_CONNECTION_LEFT = 1 << 2;
-export const PIPE_CONNECTION_RIGHT = 1 << 3;
+export const FURROW_CANAL_CONNECTION_UP = 1 << 0;
+export const FURROW_CANAL_CONNECTION_DOWN = 1 << 1;
+export const FURROW_CANAL_CONNECTION_LEFT = 1 << 2;
+export const FURROW_CANAL_CONNECTION_RIGHT = 1 << 3;
 
 const CARDINAL_DIRS: ReadonlyArray<{
     readonly dx: number;
     readonly dz: number;
     readonly bit: number;
 }> = [
-    { dx: 0, dz: -1, bit: PIPE_CONNECTION_UP },
-    { dx: 0, dz: 1, bit: PIPE_CONNECTION_DOWN },
-    { dx: -1, dz: 0, bit: PIPE_CONNECTION_LEFT },
-    { dx: 1, dz: 0, bit: PIPE_CONNECTION_RIGHT },
+    { dx: 0, dz: -1, bit: FURROW_CANAL_CONNECTION_UP },
+    { dx: 0, dz: 1, bit: FURROW_CANAL_CONNECTION_DOWN },
+    { dx: -1, dz: 0, bit: FURROW_CANAL_CONNECTION_LEFT },
+    { dx: 1, dz: 0, bit: FURROW_CANAL_CONNECTION_RIGHT },
 ];
 
 /** 指定 voxel が畝間水路エンティティかどうか。 */
-export function isPipeVoxel(voxel: bigint): boolean {
-    return getEntityTypeFromVoxel(voxel) === ENTITY_TYPES.pipe1;
+export function isFurrowCanalVoxel(voxel: bigint): boolean {
+    return getEntityTypeFromVoxel(voxel) === ENTITY_TYPES.furrow_canal;
 }
 
 /** 指定 terrain type が水タイルとして接続対象かどうか。 */
@@ -53,7 +53,7 @@ function getSurfaceVoxelAt(voxelMap: IVoxelWriter, x: number, z: number): bigint
  * - 畝間水路エンティティ
  * - 水タイル（water / waterSource）
  */
-export function computePipeConnectionMask(voxelMap: IVoxelWriter, pos: Pos2D): number {
+export function computeFurrowCanalConnectionMask(voxelMap: IVoxelWriter, pos: Pos2D): number {
     let mask = 0;
 
     for (const dir of CARDINAL_DIRS) {
@@ -63,7 +63,7 @@ export function computePipeConnectionMask(voxelMap: IVoxelWriter, pos: Pos2D): n
         const neighborEntityType = getEntityTypeFromVoxel(neighborVoxel);
         const neighborTerrainType = getTerrainTypeFromVoxel(neighborVoxel);
 
-        if (neighborEntityType === ENTITY_TYPES.pipe1 || isWaterTerrainType(neighborTerrainType)) {
+        if (neighborEntityType === ENTITY_TYPES.furrow_canal || isWaterTerrainType(neighborTerrainType)) {
             mask |= dir.bit;
         }
     }
@@ -75,14 +75,14 @@ export function computePipeConnectionMask(voxelMap: IVoxelWriter, pos: Pos2D): n
  * 指定タイルが畝間水路なら、接続マスクを再計算して voxel に書き戻す。
  * 畝間水路でない場合は何もしない。
  */
-export function refreshPipeConnectionAt(voxelMap: IVoxelWriter, pos: Pos2D): void {
+export function refreshFurrowCanalConnectionAt(voxelMap: IVoxelWriter, pos: Pos2D): void {
     if (!isInBounds(voxelMap, pos.x, pos.z)) return;
 
     const surfacePos = voxelMap.getSurfacePosition({ x: pos.x, y: 0, z: pos.z });
     const voxel = voxelMap.get(surfacePos);
-    if (!isPipeVoxel(voxel)) return;
+    if (!isFurrowCanalVoxel(voxel)) return;
 
-    const nextMask = computePipeConnectionMask(voxelMap, pos);
+    const nextMask = computeFurrowCanalConnectionMask(voxelMap, pos);
     const currentMask = getConnectionsFromVoxel(voxel);
     if (currentMask === nextMask) return;
 
@@ -90,10 +90,10 @@ export function refreshPipeConnectionAt(voxelMap: IVoxelWriter, pos: Pos2D): voi
 }
 
 /** 指定タイルと上下左右4マスの畝間水路接続を局所再計算する。 */
-export function refreshPipeConnectionsAround(voxelMap: IVoxelWriter, pos: Pos2D): void {
-    refreshPipeConnectionAt(voxelMap, pos);
+export function refreshFurrowCanalConnectionsAround(voxelMap: IVoxelWriter, pos: Pos2D): void {
+    refreshFurrowCanalConnectionAt(voxelMap, pos);
 
     for (const dir of CARDINAL_DIRS) {
-        refreshPipeConnectionAt(voxelMap, { x: pos.x + dir.dx, z: pos.z + dir.dz });
+        refreshFurrowCanalConnectionAt(voxelMap, { x: pos.x + dir.dx, z: pos.z + dir.dz });
     }
 }
