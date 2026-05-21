@@ -1,14 +1,7 @@
 import type { IVoxelWriter, Pos2D } from "../_boundary/interfaces";
 import { findFacilityAnchor } from "../_registry/facilityUtil";
 import { isShaftStraightMask } from "./ShaftShape";
-import {
-    ENTITY_TYPES,
-    getEntityTypeFromVoxel,
-    getConnectionsFromVoxel,
-    setEnabledInVoxel,
-    setDirectionInVoxel,
-    VOXEL_DIRECTION,
-} from "./VoxelDefs";
+import { ENTITY_TYPES, getConnectionsFromVoxel, getEntityTypeFromVoxel, setDirectionInVoxel, setEnabledInVoxel, VOXEL_DIRECTION } from "./VoxelDefs";
 
 const SHAFT_CONNECTION_UP = 1 << 0;
 const SHAFT_CONNECTION_DOWN = 1 << 1;
@@ -66,15 +59,7 @@ function isWaterwheelAdjacentToShaft(voxelMap: IVoxelWriter, x: number, z: numbe
     return false;
 }
 
-function canPowerFlowBetween(
-    voxelMap: IVoxelWriter,
-    x: number,
-    z: number,
-    dx: number,
-    dz: number,
-    bit: number,
-    oppositeBit: number,
-): boolean {
+function canPowerFlowBetween(voxelMap: IVoxelWriter, x: number, z: number, dx: number, dz: number, bit: number, oppositeBit: number): boolean {
     const fromVoxel = getSurfaceVoxelAt(voxelMap, x, z);
     const toVoxel = getSurfaceVoxelAt(voxelMap, x + dx, z + dz);
     if (fromVoxel == null || toVoxel == null) return false;
@@ -168,23 +153,23 @@ export function recomputeAllShaftPowerFlow(voxelMap: IVoxelWriter): void {
                 }
             } else {
                 if (isShaftStraightMask(nextMask)) {
-                  switch (dir.bit) {
-                      case SHAFT_CONNECTION_UP:
-                          nextReversed = currentReversed;
-                          break;
-                      case SHAFT_CONNECTION_DOWN:
-                          nextReversed = !currentReversed;
-                          break;
-                      case SHAFT_CONNECTION_LEFT:
-                          nextReversed = currentReversed;
-                          break;
-                      case SHAFT_CONNECTION_RIGHT:
-                          nextReversed = !currentReversed;
-                          break;
-                  }
-              } else {
-                  nextReversed = !currentReversed;
-              }
+                    switch (dir.bit) {
+                        case SHAFT_CONNECTION_UP:
+                            nextReversed = currentReversed;
+                            break;
+                        case SHAFT_CONNECTION_DOWN:
+                            nextReversed = !currentReversed;
+                            break;
+                        case SHAFT_CONNECTION_LEFT:
+                            nextReversed = currentReversed;
+                            break;
+                        case SHAFT_CONNECTION_RIGHT:
+                            nextReversed = !currentReversed;
+                            break;
+                    }
+                } else {
+                    nextReversed = !currentReversed;
+                }
             }
 
             visited.add(key);
@@ -201,7 +186,7 @@ export function recomputeAllShaftPowerFlow(voxelMap: IVoxelWriter): void {
         const reversed = powered && (reversedMap.get(key) ?? false);
 
         let updated = setEnabledInVoxel(voxel, powered);
-        updated = setDirectionInVoxel(updated, reversed ? VOXEL_DIRECTION.backward : VOXEL_DIRECTION.forward)
+        updated = setDirectionInVoxel(updated, reversed ? VOXEL_DIRECTION.backward : VOXEL_DIRECTION.forward);
 
         voxelMap.set(updated, surfacePos);
     }

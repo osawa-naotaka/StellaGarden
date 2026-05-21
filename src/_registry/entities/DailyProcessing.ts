@@ -45,8 +45,10 @@ export function registerDailyProcessingEntity(opts: DailyProcessingEntityOptions
 
     registerEntity({
         entityType: baseEntityType,
-        
-        getEntitySize() { return entitySize; },
+
+        getEntitySize() {
+            return entitySize;
+        },
 
         getSprites(voxel: bigint): EntitySpriteInfo[] {
             const name = sprites(voxel);
@@ -174,7 +176,7 @@ registerDailyProcessingEntity({
         const variant = getVariantFromVoxel(voxel);
         switch (days) {
             case 0:
-                return (variant === VOXEL_VARIANT.done) ? "ss_sprite_075.png" : "ss_sprite_076.png";
+                return variant === VOXEL_VARIANT.done ? "ss_sprite_075.png" : "ss_sprite_076.png";
             case 1:
                 return bonfireLitFrame();
             default:

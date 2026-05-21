@@ -1,12 +1,5 @@
 import type { IVoxelWriter, Pos2D } from "../_boundary/interfaces";
-import {
-    ENTITY_TYPES,
-    getEntityTypeFromVoxel,
-    getConnectionsFromVoxel,
-    getTerrainTypeFromVoxel,
-    setEnabledInVoxel,
-    TERRAIN_TYPES,
-} from "./VoxelDefs";
+import { ENTITY_TYPES, getConnectionsFromVoxel, getEntityTypeFromVoxel, getTerrainTypeFromVoxel, setEnabledInVoxel, TERRAIN_TYPES } from "./VoxelDefs";
 
 export const PIPE_WATER_MAX_DISTANCE = 16;
 
@@ -55,64 +48,36 @@ function keyOf(voxelMap: IVoxelWriter, x: number, z: number): number {
     return z * voxelMap.width + x;
 }
 
-function getSurfaceVoxelAt(
-    voxelMap: IVoxelWriter,
-    x: number,
-    z: number,
-): bigint | null {
+function getSurfaceVoxelAt(voxelMap: IVoxelWriter, x: number, z: number): bigint | null {
     if (!isInBounds(voxelMap, x, z)) return null;
     const surfacePos = voxelMap.getSurfacePosition({ x, y: 0, z });
     return voxelMap.get(surfacePos);
 }
 
-function isFullowCanalAt(
-    voxelMap: IVoxelWriter,
-    x: number,
-    z: number,
-): boolean {
+function isFullowCanalAt(voxelMap: IVoxelWriter, x: number, z: number): boolean {
     const voxel = getSurfaceVoxelAt(voxelMap, x, z);
     if (voxel == null) return false;
     return getEntityTypeFromVoxel(voxel) === ENTITY_TYPES.furrow_canal;
 }
 
-function isWaterAdjacentToFullowCanal(
-    voxelMap: IVoxelWriter,
-    x: number,
-    z: number,
-): boolean {
+function isWaterAdjacentToFullowCanal(voxelMap: IVoxelWriter, x: number, z: number): boolean {
     for (const dir of CARDINAL_DIRS) {
-        const neighborVoxel = getSurfaceVoxelAt(
-            voxelMap,
-            x + dir.dx,
-            z + dir.dz,
-        );
+        const neighborVoxel = getSurfaceVoxelAt(voxelMap, x + dir.dx, z + dir.dz);
         if (neighborVoxel == null) continue;
 
         const terrainType = getTerrainTypeFromVoxel(neighborVoxel);
-        if (
-            terrainType === TERRAIN_TYPES.water ||
-            terrainType === TERRAIN_TYPES.waterSource
-        ) {
+        if (terrainType === TERRAIN_TYPES.water || terrainType === TERRAIN_TYPES.waterSource) {
             return true;
         }
     }
     return false;
 }
 
-function canFlowBetween(
-    voxelMap: IVoxelWriter,
-    x: number,
-    z: number,
-    dx: number,
-    dz: number,
-    bit: number,
-    oppositeBit: number,
-): boolean {
+function canFlowBetween(voxelMap: IVoxelWriter, x: number, z: number, dx: number, dz: number, bit: number, oppositeBit: number): boolean {
     const fromVoxel = getSurfaceVoxelAt(voxelMap, x, z);
     const toVoxel = getSurfaceVoxelAt(voxelMap, x + dx, z + dz);
     if (fromVoxel == null || toVoxel == null) return false;
-    if (getEntityTypeFromVoxel(toVoxel) !== ENTITY_TYPES.furrow_canal)
-        return false;
+    if (getEntityTypeFromVoxel(toVoxel) !== ENTITY_TYPES.furrow_canal) return false;
 
     const fromMask = getConnectionsFromVoxel(fromVoxel);
     const toMask = getConnectionsFromVoxel(toVoxel);
@@ -130,10 +95,7 @@ function canFlowBetween(
  *
  * 接続形状（pipe connections）は事前に最新化されている前提。
  */
-export function recomputeAllFullowCanalWaterFlow(
-    voxelMap: IVoxelWriter,
-    maxDistance: number = PIPE_WATER_MAX_DISTANCE,
-): void {
+export function recomputeAllFullowCanalWaterFlow(voxelMap: IVoxelWriter, maxDistance: number = PIPE_WATER_MAX_DISTANCE): void {
     const allPipes: Pos2D[] = [];
     const queue: Array<{ x: number; z: number; dist: number }> = [];
     const visited = new Set<number>();
@@ -166,18 +128,7 @@ export function recomputeAllFullowCanalWaterFlow(
 
             const key = keyOf(voxelMap, nx, nz);
             if (visited.has(key)) continue;
-            if (
-                !canFlowBetween(
-                    voxelMap,
-                    current.x,
-                    current.z,
-                    dir.dx,
-                    dir.dz,
-                    dir.bit,
-                    dir.oppositeBit,
-                )
-            )
-                continue;
+            if (!canFlowBetween(voxelMap, current.x, current.z, dir.dx, dir.dz, dir.bit, dir.oppositeBit)) continue;
 
             visited.add(key);
             queue.push({ x: nx, z: nz, dist: current.dist + 1 });

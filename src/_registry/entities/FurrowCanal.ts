@@ -1,16 +1,8 @@
 import { refreshFurrowCanalConnectionsAround } from "../../engine/FurrowCanalConnection";
 import { getFurrowCanalSpriteName } from "../../engine/FurrowCanalShape";
 import { recomputeAllFullowCanalWaterFlow } from "../../engine/FurrowCanalWaterFlow";
-import {
-    ENTITY_TYPES,
-    getEnabledFromVoxel,
-    setVariantInVoxel,
-} from "../../engine/VoxelDefs";
-import {
-    type EntitySpriteInfo,
-    type InteractionContext,
-    registerEntity,
-} from "../EntityRegistry";
+import { ENTITY_TYPES, getEnabledFromVoxel, setVariantInVoxel } from "../../engine/VoxelDefs";
+import { type EntitySpriteInfo, type InteractionContext, registerEntity } from "../EntityRegistry";
 import { placeFacility, removeFacilityAtPos } from "../facilityUtil";
 import { type PlacementVariant, registerItem } from "../ItemRegistry";
 
@@ -26,20 +18,12 @@ registerEntity({
     },
 
     getSprites(voxel: bigint): EntitySpriteInfo[] {
-        return [
-            [getFurrowCanalSpriteName(voxel, getEnabledFromVoxel(voxel)), 0, 0],
-        ];
+        return [[getFurrowCanalSpriteName(voxel, getEnabledFromVoxel(voxel)), 0, 0]];
     },
 
     onInteract(ctx: InteractionContext): boolean {
         if (ctx.tool !== "axe") return false;
-        const removed = removeFacilityAtPos(
-            ctx.voxelMap,
-            ctx.inventory,
-            ctx.surfacePos.x,
-            ctx.surfacePos.z,
-            ENTITY_TYPES.furrow_canal,
-        );
+        const removed = removeFacilityAtPos(ctx.voxelMap, ctx.inventory, ctx.surfacePos.x, ctx.surfacePos.z, ENTITY_TYPES.furrow_canal);
         if (removed) {
             refreshFurrowCanalConnectionsAround(ctx.voxelMap, {
                 x: ctx.surfacePos.x,

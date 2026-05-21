@@ -12,6 +12,6 @@ export async function loadSprite() {
     await Assets.load("/assets/Pipes.spritesheet.json");
     await Assets.load("/assets/PropsMine.spritesheet.json");
     await Assets.load("/assets/PropsMineCart.spritesheet.json");
-    await Assets.load("/assets/StoneStructures.spritesheet.json");    
+    await Assets.load("/assets/StoneStructures.spritesheet.json");
     await Assets.load("/assets/roboto.fnt");
 }

@@ -1,5 +1,5 @@
-import { ENTITY_TYPES, getEntityTypeFromVoxel } from "../../engine/VoxelDefs";
 import type { CartStorage } from "../../engine/CartStorage";
+import { ENTITY_TYPES, getEntityTypeFromVoxel } from "../../engine/VoxelDefs";
 import { type EntitySpriteInfo, registerEntity } from "../EntityRegistry";
 import { registerItem } from "../ItemRegistry";
 

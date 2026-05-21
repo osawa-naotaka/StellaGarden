@@ -72,24 +72,21 @@ export function ForgePanel({ open, inventory, forgeStorage, voxelMap, uiState }:
         [slotAreaToKind],
     );
 
-    const getQuickTransferTargets = useCallback(
-        (ref: ForgeSlotRef): ForgeSlotRef[] | undefined => {
-            const invTotal = INV_ROWS * COLS;
-            // forge スロット → インベントリ + toolbar 1..9
-            if (ref.area === "forge_ingredient" || ref.area === "forge_fuel" || ref.area === "forge_output") {
-                const targets: ForgeSlotRef[] = [];
-                for (let i = 0; i < invTotal; i++) targets.push({ area: "inventory", index: i });
-                for (let i = 1; i <= TOOLBAR_COLS; i++) targets.push({ area: "toolbar", index: i });
-                return targets;
-            }
-            // インベントリ/ツールバー → ingredient と fuel のみ（output は完成品スロットなので含めない。canPlaceTo がアイテム種別で振り分ける）
-            return [
-                { area: "forge_ingredient", index: 0 },
-                { area: "forge_fuel", index: 0 },
-            ];
-        },
-        [],
-    );
+    const getQuickTransferTargets = useCallback((ref: ForgeSlotRef): ForgeSlotRef[] | undefined => {
+        const invTotal = INV_ROWS * COLS;
+        // forge スロット → インベントリ + toolbar 1..9
+        if (ref.area === "forge_ingredient" || ref.area === "forge_fuel" || ref.area === "forge_output") {
+            const targets: ForgeSlotRef[] = [];
+            for (let i = 0; i < invTotal; i++) targets.push({ area: "inventory", index: i });
+            for (let i = 1; i <= TOOLBAR_COLS; i++) targets.push({ area: "toolbar", index: i });
+            return targets;
+        }
+        // インベントリ/ツールバー → ingredient と fuel のみ（output は完成品スロットなので含めない。canPlaceTo がアイテム種別で振り分ける）
+        return [
+            { area: "forge_ingredient", index: 0 },
+            { area: "forge_fuel", index: 0 },
+        ];
+    }, []);
 
     const { pickedUp, cursorPos, handleLeftClick, handleRightClick } = usePickup<ForgeSlotRef>(open, {
         getSlot,

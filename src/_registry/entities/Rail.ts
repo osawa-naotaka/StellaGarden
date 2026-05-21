@@ -20,7 +20,9 @@ function getRailPreviewSpriteName(variant: PlacementVariant): string {
 registerEntity({
     entityType: ENTITY_TYPES.rail,
 
-    getEntitySize() { return { w: 1, h: 1 }; },
+    getEntitySize() {
+        return { w: 1, h: 1 };
+    },
 
     getSprites(voxel: bigint): EntitySpriteInfo[] {
         return [[getRailSpriteName(voxel), 0, 0]];
@@ -42,7 +44,7 @@ registerEntity({
 registerItem({
     itemId: "rail",
     displayName: "レール",
-    spriteName: "rail_h",    
+    spriteName: "rail_h",
     maxStack: 64,
     placement: {
         entityType: ENTITY_TYPES.rail,

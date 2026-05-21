@@ -1,16 +1,6 @@
 import type { IVoxelWriter } from "../_boundary/interfaces";
-import {
-    getFullowCanalShapeKey,
-    isIrrigatingFurrowCanalShape,
-} from "./FurrowCanalShape";
-import {
-    ENTITY_TYPES,
-    getEntityTypeFromVoxel,
-    getEnabledFromVoxel,
-    getTerrainTypeFromVoxel,
-    setTerrainTypeInVoxel,
-    TERRAIN_TYPES,
-} from "./VoxelDefs";
+import { getFullowCanalShapeKey, isIrrigatingFurrowCanalShape } from "./FurrowCanalShape";
+import { ENTITY_TYPES, getEnabledFromVoxel, getEntityTypeFromVoxel, getTerrainTypeFromVoxel, setTerrainTypeInVoxel, TERRAIN_TYPES } from "./VoxelDefs";
 
 export const FURROW_CANAL_IRRIGATION_RANGE = 3;
 
@@ -19,9 +9,7 @@ type Direction2D = {
     readonly dz: number;
 };
 
-function getIrrigationDirections(
-    shape: ReturnType<typeof getFullowCanalShapeKey>,
-): ReadonlyArray<Direction2D> {
+function getIrrigationDirections(shape: ReturnType<typeof getFullowCanalShapeKey>): ReadonlyArray<Direction2D> {
     switch (shape) {
         case "h":
         case "end_l":
@@ -57,17 +45,13 @@ function isInBounds(voxelMap: IVoxelWriter, x: number, z: number): boolean {
  *
  * この関数は日次処理の最後に呼ばれる想定。
  */
-export function applyFullowCanalIrrigation(
-    voxelMap: IVoxelWriter,
-    range: number = FURROW_CANAL_IRRIGATION_RANGE,
-): void {
+export function applyFullowCanalIrrigation(voxelMap: IVoxelWriter, range: number = FURROW_CANAL_IRRIGATION_RANGE): void {
     for (let x = 0; x < voxelMap.width; x++) {
         for (let z = 0; z < voxelMap.depth; z++) {
             const pipeSurfacePos = voxelMap.getSurfacePosition({ x, y: 0, z });
             const pipeVoxel = voxelMap.get(pipeSurfacePos);
 
-            if (getEntityTypeFromVoxel(pipeVoxel) !== ENTITY_TYPES.furrow_canal)
-                continue;
+            if (getEntityTypeFromVoxel(pipeVoxel) !== ENTITY_TYPES.furrow_canal) continue;
             if (!getEnabledFromVoxel(pipeVoxel)) continue;
 
             const shape = getFullowCanalShapeKey(pipeVoxel);
@@ -89,13 +73,7 @@ export function applyFullowCanalIrrigation(
                     const terrainType = getTerrainTypeFromVoxel(targetVoxel);
 
                     if (terrainType === TERRAIN_TYPES.soil) {
-                        voxelMap.set(
-                            setTerrainTypeInVoxel(
-                                targetVoxel,
-                                TERRAIN_TYPES.wetSoil,
-                            ),
-                            targetSurfacePos,
-                        );
+                        voxelMap.set(setTerrainTypeInVoxel(targetVoxel, TERRAIN_TYPES.wetSoil), targetSurfacePos);
                     }
                 }
             }

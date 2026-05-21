@@ -4,8 +4,10 @@ import { registerItem } from "../ItemRegistry";
 
 registerEntity({
     entityType: ENTITY_TYPES.stone,
-    
-    getEntitySize() { return { w: 1, h: 1 }; },
+
+    getEntitySize() {
+        return { w: 1, h: 1 };
+    },
 
     getSprites(): EntitySpriteInfo[] {
         return [["stone1.png", 0, 0]];

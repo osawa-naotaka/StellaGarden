@@ -1,7 +1,18 @@
 import type { CraftStation, IEventBroker, ItemId, Pos2D, SlotRef } from "../_boundary/interfaces";
 import type { PlacementVariant } from "../_registry/ItemRegistry";
 
-export type UIMode = "normal" | "inventory-craft" | "placement" | "chest" | "forge" | "warp_gate" | "processing-manual" | "processing-daily" | "processing-auto" | "winch" | "cart";
+export type UIMode =
+    | "normal"
+    | "inventory-craft"
+    | "placement"
+    | "chest"
+    | "forge"
+    | "warp_gate"
+    | "processing-manual"
+    | "processing-daily"
+    | "processing-auto"
+    | "winch"
+    | "cart";
 export type TimeSpeed = "paused" | "normal" | "fast";
 
 /**

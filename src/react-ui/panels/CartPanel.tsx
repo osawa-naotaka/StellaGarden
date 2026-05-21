@@ -100,13 +100,7 @@ export function CartPanel({ open, inventory, cartStorage, uiState }: CartPanelPr
                 <section className="sg-sidepanel-section">
                     <h3 className="sg-section-title">Attachment</h3>
                     {/* MVP: アタッチメントスロットは表示のみ。クリックしても何も起きない。 */}
-                    <InventoryGrid
-                        rows={1}
-                        cols={1}
-                        getStack={() => null}
-                        onLeftClick={() => {}}
-                        onRightClick={() => {}}
-                    />
+                    <InventoryGrid rows={1} cols={1} getStack={() => null} onLeftClick={() => {}} onRightClick={() => {}} />
                 </section>
 
                 <section className="sg-sidepanel-section">
@@ -152,7 +146,5 @@ export function CartPanel({ open, inventory, cartStorage, uiState }: CartPanelPr
 
 registerPanel({
     mode: "cart",
-    component: ({ open, engine }) => (
-        <CartPanel open={open} inventory={engine.inventory} cartStorage={engine.cartStorage} uiState={engine.uiState} />
-    ),
+    component: ({ open, engine }) => <CartPanel open={open} inventory={engine.inventory} cartStorage={engine.cartStorage} uiState={engine.uiState} />,
 });

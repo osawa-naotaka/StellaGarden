@@ -1,13 +1,6 @@
 import type { IVoxelWriter, Pos3D } from "../_boundary/interfaces";
 import { findFacilityAnchor } from "../_registry/facilityUtil";
-import {
-    ENTITY_TYPES,
-    getEntityTypeFromVoxel,
-    getConnectionsFromVoxel,
-    setEnabledInVoxel,
-    setDirectionInVoxel,
-    VOXEL_DIRECTION,
-} from "./VoxelDefs";
+import { ENTITY_TYPES, getConnectionsFromVoxel, getEntityTypeFromVoxel, setDirectionInVoxel, setEnabledInVoxel, VOXEL_DIRECTION } from "./VoxelDefs";
 
 const RAIL_CONNECTION_UP = 1 << 0;
 const RAIL_CONNECTION_DOWN = 1 << 1;
@@ -75,7 +68,6 @@ export function recomputeAllRailTractionFlow(voxelMap: IVoxelWriter): void {
         voxelMap.set(voxel, railPos);
     }
 
-    
     // ウインチから伸びる牽引力を計算
     for (const winch of allWinches) {
         // ウインチに隣接したレールを見つける
@@ -109,7 +101,7 @@ type TractionDistination = {
     pos: Pos3D;
     voxel: bigint;
     dir: number;
-}
+};
 
 function findTractionDistinations(voxelMap: IVoxelWriter, x: number, z: number): TractionDistination[] {
     const dist: TractionDistination[] = [];
@@ -118,7 +110,7 @@ function findTractionDistinations(voxelMap: IVoxelWriter, x: number, z: number):
         const nz = z + dir.dz;
         if (!isInBounds(voxelMap, nx, nz)) continue;
 
-        const pos = voxelMap.getSurfacePosition({ x: nx, y: 0, z: nz })
+        const pos = voxelMap.getSurfacePosition({ x: nx, y: 0, z: nz });
         const voxel = voxelMap.get(pos);
         const entityType = getEntityTypeFromVoxel(voxel);
         if (entityType === ENTITY_TYPES.rail) {
@@ -132,7 +124,7 @@ function findTractionDistinations(voxelMap: IVoxelWriter, x: number, z: number):
 }
 
 function setTractionDirectionAndEnable(voxelMap: IVoxelWriter, x: number, z: number, dir: number): void {
-    const pos = voxelMap.getSurfacePosition({ x, y: 0, z })
+    const pos = voxelMap.getSurfacePosition({ x, y: 0, z });
     const voxel = voxelMap.get(pos);
     const mask = getConnectionsFromVoxel(voxel);
 
@@ -142,42 +134,42 @@ function setTractionDirectionAndEnable(voxelMap: IVoxelWriter, x: number, z: num
         case RAIL_CONNECTION_DOWN:
         case RAIL_CONNECTION_UP | RAIL_CONNECTION_DOWN:
             if (dir !== RAIL_CONNECTION_UP && dir !== RAIL_CONNECTION_DOWN) return;
-            
+
             voxelDirection = dir === RAIL_CONNECTION_DOWN ? VOXEL_DIRECTION.forward : VOXEL_DIRECTION.backward;
             break;
-        
+
         case RAIL_CONNECTION_RIGHT:
         case RAIL_CONNECTION_LEFT:
         case RAIL_CONNECTION_RIGHT | RAIL_CONNECTION_LEFT:
             if (dir !== RAIL_CONNECTION_RIGHT && dir !== RAIL_CONNECTION_LEFT) return;
-            
+
             voxelDirection = dir === RAIL_CONNECTION_RIGHT ? VOXEL_DIRECTION.forward : VOXEL_DIRECTION.backward;
             break;
 
         case RAIL_CONNECTION_UP | RAIL_CONNECTION_RIGHT:
             if (dir !== RAIL_CONNECTION_UP && dir !== RAIL_CONNECTION_RIGHT) return;
-            
+
             voxelDirection = dir === RAIL_CONNECTION_UP ? VOXEL_DIRECTION.forward : VOXEL_DIRECTION.backward;
             break;
 
         case RAIL_CONNECTION_UP | RAIL_CONNECTION_LEFT:
             if (dir !== RAIL_CONNECTION_UP && dir !== RAIL_CONNECTION_LEFT) return;
-            
+
             voxelDirection = dir === RAIL_CONNECTION_LEFT ? VOXEL_DIRECTION.forward : VOXEL_DIRECTION.backward;
             break;
 
         case RAIL_CONNECTION_DOWN | RAIL_CONNECTION_RIGHT:
             if (dir !== RAIL_CONNECTION_DOWN && dir !== RAIL_CONNECTION_RIGHT) return;
-            
+
             voxelDirection = dir === RAIL_CONNECTION_RIGHT ? VOXEL_DIRECTION.forward : VOXEL_DIRECTION.backward;
             break;
 
         case RAIL_CONNECTION_DOWN | RAIL_CONNECTION_LEFT:
             if (dir !== RAIL_CONNECTION_DOWN && dir !== RAIL_CONNECTION_LEFT) return;
-            
+
             voxelDirection = dir === RAIL_CONNECTION_DOWN ? VOXEL_DIRECTION.forward : VOXEL_DIRECTION.backward;
             break;
     }
 
-    voxelMap.set(setDirectionInVoxel(setEnabledInVoxel(voxel, true), voxelDirection), pos)
+    voxelMap.set(setDirectionInVoxel(setEnabledInVoxel(voxel, true), voxelDirection), pos);
 }

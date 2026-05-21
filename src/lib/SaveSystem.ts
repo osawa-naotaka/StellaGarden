@@ -95,8 +95,7 @@ function renamePipeToFurrowCanal(data: RawSave): void {
         if (!s) return s ?? null;
         return s.itemId === "pipe" ? { ...s, itemId: "furrow_canal" } : s;
     };
-    const renameArr = (arr: (Stack | null)[] | undefined): (Stack | null)[] =>
-        Array.isArray(arr) ? arr.map(rename) : [];
+    const renameArr = (arr: (Stack | null)[] | undefined): (Stack | null)[] => (Array.isArray(arr) ? arr.map(rename) : []);
 
     const inv = data.inventory as { toolbarSlots?: (Stack | null)[]; inventorySlots?: (Stack | null)[] } | undefined;
     if (inv) {
@@ -107,60 +106,55 @@ function renamePipeToFurrowCanal(data: RawSave): void {
     const cs = data.chestStorage as { chests?: { slots?: (Stack | null)[] }[] } | undefined;
     if (cs?.chests) for (const c of cs.chests) c.slots = renameArr(c.slots);
 
-    const fs = data.forgeStorage as
-        | { forges?: { slots?: { ingredient?: Stack | null; fuel?: Stack | null; output?: Stack | null } }[] }
-        | undefined;
-    if (fs?.forges) for (const f of fs.forges) {
-        if (f.slots) {
-            f.slots.ingredient = rename(f.slots.ingredient);
-            f.slots.fuel = rename(f.slots.fuel);
-            f.slots.output = rename(f.slots.output);
+    const fs = data.forgeStorage as { forges?: { slots?: { ingredient?: Stack | null; fuel?: Stack | null; output?: Stack | null } }[] } | undefined;
+    if (fs?.forges)
+        for (const f of fs.forges) {
+            if (f.slots) {
+                f.slots.ingredient = rename(f.slots.ingredient);
+                f.slots.fuel = rename(f.slots.fuel);
+                f.slots.output = rename(f.slots.output);
+            }
         }
-    }
 
     const ws = data.workbenchStorage as { workbenches?: { slots?: { tool?: Stack | null } }[] } | undefined;
-    if (ws?.workbenches) for (const w of ws.workbenches) {
-        if (w.slots) w.slots.tool = rename(w.slots.tool);
-    }
+    if (ws?.workbenches)
+        for (const w of ws.workbenches) {
+            if (w.slots) w.slots.tool = rename(w.slots.tool);
+        }
 
     const wg = data.warpGateStorage as { slots?: (Stack | null)[] } | undefined;
     if (wg) wg.slots = renameArr(wg.slots);
 
     for (const key of ["manualProcessingStorage", "dailyProcessingStorage"] as const) {
-        const ps = data[key] as
-            | { facilities?: { slots?: { input?: Stack | null; outputs?: (Stack | null)[] } }[] }
-            | undefined;
-        if (ps?.facilities) for (const f of ps.facilities) {
+        const ps = data[key] as { facilities?: { slots?: { input?: Stack | null; outputs?: (Stack | null)[] } }[] } | undefined;
+        if (ps?.facilities)
+            for (const f of ps.facilities) {
+                if (f.slots) {
+                    f.slots.input = rename(f.slots.input);
+                    f.slots.outputs = renameArr(f.slots.outputs);
+                }
+            }
+    }
+
+    const aps = data.autoProcessingStorage as { facilities?: { slots?: { inputs?: (Stack | null)[]; outputs?: (Stack | null)[] } }[] } | undefined;
+    if (aps?.facilities)
+        for (const f of aps.facilities) {
             if (f.slots) {
-                f.slots.input = rename(f.slots.input);
+                f.slots.inputs = renameArr(f.slots.inputs);
                 f.slots.outputs = renameArr(f.slots.outputs);
             }
         }
-    }
 
-    const aps = data.autoProcessingStorage as
-        | { facilities?: { slots?: { inputs?: (Stack | null)[]; outputs?: (Stack | null)[] } }[] }
-        | undefined;
-    if (aps?.facilities) for (const f of aps.facilities) {
-        if (f.slots) {
-            f.slots.inputs = renameArr(f.slots.inputs);
-            f.slots.outputs = renameArr(f.slots.outputs);
+    const carts = data.cartStorage as { carts?: { inventorySlots?: (Stack | null)[]; attachmentSlot?: Stack | null }[] } | undefined;
+    if (carts?.carts)
+        for (const c of carts.carts) {
+            c.inventorySlots = renameArr(c.inventorySlots);
+            c.attachmentSlot = rename(c.attachmentSlot);
         }
-    }
-
-    const carts = data.cartStorage as
-        | { carts?: { inventorySlots?: (Stack | null)[]; attachmentSlot?: Stack | null }[] }
-        | undefined;
-    if (carts?.carts) for (const c of carts.carts) {
-        c.inventorySlots = renameArr(c.inventorySlots);
-        c.attachmentSlot = rename(c.attachmentSlot);
-    }
 
     const rep = data.reputation as { cumulativeShipped?: [string, number][] } | undefined;
     if (rep?.cumulativeShipped) {
-        rep.cumulativeShipped = rep.cumulativeShipped.map(([id, cnt]) =>
-            id === "pipe" ? ["furrow_canal", cnt] : [id, cnt],
-        );
+        rep.cumulativeShipped = rep.cumulativeShipped.map(([id, cnt]) => (id === "pipe" ? ["furrow_canal", cnt] : [id, cnt]));
     }
 }
 
@@ -176,9 +170,7 @@ function renamePipeToFurrowCanal(data: RawSave): void {
  *   bits 33-35: displacement Z
  */
 function fillFacilityPartDisplacementsV8(data: RawSave): void {
-    const vm = data.voxelMap as
-        | { width: number; height: number; depth: number; voxels: unknown }
-        | undefined;
+    const vm = data.voxelMap as { width: number; height: number; depth: number; voxels: unknown } | undefined;
     if (!vm) return;
     const { width, height, depth } = vm;
     if (typeof width !== "number" || typeof height !== "number" || typeof depth !== "number") return;

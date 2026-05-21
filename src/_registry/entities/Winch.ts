@@ -6,7 +6,9 @@ import { registerItem } from "../ItemRegistry";
 registerEntity({
     entityType: ENTITY_TYPES.winch,
 
-    getEntitySize() { return { w: 1, h: 2 }; },
+    getEntitySize() {
+        return { w: 1, h: 2 };
+    },
 
     getSprites(): EntitySpriteInfo[] {
         return [["winch", 0, 0]];
@@ -29,12 +31,14 @@ registerEntity({
 
 registerItem({
     itemId: "winch",
-    displayName: "ウインチ",    
+    displayName: "ウインチ",
     spriteName: "winch",
     maxStack: 64,
     placement: {
         entityType: ENTITY_TYPES.winch,
-        getFieldSpriteName() { return "winch"; },
+        getFieldSpriteName() {
+            return "winch";
+        },
         onPlace(voxelMap, pos) {
             placeFacility(voxelMap, pos, ENTITY_TYPES.winch, { w: 1, h: 2 });
         },

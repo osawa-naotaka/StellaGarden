@@ -1,19 +1,11 @@
 import type { IVoxelWriter } from "../../_boundary/interfaces";
 import { recomputeAllFullowCanalWaterFlow } from "../../engine/FurrowCanalWaterFlow";
-import {
-    getTerrainTypeFromVoxel,
-    initializeVoxel,
-    TERRAIN_TYPES,
-} from "../../engine/VoxelDefs";
+import { getTerrainTypeFromVoxel, initializeVoxel, TERRAIN_TYPES } from "../../engine/VoxelDefs";
 import { removeDisconnectedWater } from "../../engine/WaterSystem";
 import { registerItem } from "../ItemRegistry";
 
 /** 中心に土を盛った後（y + 1）でも、3x3 範囲の各セルとの高さ差が 1 以下に収まるか返す。 */
-function isSafeToAdd3x3(
-    voxelMap: IVoxelWriter,
-    centerX: number,
-    centerZ: number,
-): boolean {
+function isSafeToAdd3x3(voxelMap: IVoxelWriter, centerX: number, centerZ: number): boolean {
     const centerY = voxelMap.getGroundSurfacePosition({
         x: centerX,
         y: 0,
@@ -25,12 +17,7 @@ function isSafeToAdd3x3(
             if (dx === 0 && dz === 0) continue;
             const nx = centerX + dx;
             const nz = centerZ + dz;
-            if (
-                nx < 0 ||
-                nx >= voxelMap.width ||
-                nz < 0 ||
-                nz >= voxelMap.depth
-            ) {
+            if (nx < 0 || nx >= voxelMap.width || nz < 0 || nz >= voxelMap.depth) {
                 return false;
             }
             const y = voxelMap.getGroundSurfacePosition({
@@ -45,22 +32,12 @@ function isSafeToAdd3x3(
 }
 
 /** 高さ変化によって isFlat3x3 条件が崩れた近傍 soil/wetSoil タイルを dirt に戻す。 */
-function revertNearbyInvalidTerrain(
-    voxelMap: IVoxelWriter,
-    cx: number,
-    cz: number,
-): void {
+function revertNearbyInvalidTerrain(voxelMap: IVoxelWriter, cx: number, cz: number): void {
     for (let dz = -1; dz <= 1; dz++) {
         for (let dx = -1; dx <= 1; dx++) {
             const nx = cx + dx;
             const nz = cz + dz;
-            if (
-                nx < 0 ||
-                nx >= voxelMap.width ||
-                nz < 0 ||
-                nz >= voxelMap.depth
-            )
-                continue;
+            if (nx < 0 || nx >= voxelMap.width || nz < 0 || nz >= voxelMap.depth) continue;
             const pos = voxelMap.getGroundSurfacePosition({
                 x: nx,
                 y: 0,
@@ -68,10 +45,7 @@ function revertNearbyInvalidTerrain(
             });
             const terrain = getTerrainTypeFromVoxel(voxelMap.get(pos));
             if (isFlat3x3(voxelMap, nx, nz, pos.y)) continue;
-            if (
-                terrain === TERRAIN_TYPES.soil ||
-                terrain === TERRAIN_TYPES.wetSoil
-            ) {
+            if (terrain === TERRAIN_TYPES.soil || terrain === TERRAIN_TYPES.wetSoil) {
                 voxelMap.set(BigInt(TERRAIN_TYPES.dirt), pos);
             }
         }
@@ -79,29 +53,14 @@ function revertNearbyInvalidTerrain(
 }
 
 /** 3x3 範囲の表面 y がすべて同じかどうかを返す。 */
-function isFlat3x3(
-    voxelMap: IVoxelWriter,
-    centerX: number,
-    centerZ: number,
-    centerY: number,
-): boolean {
+function isFlat3x3(voxelMap: IVoxelWriter, centerX: number, centerZ: number, centerY: number): boolean {
     for (let dz = -1; dz <= 1; dz++) {
         for (let dx = -1; dx <= 1; dx++) {
             if (dx === 0 && dz === 0) continue;
             const nx = centerX + dx;
             const nz = centerZ + dz;
-            if (
-                nx < 0 ||
-                nx >= voxelMap.width ||
-                nz < 0 ||
-                nz >= voxelMap.depth
-            )
-                return false;
-            if (
-                voxelMap.getGroundSurfacePosition({ x: nx, y: 0, z: nz }).y !==
-                centerY
-            )
-                return false;
+            if (nx < 0 || nx >= voxelMap.width || nz < 0 || nz >= voxelMap.depth) return false;
+            if (voxelMap.getGroundSurfacePosition({ x: nx, y: 0, z: nz }).y !== centerY) return false;
         }
     }
     return true;
@@ -130,12 +89,7 @@ registerItem({
                 groundTerrainType === TERRAIN_TYPES.soil ||
                 groundTerrainType === TERRAIN_TYPES.wetSoil) &&
             groundPos.y + 1 < ctx.voxelMap.height &&
-            (isWaterSurface ||
-                isSafeToAdd3x3(
-                    ctx.voxelMap,
-                    ctx.surfacePos.x,
-                    ctx.surfacePos.z,
-                )) &&
+            (isWaterSurface || isSafeToAdd3x3(ctx.voxelMap, ctx.surfacePos.x, ctx.surfacePos.z)) &&
             ctx.inventory.consumeSelectedItem(1)
         ) {
             ctx.voxelMap.set(initializeVoxel(TERRAIN_TYPES.dirt), {
@@ -148,16 +102,8 @@ registerItem({
                 y: groundPos.y + 1,
                 z: groundPos.z,
             });
-            revertNearbyInvalidTerrain(
-                ctx.voxelMap,
-                ctx.surfacePos.x,
-                ctx.surfacePos.z,
-            );
-            removeDisconnectedWater(
-                ctx.voxelMap,
-                ctx.surfacePos.x,
-                ctx.surfacePos.z,
-            );
+            revertNearbyInvalidTerrain(ctx.voxelMap, ctx.surfacePos.x, ctx.surfacePos.z);
+            removeDisconnectedWater(ctx.voxelMap, ctx.surfacePos.x, ctx.surfacePos.z);
             recomputeAllFullowCanalWaterFlow(ctx.voxelMap);
             return true;
         }

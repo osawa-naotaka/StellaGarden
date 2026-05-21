@@ -29,7 +29,9 @@ function resolveAnchorPos(ctx: InteractionContext): { x: number; z: number } {
 registerEntity({
     entityType: ENTITY_TYPES.forge,
 
-    getEntitySize() { return { w: 2, h: 2 }; },
+    getEntitySize() {
+        return { w: 2, h: 2 };
+    },
 
     getSprites(): EntitySpriteInfo[] {
         return [["ss_sprite_069.png", 0, 0]];
@@ -55,7 +57,9 @@ registerEntity({
 registerEntity({
     entityType: ENTITY_TYPES.forge_burning,
 
-    getEntitySize() { return { w: 2, h: 2 }; },
+    getEntitySize() {
+        return { w: 2, h: 2 };
+    },
 
     getSprites(): EntitySpriteInfo[] {
         const frame = Math.floor(Date.now() / ANIM_FRAME_MS) % 3;

@@ -18,8 +18,10 @@ function resolveWorkbenchAnchor(ctx: InteractionContext): { x: number; z: number
 
 registerEntity({
     entityType: ENTITY_TYPES.workbench,
-    
-    getEntitySize() { return { w: 2, h: 1 }; },
+
+    getEntitySize() {
+        return { w: 2, h: 1 };
+    },
 
     getSprites(): EntitySpriteInfo[] {
         return [["ss_sprite_004.png", 0, 0]];

@@ -1,12 +1,5 @@
 import type { IVoxelWriter, Pos2D } from "../_boundary/interfaces";
-import {
-    ENTITY_TYPES,
-    getEntityTypeFromVoxel,
-    getConnectionsFromVoxel,
-    getVariantFromVoxel,
-    setConnectionsInVoxel,
-    VOXEL_VARIANT,
-} from "./VoxelDefs";
+import { ENTITY_TYPES, getConnectionsFromVoxel, getEntityTypeFromVoxel, getVariantFromVoxel, setConnectionsInVoxel, VOXEL_VARIANT } from "./VoxelDefs";
 
 export const SHAFT_CONNECTION_UP = 1 << 0;
 export const SHAFT_CONNECTION_DOWN = 1 << 1;

@@ -48,22 +48,19 @@ export function WarpGatePanel({ open, inventory, warpGateStorage, reputationSyst
         [inventory, warpGateStorage],
     );
 
-    const getQuickTransferTargets = useCallback(
-        (ref: WarpGateSlotRef): WarpGateSlotRef[] | undefined => {
-            const warpTotal = EARTH_INV_ROWS * COLS;
-            const invTotal = INV_ROWS * COLS;
-            if (ref.area === "warp_gate") {
-                const targets: WarpGateSlotRef[] = [];
-                for (let i = 0; i < invTotal; i++) targets.push({ area: "inventory", index: i });
-                for (let i = 1; i <= TOOLBAR_COLS; i++) targets.push({ area: "toolbar", index: i });
-                return targets;
-            }
+    const getQuickTransferTargets = useCallback((ref: WarpGateSlotRef): WarpGateSlotRef[] | undefined => {
+        const warpTotal = EARTH_INV_ROWS * COLS;
+        const invTotal = INV_ROWS * COLS;
+        if (ref.area === "warp_gate") {
             const targets: WarpGateSlotRef[] = [];
-            for (let i = 0; i < warpTotal; i++) targets.push({ area: "warp_gate", index: i });
+            for (let i = 0; i < invTotal; i++) targets.push({ area: "inventory", index: i });
+            for (let i = 1; i <= TOOLBAR_COLS; i++) targets.push({ area: "toolbar", index: i });
             return targets;
-        },
-        [],
-    );
+        }
+        const targets: WarpGateSlotRef[] = [];
+        for (let i = 0; i < warpTotal; i++) targets.push({ area: "warp_gate", index: i });
+        return targets;
+    }, []);
 
     const { pickedUp, cursorPos, handleLeftClick, handleRightClick } = usePickup<WarpGateSlotRef>(open, {
         getSlot,

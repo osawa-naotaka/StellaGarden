@@ -1,13 +1,9 @@
 import type { ItemStack, IVoxelWriter, Pos2D } from "../_boundary/interfaces";
-import { getItemDef } from "../_registry/ItemRegistry";
 import { findFacilityAnchor } from "../_registry/facilityUtil";
+import { getItemDef } from "../_registry/ItemRegistry";
 import { KeyedSlotStorage } from "./KeyedSlotStorage";
-import {
-    findRecipeForInput,
-    getAutoProcessingDef,
-    isAcceptableInputItem,
-} from "./ProcessingRecipes";
-import { ENTITY_TYPES, getEntityTypeFromVoxel, getEnabledFromVoxel } from "./VoxelDefs";
+import { findRecipeForInput, getAutoProcessingDef, isAcceptableInputItem } from "./ProcessingRecipes";
+import { ENTITY_TYPES, getEnabledFromVoxel, getEntityTypeFromVoxel } from "./VoxelDefs";
 
 /** 1施設のスロット状態。inputs が入力 8 スロット、outputs が出力 16 スロット。 */
 export interface AutoProcessingSlots {
@@ -24,11 +20,7 @@ export interface AutoProcessingSlots {
  * 現状: 施設の外周4辺の全タイル（コーナーを除く）。
  * 将来: _entityType ごとに特定の 2 タイルだけを返すよう変更する想定。
  */
-function getPowerConnectionPositions(
-    anchorPos: Pos2D,
-    size: { w: number; h: number },
-    _entityType: number,
-): Pos2D[] {
+function getPowerConnectionPositions(anchorPos: Pos2D, size: { w: number; h: number }, _entityType: number): Pos2D[] {
     const result: Pos2D[] = [];
     // 上辺・下辺
     for (let dx = 0; dx < size.w; dx++) {
@@ -43,12 +35,7 @@ function getPowerConnectionPositions(
     return result;
 }
 
-function isPoweredShaftAdjacent(
-    voxelMap: IVoxelWriter,
-    anchorPos: Pos2D,
-    size: { w: number; h: number },
-    entityType: number,
-): boolean {
+function isPoweredShaftAdjacent(voxelMap: IVoxelWriter, anchorPos: Pos2D, size: { w: number; h: number }, entityType: number): boolean {
     for (const p of getPowerConnectionPositions(anchorPos, size, entityType)) {
         if (p.x < 0 || p.z < 0 || p.x >= voxelMap.width || p.z >= voxelMap.depth) continue;
         const surface = voxelMap.getSurfacePosition({ x: p.x, y: 0, z: p.z });
@@ -140,12 +127,7 @@ export class AutoProcessingStorage extends KeyedSlotStorage<AutoProcessingSlots>
     isPowered(pos: Pos2D, voxelMap: IVoxelWriter): boolean {
         try {
             const anchor = findFacilityAnchor(voxelMap, pos.x, pos.z);
-            return isPoweredShaftAdjacent(
-                voxelMap,
-                { x: anchor.anchorX, z: anchor.anchorZ },
-                anchor.size,
-                anchor.entityType,
-            );
+            return isPoweredShaftAdjacent(voxelMap, { x: anchor.anchorX, z: anchor.anchorZ }, anchor.size, anchor.entityType);
         } catch {
             return false;
         }

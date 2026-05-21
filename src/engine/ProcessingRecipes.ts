@@ -197,7 +197,7 @@ export function getManualProcessingDef(entityType: number): ManualProcessingDef 
 }
 
 /** entity に対応する日次処理定義を返す。未登録なら null。 */
-export function getDailyProcessingDef(entityType: number): DailyProcessingDef{
+export function getDailyProcessingDef(entityType: number): DailyProcessingDef {
     const def = DAILY_PROCESSING_DEFS[entityType];
     if (def === undefined) throw new Error(`No daily processing def for entity type ${entityType}`);
     return def;

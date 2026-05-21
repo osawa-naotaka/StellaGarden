@@ -1,5 +1,15 @@
 import type { IInventoryWriter, ItemId, IVoxelReader, IVoxelWriter, Pos2D } from "../_boundary/interfaces";
-import { ENTITY_TYPES, getDisplacementXFromVoxel, getDisplacementZFromVoxel, getEntityTypeFromVoxel, getVariantFromVoxel, placeEntity, setDisplacementXInVoxel, setDisplacementZInVoxel, setEntityTypeInVoxel } from "../engine/VoxelDefs";
+import {
+    ENTITY_TYPES,
+    getDisplacementXFromVoxel,
+    getDisplacementZFromVoxel,
+    getEntityTypeFromVoxel,
+    getVariantFromVoxel,
+    placeEntity,
+    setDisplacementXInVoxel,
+    setDisplacementZInVoxel,
+    setEntityTypeInVoxel,
+} from "../engine/VoxelDefs";
 import { getEntityDef } from "./EntityRegistry";
 import { getItemDefByEntityType, type PlacementVariant } from "./ItemRegistry";
 
@@ -20,7 +30,14 @@ function getEntitySize(entityType: number, variant: PlacementVariant): { w: numb
 }
 
 /** 施設を撤去してインベントリに回収する。成功時 true。 */
-export function removeFacility(voxelMap: IVoxelWriter, inventory: IInventoryWriter, anchorX: number, anchorZ: number, entityType: number, variant: PlacementVariant): boolean {
+export function removeFacility(
+    voxelMap: IVoxelWriter,
+    inventory: IInventoryWriter,
+    anchorX: number,
+    anchorZ: number,
+    entityType: number,
+    variant: PlacementVariant,
+): boolean {
     const def = getItemDefByEntityType(entityType);
     if (!def) return false;
     if (!def.placement) return false;

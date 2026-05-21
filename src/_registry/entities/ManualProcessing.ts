@@ -37,7 +37,9 @@ export function registerManualProcessingEntity(opts: ManualProcessingEntityOptio
     registerEntity({
         entityType,
 
-        getEntitySize() { return entitySize },
+        getEntitySize() {
+            return entitySize;
+        },
 
         getSprites(): EntitySpriteInfo[] {
             return [[fieldSpriteName, 0, 0]];

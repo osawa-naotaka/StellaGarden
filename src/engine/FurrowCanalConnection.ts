@@ -1,12 +1,5 @@
 import type { IVoxelWriter, Pos2D } from "../_boundary/interfaces";
-import {
-    ENTITY_TYPES,
-    getEntityTypeFromVoxel,
-    getConnectionsFromVoxel,
-    getTerrainTypeFromVoxel,
-    setConnectionsInVoxel,
-    TERRAIN_TYPES,
-} from "./VoxelDefs";
+import { ENTITY_TYPES, getConnectionsFromVoxel, getEntityTypeFromVoxel, getTerrainTypeFromVoxel, setConnectionsInVoxel, TERRAIN_TYPES } from "./VoxelDefs";
 
 export const FURROW_CANAL_CONNECTION_UP = 1 << 0;
 export const FURROW_CANAL_CONNECTION_DOWN = 1 << 1;

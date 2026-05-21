@@ -13,8 +13,10 @@ const ANIM_FRAME_MS = 100;
 registerEntity({
     entityType: ENTITY_TYPES.warp_gate,
 
-    getEntitySize() { return { w: 2, h: 3 }; },
-    
+    getEntitySize() {
+        return { w: 2, h: 3 };
+    },
+
     getSprites(): EntitySpriteInfo[] {
         const frame = Math.floor(Date.now() / ANIM_FRAME_MS) % 3;
         return WARP_SPRITES[frame];

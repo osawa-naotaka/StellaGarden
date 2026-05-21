@@ -246,7 +246,7 @@ export function setVariantInVoxel(voxel: bigint, variant: number): bigint {
     return (voxel & ~(0x7n << 36n)) | ((BigInt(variant) & 0x7n) << 36n);
 }
 
-export function placeEntity(voxel:bigint, entityType: number): bigint {
+export function placeEntity(voxel: bigint, entityType: number): bigint {
     let updatedVoxel = setEntityTypeInVoxel(voxel, entityType);
     updatedVoxel = setDisplacementXInVoxel(updatedVoxel, 0);
     updatedVoxel = setDisplacementZInVoxel(updatedVoxel, 0);

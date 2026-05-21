@@ -58,23 +58,11 @@ export function getFullowCanalShapeKey(voxel: bigint): FullowCanalShapeKey {
     }
 }
 
-export function isIrrigatingFurrowCanalShape(
-    shape: FullowCanalShapeKey,
-): boolean {
-    return (
-        shape === "h" ||
-        shape === "v" ||
-        shape === "end_u" ||
-        shape === "end_d" ||
-        shape === "end_l" ||
-        shape === "end_r"
-    );
+export function isIrrigatingFurrowCanalShape(shape: FullowCanalShapeKey): boolean {
+    return shape === "h" || shape === "v" || shape === "end_u" || shape === "end_d" || shape === "end_l" || shape === "end_r";
 }
 
-export function getFurrowCanalSpriteName(
-    voxel: bigint,
-    filled: boolean,
-): string {
+export function getFurrowCanalSpriteName(voxel: bigint, filled: boolean): string {
     const prefix = filled ? "pipe3_" : "pipe1_";
     return `${prefix}${getFullowCanalShapeKey(voxel)}`;
 }

@@ -1,12 +1,5 @@
 import type { IVoxelWriter, Pos2D } from "../_boundary/interfaces";
-import {
-    ENTITY_TYPES,
-    getEntityTypeFromVoxel,
-    getConnectionsFromVoxel,
-    getVariantFromVoxel,
-    setConnectionsInVoxel,
-    VOXEL_VARIANT,
-} from "./VoxelDefs";
+import { ENTITY_TYPES, getConnectionsFromVoxel, getEntityTypeFromVoxel, getVariantFromVoxel, setConnectionsInVoxel, VOXEL_VARIANT } from "./VoxelDefs";
 
 export const RAIL_CONNECTION_UP = 1 << 0;
 export const RAIL_CONNECTION_DOWN = 1 << 1;
@@ -62,13 +55,12 @@ export function computeRailConnectionMask(voxelMap: IVoxelWriter, pos: Pos2D): n
     const rightMask = right === null ? 0 : getConnectionsFromVoxel(right);
     const topMask = top === null ? 0 : getConnectionsFromVoxel(top);
     const bottomMask = bottom === null ? 0 : getConnectionsFromVoxel(bottom);
-    
+
     const connectToLeft = (leftMask & RAIL_CONNECTION_RIGHT) !== 0;
     const connectToRight = (rightMask & RAIL_CONNECTION_LEFT) !== 0;
     const connectToTop = (topMask & RAIL_CONNECTION_DOWN) !== 0;
     const connectToBottom = (bottomMask & RAIL_CONNECTION_UP) !== 0;
 
-    
     const connectCount = [connectToLeft, connectToRight, connectToTop, connectToBottom].filter((v) => v).length;
 
     if (connectCount !== 2) {

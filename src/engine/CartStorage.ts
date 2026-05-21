@@ -1,20 +1,8 @@
-import type { Direction8, ICartReader, ICartStorageWriter, ICartWriter, IVoxelReader, ItemStack, Pos2D } from "../_boundary/interfaces";
+import type { Direction8, ICartReader, ICartStorageWriter, ICartWriter, ItemStack, IVoxelReader, Pos2D } from "../_boundary/interfaces";
 import type { CartStorageSaveData } from "../lib/SaveSchema";
-import { Cart, CART_INVENTORY_SLOTS } from "./Cart";
-import {
-    ENTITY_TYPES,
-    VOXEL_DIRECTION,
-    getConnectionsFromVoxel,
-    getDirectionFromVoxel,
-    getEnabledFromVoxel,
-    getEntityTypeFromVoxel,
-} from "./VoxelDefs";
-import {
-    RAIL_CONNECTION_DOWN,
-    RAIL_CONNECTION_LEFT,
-    RAIL_CONNECTION_RIGHT,
-    RAIL_CONNECTION_UP,
-} from "./RailConnection";
+import { CART_INVENTORY_SLOTS, Cart } from "./Cart";
+import { RAIL_CONNECTION_DOWN, RAIL_CONNECTION_LEFT, RAIL_CONNECTION_RIGHT, RAIL_CONNECTION_UP } from "./RailConnection";
+import { ENTITY_TYPES, getConnectionsFromVoxel, getDirectionFromVoxel, getEnabledFromVoxel, getEntityTypeFromVoxel, VOXEL_DIRECTION } from "./VoxelDefs";
 
 const CART_MOVE_SPEED = 3; // タイル/秒
 
@@ -51,33 +39,48 @@ function resolveExitBit(connectionMask: number, direction: number): number | nul
 /** 単一の接続辺ビットから facing（描画向き）を返す。 */
 function bitToFacing(bit: number): Direction8 | null {
     switch (bit) {
-        case RAIL_CONNECTION_UP: return "up";
-        case RAIL_CONNECTION_DOWN: return "down";
-        case RAIL_CONNECTION_LEFT: return "left";
-        case RAIL_CONNECTION_RIGHT: return "right";
-        default: return null;
+        case RAIL_CONNECTION_UP:
+            return "up";
+        case RAIL_CONNECTION_DOWN:
+            return "down";
+        case RAIL_CONNECTION_LEFT:
+            return "left";
+        case RAIL_CONNECTION_RIGHT:
+            return "right";
+        default:
+            return null;
     }
 }
 
 /** タイル(tx, tz) の指定辺の中央のワールド座標を返す（ボクセル単位）。 */
 function edgeCenterWorld(tx: number, tz: number, bit: number): Pos2D {
     switch (bit) {
-        case RAIL_CONNECTION_UP: return { x: tx + 0.5, z: tz };
-        case RAIL_CONNECTION_DOWN: return { x: tx + 0.5, z: tz + 1.0 };
-        case RAIL_CONNECTION_LEFT: return { x: tx, z: tz + 0.5 };
-        case RAIL_CONNECTION_RIGHT: return { x: tx + 1.0, z: tz + 0.5 };
-        default: return { x: tx + 0.5, z: tz + 0.5 };
+        case RAIL_CONNECTION_UP:
+            return { x: tx + 0.5, z: tz };
+        case RAIL_CONNECTION_DOWN:
+            return { x: tx + 0.5, z: tz + 1.0 };
+        case RAIL_CONNECTION_LEFT:
+            return { x: tx, z: tz + 0.5 };
+        case RAIL_CONNECTION_RIGHT:
+            return { x: tx + 1.0, z: tz + 0.5 };
+        default:
+            return { x: tx + 0.5, z: tz + 0.5 };
     }
 }
 
 /** exitBit に従って隣接タイル座標を返す。 */
 function neighborTile(tx: number, tz: number, bit: number): { tx: number; tz: number } {
     switch (bit) {
-        case RAIL_CONNECTION_UP: return { tx, tz: tz - 1 };
-        case RAIL_CONNECTION_DOWN: return { tx, tz: tz + 1 };
-        case RAIL_CONNECTION_LEFT: return { tx: tx - 1, tz };
-        case RAIL_CONNECTION_RIGHT: return { tx: tx + 1, tz };
-        default: return { tx, tz };
+        case RAIL_CONNECTION_UP:
+            return { tx, tz: tz - 1 };
+        case RAIL_CONNECTION_DOWN:
+            return { tx, tz: tz + 1 };
+        case RAIL_CONNECTION_LEFT:
+            return { tx: tx - 1, tz };
+        case RAIL_CONNECTION_RIGHT:
+            return { tx: tx + 1, tz };
+        default:
+            return { tx, tz };
     }
 }
 

@@ -86,5 +86,14 @@ export function bootstrapStorages(saveData: SaveData | null): Storages {
     if (saveData) cartStorage.loadSaveData(saveData.cartStorage);
     setCartStorage(cartStorage);
 
-    return { chestStorage, forgeStorage, workbenchStorage, warpGateStorage, manualProcessingStorage, dailyProcessingStorage, autoProcessingStorage, cartStorage };
+    return {
+        chestStorage,
+        forgeStorage,
+        workbenchStorage,
+        warpGateStorage,
+        manualProcessingStorage,
+        dailyProcessingStorage,
+        autoProcessingStorage,
+        cartStorage,
+    };
 }

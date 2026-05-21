@@ -9,14 +9,7 @@
  */
 import type { IVoxelReader, Pos2D } from "../../_boundary/interfaces";
 import { recomputeAllShaftPowerFlow } from "../../engine/ShaftPowerFlow";
-import {
-    ENTITY_TYPES,
-    getEntityTypeFromVoxel,
-    getTerrainTypeFromVoxel,
-    getVariantFromVoxel,
-    setVariantInVoxel,
-    TERRAIN_TYPES,
-} from "../../engine/VoxelDefs";
+import { ENTITY_TYPES, getEntityTypeFromVoxel, getTerrainTypeFromVoxel, getVariantFromVoxel, setVariantInVoxel, TERRAIN_TYPES } from "../../engine/VoxelDefs";
 import { type EntitySpriteInfo, type InteractionContext, registerEntity } from "../EntityRegistry";
 import { placeFacility, removeFacilityAtPos } from "../facilityUtil";
 import { type PlacementVariant, registerItem } from "../ItemRegistry";
@@ -84,9 +77,9 @@ function canPlaceWaterwheel(map: IVoxelReader, pos: Pos2D, variant: PlacementVar
 
 registerEntity({
     entityType: ENTITY_TYPES.waterwheel,
-    
+
     getEntitySize(variant: PlacementVariant) {
-        switch(variant) {
+        switch (variant) {
             case 0:
                 return { w: ENTITY_V_W, h: ENTITY_V_H };
             case 1:
@@ -127,7 +120,7 @@ registerItem({
             return canPlaceWaterwheel(voxelMap, pos, variant);
         },
         onPlace(voxelMap, pos, variant) {
-            if(variant === 1) {
+            if (variant === 1) {
                 placeFacility(voxelMap, pos, ENTITY_TYPES.waterwheel, { w: ENTITY_H_W, h: ENTITY_H_H });
             } else {
                 placeFacility(voxelMap, pos, ENTITY_TYPES.waterwheel, { w: ENTITY_V_W, h: ENTITY_V_H });

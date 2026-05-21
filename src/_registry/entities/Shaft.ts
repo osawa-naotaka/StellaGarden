@@ -1,6 +1,6 @@
 import { refreshShaftConnectionsAround } from "../../engine/ShaftConnection";
-import { getShaftSpriteName } from "../../engine/ShaftShape";
 import { recomputeAllShaftPowerFlow } from "../../engine/ShaftPowerFlow";
+import { getShaftSpriteName } from "../../engine/ShaftShape";
 import { ENTITY_TYPES, setVariantInVoxel } from "../../engine/VoxelDefs";
 import { type EntitySpriteInfo, type InteractionContext, registerEntity } from "../EntityRegistry";
 import { placeFacility, removeFacilityAtPos } from "../facilityUtil";
@@ -20,7 +20,9 @@ function getShaftPreviewSpriteName(variant: PlacementVariant): string {
 registerEntity({
     entityType: ENTITY_TYPES.shaft,
 
-    getEntitySize() { return { w: 1, h: 1 }; },
+    getEntitySize() {
+        return { w: 1, h: 1 };
+    },
 
     getSprites(voxel: bigint): EntitySpriteInfo[] {
         return [[getShaftSpriteName(voxel), 0, 0]];

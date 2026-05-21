@@ -40,11 +40,7 @@ export function WinchPanel({ open, voxelMap, uiState }: WinchPanelProps) {
         <SidePanel open={open} title="Winch" onClose={close}>
             <section className="sg-sidepanel-section">
                 <h3 className="sg-section-title">Power</h3>
-                <button
-                    type="button"
-                    className={`sg-toggle-switch${isOn ? " is-on" : ""}`}
-                    onClick={handleToggle}
-                >
+                <button type="button" className={`sg-toggle-switch${isOn ? " is-on" : ""}`} onClick={handleToggle}>
                     {isOn ? "ON" : "OFF"}
                 </button>
             </section>
