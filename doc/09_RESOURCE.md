@@ -818,3 +818,44 @@ pngフォーマットで、RGBA8888。
       - 茎の上の方には丸い小さい実がたくさんなっている(種が入っている)
       - この画像では根が切られていますが、根を残して全体を描いてください
     - 参考画像: https://www.shutterstock.com/image-photo/sheaf-harvested-flax-stems-seed-capsules-730430428?trackingId=be93e8e8-a022-4647-88a2-628caa33838c
+
+---
+
+## 機械中間素材（11_TOOL.md のクラフト整理で追加されたもの）
+
+水動力施設・台車・ウインチ等のクラフトレシピを「現実の機械工学に沿った階層」にまとめ直した結果、共通部品として中間素材を導入した。すべて板（085）や軸（既存 `shaft`、131）を加工して作る木工部品で、複数の施設レシピで共有される。
+
+16x16スプライトが計6個。すべてインベントリアイコン（地図上には直接配置しない素材）。
+
+- インベントリアイコン
+  - [ ] 157 **木製歯車（wooden_gear）** 16x16
+    - 板から削り出した小さな木製の歯車。円盤の外周に台形の歯が等間隔に並ぶ。明るい茶色の木材で、中央に軸穴がある。真上から見た形（円盤）。歯数は8〜12枚程度の素朴な作り。
+    - 用途: 搾油機・脱穀機・紡績機・ウインチなど、回転動力を伝達・変換する全ての機械の共通部品。
+    - 参考: [Category:Wooden gears (Wikimedia Commons)](https://commons.wikimedia.org/wiki/Category:Wooden_gears)
+    - 参考画像: https://commons.wikimedia.org/wiki/Category:Wooden_gears#/media/File:Wooden_cog_wheels.jpg
+      - 平歯車（spur gear）の素朴な形を想定。歯はノミで彫り出した感じ。
+  - [ ] 158 **ベベルギア（bevel_gear）** 16x16
+    - 円錐台状の傘歯車。シャフトの直角方向への動力伝達に使う。明るい茶色の木材。真上から見たときは円盤に見えるが、外周の歯が斜め（円錐側面に沿う向き）に走っているのが特徴。157の平歯車と区別がつくよう、外周の歯を斜線パターンで表現する。
+    - 用途: シャフトのクラフト時に必須（直線シャフトをマップ上に配置するとプログラム側で自動的にL字・T字・十字接続になるため、ベベルギアは「あらゆる方向転換に対応できる素材」という位置付け）。
+    - 参考動画: https://www.youtube.com/watch?v=oNuhr3htNWs - 木製ベベルギアの動作
+    - 参考: [Bevel gear (Wikipedia)](https://en.wikipedia.org/wiki/Bevel_gear)
+    - 参考画像: https://en.wikipedia.org/wiki/Bevel_gear#/media/File:Wooden_cog_wheels.jpg
+  - [ ] 159 **木製ホイール / 大車輪（wheel）** 16x16
+    - 板を組み合わせて作った大型の木製車輪（リム + スポーク + ハブ）。明るい茶色〜赤茶色の木材。スポークは4〜6本程度。中央のハブに軸穴がある。真上から見た形（円盤）だが、157の歯車と区別するためスポーク構造を強調する。
+    - 用途: 水車のパドル支持輪、紡ぎ車のフライホイール、台車の車輪。
+    - 参考: [Wagon wheel (Wikipedia)](https://en.wikipedia.org/wiki/Wagon_wheel)
+    - 参考画像: https://en.wikipedia.org/wiki/Wagon_wheel#/media/File:Wooden_wheel_001.jpg
+  - [ ] 160 **ドラム（drum）** 16x16
+    - 円筒形の回転胴。板を巻いて作った木製の太いシリンダーで、外周に金属の歯（162）が多数突き出ている。やや暗めの茶色の木材と、銀灰色の歯のコントラストで描く。真上から見ると円形だが、歯がある印象を強めるため斜め俯瞰気味でも可。
+    - 用途: 脱穀機（auto_thresher）の回転胴、ウインチのロープ巻き取り胴。
+    - 参考: [Threshing machine (Wikipedia)](https://en.wikipedia.org/wiki/Threshing_machine) — 脱穀ドラムの構造
+    - 参考画像: https://en.wikipedia.org/wiki/Threshing_machine#/media/File:Threshing_machine_drum.jpg
+  - [ ] 161 **プーリー（pulley）** 16x16
+    - ベルト用の小さな滑車。板を円盤状に削り、外周中央に凹溝（V字 or U字）を入れた形。明るい茶色の木材。中央に軸穴がある。159の大車輪との違いは、スポーク構造を持たず（板の塊）、外周に凹溝があること。サイズも159より小さいイメージで描く。
+    - 用途: 紡績機のベルト連結、ウインチのロープガイド。
+    - 参考: [Pulley (Wikipedia)](https://en.wikipedia.org/wiki/Pulley)
+    - 参考画像: https://en.wikipedia.org/wiki/Pulley#/media/File:Pulley_simple.svg
+  - [ ] 162 **鉄の歯（iron_teeth）** 16x16
+    - 刃（084）を切り分けて作る、細長く鋭い金属の歯。1スプライトに2〜4本の鉄の歯が束ねられた状態で描く。暗い銀色〜銀灰色。先端が尖っていて、根元は四角い。
+    - 用途: ドラム（160）の外周に植え込まれる脱穀用の歯。doc/09 の脱穀機（154）の説明にある「回転するドラムに金属の歯のようなものが多数ついている」の歯部分。
+    - 参考: [Threshing machine teeth](https://en.wikipedia.org/wiki/Threshing_machine) — ドラムの歯
