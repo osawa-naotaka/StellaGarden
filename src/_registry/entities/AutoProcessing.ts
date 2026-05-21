@@ -89,13 +89,57 @@ export function registerAutoProcessingEntity(opts: AutoProcessingEntityOptions):
 }
 
 // ── エンティティ登録 ──
+//
+// すべて 3x3 タイル（48x48）の水動力機械。
+// doc/09 で計画されている専用スプライト（141〜155）は未作成のため、
+// 暫定的に手動版のスプライトを流用する。専用スプライトが追加され次第差し替える想定。
 
-// 暫定スプライト: 手動脱穀機のスプライトを流用（後で専用スプライトに差し替え可能）
+// 脱穀機 (sprite 153/154/155 予定 → 手動版 054/063 を暫定流用)
 registerAutoProcessingEntity({
     entityType: ENTITY_TYPES.auto_thresher,
     itemId: "auto_thresher",
     displayName: "自動脱穀機",
     fieldSpriteName: "ss_sprite_054.png",
     inventorySpriteName: "ss_sprite_063.png",
+    entitySize: { w: 3, h: 3 },
+});
+
+// スクリュー式搾油機 (sprite 141/142/143 予定 → 手動版 055/064 を暫定流用)
+registerAutoProcessingEntity({
+    entityType: ENTITY_TYPES.auto_screw_press,
+    itemId: "auto_screw_press",
+    displayName: "スクリュー式搾油機",
+    fieldSpriteName: "ss_sprite_055.png",
+    inventorySpriteName: "ss_sprite_064.png",
+    entitySize: { w: 3, h: 3 },
+});
+
+// スカッチングミル (sprite 144/145/146 予定 → 手動叩き台 057 を暫定流用)
+registerAutoProcessingEntity({
+    entityType: ENTITY_TYPES.scutching_mill,
+    itemId: "scutching_mill",
+    displayName: "スカッチングミル",
+    fieldSpriteName: "ss_sprite_057.png",
+    inventorySpriteName: "ss_sprite_057.png",
+    entitySize: { w: 3, h: 3 },
+});
+
+// 紡績機 (sprite 147/148/149 予定 → 手動 紡ぎ車 058/066 を暫定流用)
+registerAutoProcessingEntity({
+    entityType: ENTITY_TYPES.spinning_machine,
+    itemId: "spinning_machine",
+    displayName: "紡績機",
+    fieldSpriteName: "ss_sprite_058.png",
+    inventorySpriteName: "ss_sprite_066.png",
+    entitySize: { w: 3, h: 3 },
+});
+
+// 自動織機 (sprite 150/151/152 予定 → 手動 織機 059/067 を暫定流用)
+registerAutoProcessingEntity({
+    entityType: ENTITY_TYPES.auto_loom,
+    itemId: "auto_loom",
+    displayName: "自動織機",
+    fieldSpriteName: "ss_sprite_059.png",
+    inventorySpriteName: "ss_sprite_067.png",
     entitySize: { w: 3, h: 3 },
 });

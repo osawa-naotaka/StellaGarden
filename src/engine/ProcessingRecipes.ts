@@ -173,8 +173,13 @@ export interface AutoProcessingDef {
     readonly recipes: ReadonlyArray<ProcessingRecipe>;
 }
 
-/** カテゴリ4: 自動処理施設のレシピテーブル。 */
+/** カテゴリ4: 自動処理施設のレシピテーブル。
+ *
+ * 自動処理は day_changed で動力ON時に一括処理する。
+ * 入出力比率は doc/17 §5.6 の手動処理と同じ。1日あたりの処理量は入力スロット数（8）に依存する。
+ */
 export const AUTO_PROCESSING_DEFS: Readonly<Record<number, AutoProcessingDef>> = {
+    // 脱穀機: 茎付き大豆 → 大豆 + 茎
     [ENTITY_TYPES.auto_thresher]: {
         inputSlotCount: 8,
         outputSlotCount: 16,
@@ -186,6 +191,70 @@ export const AUTO_PROCESSING_DEFS: Readonly<Record<number, AutoProcessingDef>> =
                     { itemId: "soybeans", count: 1 },
                     { itemId: "stem", count: 1 },
                 ],
+            },
+        ],
+    },
+    // スクリュー式搾油機: 大豆/亜麻種子 8 → 油 + 油粕（手動 screw_presses と同じレシピ）
+    [ENTITY_TYPES.auto_screw_press]: {
+        inputSlotCount: 8,
+        outputSlotCount: 16,
+        recipes: [
+            {
+                inputItemId: "soybeans",
+                inputCountPerCycle: 8,
+                outputs: [
+                    { itemId: "soybean_oil", count: 1 },
+                    { itemId: "oil_cake", count: 1 },
+                ],
+            },
+            {
+                inputItemId: "flaxseed",
+                inputCountPerCycle: 8,
+                outputs: [
+                    { itemId: "flaxseed_oil", count: 1 },
+                    { itemId: "oil_cake", count: 1 },
+                ],
+            },
+        ],
+    },
+    // スカッチングミル: 浸漬済み亜麻 → 亜麻繊維 + 屑（残渣）
+    // doc/17 §5.2 で「亜麻繊維 + 屑」と明記。手動 scutching_board は副産物なしだったが、
+    // 自動版は機械的に大量処理するため副産物の残渣が発生する設計。
+    [ENTITY_TYPES.scutching_mill]: {
+        inputSlotCount: 8,
+        outputSlotCount: 16,
+        recipes: [
+            {
+                inputItemId: "processed_flax",
+                inputCountPerCycle: 1,
+                outputs: [
+                    { itemId: "flax_fiber", count: 1 },
+                    { itemId: "crop_residue", count: 1 },
+                ],
+            },
+        ],
+    },
+    // 紡績機: 亜麻繊維 → 糸（手動 spinning_wheel と同じレシピ）
+    [ENTITY_TYPES.spinning_machine]: {
+        inputSlotCount: 8,
+        outputSlotCount: 16,
+        recipes: [
+            {
+                inputItemId: "flax_fiber",
+                inputCountPerCycle: 1,
+                outputs: [{ itemId: "thread", count: 1 }],
+            },
+        ],
+    },
+    // 自動織機: 糸 8 → リネン布（手動 loom と同じレシピ。袋は手動クラフト）
+    [ENTITY_TYPES.auto_loom]: {
+        inputSlotCount: 8,
+        outputSlotCount: 16,
+        recipes: [
+            {
+                inputItemId: "thread",
+                inputCountPerCycle: 8,
+                outputs: [{ itemId: "cloth", count: 1 }],
             },
         ],
     },

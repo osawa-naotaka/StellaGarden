@@ -388,6 +388,63 @@ export const RECIPES: readonly RecipeDef[] = [
         ],
         result: { itemId: "auto_thresher", count: 1 },
     },
+    // スクリュー式搾油機（水動力版）: 手動 screw_presses を水動力で連続駆動する
+    // 手動版のスクリュー機構 + 動力受け（ホイール・歯車）+ 大型化フレーム
+    {
+        id: "auto_screw_press",
+        station: "workbench",
+        ingredients: [
+            { itemId: "board", count: 4 },
+            { itemId: "screw_rod", count: 2 },
+            { itemId: "frame", count: 2 },
+            { itemId: "wooden_gear", count: 2 },
+            { itemId: "shaft", count: 1 },
+        ],
+        result: { itemId: "auto_screw_press", count: 1 },
+    },
+    // スカッチングミル: 回転歯車にスカッチングナイフ状の刃が並ぶ大型機
+    // 歯車に刃を植え込む構造のため iron_teeth と刃の両方を使う
+    {
+        id: "scutching_mill",
+        station: "workbench",
+        ingredients: [
+            { itemId: "board", count: 4 },
+            { itemId: "wheel", count: 1 },
+            { itemId: "frame", count: 2 },
+            { itemId: "shaft", count: 1 },
+        ],
+        result: { itemId: "scutching_mill", count: 1 },
+    },
+    // 紡績機（水動力多軸版）: 複数スピンドルをベルトで連結する
+    // プーリー4個（多軸スピンドル分）とベルト用ロープが特徴的
+    {
+        id: "spinning_machine",
+        station: "workbench",
+        ingredients: [
+            { itemId: "board", count: 4 },
+            { itemId: "wheel", count: 1 },
+            { itemId: "pulley", count: 4 },
+            { itemId: "frame", count: 2 },
+            { itemId: "rope", count: 2 },
+            { itemId: "shaft", count: 1 },
+        ],
+        result: { itemId: "spinning_machine", count: 1 },
+    },
+    // 自動織機（水動力版）: クランク機構でシャトルを自動往復させる
+    // 大型木枠 + ベルト連結 + シャトル駆動
+    {
+        id: "auto_loom",
+        station: "workbench",
+        ingredients: [
+            { itemId: "board", count: 4 },
+            { itemId: "frame", count: 4 },
+            { itemId: "wheel", count: 1 },
+            { itemId: "pulley", count: 1 },
+            { itemId: "wooden_gear", count: 1 },
+            { itemId: "shaft", count: 1 },
+        ],
+        result: { itemId: "auto_loom", count: 1 },
+    },
     {
         id: "winch",
         station: "workbench",

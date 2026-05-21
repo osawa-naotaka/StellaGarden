@@ -52,6 +52,10 @@ export const ENTITY_TYPES = {
     auto_thresher: 37,
     winch: 38,
     cart: 39,
+    auto_screw_press: 40,
+    scutching_mill: 41,
+    spinning_machine: 42,
+    auto_loom: 43,
 } as const;
 
 // ---------------------------------------------------------------------------
