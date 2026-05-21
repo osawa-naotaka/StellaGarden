@@ -58,7 +58,6 @@ export const ITEM_IDS = [
     "screw_rod",
     "shaft",
     "chisel",
-    "pipe",
     "frame",
     "processed_flax",
     "stone_pickaxe",
@@ -75,6 +74,13 @@ export const ITEM_IDS = [
     "auto_thresher",
     "winch",
     "cart",
+    "wooden_gear",
+    "bevel_gear",
+    "wheel",
+    "drum",
+    "pulley",
+    "iron_teeth",
+    "furrow_canal",
 ] as const;
 
 export type ItemId = (typeof ITEM_IDS)[number];

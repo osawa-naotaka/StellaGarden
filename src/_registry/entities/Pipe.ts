@@ -31,7 +31,7 @@ registerEntity({
 });
 
 registerItem({
-    itemId: "pipe",
+    itemId: "furrow_canal",
     displayName: "畝間水路",
     spriteName: "pipe1_h",
     maxStack: 64,

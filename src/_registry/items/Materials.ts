@@ -14,3 +14,11 @@ registerItem({ itemId: "screw_rod", displayName: "木ネジ棒", spriteName: "ss
 registerItem({ itemId: "frame", displayName: "木の枠", spriteName: "ss_sprite_096.png", maxStack: 64 });
 registerItem({ itemId: "ingot", displayName: "鉄の棒", spriteName: "ss_sprite_083.png", maxStack: 64 });
 registerItem({ itemId: "hot_meteoric_iron", displayName: "熱した隕鉄", spriteName: "ss_sprite_088.png", maxStack: 64 });
+
+// 機械中間素材（スプライト未作成のため仮アイコンで表示）
+registerItem({ itemId: "wooden_gear", displayName: "木製歯車", spriteName: null, placeholderColor: 0xa0703c, maxStack: 64 });
+registerItem({ itemId: "bevel_gear", displayName: "ベベルギア", spriteName: null, placeholderColor: 0x8c5a2c, maxStack: 64 });
+registerItem({ itemId: "wheel", displayName: "木製ホイール", spriteName: null, placeholderColor: 0xc08654, maxStack: 64 });
+registerItem({ itemId: "drum", displayName: "ドラム", spriteName: null, placeholderColor: 0x946028, maxStack: 64 });
+registerItem({ itemId: "pulley", displayName: "プーリー", spriteName: null, placeholderColor: 0xb47840, maxStack: 64 });
+registerItem({ itemId: "iron_teeth", displayName: "鉄の歯", spriteName: null, placeholderColor: 0x707080, maxStack: 64 });

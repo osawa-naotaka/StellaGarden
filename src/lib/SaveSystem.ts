@@ -26,7 +26,7 @@ export type SaveSlot = 1 | 2 | 3;
 const DB_NAME = "stella-garden";
 const DB_VERSION = 1;
 const STORE_NAME = "saveData";
-const CURRENT_SAVE_VERSION = 10;
+const CURRENT_SAVE_VERSION = 11;
 /** これより古いバージョンはマイグレーションパスがなく、ロード不可。 */
 const MIN_SUPPORTED_VERSION = 6;
 
@@ -66,7 +66,103 @@ const migrations: Record<number, (data: RawSave) => RawSave> = {
         ...data,
         cartStorage: { nextId: 1, carts: [] },
     }),
+    // v10 → v11: pipe → furrow_canal リネーム。
+    // 全ストレージのアイテムスタックを走査して旧 itemId "pipe" を "furrow_canal" に置換する。
+    10: (data) => {
+        renamePipeToFurrowCanal(data);
+        return data;
+    },
 };
+
+/**
+ * セーブデータ中のアイテムスタックに登場する旧 itemId "pipe" をすべて "furrow_canal" に置換する。
+ * v10 → v11 マイグレーションで使用。
+ *
+ * 走査対象:
+ *   - inventory (toolbar / inventory)
+ *   - chestStorage
+ *   - forgeStorage (ingredient / fuel / output)
+ *   - workbenchStorage (tool)
+ *   - warpGateStorage
+ *   - manualProcessingStorage / dailyProcessingStorage (input / outputs)
+ *   - autoProcessingStorage (inputs / outputs)
+ *   - cartStorage (inventorySlots / attachmentSlot)
+ *   - reputation.cumulativeShipped (タプル [itemId, count])
+ */
+function renamePipeToFurrowCanal(data: RawSave): void {
+    type Stack = { itemId: string; count: number };
+    const rename = (s: Stack | null | undefined): Stack | null => {
+        if (!s) return s ?? null;
+        return s.itemId === "pipe" ? { ...s, itemId: "furrow_canal" } : s;
+    };
+    const renameArr = (arr: (Stack | null)[] | undefined): (Stack | null)[] =>
+        Array.isArray(arr) ? arr.map(rename) : [];
+
+    const inv = data.inventory as { toolbarSlots?: (Stack | null)[]; inventorySlots?: (Stack | null)[] } | undefined;
+    if (inv) {
+        inv.toolbarSlots = renameArr(inv.toolbarSlots);
+        inv.inventorySlots = renameArr(inv.inventorySlots);
+    }
+
+    const cs = data.chestStorage as { chests?: { slots?: (Stack | null)[] }[] } | undefined;
+    if (cs?.chests) for (const c of cs.chests) c.slots = renameArr(c.slots);
+
+    const fs = data.forgeStorage as
+        | { forges?: { slots?: { ingredient?: Stack | null; fuel?: Stack | null; output?: Stack | null } }[] }
+        | undefined;
+    if (fs?.forges) for (const f of fs.forges) {
+        if (f.slots) {
+            f.slots.ingredient = rename(f.slots.ingredient);
+            f.slots.fuel = rename(f.slots.fuel);
+            f.slots.output = rename(f.slots.output);
+        }
+    }
+
+    const ws = data.workbenchStorage as { workbenches?: { slots?: { tool?: Stack | null } }[] } | undefined;
+    if (ws?.workbenches) for (const w of ws.workbenches) {
+        if (w.slots) w.slots.tool = rename(w.slots.tool);
+    }
+
+    const wg = data.warpGateStorage as { slots?: (Stack | null)[] } | undefined;
+    if (wg) wg.slots = renameArr(wg.slots);
+
+    for (const key of ["manualProcessingStorage", "dailyProcessingStorage"] as const) {
+        const ps = data[key] as
+            | { facilities?: { slots?: { input?: Stack | null; outputs?: (Stack | null)[] } }[] }
+            | undefined;
+        if (ps?.facilities) for (const f of ps.facilities) {
+            if (f.slots) {
+                f.slots.input = rename(f.slots.input);
+                f.slots.outputs = renameArr(f.slots.outputs);
+            }
+        }
+    }
+
+    const aps = data.autoProcessingStorage as
+        | { facilities?: { slots?: { inputs?: (Stack | null)[]; outputs?: (Stack | null)[] } }[] }
+        | undefined;
+    if (aps?.facilities) for (const f of aps.facilities) {
+        if (f.slots) {
+            f.slots.inputs = renameArr(f.slots.inputs);
+            f.slots.outputs = renameArr(f.slots.outputs);
+        }
+    }
+
+    const carts = data.cartStorage as
+        | { carts?: { inventorySlots?: (Stack | null)[]; attachmentSlot?: Stack | null }[] }
+        | undefined;
+    if (carts?.carts) for (const c of carts.carts) {
+        c.inventorySlots = renameArr(c.inventorySlots);
+        c.attachmentSlot = rename(c.attachmentSlot);
+    }
+
+    const rep = data.reputation as { cumulativeShipped?: [string, number][] } | undefined;
+    if (rep?.cumulativeShipped) {
+        rep.cumulativeShipped = rep.cumulativeShipped.map(([id, cnt]) =>
+            id === "pipe" ? ["furrow_canal", cnt] : [id, cnt],
+        );
+    }
+}
 
 /**
  * v8 セーブの voxels を走査し、facility_part の Displacement X/Z を埋める。

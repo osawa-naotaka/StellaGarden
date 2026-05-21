@@ -102,7 +102,7 @@ const DEFAULT_INVENTORY_ITEMS: readonly (DefaultItem | null)[] = [
     // { itemId: "charcoal", count: 64 },
     // { itemId: "blade", count: 64 },
     // { itemId: "board", count: 64 },
-    // { itemId: "pipe", count: 64 },
+    // { itemId: "furrow_canal", count: 64 },
 ];
 
 /** プレイヤーのツールバーと 8×8 インベントリグリッドを管理する。 */
