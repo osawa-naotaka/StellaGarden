@@ -21,6 +21,12 @@ export interface UsePickupConfig<R> {
      * undefined / 空配列を返すと quickTransfer は無効。canPlaceTo が定義されていれば各 target に対するフィルタとしてそのまま流用する。
      */
     getQuickTransferTargets?: (ref: R, stack: ItemStack) => R[] | undefined;
+    /**
+     * Ctrl/Cmd + 左クリック時、source ref と同じインベントリ側にある全スロット参照を返す。
+     * このリスト中で同じ itemId を持つスロット全てが一括で targets に転送される。
+     * 未定義の場合は従来通り source ref 1スロットのみ転送する。
+     */
+    getQuickTransferSources?: (ref: R) => R[] | undefined;
 }
 
 export interface PickupState<R> {
@@ -86,15 +92,32 @@ export function usePickup<R>(active: boolean, config: UsePickupConfig<R>): Picku
             if (isQuickTransfer && !prev && target && cfg.getQuickTransferTargets) {
                 const targets = cfg.getQuickTransferTargets(ref, target);
                 if (!targets || targets.length === 0) return null;
-                const max = getItemDef(target.itemId)?.maxStack ?? 64;
-                let remaining = target.count;
+                const itemId = target.itemId;
+                const max = getItemDef(itemId)?.maxStack ?? 64;
+
+                // ソース側スロットを列挙: 同 itemId のものだけ。クリックされた ref を先頭に並べ替える
+                const allSources = cfg.getQuickTransferSources ? (cfg.getQuickTransferSources(ref) ?? [ref]) : [ref];
+                const matchingSources: R[] = [];
+                for (const s of allSources) {
+                    const slot = cfg.getSlot(s);
+                    if (slot && slot.itemId === itemId) matchingSources.push(s);
+                }
+                const clickedIdx = matchingSources.findIndex((s) => s === ref);
+                if (clickedIdx > 0) {
+                    matchingSources.splice(clickedIdx, 1);
+                    matchingSources.unshift(ref);
+                }
+
+                const originalTotal = matchingSources.reduce((sum, s) => sum + (cfg.getSlot(s)?.count ?? 0), 0);
+                if (originalTotal === 0) return null;
+                let remaining = originalTotal;
 
                 // pass1: 既存スタックに追加（同 itemId、max まで）
                 for (const t of targets) {
                     if (remaining === 0) break;
                     if (cfg.canPlaceTo && !cfg.canPlaceTo(t, target)) continue;
                     const slot = cfg.getSlot(t);
-                    if (!slot || slot.itemId !== target.itemId) continue;
+                    if (!slot || slot.itemId !== itemId) continue;
                     const space = max - slot.count;
                     if (space <= 0) continue;
                     const move = Math.min(space, remaining);
@@ -108,13 +131,24 @@ export function usePickup<R>(active: boolean, config: UsePickupConfig<R>): Picku
                     if (cfg.canPlaceTo && !cfg.canPlaceTo(t, target)) continue;
                     if (cfg.getSlot(t)) continue;
                     const move = Math.min(max, remaining);
-                    cfg.setSlot(t, { itemId: target.itemId, count: move });
+                    cfg.setSlot(t, { itemId, count: move });
                     remaining -= move;
                 }
 
-                // source slot を更新
-                if (remaining === 0) cfg.setSlot(ref, null);
-                else if (remaining !== target.count) cfg.setSlot(ref, { itemId: target.itemId, count: remaining });
+                // source 側を更新: 移送量を先頭から順に各スロットから引く
+                let movedTotal = originalTotal - remaining;
+                for (const s of matchingSources) {
+                    if (movedTotal === 0) break;
+                    const slot = cfg.getSlot(s);
+                    if (!slot) continue;
+                    if (slot.count <= movedTotal) {
+                        cfg.setSlot(s, null);
+                        movedTotal -= slot.count;
+                    } else {
+                        cfg.setSlot(s, { itemId: slot.itemId, count: slot.count - movedTotal });
+                        movedTotal = 0;
+                    }
+                }
                 return null;
             }
 

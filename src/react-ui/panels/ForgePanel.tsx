@@ -88,11 +88,28 @@ export function ForgePanel({ open, inventory, forgeStorage, voxelMap, uiState }:
         ];
     }, []);
 
+    const getQuickTransferSources = useCallback((ref: ForgeSlotRef): ForgeSlotRef[] => {
+        const invTotal = INV_ROWS * COLS;
+        if (ref.area === "forge_ingredient" || ref.area === "forge_fuel" || ref.area === "forge_output") {
+            // forge 側は ingredient/fuel/output を全部同じ側として扱う（同 itemId のものは canPlaceTo によって受入先が決まる）
+            return [
+                { area: "forge_ingredient", index: 0 },
+                { area: "forge_fuel", index: 0 },
+                { area: "forge_output", index: 0 },
+            ];
+        }
+        const sources: ForgeSlotRef[] = [];
+        for (let i = 0; i < invTotal; i++) sources.push({ area: "inventory", index: i });
+        for (let i = 1; i <= TOOLBAR_COLS; i++) sources.push({ area: "toolbar", index: i });
+        return sources;
+    }, []);
+
     const { pickedUp, cursorPos, handleLeftClick, handleRightClick } = usePickup<ForgeSlotRef>(open, {
         getSlot,
         setSlot,
         canPlaceTo,
         getQuickTransferTargets,
+        getQuickTransferSources,
     });
 
     const close = useCallback(() => {

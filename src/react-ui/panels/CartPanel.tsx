@@ -74,10 +74,25 @@ export function CartPanel({ open, inventory, cartStorage, uiState }: CartPanelPr
         [targetCartId],
     );
 
+    const getQuickTransferSources = useCallback((ref: CartSlotRef): CartSlotRef[] => {
+        const invTotal = INV_ROWS * COLS;
+        if (ref.area === "cart") {
+            const sources: CartSlotRef[] = [];
+            for (let i = 0; i < CART_TOTAL; i++) sources.push({ area: "cart", index: i });
+            return sources;
+        }
+        // inventory + toolbar(1..9) を同じ側として扱う
+        const sources: CartSlotRef[] = [];
+        for (let i = 0; i < invTotal; i++) sources.push({ area: "inventory", index: i });
+        for (let i = 1; i <= TOOLBAR_COLS; i++) sources.push({ area: "toolbar", index: i });
+        return sources;
+    }, []);
+
     const { pickedUp, cursorPos, handleLeftClick, handleRightClick } = usePickup<CartSlotRef>(open, {
         getSlot,
         setSlot,
         getQuickTransferTargets,
+        getQuickTransferSources,
     });
 
     const close = useCallback(() => {

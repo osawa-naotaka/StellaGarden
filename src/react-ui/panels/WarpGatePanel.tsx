@@ -62,10 +62,25 @@ export function WarpGatePanel({ open, inventory, warpGateStorage, reputationSyst
         return targets;
     }, []);
 
+    const getQuickTransferSources = useCallback((ref: WarpGateSlotRef): WarpGateSlotRef[] => {
+        const warpTotal = EARTH_INV_ROWS * COLS;
+        const invTotal = INV_ROWS * COLS;
+        if (ref.area === "warp_gate") {
+            const sources: WarpGateSlotRef[] = [];
+            for (let i = 0; i < warpTotal; i++) sources.push({ area: "warp_gate", index: i });
+            return sources;
+        }
+        const sources: WarpGateSlotRef[] = [];
+        for (let i = 0; i < invTotal; i++) sources.push({ area: "inventory", index: i });
+        for (let i = 1; i <= TOOLBAR_COLS; i++) sources.push({ area: "toolbar", index: i });
+        return sources;
+    }, []);
+
     const { pickedUp, cursorPos, handleLeftClick, handleRightClick } = usePickup<WarpGateSlotRef>(open, {
         getSlot,
         setSlot,
         getQuickTransferTargets,
+        getQuickTransferSources,
     });
 
     const close = useCallback(() => {

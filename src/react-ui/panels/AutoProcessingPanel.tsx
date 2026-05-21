@@ -102,11 +102,31 @@ export function AutoProcessingPanel({ open, inventory, autoProcessingStorage, vo
         [pos, def],
     );
 
+    const getQuickTransferSources = useCallback(
+        (ref: AutoProcessingRef): AutoProcessingRef[] => {
+            const invTotal = INV_ROWS * COLS;
+            if (ref.area === "processing_input" || ref.area === "processing_output") {
+                const sources: AutoProcessingRef[] = [];
+                const inputCount = def?.inputSlotCount ?? 0;
+                const outputCount = def?.outputSlotCount ?? 0;
+                for (let i = 0; i < inputCount; i++) sources.push({ area: "processing_input", index: i });
+                for (let i = 0; i < outputCount; i++) sources.push({ area: "processing_output", index: i });
+                return sources;
+            }
+            const sources: AutoProcessingRef[] = [];
+            for (let i = 0; i < invTotal; i++) sources.push({ area: "inventory", index: i });
+            for (let i = 1; i <= TOOLBAR_COLS; i++) sources.push({ area: "toolbar", index: i });
+            return sources;
+        },
+        [def],
+    );
+
     const { pickedUp, cursorPos, handleLeftClick, handleRightClick } = usePickup<AutoProcessingRef>(open, {
         getSlot,
         setSlot,
         canPlaceTo,
         getQuickTransferTargets,
+        getQuickTransferSources,
     });
 
     const close = useCallback(() => {

@@ -98,11 +98,28 @@ export function DailyProcessingPanel({ open, inventory, dailyProcessingStorage, 
         [pos, def],
     );
 
+    const getQuickTransferSources = useCallback((ref: DailyProcessingRef): DailyProcessingRef[] => {
+        const invTotal = INV_ROWS * COLS;
+        if (ref.area === "processing_input" || ref.area === "processing_output") {
+            // processing 側 (input + output 2 slots) を同じ側として扱う
+            return [
+                { area: "processing_input", index: 0 },
+                { area: "processing_output", index: 0 },
+                { area: "processing_output", index: 1 },
+            ];
+        }
+        const sources: DailyProcessingRef[] = [];
+        for (let i = 0; i < invTotal; i++) sources.push({ area: "inventory", index: i });
+        for (let i = 1; i <= TOOLBAR_COLS; i++) sources.push({ area: "toolbar", index: i });
+        return sources;
+    }, []);
+
     const { pickedUp, cursorPos, handleLeftClick, handleRightClick } = usePickup<DailyProcessingRef>(open, {
         getSlot,
         setSlot,
         canPlaceTo,
         getQuickTransferTargets,
+        getQuickTransferSources,
     });
 
     const close = useCallback(() => {

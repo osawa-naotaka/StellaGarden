@@ -98,11 +98,27 @@ export function ManualProcessingPanel({ open, inventory, manualProcessingStorage
         [pos, def],
     );
 
+    const getQuickTransferSources = useCallback((ref: ManualProcessingRef): ManualProcessingRef[] => {
+        const invTotal = INV_ROWS * COLS;
+        if (ref.area === "processing_input" || ref.area === "processing_output") {
+            return [
+                { area: "processing_input", index: 0 },
+                { area: "processing_output", index: 0 },
+                { area: "processing_output", index: 1 },
+            ];
+        }
+        const sources: ManualProcessingRef[] = [];
+        for (let i = 0; i < invTotal; i++) sources.push({ area: "inventory", index: i });
+        for (let i = 1; i <= TOOLBAR_COLS; i++) sources.push({ area: "toolbar", index: i });
+        return sources;
+    }, []);
+
     const { pickedUp, cursorPos, handleLeftClick, handleRightClick } = usePickup<ManualProcessingRef>(open, {
         getSlot,
         setSlot,
         canPlaceTo,
         getQuickTransferTargets,
+        getQuickTransferSources,
     });
 
     const close = useCallback(() => {
@@ -198,11 +214,7 @@ export function ManualProcessingPanel({ open, inventory, manualProcessingStorage
                     {showRecipeSelector && (
                         <div className="sg-processing-recipe-selector">
                             <label htmlFor="sg-processing-recipe-select">出力:</label>
-                            <select
-                                id="sg-processing-recipe-select"
-                                value={selectedRecipeIndex}
-                                onChange={(e) => onSelectRecipe(Number(e.target.value))}
-                            >
+                            <select id="sg-processing-recipe-select" value={selectedRecipeIndex} onChange={(e) => onSelectRecipe(Number(e.target.value))}>
                                 {matchingRecipes.map((r, i) => (
                                     <option key={i} value={i}>
                                         {getItemDisplayName(r.outputs[0].itemId)} ×{r.outputs[0].count}
