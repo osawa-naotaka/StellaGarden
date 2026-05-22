@@ -12,7 +12,7 @@
  */
 import type { ItemId } from "../../_boundary/interfaces";
 import type { AutoProcessingStorage } from "../../engine/AutoProcessingStorage";
-import { ENTITY_TYPES } from "../../engine/VoxelDefs";
+import { ENTITY_TYPES, getVariantFromVoxel } from "../../engine/VoxelDefs";
 import { type EntitySpriteInfo, type InteractionContext, registerEntity } from "../EntityRegistry";
 import { findFacilityAnchor, placeFacility, removeFacility } from "../facilityUtil";
 import { registerItem } from "../ItemRegistry";
@@ -28,14 +28,14 @@ interface AutoProcessingEntityOptions {
     entityType: number;
     itemId: ItemId;
     displayName: string;
-    fieldSpriteName: string;
-    inventorySpriteName?: string;
+    getFieldSpriteName: ((variant: number) => string);
+    inventorySpriteName: string;
     entitySize: { w: number; h: number };
 }
 
 /** カテゴリ4施設を1つ登録する。 */
 export function registerAutoProcessingEntity(opts: AutoProcessingEntityOptions): void {
-    const { entityType, itemId, displayName, fieldSpriteName, inventorySpriteName, entitySize } = opts;
+    const { entityType, itemId, displayName, getFieldSpriteName, inventorySpriteName, entitySize } = opts;
 
     registerEntity({
         entityType,
@@ -44,8 +44,9 @@ export function registerAutoProcessingEntity(opts: AutoProcessingEntityOptions):
             return entitySize;
         },
 
-        getSprites(): EntitySpriteInfo[] {
-            return [[fieldSpriteName, 0, 0]];
+        getSprites(voxel: bigint): EntitySpriteInfo[] {
+            const variant = getVariantFromVoxel(voxel);
+            return [[getFieldSpriteName(variant), 0, 0]];
         },
 
         // 左クリック: axe による撤去（storage が空のときのみ）
@@ -75,11 +76,11 @@ export function registerAutoProcessingEntity(opts: AutoProcessingEntityOptions):
     registerItem({
         itemId,
         displayName,
-        spriteName: inventorySpriteName ?? fieldSpriteName,
+        spriteName: inventorySpriteName,
         maxStack: 64,
         placement: {
             entityType,
-            fieldSpriteName,
+            getFieldSpriteName,
             onPlace(voxelMap, pos) {
                 placeFacility(voxelMap, pos, entityType, entitySize);
                 autoProcessingStorage?.create(pos);
@@ -99,7 +100,7 @@ registerAutoProcessingEntity({
     entityType: ENTITY_TYPES.auto_thresher,
     itemId: "auto_thresher",
     displayName: "自動脱穀機",
-    fieldSpriteName: "ss_sprite_054.png",
+    getFieldSpriteName: () => "ss_sprite_054.png",
     inventorySpriteName: "ss_sprite_063.png",
     entitySize: { w: 3, h: 3 },
 });
@@ -109,7 +110,7 @@ registerAutoProcessingEntity({
     entityType: ENTITY_TYPES.auto_screw_press,
     itemId: "auto_screw_press",
     displayName: "スクリュー式搾油機",
-    fieldSpriteName: "ss_sprite_055.png",
+    getFieldSpriteName: () => "ss_sprite_055.png",
     inventorySpriteName: "ss_sprite_064.png",
     entitySize: { w: 3, h: 3 },
 });
@@ -119,7 +120,7 @@ registerAutoProcessingEntity({
     entityType: ENTITY_TYPES.scutching_mill,
     itemId: "scutching_mill",
     displayName: "スカッチングミル",
-    fieldSpriteName: "ss_sprite_057.png",
+    getFieldSpriteName: () => "ss_sprite_057.png",
     inventorySpriteName: "ss_sprite_057.png",
     entitySize: { w: 3, h: 3 },
 });
@@ -129,7 +130,7 @@ registerAutoProcessingEntity({
     entityType: ENTITY_TYPES.spinning_machine,
     itemId: "spinning_machine",
     displayName: "紡績機",
-    fieldSpriteName: "ss_sprite_058.png",
+    getFieldSpriteName: () => "ss_sprite_058.png",
     inventorySpriteName: "ss_sprite_066.png",
     entitySize: { w: 3, h: 3 },
 });
@@ -139,7 +140,7 @@ registerAutoProcessingEntity({
     entityType: ENTITY_TYPES.auto_loom,
     itemId: "auto_loom",
     displayName: "自動織機",
-    fieldSpriteName: "ss_sprite_059.png",
+    getFieldSpriteName: () => "ss_sprite_059.png",
     inventorySpriteName: "ss_sprite_067.png",
     entitySize: { w: 3, h: 3 },
 });
