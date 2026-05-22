@@ -121,7 +121,7 @@ function RecipeDetail({ recipe }: { recipe: RecipeDef }) {
     return (
         <div className="sg-recipe-detail">
             <div className="sg-recipe-detail-title">
-                {recipe.result.itemId} × {recipe.result.count}
+                {getItemDisplayName(recipe.result.itemId)} × {recipe.result.count}
             </div>
             {recipe.requiredTool && (
                 <div className="sg-recipe-detail-row">
@@ -140,7 +140,7 @@ function RecipeDetail({ recipe }: { recipe: RecipeDef }) {
                     >
                         <ItemIcon itemId={ing.itemId} size={20} />
                         <span>
-                            x{ing.count} {ing.itemId}
+                            x{ing.count} {getItemDisplayName(ing.itemId)}
                         </span>
                     </div>
                 ))}

@@ -13,6 +13,7 @@ import type { SaveData } from "../../lib/SaveSystem";
 import type { VoxelMap } from "../../lib/VoxelMap";
 
 export interface SaveSnapshotDeps {
+    slotName: string;
     seed: string;
     voxelMap: VoxelMap;
     playerState: PlayerState;
@@ -31,6 +32,7 @@ export interface SaveSnapshotDeps {
 /** 各サブシステムの現在状態から saveGame に渡すペイロードを組み立てる。 */
 export function buildSaveData(deps: SaveSnapshotDeps): Omit<SaveData, "version" | "timestamp"> {
     const {
+        slotName,
         seed,
         voxelMap,
         playerState,
@@ -47,6 +49,7 @@ export function buildSaveData(deps: SaveSnapshotDeps): Omit<SaveData, "version" 
     } = deps;
     const inventory = playerState.inventory;
     return {
+        slotName,
         seed,
         voxelMap: {
             width: voxelMap.width,

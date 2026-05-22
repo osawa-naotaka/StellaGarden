@@ -150,6 +150,7 @@ export const ReputationSaveDataSchema = v.object({
 export const SaveDataSchema = v.object({
     version: v.number(),
     timestamp: v.number(),
+    slotName: v.string(),
     seed: v.string(),
     voxelMap: VoxelMapSaveDataSchema,
     playerState: PlayerStateSaveDataSchema,
@@ -170,6 +171,7 @@ export const SaveDataSchema = v.object({
 export const SlotHeaderSchema = v.object({
     version: v.number(),
     timestamp: v.number(),
+    slotName: v.string(),
 });
 
 // ─── 派生型エクスポート ───────────────────────────────────────────────────────

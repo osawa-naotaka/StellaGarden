@@ -1,6 +1,6 @@
 import { Box, Button, Stack, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
-import { getSlotInfo } from "../../lib/SaveSystem";
+import { listSlots } from "../../lib/SaveSystem";
 import { BTN_OUTLINED_SX, TITLE_BG, TITLE_TEXT_SX } from "./titleStyles";
 
 interface Props {
@@ -12,8 +12,8 @@ export function TitleScreen({ onNewGame, onContinue }: Props) {
     const [anySlotExists, setAnySlotExists] = useState<boolean | null>(null);
 
     useEffect(() => {
-        Promise.all([getSlotInfo(1), getSlotInfo(2), getSlotInfo(3)]).then((infos) => {
-            setAnySlotExists(infos.some((info) => info.exists));
+        listSlots().then((entries) => {
+            setAnySlotExists(entries.length > 0);
         });
     }, []);
 

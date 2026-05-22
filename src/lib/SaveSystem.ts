@@ -1,3 +1,4 @@
+import { v6 as uuidv6 } from "uuid";
 import { safeParse } from "valibot";
 import { SaveDataSchema, SlotHeaderSchema } from "./SaveSchema";
 
@@ -19,19 +20,44 @@ export type {
 
 // ─── セーブスロット型 ──────────────────────────────────────────────────────────
 
-export type SaveSlot = 1 | 2 | 3;
+/**
+ * セーブスロットID。文字列ベースの不透明な識別子。
+ * 既存セーブとの互換のため "1", "2", "3" のような単純な ID も許容する。
+ * 新規作成時は `newSlotId()` (UUIDv6) で生成する。
+ */
+export type SaveSlot = string;
+
+/** 新しいセーブスロットID（UUIDv6）を発行する。タイムスタンプを含むため自然に時系列順になる。 */
+export function newSlotId(): SaveSlot {
+    return uuidv6();
+}
+
+/** スロット一覧表示用の項目。 */
+export interface SlotEntry {
+    slot: SaveSlot;
+    timestamp: number;
+    slotName: string;
+}
 
 // ─── 定数 ────────────────────────────────────────────────────────────────────
 
 const DB_NAME = "stella-garden";
 const DB_VERSION = 1;
 const STORE_NAME = "saveData";
-const CURRENT_SAVE_VERSION = 12;
+const CURRENT_SAVE_VERSION = 13;
 /** これより古いバージョンはマイグレーションパスがなく、ロード不可。 */
 const MIN_SUPPORTED_VERSION = 6;
 
+const SLOT_KEY_PREFIX = "save_slot_";
+
 function slotKey(slot: SaveSlot): string {
-    return `save_slot_${slot}`;
+    return SLOT_KEY_PREFIX + slot;
+}
+
+function slotIdFromKey(key: unknown): SaveSlot | null {
+    if (typeof key !== "string") return null;
+    if (!key.startsWith(SLOT_KEY_PREFIX)) return null;
+    return key.slice(SLOT_KEY_PREFIX.length);
 }
 
 // ─── マイグレーション ─────────────────────────────────────────────────────────
@@ -79,6 +105,10 @@ const migrations: Record<number, (data: RawSave) => RawSave> = {
         addSelectedRecipeIndexV11(data);
         return data;
     },
+    // v12 → v13: 任意数セーブスロット対応のため slotName を追加。
+    // マイグレーション時点ではスロットIDから命名できないため、一律 "セーブデータ" とする。
+    // ユーザーはタイトル画面のスロット選択画面からリネーム可能。
+    12: (data) => ({ ...data, slotName: "セーブデータ" }),
 };
 
 /**
@@ -304,6 +334,141 @@ export async function saveGame(slot: SaveSlot, data: Omit<import("./SaveSchema")
     });
 }
 
+/** 指定スロットを削除する。 */
+export async function deleteSlot(slot: SaveSlot): Promise<void> {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE_NAME, "readwrite");
+        tx.objectStore(STORE_NAME).delete(slotKey(slot));
+        tx.oncomplete = () => {
+            db.close();
+            resolve();
+        };
+        tx.onerror = () => {
+            db.close();
+            reject(tx.error);
+        };
+    });
+}
+
+/**
+ * スロット名を変更する。version マイグレーションは行わず生 raw の slotName だけを書き換える。
+ * 該当スロットが存在しない、または raw に slotName フィールドが追加できる構造でない場合は no-op。
+ */
+export async function renameSlot(slot: SaveSlot, newName: string): Promise<void> {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE_NAME, "readwrite");
+        const store = tx.objectStore(STORE_NAME);
+        const getReq = store.get(slotKey(slot));
+        getReq.onsuccess = () => {
+            const raw = getReq.result as RawSave | undefined;
+            if (!raw) {
+                resolve();
+                return;
+            }
+            raw.slotName = newName;
+            store.put(raw, slotKey(slot));
+        };
+        getReq.onerror = () => {
+            db.close();
+            reject(getReq.error);
+        };
+        tx.oncomplete = () => {
+            db.close();
+            resolve();
+        };
+        tx.onerror = () => {
+            db.close();
+            reject(tx.error);
+        };
+    });
+}
+
+/**
+ * スロットを複製する。dst が省略された場合は新しい UUIDv6 を発行する。
+ * 生 raw のままコピーするため、マイグレーションは挟まない（容量・速度の観点）。
+ * 複製後のスロットには " (コピー)" を付け、timestamp は現在時刻に更新する。
+ * 戻り値は新しいスロットID。
+ */
+export async function duplicateSlot(src: SaveSlot, dst?: SaveSlot): Promise<SaveSlot> {
+    const dstId = dst ?? newSlotId();
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE_NAME, "readwrite");
+        const store = tx.objectStore(STORE_NAME);
+        const getReq = store.get(slotKey(src));
+        let didPut = false;
+        getReq.onsuccess = () => {
+            const raw = getReq.result as RawSave | undefined;
+            if (!raw) {
+                resolve(dstId);
+                return;
+            }
+            const srcName = typeof raw.slotName === "string" ? raw.slotName : "セーブデータ";
+            const cloned: RawSave = { ...raw, slotName: `${srcName} (コピー)`, timestamp: Date.now() };
+            store.put(cloned, slotKey(dstId));
+            didPut = true;
+        };
+        getReq.onerror = () => {
+            db.close();
+            reject(getReq.error);
+        };
+        tx.oncomplete = () => {
+            db.close();
+            if (didPut) resolve(dstId);
+            else resolve(dstId);
+        };
+        tx.onerror = () => {
+            db.close();
+            reject(tx.error);
+        };
+    });
+}
+
+/**
+ * 全セーブスロットを列挙する。timestamp 降順（新しい順）で返す。
+ * 不正なバージョン / スキーマ不一致は無視する。
+ */
+export async function listSlots(): Promise<SlotEntry[]> {
+    try {
+        const db = await openDB();
+        return new Promise((resolve, reject) => {
+            const tx = db.transaction(STORE_NAME, "readonly");
+            const store = tx.objectStore(STORE_NAME);
+            const keysReq = store.getAllKeys();
+            const valuesReq = store.getAll();
+            tx.oncomplete = () => {
+                db.close();
+                const keys = keysReq.result;
+                const values = valuesReq.result as RawSave[];
+                const entries: SlotEntry[] = [];
+                for (let i = 0; i < keys.length; i++) {
+                    const slot = slotIdFromKey(keys[i]);
+                    if (slot === null) continue;
+                    const raw = values[i];
+                    const version = raw?.version as number | undefined;
+                    if (!raw || version === undefined || version < MIN_SUPPORTED_VERSION || version > CURRENT_SAVE_VERSION) continue;
+                    // 古いバージョンの raw には slotName が無いため、ヘッダ検証前に埋める
+                    const rawForHeader: RawSave = typeof raw.slotName === "string" ? raw : { ...raw, slotName: "セーブデータ" };
+                    const result = safeParse(SlotHeaderSchema, rawForHeader);
+                    if (!result.success) continue;
+                    entries.push({ slot, timestamp: result.output.timestamp, slotName: result.output.slotName });
+                }
+                entries.sort((a, b) => b.timestamp - a.timestamp);
+                resolve(entries);
+            };
+            tx.onerror = () => {
+                db.close();
+                reject(tx.error);
+            };
+        });
+    } catch (e) {
+        console.warn("Failed to list slots:", e);
+        return [];
+    }
+}
+
 /** IndexedDB からセーブデータを読み込む。必要に応じてマイグレーションを実行する。データがなければ null を返す。 */
 export async function loadGame(slot: SaveSlot): Promise<import("./SaveSchema").SaveData | null> {
     try {
@@ -351,8 +516,8 @@ export async function loadGame(slot: SaveSlot): Promise<import("./SaveSchema").S
     }
 }
 
-/** スロットの存在確認とセーブ日時を返す。タイトル画面での一覧表示用。 */
-export async function getSlotInfo(slot: SaveSlot): Promise<{ exists: boolean; timestamp: number | null }> {
+/** スロットの存在確認・セーブ日時・スロット名を返す。 */
+export async function getSlotInfo(slot: SaveSlot): Promise<{ exists: boolean; timestamp: number | null; slotName: string | null }> {
     try {
         const db = await openDB();
         return new Promise((resolve, reject) => {
@@ -363,15 +528,16 @@ export async function getSlotInfo(slot: SaveSlot): Promise<{ exists: boolean; ti
                 const raw = request.result as RawSave | undefined;
                 const version = raw?.version as number | undefined;
                 if (!raw || version === undefined || version < MIN_SUPPORTED_VERSION || version > CURRENT_SAVE_VERSION) {
-                    resolve({ exists: false, timestamp: null });
+                    resolve({ exists: false, timestamp: null, slotName: null });
                     return;
                 }
-                const result = safeParse(SlotHeaderSchema, raw);
+                const rawForHeader: RawSave = typeof raw.slotName === "string" ? raw : { ...raw, slotName: "セーブデータ" };
+                const result = safeParse(SlotHeaderSchema, rawForHeader);
                 if (!result.success) {
-                    resolve({ exists: false, timestamp: null });
+                    resolve({ exists: false, timestamp: null, slotName: null });
                     return;
                 }
-                resolve({ exists: true, timestamp: result.output.timestamp });
+                resolve({ exists: true, timestamp: result.output.timestamp, slotName: result.output.slotName });
             };
             request.onerror = () => {
                 db.close();
@@ -380,6 +546,6 @@ export async function getSlotInfo(slot: SaveSlot): Promise<{ exists: boolean; ti
         });
     } catch (e) {
         console.warn("Failed to get slot info:", e);
-        return { exists: false, timestamp: null };
+        return { exists: false, timestamp: null, slotName: null };
     }
 }

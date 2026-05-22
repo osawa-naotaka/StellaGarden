@@ -37,6 +37,8 @@ export interface UseGameEngineResult {
 }
 
 export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad: boolean, seed: string): UseGameEngineResult {
+    // セーブデータから slotName を引き継ぐが、未存在時のフォールバック名はここで決める
+    const initialSlotName = "セーブデータ";
     const containerRef = useRef<HTMLDivElement>(null);
     const [engineRefs, setEngineRefs] = useState<EngineRefs | null>(null);
     const requestSaveRef = useRef<() => Promise<void>>(() => Promise.resolve());
@@ -66,6 +68,7 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
 
             const app = new Application();
             const saveData = shouldLoad ? await loadGame(saveSlot) : null;
+            const slotName = saveData?.slotName ?? initialSlotName;
             await app.init({ background: "#1099bb", resizeTo: window });
 
             if (cancelled) {
@@ -210,6 +213,7 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
                 return saveGame(
                     saveSlot,
                     buildSaveData({
+                        slotName,
                         seed,
                         voxelMap,
                         playerState,

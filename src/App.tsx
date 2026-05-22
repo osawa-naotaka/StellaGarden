@@ -21,7 +21,8 @@ function GameScreen({ saveSlot, shouldLoad, seed }: { saveSlot: SaveSlot; should
 
 export default function App() {
     const [mode, setMode] = useState<AppMode>("title");
-    const [selectedSlot, setSelectedSlot] = useState<SaveSlot>(1);
+    // selectedSlot は新規/ロード時に SlotSelectScreen から受け取る。初期値は空文字（未選択）。
+    const [selectedSlot, setSelectedSlot] = useState<SaveSlot>("");
     const [shouldLoad, setShouldLoad] = useState(false);
     const [seed, setSeed] = useState("");
 
