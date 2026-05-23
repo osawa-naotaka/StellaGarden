@@ -136,6 +136,7 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
                 points: saveData?.reputation.points ?? 0,
                 cumulativeShipped: saveData?.reputation.cumulativeShipped,
             });
+            reputationSystem.setEventBroker(eventBroker);
 
             const missionSystem = new MissionSystem(saveData?.mission);
             disposers.push(missionSystem.subscribeEvents(eventBroker));

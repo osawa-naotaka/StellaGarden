@@ -1,4 +1,4 @@
-import type { IReputationSystemReader, ItemId, TierProgress, TierStatus } from "../_boundary/interfaces";
+import type { IEventBroker, IReputationSystemReader, ItemId, TierProgress, TierStatus } from "../_boundary/interfaces";
 import { TIER_DEFS } from "./TierDefs";
 
 type ShipmentSummary = {
@@ -29,10 +29,16 @@ export type ScoreTable = ReadonlyArray<{
 export class ReputationSystem implements IReputationSystemReader {
     private points: number;
     private cumulativeShipped: Map<ItemId, number>;
+    private broker: IEventBroker | null = null;
 
     constructor(init: ReputationInitData = {}) {
         this.points = init.points ?? 0;
         this.cumulativeShipped = new Map(init.cumulativeShipped ?? []);
+    }
+
+    /** ゲームプレイ開始後に EventBroker を注入する。Inventory と同じパターン。 */
+    setEventBroker(broker: IEventBroker): void {
+        this.broker = broker;
     }
 
     /** 現在の評価値を返す。 */
@@ -68,8 +74,14 @@ export class ReputationSystem implements IReputationSystemReader {
     /**
      * 品目ごとの出荷数を集計して評価値と累計出荷数を加算する。
      * 戻り値は今回の加算結果サマリー。
+     *
+     * 出荷前後で累積出荷量が閾値を跨いだ Tier については `tier_unlocked` イベントを発行する
+     * （ミッションシステムが購読し、出荷ミッションの完了判定に使う）。
      */
     processShipment(itemCounts: ReadonlyMap<ItemId, number>): ShipmentSummary {
+        // 出荷前の累積出荷量スナップショット（Tier 跨ぎ判定用）
+        const beforeCumulative = new Map(this.cumulativeShipped);
+
         const byItem: Array<{
             itemId: ItemId;
             count: number;
@@ -87,6 +99,20 @@ export class ReputationSystem implements IReputationSystemReader {
         }
 
         this.points += totalPoints;
+
+        // Tier アンロック検出: 出荷前は未達、出荷後に閾値達成した tier に対して publish
+        if (this.broker !== null) {
+            for (const tier of TIER_DEFS) {
+                if (tier.unlock === null) continue;
+                const sourceItemId = tier.unlock.sourceItemId;
+                const threshold = tier.unlock.threshold;
+                const before = beforeCumulative.get(sourceItemId) ?? 0;
+                const after = this.cumulativeShipped.get(sourceItemId) ?? 0;
+                if (before < threshold && after >= threshold) {
+                    this.broker.publish("tier_unlocked", { itemId: tier.itemId });
+                }
+            }
+        }
 
         return {
             totalPoints,

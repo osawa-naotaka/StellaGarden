@@ -95,4 +95,9 @@ export type GameEventMap = {
      *  発行: useGameEngine の day_changed ハンドラ（reputationSystem.processShipment の後）。
      *  購読: MissionSystem。items は { itemId: string -> count: number } の連想配列。 */
     item_shipped: { items: ReadonlyMap<string, number> };
+    /** Tier アンロック達成。累積出荷量が閾値を初めて超えた瞬間に発行される。
+     *  発行: ReputationSystem.processShipment（出荷前と後の累積を比較して閾値を跨いだ tier）。
+     *  購読: MissionSystem。itemId はアンロックされた Tier の itemId（例: "soybeans" = Tier 2 解放）。
+     *  Tier 3a/3b、Tier 6a/6b のような並行アンロックでは複数の tier_unlocked が連続して発行される。 */
+    tier_unlocked: { itemId: string };
 };

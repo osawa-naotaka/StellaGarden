@@ -88,6 +88,16 @@ function itemShipped(itemId: string): MissionTrigger {
     };
 }
 
+/** 指定 itemId の Tier が初めてアンロックされた時。
+ *  プレイヤーが Tier の存在に気づかず安いポイントで出荷してしまう罠を避けるため、
+ *  出荷ミッションは原則これを使う（doc/22 の Tier 構造に対応）。 */
+function tierUnlocked(itemId: string): MissionTrigger {
+    return {
+        eventType: "tier_unlocked",
+        predicate: (p) => p.itemId === itemId,
+    };
+}
+
 /** terrain_changed で変化後の voxel が soil 地形（耕作完了）になった時。 */
 function tilledSoil(): MissionTrigger {
     return {
@@ -130,14 +140,14 @@ const M_02: MissionDef = {
     ],
 };
 
-/** M-03: 地球へ最初の出荷をしよう */
+/** M-03: 地球へ最初の出荷をしよう。Tier 2（大豆）アンロックを完了条件にする。 */
 const M_03: MissionDef = {
     id: "M-03",
     order: 3,
     title: "じゃがいもを地球へ送ろう",
     subs: [
         { id: "M-03-1", order: 1, text: "転移ゲートを設置しよう", trigger: entityPlaced("warp_gate") },
-        { id: "M-03-2", order: 2, text: "朝 5 時の出荷でじゃがいもを送ろう", trigger: itemShipped("potato") },
+        { id: "M-03-2", order: 2, text: "じゃがいもを出荷して大豆ラインを開放しよう", trigger: tierUnlocked("soybeans") },
     ],
 };
 
@@ -202,7 +212,8 @@ const M_08: MissionDef = {
     ],
 };
 
-/** M-09: 大豆を脱穀して出荷しよう */
+/** M-09: 大豆を脱穀して出荷しよう。Tier 3b（大豆油）アンロックを完了条件にする
+ *  （同時に Tier 3a 亜麻仁油もアンロックされるが、ミッションの流れ上、後続が大豆ラインなので大豆油側を見る）。 */
 const M_09: MissionDef = {
     id: "M-09",
     order: 9,
@@ -211,7 +222,7 @@ const M_09: MissionDef = {
         { id: "M-09-1", order: 1, text: "硬木の歯を作業台でクラフトしよう", trigger: itemObtained("hardwood_teeth") },
         { id: "M-09-2", order: 2, text: "脱穀機を作って設置しよう", trigger: entityPlaced("threshing_machine") },
         { id: "M-09-3", order: 3, text: "脱穀機で大豆を脱穀しよう", trigger: itemObtained("soybeans") },
-        { id: "M-09-4", order: 4, text: "大豆を出荷しよう", trigger: itemShipped("soybeans") },
+        { id: "M-09-4", order: 4, text: "大豆を出荷して油ラインを開放しよう", trigger: tierUnlocked("soybean_oil") },
     ],
 };
 
@@ -268,7 +279,7 @@ const M_13: MissionDef = {
     ],
 };
 
-/** M-14: 亜麻を育てよう */
+/** M-14: 亜麻を育てよう。Tier 4（糸）アンロックを完了条件にする。 */
 const M_14: MissionDef = {
     id: "M-14",
     order: 14,
@@ -277,11 +288,11 @@ const M_14: MissionDef = {
         { id: "M-14-1", order: 1, text: "亜麻の種を植えよう", trigger: cropPlanted("flaxseed") },
         { id: "M-14-2", order: 2, text: "亜麻を収穫しよう", trigger: cropHarvested("flaxseed") },
         { id: "M-14-3", order: 3, text: "亜麻の種から亜麻仁油を搾ろう", trigger: itemObtained("flaxseed_oil") },
-        { id: "M-14-4", order: 4, text: "亜麻仁油を出荷しよう", trigger: itemShipped("flaxseed_oil") },
+        { id: "M-14-4", order: 4, text: "亜麻仁油を出荷して糸ラインを開放しよう", trigger: tierUnlocked("thread") },
     ],
 };
 
-/** M-15: 糸を作って出荷しよう */
+/** M-15: 糸を作って出荷しよう。Tier 5（布）アンロックを完了条件にする。 */
 const M_15: MissionDef = {
     id: "M-15",
     order: 15,
@@ -291,11 +302,12 @@ const M_15: MissionDef = {
         { id: "M-15-2", order: 2, text: "亜麻の茎を浸漬してレッティングしよう", trigger: itemObtained("processed_flax") },
         { id: "M-15-3", order: 3, text: "叩き台を作って繊維分離しよう", trigger: itemObtained("flax_fiber") },
         { id: "M-15-4", order: 4, text: "紡ぎ車を作って糸を紡ごう", trigger: itemObtained("thread") },
-        { id: "M-15-5", order: 5, text: "糸を出荷しよう", trigger: itemShipped("thread") },
+        { id: "M-15-5", order: 5, text: "糸を出荷して布ラインを開放しよう", trigger: tierUnlocked("cloth") },
     ],
 };
 
-/** M-16: 布を織って出荷しよう */
+/** M-16: 布を織って出荷しよう。Tier 6b（袋詰め大豆）アンロックを完了条件にする
+ *  （同時に Tier 6a 袋詰めじゃがいももアンロックされるが、ゴールが袋詰め大豆なので大豆側を見る）。 */
 const M_16: MissionDef = {
     id: "M-16",
     order: 16,
@@ -303,7 +315,7 @@ const M_16: MissionDef = {
     subs: [
         { id: "M-16-1", order: 1, text: "織機を作って設置しよう", trigger: entityPlaced("loom") },
         { id: "M-16-2", order: 2, text: "糸から布を織ろう", trigger: itemObtained("cloth") },
-        { id: "M-16-3", order: 3, text: "布を出荷しよう", trigger: itemShipped("cloth") },
+        { id: "M-16-3", order: 3, text: "布を出荷して袋詰めラインを開放しよう", trigger: tierUnlocked("bagged_soybeans") },
     ],
 };
 
