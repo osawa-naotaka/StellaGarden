@@ -5,6 +5,7 @@ import { setChestStorage } from "../../_registry/entities/Chest";
 import { setDailyProcessingStorage } from "../../_registry/entities/DailyProcessing";
 import { setForgeStorage } from "../../_registry/entities/Forge";
 import { setManualProcessingStorage } from "../../_registry/entities/ManualProcessing";
+import { setSoakingBasketStorage } from "../../_registry/entities/SoakingBasket";
 import { setWarpGateStorage } from "../../_registry/entities/WarpGate";
 import { setWorkbenchStorage } from "../../_registry/entities/Workbench";
 import { AutoProcessingStorage } from "../../engine/AutoProcessingStorage";
@@ -77,6 +78,7 @@ export function bootstrapStorages(saveData: SaveData | null): Storages {
     const dailyProcessingStorage = new DailyProcessingStorage();
     if (saveData) dailyProcessingStorage.loadSaveData(saveData.dailyProcessingStorage.facilities);
     setDailyProcessingStorage(dailyProcessingStorage);
+    setSoakingBasketStorage(dailyProcessingStorage); // 浸漬槽は独立エンティティだが storage を共有
 
     const autoProcessingStorage = new AutoProcessingStorage();
     if (saveData) autoProcessingStorage.loadSaveData(saveData.autoProcessingStorage.facilities);

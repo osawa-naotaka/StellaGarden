@@ -12,7 +12,7 @@
  */
 import type { ItemId } from "../../_boundary/interfaces";
 import type { DailyProcessingStorage } from "../../engine/DailyProcessingStorage";
-import { ENTITY_TYPES, getDaysElapsedFromVoxel, getVariantFromVoxel, VOXEL_VARIANT } from "../../engine/VoxelDefs";
+import { ENTITY_TYPES, getDaysElapsedFromVoxel, getEnabledFromVoxel } from "../../engine/VoxelDefs";
 import { type EntitySpriteInfo, type InteractionContext, registerEntity } from "../EntityRegistry";
 import { findFacilityAnchor, placeFacility, removeFacility } from "../facilityUtil";
 import { registerItem } from "../ItemRegistry";
@@ -114,8 +114,7 @@ registerDailyProcessingEntity({
     baseEntityType: ENTITY_TYPES.compost_bin,
     sprites: (voxel) => {
         const days = getDaysElapsedFromVoxel(voxel);
-        const variant = getVariantFromVoxel(voxel);
-        if (variant === 1) {
+        if (getEnabledFromVoxel(voxel)) {
             return "ss_sprite_053_3.png";
         }
         switch (days) {
@@ -139,43 +138,17 @@ registerDailyProcessingEntity({
     entitySize: { w: 2, h: 2 },
 });
 
-// soaking_basket: loading と progressing は同じ entityType / スプライト
-registerDailyProcessingEntity({
-    baseEntityType: ENTITY_TYPES.soaking_basket,
-    sprites: (voxel) => {
-        const days = getDaysElapsedFromVoxel(voxel);
-        const variant = getVariantFromVoxel(voxel);
-        if (variant === VOXEL_VARIANT.done) {
-            return "ss_sprite_073.png";
-        }
-        switch (days) {
-            case 0:
-                return "ss_sprite_072.png";
-            case 1:
-                return "ss_sprite_056.png";
-            case 2:
-                return "ss_sprite_056.png";
-            case 3:
-                return "ss_sprite_056.png";
-            default:
-                return "ss_sprite_073.png";
-        }
-    },
-    itemId: "soaking_basket",
-    displayName: "浸漬槽",
-    inventorySpriteName: "ss_sprite_065.png",
-    entitySize: { w: 3, h: 1 },
-});
+// soaking_basket は独立実装に移行（_registry/entities/SoakingBasket.ts）。
+// 縦横バリアントと水隣接判定を持つため、registerDailyProcessingEntity の枠から外れる。
 
 // bonfire: loading と progressing は同じく bonfire_lit（アニメーション）
 registerDailyProcessingEntity({
     baseEntityType: ENTITY_TYPES.bonfire,
     sprites: (voxel) => {
         const days = getDaysElapsedFromVoxel(voxel);
-        const variant = getVariantFromVoxel(voxel);
         switch (days) {
             case 0:
-                return variant === VOXEL_VARIANT.done ? "ss_sprite_075.png" : "ss_sprite_076.png";
+                return getEnabledFromVoxel(voxel) ? "ss_sprite_075.png" : "ss_sprite_076.png";
             case 1:
                 return bonfireLitFrame();
             default:

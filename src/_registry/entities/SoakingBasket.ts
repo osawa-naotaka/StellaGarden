@@ -1,0 +1,163 @@
+/**
+ * 浸漬槽（soaking_basket）の独立エンティティ登録。
+ *
+ * DailyProcessing.ts の汎用ヘルパーから外して独自実装する理由:
+ * - variant ビット 3bit を **向き（縦/横）専用** に使う
+ *   （完了フラグは voxel の enabled ビットを流用するため、variant と衝突しない）
+ * - サイズが variant に応じて (3x1) / (1x3) に切り替わる（Waterwheel.ts と同じパターン）
+ * - 配置条件として「4 近傍に water/waterSource が 1 タイル以上ある」を要求する
+ *
+ * スプライトについて:
+ * - 縦置き専用スプライトは未用意のため、現状は横置きの ss_sprite_072 / ss_sprite_056 / ss_sprite_073 を流用する
+ */
+import type { IVoxelReader, Pos2D } from "../../_boundary/interfaces";
+import type { DailyProcessingStorage } from "../../engine/DailyProcessingStorage";
+import {
+    ENTITY_TYPES,
+    getDaysElapsedFromVoxel,
+    getEnabledFromVoxel,
+    getEntityTypeFromVoxel,
+    getTerrainTypeFromVoxel,
+    setVariantInVoxel,
+    TERRAIN_TYPES,
+} from "../../engine/VoxelDefs";
+import { type EntitySpriteInfo, type InteractionContext, registerEntity } from "../EntityRegistry";
+import { findFacilityAnchor, placeFacility, removeFacility } from "../facilityUtil";
+import { type PlacementVariant, registerItem } from "../ItemRegistry";
+
+let dailyProcessingStorage: DailyProcessingStorage | null = null;
+
+/** App / hooks 層から DailyProcessingStorage を注入する（DailyProcessing.ts と同じ storage を共有）。 */
+export function setSoakingBasketStorage(storage: DailyProcessingStorage): void {
+    dailyProcessingStorage = storage;
+}
+
+const PLACEABLE_TERRAINS: ReadonlySet<number> = new Set([TERRAIN_TYPES.grass, TERRAIN_TYPES.dirt, TERRAIN_TYPES.soil]);
+const NEIGHBORS_4: ReadonlyArray<readonly [number, number]> = [
+    [0, -1],
+    [0, 1],
+    [-1, 0],
+    [1, 0],
+];
+
+const HORIZONTAL_SIZE = { w: 3, h: 1 };
+const VERTICAL_SIZE = { w: 1, h: 3 };
+
+function getSizeForVariant(variant: number): { w: number; h: number } {
+    return variant === 1 ? VERTICAL_SIZE : HORIZONTAL_SIZE;
+}
+
+function isWaterTerrain(t: number): boolean {
+    return t === TERRAIN_TYPES.water || t === TERRAIN_TYPES.waterSource;
+}
+
+function canPlaceSoakingBasket(map: IVoxelReader, pos: Pos2D, variant: PlacementVariant): boolean {
+    const size = getSizeForVariant(variant);
+    const { x, z } = pos;
+    if (x < 0 || x + size.w > map.width || z < 0 || z + size.h > map.depth) return false;
+
+    // 配置範囲のすべてのタイル: 陸地・surfaceY 一致・空エンティティ
+    const baseY = map.getSurfacePosition({ x, y: 0, z }).y;
+    for (let dz = 0; dz < size.h; dz++) {
+        for (let dx = 0; dx < size.w; dx++) {
+            const surfacePos = map.getSurfacePosition({ x: x + dx, y: 0, z: z + dz });
+            if (surfacePos.y !== baseY) return false;
+            const voxel = map.getSurface({ x: x + dx, y: 0, z: z + dz });
+            if (!PLACEABLE_TERRAINS.has(getTerrainTypeFromVoxel(voxel))) return false;
+            if (getEntityTypeFromVoxel(voxel) !== ENTITY_TYPES.none) return false;
+        }
+    }
+
+    // 配置範囲の外周 4 近傍に water/waterSource が 1 タイル以上あるか
+    for (let dz = 0; dz < size.h; dz++) {
+        for (let dx = 0; dx < size.w; dx++) {
+            const tx = x + dx;
+            const tz = z + dz;
+            for (const [ndx, ndz] of NEIGHBORS_4) {
+                const nx = tx + ndx;
+                const nz = tz + ndz;
+                if (nx < 0 || nx >= map.width || nz < 0 || nz >= map.depth) continue;
+                // 配置範囲内のタイルは隣接判定から除外（外周のみ見る）
+                if (nx >= x && nx < x + size.w && nz >= z && nz < z + size.h) continue;
+                const v = map.getSurface({ x: nx, y: 0, z: nz });
+                if (isWaterTerrain(getTerrainTypeFromVoxel(v))) return true;
+            }
+        }
+    }
+    return false;
+}
+
+registerEntity({
+    entityType: ENTITY_TYPES.soaking_basket,
+
+    getEntitySize(variant: PlacementVariant) {
+        return getSizeForVariant(variant);
+    },
+
+    getSprites(voxel: bigint): EntitySpriteInfo[] {
+        const days = getDaysElapsedFromVoxel(voxel);
+        // 縦横別スプライト未用意のため、現状はどちらも横置きスプライトを流用する。
+        // 完了状態（output[0] が残っている）は enabled ビットで判定する。
+        if (getEnabledFromVoxel(voxel)) {
+            return [["ss_sprite_073.png", 0, 0]];
+        }
+        if (days >= 1 && days <= 3) {
+            return [["ss_sprite_056.png", 0, 0]];
+        }
+        return [["ss_sprite_072.png", 0, 0]];
+    },
+
+    onInteract(ctx: InteractionContext): boolean {
+        if (ctx.tool !== "axe") return false;
+        const anchor = findFacilityAnchor(ctx.voxelMap, ctx.surfacePos.x, ctx.surfacePos.z);
+        if (anchor.entityType !== ENTITY_TYPES.soaking_basket) throw new Error("anchor entity type mismatch");
+        const anchorPos = { x: anchor.anchorX, z: anchor.anchorZ };
+        const extraItems = dailyProcessingStorage?.collectAllStacks(anchorPos) ?? [];
+        const removed = removeFacility(
+            ctx.voxelMap,
+            ctx.inventory,
+            anchor.anchorX,
+            anchor.anchorZ,
+            anchor.entityType,
+            anchor.variant,
+            extraItems,
+        );
+        if (removed) dailyProcessingStorage?.remove(anchorPos);
+        return removed;
+    },
+
+    onOpenFacilityUI(ctx: InteractionContext): boolean {
+        const anchor = findFacilityAnchor(ctx.voxelMap, ctx.surfacePos.x, ctx.surfacePos.z);
+        const anchorPos = { x: anchor.anchorX, z: anchor.anchorZ };
+        dailyProcessingStorage?.create(anchorPos);
+        ctx.eventBroker.publish("open_processing_daily_ui", { pos: anchorPos });
+        return true;
+    },
+});
+
+registerItem({
+    itemId: "soaking_basket",
+    displayName: "浸漬槽",
+    spriteName: "ss_sprite_065.png",
+    maxStack: 64,
+    placement: {
+        entityType: ENTITY_TYPES.soaking_basket,
+        defaultVariant: 0,
+        maxVariant: 1,
+        getFieldSpriteName(_variant: PlacementVariant) {
+            // 暫定: 縦横ともに横置きスプライトを使用
+            return "ss_sprite_072.png";
+        },
+        canPlace(voxelMap, pos, variant) {
+            return canPlaceSoakingBasket(voxelMap, pos, variant);
+        },
+        onPlace(voxelMap, pos, variant) {
+            const size = getSizeForVariant(variant);
+            placeFacility(voxelMap, pos, ENTITY_TYPES.soaking_basket, size);
+            const surfacePos = voxelMap.getSurfacePosition({ x: pos.x, y: 0, z: pos.z });
+            const voxel = voxelMap.get(surfacePos);
+            voxelMap.set(setVariantInVoxel(voxel, variant), surfacePos);
+            dailyProcessingStorage?.create(pos);
+        },
+    },
+});

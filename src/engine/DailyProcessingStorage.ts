@@ -2,7 +2,7 @@ import type { ItemStack, IVoxelWriter, Pos2D } from "../_boundary/interfaces";
 import { getItemDef } from "../_registry/ItemRegistry";
 import { KeyedSlotStorage } from "./KeyedSlotStorage";
 import { findRecipeForInput, getDailyProcessingDef, hasEnoughInput, isAcceptableInputItem } from "./ProcessingRecipes";
-import { ENTITY_TYPES, getDaysElapsedFromVoxel, getEntityTypeFromVoxel, setDaysElapsedInVoxel, setVariantInVoxel, VOXEL_VARIANT } from "./VoxelDefs";
+import { ENTITY_TYPES, getDaysElapsedFromVoxel, getEntityTypeFromVoxel, setDaysElapsedInVoxel, setEnabledInVoxel } from "./VoxelDefs";
 
 /** カテゴリ3（日次処理）の状態。 */
 export type DailyProcessingState = "empty" | "loading" | "progressing" | "done";
@@ -111,13 +111,11 @@ export class DailyProcessingStorage extends KeyedSlotStorage<DailyProcessingSlot
         if (!slots) return;
         slots.outputs[index] = stack;
         if (index === 0) {
+            // output[0] の有無を voxel の enabled bit に反映する（sprites が完了状態を判定するために使う）。
+            // variant ビットは向き（縦/横）専用としているため使わない。
             const surface = voxelMap.getSurfacePosition({ x: pos.x, y: 0, z: pos.z });
             const voxel = voxelMap.get(surface);
-            if (stack === null) {
-                voxelMap.set(setVariantInVoxel(voxel, VOXEL_VARIANT.base), surface);
-            } else {
-                voxelMap.set(setVariantInVoxel(voxel, VOXEL_VARIANT.done), surface);
-            }
+            voxelMap.set(setEnabledInVoxel(voxel, stack !== null), surface);
         }
     }
 
@@ -179,11 +177,12 @@ export class DailyProcessingStorage extends KeyedSlotStorage<DailyProcessingSlot
 
             // 入力消費 + 出力加算
             slots.input.count -= recipe.inputCountPerCycle;
-            const newVariantVoxel = setVariantInVoxel(voxel, VOXEL_VARIANT.done);
+            // 完了フラグは enabled ビットに記録する（variant ビットは向き専用に解放）。
+            const newEnabledVoxel = setEnabledInVoxel(voxel, true);
             if (slots.input.count < recipe.inputCountPerCycle) {
-                voxelMap.set(setDaysElapsedInVoxel(newVariantVoxel, 0), surface);
+                voxelMap.set(setDaysElapsedInVoxel(newEnabledVoxel, 0), surface);
             } else {
-                voxelMap.set(setDaysElapsedInVoxel(newVariantVoxel, 1), surface);
+                voxelMap.set(setDaysElapsedInVoxel(newEnabledVoxel, 1), surface);
             }
             if (slots.input.count <= 0) slots.input = null;
             for (let i = 0; i < recipe.outputs.length; i++) {

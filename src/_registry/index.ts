@@ -23,6 +23,7 @@ import "./entities/Winch";
 import "./entities/Workbench";
 import "./entities/ManualProcessing";
 import "./entities/DailyProcessing";
+import "./entities/SoakingBasket";
 import "./items/Dirt";
 import "./items/Fertilizers";
 import "./items/Materials";
