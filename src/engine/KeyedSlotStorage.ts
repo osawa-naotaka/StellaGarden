@@ -1,4 +1,4 @@
-import type { IVoxelWriter, Pos2D } from "../_boundary/interfaces";
+import type { ItemStack, IVoxelWriter, Pos2D } from "../_boundary/interfaces";
 
 /**
  * 座標ベースの施設ストレージ群（Chest/Forge/Workbench 等）に共通する骨格を提供する抽象基底クラス。
@@ -31,6 +31,8 @@ export abstract class KeyedSlotStorage<TSlots> {
     protected abstract createDefaultSlots(): TSlots;
     protected abstract isSlotsEmpty(slots: TSlots): boolean;
     protected abstract cloneSlots(slots: TSlots): TSlots;
+    /** スロットの中身を ItemStack の配列として返す（撤去時の中身回収用）。空スロットは含めない。 */
+    protected abstract toItemStacks(slots: TSlots): ItemStack[];
 
     /** 指定座標にストレージを作成する（既に存在する場合は何もしない）。 */
     create(pos: Pos2D): void {
@@ -55,6 +57,17 @@ export abstract class KeyedSlotStorage<TSlots> {
     /** 指定座標のスロット群を返す。存在しない場合は undefined。内部参照を直接返すため、書き換えは派生クラスの set 系メソッド経由で行うこと。 */
     getSlots(pos: Pos2D): TSlots | undefined {
         return this.storage.get(this.key(pos));
+    }
+
+    /**
+     * 指定座標のスロット中身を ItemStack の配列として返す（施設撤去時の中身回収用）。
+     * 該当ストレージが無い・スロットが空の場合は空配列を返す。
+     * このメソッドはコピーを返すため、呼び出し側で安全に保持できる。
+     */
+    collectAllStacks(pos: Pos2D): ItemStack[] {
+        const slots = this.storage.get(this.key(pos));
+        if (!slots) return [];
+        return this.toItemStacks(slots);
     }
 
     /** 全エントリをシリアライズ可能な形式で返す（セーブ用）。 */

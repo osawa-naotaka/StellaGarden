@@ -33,6 +33,14 @@ export class ForgeStorage extends KeyedSlotStorage<ForgeSlots> {
         return { ...slots };
     }
 
+    protected toItemStacks(slots: ForgeSlots): ItemStack[] {
+        const result: ItemStack[] = [];
+        if (slots.ingredient) result.push({ ...slots.ingredient });
+        if (slots.fuel) result.push({ ...slots.fuel });
+        if (slots.output) result.push({ ...slots.output });
+        return result;
+    }
+
     /** ingredient と fuel が両方 count>=1 であれば稼働中（burning）とみなす。 */
     isBurning(pos: Pos2D): boolean {
         const slots = this.getRaw(pos);

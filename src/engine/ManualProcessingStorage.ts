@@ -41,6 +41,14 @@ export class ManualProcessingStorage extends KeyedSlotStorage<ManualProcessingSl
         };
     }
 
+    protected toItemStacks(slots: ManualProcessingSlots): ItemStack[] {
+        const result: ItemStack[] = [];
+        if (slots.input) result.push({ ...slots.input });
+        if (slots.outputs[0]) result.push({ ...slots.outputs[0] });
+        if (slots.outputs[1]) result.push({ ...slots.outputs[1] });
+        return result;
+    }
+
     /** 指定座標の施設のエンティティタイプを voxelMap から取り出す。アンカー以外を渡された場合は ENTITY_TYPES.none を返す。 */
     private getEntityTypeAt(pos: Pos2D, voxelMap: IVoxelWriter): number {
         const surface = voxelMap.getSurfacePosition({ x: pos.x, y: 0, z: pos.z });

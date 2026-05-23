@@ -55,15 +55,14 @@ export function registerDailyProcessingEntity(opts: DailyProcessingEntityOptions
             return [[name, 0, 0]];
         },
 
-        // 左クリック: axe 撤去（empty 状態のみ、かつストレージが空）
+        // 左クリック: axe 撤去（処理進行中でも可。中身は一緒にインベントリへ回収）
         onInteract(ctx: InteractionContext): boolean {
-            if (getDaysElapsedFromVoxel(ctx.voxel) !== 0) return false;
             if (ctx.tool !== "axe") return false;
             const anchor = findFacilityAnchor(ctx.voxelMap, ctx.surfacePos.x, ctx.surfacePos.z);
             if (anchor.entityType !== baseEntityType) throw new Error("anchor entity type mismatch");
             const anchorPos = { x: anchor.anchorX, z: anchor.anchorZ };
-            if (dailyProcessingStorage && !dailyProcessingStorage.isEmpty(anchorPos)) return false;
-            const removed = removeFacility(ctx.voxelMap, ctx.inventory, anchor.anchorX, anchor.anchorZ, anchor.entityType, 0);
+            const extraItems = dailyProcessingStorage?.collectAllStacks(anchorPos) ?? [];
+            const removed = removeFacility(ctx.voxelMap, ctx.inventory, anchor.anchorX, anchor.anchorZ, anchor.entityType, 0, extraItems);
             if (removed) dailyProcessingStorage?.remove(anchorPos);
             return removed;
         },

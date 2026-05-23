@@ -43,6 +43,14 @@ export class DailyProcessingStorage extends KeyedSlotStorage<DailyProcessingSlot
         };
     }
 
+    protected toItemStacks(slots: DailyProcessingSlots): ItemStack[] {
+        const result: ItemStack[] = [];
+        if (slots.input) result.push({ ...slots.input });
+        if (slots.outputs[0]) result.push({ ...slots.outputs[0] });
+        if (slots.outputs[1]) result.push({ ...slots.outputs[1] });
+        return result;
+    }
+
     getInput(pos: Pos2D): ItemStack | null {
         return this.getRaw(pos)?.input ?? null;
     }

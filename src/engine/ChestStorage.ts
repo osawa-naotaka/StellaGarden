@@ -19,6 +19,14 @@ export class ChestStorage extends KeyedSlotStorage<ChestSlots> {
         return [...slots];
     }
 
+    protected toItemStacks(slots: ChestSlots): ItemStack[] {
+        const result: ItemStack[] = [];
+        for (const s of slots) {
+            if (s !== null) result.push({ ...s });
+        }
+        return result;
+    }
+
     /** 指定座標のチェストの指定スロットを返す。 */
     getSlot(pos: Pos2D, index: number): ItemStack | null {
         const slots = this.getRaw(pos);

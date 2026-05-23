@@ -39,6 +39,10 @@ export class WorkbenchStorage extends KeyedSlotStorage<WorkbenchSlots> {
         return { tool: slots.tool ? { ...slots.tool } : null };
     }
 
+    protected toItemStacks(slots: WorkbenchSlots): ItemStack[] {
+        return slots.tool ? [{ ...slots.tool }] : [];
+    }
+
     /** 指定座標の利用ツールを返す。存在しない場合は null。 */
     getTool(pos: Pos2D): ItemStack | null {
         const slots = this.getRaw(pos);

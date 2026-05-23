@@ -1,7 +1,7 @@
 import type { ChestStorage } from "../../engine/ChestStorage";
-import { ENTITY_TYPES, placeEntity } from "../../engine/VoxelDefs";
+import { ENTITY_TYPES } from "../../engine/VoxelDefs";
 import { type EntitySpriteInfo, type InteractionContext, registerEntity } from "../EntityRegistry";
-import { placeFacility } from "../facilityUtil";
+import { placeFacility, removeFacilityAtPos } from "../facilityUtil";
 import { registerItem } from "../ItemRegistry";
 
 let chestStorage: ChestStorage | null = null;
@@ -26,11 +26,10 @@ registerEntity({
         if (ctx.tool !== "axe") return false;
         if (!chestStorage) return false;
         const pos = { x: ctx.surfacePos.x, z: ctx.surfacePos.z };
-        if (!chestStorage.isEmpty(pos)) return false;
-        ctx.voxelMap.set(placeEntity(ctx.voxel, ENTITY_TYPES.none), ctx.surfacePos);
-        ctx.inventory.addItems([{ itemId: "chest", count: 1 }]);
-        chestStorage.remove(pos);
-        return true;
+        const extraItems = chestStorage.collectAllStacks(pos);
+        const removed = removeFacilityAtPos(ctx.voxelMap, ctx.inventory, pos.x, pos.z, ENTITY_TYPES.chest, extraItems);
+        if (removed) chestStorage.remove(pos);
+        return removed;
     },
 
     onOpenFacilityUI(ctx: InteractionContext): boolean {

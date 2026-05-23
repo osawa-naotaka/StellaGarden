@@ -40,7 +40,8 @@ registerEntity({
     onInteract(ctx: InteractionContext): boolean {
         if (ctx.tool !== "pickaxe") return false;
         const pos = resolveAnchorPos(ctx);
-        if (!removeFacilityAtPos(ctx.voxelMap, ctx.inventory, pos.x, pos.z, ENTITY_TYPES.forge)) return false;
+        const extraItems = forgeStorage?.collectAllStacks(pos) ?? [];
+        if (!removeFacilityAtPos(ctx.voxelMap, ctx.inventory, pos.x, pos.z, ENTITY_TYPES.forge, extraItems)) return false;
         forgeStorage?.remove(pos);
         return true;
     },
@@ -69,7 +70,8 @@ registerEntity({
     onInteract(ctx: InteractionContext): boolean {
         if (ctx.tool !== "pickaxe") return false;
         const pos = resolveAnchorPos(ctx);
-        if (!removeFacilityAtPos(ctx.voxelMap, ctx.inventory, pos.x, pos.z, ENTITY_TYPES.forge_burning)) return false;
+        const extraItems = forgeStorage?.collectAllStacks(pos) ?? [];
+        if (!removeFacilityAtPos(ctx.voxelMap, ctx.inventory, pos.x, pos.z, ENTITY_TYPES.forge_burning, extraItems)) return false;
         forgeStorage?.remove(pos);
         return true;
     },

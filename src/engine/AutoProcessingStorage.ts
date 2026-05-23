@@ -79,6 +79,17 @@ export class AutoProcessingStorage extends KeyedSlotStorage<AutoProcessingSlots>
         };
     }
 
+    protected toItemStacks(slots: AutoProcessingSlots): ItemStack[] {
+        const result: ItemStack[] = [];
+        for (const s of slots.inputs) {
+            if (s !== null) result.push({ ...s });
+        }
+        for (const s of slots.outputs) {
+            if (s !== null) result.push({ ...s });
+        }
+        return result;
+    }
+
     // ── 読み取り ──
 
     getInput(pos: Pos2D, index: number): ItemStack | null {

@@ -45,14 +45,14 @@ export function registerManualProcessingEntity(opts: ManualProcessingEntityOptio
             return [[fieldSpriteName, 0, 0]];
         },
 
-        // 左クリック: axe による撤去（storage が空のときのみ）
+        // 左クリック: axe による撤去（中身は一緒にインベントリへ回収）
         onInteract(ctx: InteractionContext): boolean {
             if (ctx.tool !== "axe") return false;
             const anchor = findFacilityAnchor(ctx.voxelMap, ctx.surfacePos.x, ctx.surfacePos.z);
             if (anchor.entityType !== entityType) throw new Error("anchor entity type mismatch");
             const anchorPos = { x: anchor.anchorX, z: anchor.anchorZ };
-            if (manualProcessingStorage && !manualProcessingStorage.isEmpty(anchorPos)) return false;
-            const removed = removeFacility(ctx.voxelMap, ctx.inventory, anchor.anchorX, anchor.anchorZ, anchor.entityType, 0);
+            const extraItems = manualProcessingStorage?.collectAllStacks(anchorPos) ?? [];
+            const removed = removeFacility(ctx.voxelMap, ctx.inventory, anchor.anchorX, anchor.anchorZ, anchor.entityType, 0, extraItems);
             if (removed) manualProcessingStorage?.remove(anchorPos);
             return removed;
         },

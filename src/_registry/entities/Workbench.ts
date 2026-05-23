@@ -30,7 +30,8 @@ registerEntity({
     onInteract(ctx: InteractionContext): boolean {
         if (ctx.tool === "axe") {
             const anchorPos = resolveWorkbenchAnchor(ctx);
-            const removed = removeFacilityAtPos(ctx.voxelMap, ctx.inventory, anchorPos.x, anchorPos.z, ENTITY_TYPES.workbench);
+            const extraItems = workbenchStorage?.collectAllStacks(anchorPos) ?? [];
+            const removed = removeFacilityAtPos(ctx.voxelMap, ctx.inventory, anchorPos.x, anchorPos.z, ENTITY_TYPES.workbench, extraItems);
             if (removed) {
                 workbenchStorage?.remove(anchorPos);
             }

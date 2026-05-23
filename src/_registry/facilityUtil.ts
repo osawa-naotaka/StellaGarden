@@ -1,4 +1,4 @@
-import type { IInventoryWriter, ItemId, IVoxelReader, IVoxelWriter, Pos2D } from "../_boundary/interfaces";
+import type { IInventoryWriter, ItemId, ItemStack, IVoxelReader, IVoxelWriter, Pos2D } from "../_boundary/interfaces";
 import {
     ENTITY_TYPES,
     getDisplacementXFromVoxel,
@@ -29,7 +29,13 @@ function getEntitySize(entityType: number, variant: PlacementVariant): { w: numb
     return getEntityDef(entityType).getEntitySize(variant);
 }
 
-/** 施設を撤去してインベントリに回収する。成功時 true。 */
+/**
+ * 施設を撤去してインベントリに回収する。成功時 true。
+ *
+ * `extraItems` には施設に格納されていた中身（チェスト内アイテム、処理機の入出力スロットなど）を渡す。
+ * 施設本体 + extraItems を `inventory.addItems` でアトミックに追加するため、
+ * インベントリが満杯で全部が入りきらない場合は撤去自体がキャンセルされ、何も失われない。
+ */
 export function removeFacility(
     voxelMap: IVoxelWriter,
     inventory: IInventoryWriter,
@@ -37,11 +43,16 @@ export function removeFacility(
     anchorZ: number,
     entityType: number,
     variant: PlacementVariant,
+    extraItems: ReadonlyArray<ItemStack> = [],
 ): boolean {
     const def = getItemDefByEntityType(entityType);
     if (!def) return false;
     if (!def.placement) return false;
-    if (!inventory.addItems([{ itemId: def.itemId as ItemId, count: 1 }])) return false;
+    const itemsToReturn: { itemId: ItemId; count: number }[] = [{ itemId: def.itemId as ItemId, count: 1 }];
+    for (const stack of extraItems) {
+        itemsToReturn.push({ itemId: stack.itemId, count: stack.count });
+    }
+    if (!inventory.addItems(itemsToReturn)) return false;
 
     const { w, h } = getEntitySize(def.placement.entityType, variant);
     for (let dz = 0; dz < h; dz++) {
@@ -55,10 +66,17 @@ export function removeFacility(
 }
 
 /** ctx の surfacePos からアンカーを解決し、施設を撤去する。成功時 true。 */
-export function removeFacilityAtPos(voxelMap: IVoxelWriter, inventory: IInventoryWriter, x: number, z: number, expectedEntityType: number): boolean {
+export function removeFacilityAtPos(
+    voxelMap: IVoxelWriter,
+    inventory: IInventoryWriter,
+    x: number,
+    z: number,
+    expectedEntityType: number,
+    extraItems: ReadonlyArray<ItemStack> = [],
+): boolean {
     const anchor = findFacilityAnchor(voxelMap, x, z);
     if (!anchor || anchor.entityType !== expectedEntityType) return false;
-    return removeFacility(voxelMap, inventory, anchor.anchorX, anchor.anchorZ, anchor.entityType, anchor.variant);
+    return removeFacility(voxelMap, inventory, anchor.anchorX, anchor.anchorZ, anchor.entityType, anchor.variant, extraItems);
 }
 
 /** 施設をフィールドに配置する（アンカー + facility_part の voxel 書き込み）。 */
