@@ -167,4 +167,14 @@ export class PlayerState implements IPlayerStateWriter {
             zoomLevel: this.zoomLevel_,
         });
     }
+
+    /** 指定ワールド座標に瞬時にワープする（水没救出など）。 */
+    teleportTo(pos: Pos2D): void {
+        this.posInWorld_.x = pos.x;
+        this.posInWorld_.z = pos.z;
+        this.broker?.publish("player_position_changed", {
+            posInWorld: this.posInWorld_,
+            zoomLevel: this.zoomLevel_,
+        });
+    }
 }

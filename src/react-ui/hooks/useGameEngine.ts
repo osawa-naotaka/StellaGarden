@@ -8,6 +8,7 @@ import { processDailyTick } from "../../engine/CropSystem";
 import { GameTime } from "../../engine/GameTime";
 import { Inventory } from "../../engine/Inventory";
 import { MissionSystem } from "../../engine/MissionSystem";
+import { createPlayerRescueHandler } from "../../engine/PlayerRescueSystem";
 import { PlayerState } from "../../engine/PlayerState";
 import { ReputationSystem } from "../../engine/ReputationSystem";
 import { InputHandler } from "../../input/InputHandler";
@@ -118,7 +119,7 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
             const uiState = new UIState();
             disposers.push(uiState.subscribeEvents(eventBroker));
 
-            const placementOverlay = new PlacementOverlay(voxelMap, playerState.inventory, uiState, eventBroker);
+            const placementOverlay = new PlacementOverlay(voxelMap, playerState.inventory, uiState, eventBroker, playerState);
             worldContainer.addChild(placementOverlay.top);
 
             const {
@@ -159,6 +160,7 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
             worldContainer.addChild(cartView.top);
 
             disposers.push(createInteractionHandler(voxelMap, playerState.inventory, eventBroker, uiState, playerState, cartStorage));
+            disposers.push(createPlayerRescueHandler(voxelMap, playerState, eventBroker));
 
             const gameTime = new GameTime(saveData?.gameTime.elapsedMs);
 

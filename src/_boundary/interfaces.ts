@@ -118,6 +118,8 @@ export interface IPlayerStateWriter extends IPlayerStateReader {
     moveBy(dx: number, dz: number, deltaMS: number): void;
     adjustZoom(delta: number): void;
     setPointerPosInWorld(x: number, z: number): void;
+    /** 指定ワールド座標に瞬時にワープする（水没救出など）。player_position_changed を発火する。 */
+    teleportTo(pos: Pos2D): void;
 }
 
 // ─── GameTime インターフェース ────────────────────────────────────────────────

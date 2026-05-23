@@ -1,6 +1,6 @@
 import { Container, Graphics, Sprite, Texture } from "pixi.js";
 import { PIXEL_PER_TILE } from "../_boundary/constants";
-import type { IEventBroker, IInventoryWriter, IVoxelWriter, Pos2D } from "../_boundary/interfaces";
+import type { IEventBroker, IInventoryWriter, IPlayerStateReader, IVoxelWriter, Pos2D } from "../_boundary/interfaces";
 import { getEntityDef } from "../_registry/EntityRegistry";
 import { getPlacementInfo, type PlacementInfo, type PlacementVariant } from "../_registry/ItemRegistry";
 import { ENTITY_TYPES, getEntityTypeFromVoxel, getTerrainTypeFromVoxel, TERRAIN_TYPES } from "../engine/VoxelDefs";
@@ -21,6 +21,7 @@ export class PlacementOverlay {
     private inventory: IInventoryWriter;
     private uiState: UIState;
     private eventBroker: IEventBroker;
+    private playerState: IPlayerStateReader;
     private valid = false;
     private snappedPos: Pos2D = { x: 0, z: 0 };
     private entitySizeFn: (variant: PlacementVariant) => { w: number; h: number } = () => ({ w: 1, h: 1 });
@@ -30,11 +31,12 @@ export class PlacementOverlay {
     private onPointerDownBound: (e: MouseEvent) => void;
     private onKeyDownBound: (e: KeyboardEvent) => void;
 
-    constructor(voxelMap: IVoxelWriter, inventory: IInventoryWriter, uiState: UIState, eventBroker: IEventBroker) {
+    constructor(voxelMap: IVoxelWriter, inventory: IInventoryWriter, uiState: UIState, eventBroker: IEventBroker, playerState: IPlayerStateReader) {
         this.voxelMap = voxelMap;
         this.inventory = inventory;
         this.uiState = uiState;
         this.eventBroker = eventBroker;
+        this.playerState = playerState;
         this.container = new Container();
         this.container.visible = false;
 
@@ -117,6 +119,14 @@ export class PlacementOverlay {
         const { w, h } = this.entitySizeFn(this.uiState.placementVariant);
 
         if (x < 0 || x + w > map.width || z < 0 || z + h > map.depth) {
+            return false;
+        }
+
+        // 配置範囲内にプレイヤーが立っている場合は不可。
+        // 種類によらない普遍的な制約なので、PlacementInfo.canPlace のバイパスより前で判定する。
+        const playerTileX = Math.floor(this.playerState.posInWorld.x);
+        const playerTileZ = Math.floor(this.playerState.posInWorld.z);
+        if (playerTileX >= x && playerTileX < x + w && playerTileZ >= z && playerTileZ < z + h) {
             return false;
         }
 
