@@ -24,7 +24,10 @@ export type ScoreTable = ReadonlyArray<{
  * 地球への出荷に応じた評価値とアンロック進行を管理する。
  *
  * - 累計評価値（points）は出荷スコアの単純な合計
- * - 累計出荷数（cumulativeShipped）は品目ごとに別途追跡し、Tier アンロック判定に使う
+ * - 累計出荷数（cumulativeShipped）は **アンロック済み品目の有効出荷のみ** 加算する。
+ *   未アンロック品目の出荷はポイント 1pt のみ得られ、実績にはカウントされない
+ *   （売り先がない取引は「実績を開放できる取引」ではないため）。
+ *   この性質により、Tier アンロック判定は「正規の販路を持つ取引の累積」に基づく。
  */
 export class ReputationSystem implements IReputationSystemReader {
     private points: number;
@@ -75,12 +78,25 @@ export class ReputationSystem implements IReputationSystemReader {
      * 品目ごとの出荷数を集計して評価値と累計出荷数を加算する。
      * 戻り値は今回の加算結果サマリー。
      *
-     * 出荷前後で累積出荷量が閾値を跨いだ Tier については `tier_unlocked` イベントを発行する
+     * バッチ全体は **出荷開始時点のアンロック状態** をベースに処理する:
+     * - 開始時点でアンロック済みの品目は本来のスコアで評価され、累計出荷数に加算される
+     * - 未アンロックの品目は 1pt のみ得られ、累計出荷数には加算されない
+     *
+     * 同一バッチ内で前の品目がアンロックを引き起こしても、後の品目はそれを認識しない
+     * （次の出荷から有効になる）。これにより挙動が予測しやすくなる。
+     *
+     * 累計出荷量が閾値を跨いだ Tier については `tier_unlocked` イベントを発行する
      * （ミッションシステムが購読し、出荷ミッションの完了判定に使う）。
      */
     processShipment(itemCounts: ReadonlyMap<ItemId, number>): ShipmentSummary {
-        // 出荷前の累積出荷量スナップショット（Tier 跨ぎ判定用）
+        // 出荷開始時点の累積出荷量と、各品目のアンロック状態をスナップショット
         const beforeCumulative = new Map(this.cumulativeShipped);
+        const unlockedAtStart = new Set<ItemId>();
+        for (const itemId of itemCounts.keys()) {
+            if (this.isItemUnlocked(itemId)) {
+                unlockedAtStart.add(itemId);
+            }
+        }
 
         const byItem: Array<{
             itemId: ItemId;
@@ -92,10 +108,16 @@ export class ReputationSystem implements IReputationSystemReader {
 
         for (const [itemId, count] of itemCounts) {
             if (count <= 0) continue;
-            const points = this.calculateStackPoints(itemId, count);
+            const isUnlocked = unlockedAtStart.has(itemId);
+            const baseScore = isUnlocked ? (TIER_DEFS.find((t) => t.itemId === itemId)?.baseScore ?? 1) : 1;
+            const points = baseScore * count;
             totalPoints += points;
             byItem.push({ itemId, count, points });
-            this.cumulativeShipped.set(itemId, (this.cumulativeShipped.get(itemId) ?? 0) + count);
+            // 開始時点でアンロック済みの品目のみ実績累計に加算する。
+            // 未アンロックの取引は「実績を開放できない取引」のため累計には含めない。
+            if (isUnlocked) {
+                this.cumulativeShipped.set(itemId, (this.cumulativeShipped.get(itemId) ?? 0) + count);
+            }
         }
 
         this.points += totalPoints;
@@ -143,20 +165,24 @@ export class ReputationSystem implements IReputationSystemReader {
     }
 
     private getCurrentScoreTable(): ScoreTable {
-        return TIER_DEFS.map((tier) => {
-            if (tier.unlock === null) {
-                return {
-                    itemId: tier.itemId,
-                    baseScore: tier.baseScore,
-                };
-            }
-            const cumulative = this.getCumulativeShipped(tier.unlock.sourceItemId);
-            const isUnlocked = cumulative >= tier.unlock.threshold;
-            return {
-                itemId: tier.itemId,
-                baseScore: isUnlocked ? tier.baseScore : 1,
-            };
-        });
+        return TIER_DEFS.map((tier) => ({
+            itemId: tier.itemId,
+            baseScore: this.isItemUnlocked(tier.itemId) ? tier.baseScore : 1,
+        }));
+    }
+
+    /**
+     * 指定品目が現在の累計出荷量に基づきアンロック済みかを返す。
+     * - Tier 1（unlock === null）: 常に true
+     * - その他: 前提品目の累計出荷量 ≥ 閾値 で true
+     * - TIER_DEFS にない品目（出荷品目として未登録）: false
+     */
+    private isItemUnlocked(itemId: ItemId): boolean {
+        const tier = TIER_DEFS.find((t) => t.itemId === itemId);
+        if (!tier) return false;
+        if (tier.unlock === null) return true;
+        const cumulative = this.getCumulativeShipped(tier.unlock.sourceItemId);
+        return cumulative >= tier.unlock.threshold;
     }
 
     /**
