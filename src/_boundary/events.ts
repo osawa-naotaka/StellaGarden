@@ -84,4 +84,15 @@ export type GameEventMap = {
     crop_harvested: { pos: Pos2D; itemId: string; count: number };
     /** 木が伐採された */
     tree_felled: { pos: Pos2D };
+
+    // ─── ミッションシステム関連 ──────────────────────────────────────────────
+    // ミッション進捗判定（engine/MissionSystem）が購読する。
+    /** エンティティが配置された（warp gate / workbench / 各種施設）。
+     *  発行: 配置処理を行う engine 側システム。
+     *  購読: MissionSystem。 */
+    entity_placed: { pos: Pos2D; entityType: string };
+    /** 朝5時の出荷処理が行われた。
+     *  発行: useGameEngine の day_changed ハンドラ（reputationSystem.processShipment の後）。
+     *  購読: MissionSystem。items は { itemId: string -> count: number } の連想配列。 */
+    item_shipped: { items: ReadonlyMap<string, number> };
 };

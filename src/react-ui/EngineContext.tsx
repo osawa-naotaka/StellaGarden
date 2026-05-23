@@ -14,6 +14,7 @@ import type { ChestStorage } from "../engine/ChestStorage";
 import type { DailyProcessingStorage } from "../engine/DailyProcessingStorage";
 import type { ForgeStorage } from "../engine/ForgeStorage";
 import type { ManualProcessingStorage } from "../engine/ManualProcessingStorage";
+import type { MissionSystem } from "../engine/MissionSystem";
 import type { WarpGateStorage } from "../engine/WarpGateStorage";
 import type { UIState } from "../view/UIState";
 
@@ -37,6 +38,7 @@ export interface EngineRefs {
     voxelMap: IVoxelWriter;
     uiState: UIState;
     eventBroker: IEventBroker;
+    missionSystem: MissionSystem;
 }
 
 const EngineContext = createContext<EngineRefs | null>(null);

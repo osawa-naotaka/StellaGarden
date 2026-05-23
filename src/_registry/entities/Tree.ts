@@ -76,6 +76,7 @@ registerEntity({
             )
                 return false;
             ctx.voxelMap.set(ctx.voxel & 0x000000ffn, ctx.surfacePos);
+            ctx.eventBroker.publish("tree_felled", { pos: { x: ctx.surfacePos.x, z: ctx.surfacePos.z } });
             return true;
         }
 

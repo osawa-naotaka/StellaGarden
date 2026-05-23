@@ -7,6 +7,7 @@ import { CraftSystem } from "../../engine/CraftSystem";
 import { processDailyTick } from "../../engine/CropSystem";
 import { GameTime } from "../../engine/GameTime";
 import { Inventory } from "../../engine/Inventory";
+import { MissionSystem } from "../../engine/MissionSystem";
 import { PlayerState } from "../../engine/PlayerState";
 import { ReputationSystem } from "../../engine/ReputationSystem";
 import { InputHandler } from "../../input/InputHandler";
@@ -117,7 +118,7 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
             const uiState = new UIState();
             disposers.push(uiState.subscribeEvents(eventBroker));
 
-            const placementOverlay = new PlacementOverlay(voxelMap, playerState.inventory, uiState);
+            const placementOverlay = new PlacementOverlay(voxelMap, playerState.inventory, uiState, eventBroker);
             worldContainer.addChild(placementOverlay.top);
 
             const {
@@ -135,6 +136,9 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
                 points: saveData?.reputation.points ?? 0,
                 cumulativeShipped: saveData?.reputation.cumulativeShipped,
             });
+
+            const missionSystem = new MissionSystem(saveData?.mission);
+            disposers.push(missionSystem.subscribeEvents(eventBroker));
 
             const craftSystem = new CraftSystem(playerState.inventory, workbenchStorage, uiState);
 
@@ -174,6 +178,10 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
                     }
                     reputationSystem.processShipment(shippedItems);
                     warpGateStorage.clear();
+                    // ミッションシステムなどへ通知。ItemId は string のリテラルユニオンなのでキャスト安全。
+                    if (shippedItems.size > 0) {
+                        eventBroker.publish("item_shipped", { items: shippedItems as ReadonlyMap<string, number> });
+                    }
                 }),
             );
 
@@ -194,6 +202,7 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
                 voxelMap,
                 uiState,
                 eventBroker,
+                missionSystem,
             });
 
             const inputHandler = new InputHandler(topView.top, playerState, eventBroker);
@@ -227,6 +236,7 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
                         autoProcessingStorage,
                         cartStorage,
                         reputationSystem,
+                        missionSystem,
                     }),
                 )
                     .catch((e) => console.warn("Save failed:", e))

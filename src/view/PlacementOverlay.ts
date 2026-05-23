@@ -1,6 +1,6 @@
 import { Container, Graphics, Sprite, Texture } from "pixi.js";
 import { PIXEL_PER_TILE } from "../_boundary/constants";
-import type { IInventoryWriter, IVoxelWriter, Pos2D } from "../_boundary/interfaces";
+import type { IEventBroker, IInventoryWriter, IVoxelWriter, Pos2D } from "../_boundary/interfaces";
 import { getEntityDef } from "../_registry/EntityRegistry";
 import { getPlacementInfo, type PlacementInfo, type PlacementVariant } from "../_registry/ItemRegistry";
 import { ENTITY_TYPES, getEntityTypeFromVoxel, getTerrainTypeFromVoxel, TERRAIN_TYPES } from "../engine/VoxelDefs";
@@ -20,6 +20,7 @@ export class PlacementOverlay {
     private voxelMap: IVoxelWriter;
     private inventory: IInventoryWriter;
     private uiState: UIState;
+    private eventBroker: IEventBroker;
     private valid = false;
     private snappedPos: Pos2D = { x: 0, z: 0 };
     private entitySizeFn: (variant: PlacementVariant) => { w: number; h: number } = () => ({ w: 1, h: 1 });
@@ -29,10 +30,11 @@ export class PlacementOverlay {
     private onPointerDownBound: (e: MouseEvent) => void;
     private onKeyDownBound: (e: KeyboardEvent) => void;
 
-    constructor(voxelMap: IVoxelWriter, inventory: IInventoryWriter, uiState: UIState) {
+    constructor(voxelMap: IVoxelWriter, inventory: IInventoryWriter, uiState: UIState, eventBroker: IEventBroker) {
         this.voxelMap = voxelMap;
         this.inventory = inventory;
         this.uiState = uiState;
+        this.eventBroker = eventBroker;
         this.container = new Container();
         this.container.visible = false;
 
@@ -152,6 +154,9 @@ export class PlacementOverlay {
             // exitPlacementMode は placementVariant を 0 にリセットするため、
             // 最後の 1 個を配置するときに variant が失われる。先に保持しておく。
             const variant = this.uiState.placementVariant;
+            // entity_placed イベント用に itemId を保持（exitPlacementMode 後でも参照できるように）
+            const placedItemId = stack.itemId;
+            const placedPos: Pos2D = { x: this.snappedPos.x, z: this.snappedPos.z };
 
             if (stack.count === 1) {
                 this.inventory.setSlot(this.uiState.placementSourceSlot, null);
@@ -162,6 +167,9 @@ export class PlacementOverlay {
 
             // 副作用: voxelMap に配置
             this.placementInfo.onPlace(this.voxelMap, this.snappedPos, variant);
+
+            // ミッションシステムなどに通知。entityType は itemId（例: "warp_gate"）。
+            this.eventBroker.publish("entity_placed", { pos: placedPos, entityType: placedItemId });
         }
     }
 

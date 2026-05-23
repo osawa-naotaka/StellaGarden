@@ -5,6 +5,7 @@ import type { DailyProcessingStorage } from "../../engine/DailyProcessingStorage
 import type { ForgeStorage } from "../../engine/ForgeStorage";
 import type { GameTime } from "../../engine/GameTime";
 import type { ManualProcessingStorage } from "../../engine/ManualProcessingStorage";
+import type { MissionSystem } from "../../engine/MissionSystem";
 import type { PlayerState } from "../../engine/PlayerState";
 import type { ReputationSystem } from "../../engine/ReputationSystem";
 import type { WarpGateStorage } from "../../engine/WarpGateStorage";
@@ -27,6 +28,7 @@ export interface SaveSnapshotDeps {
     autoProcessingStorage: AutoProcessingStorage;
     cartStorage: CartStorage;
     reputationSystem: ReputationSystem;
+    missionSystem: MissionSystem;
 }
 
 /** 各サブシステムの現在状態から saveGame に渡すペイロードを組み立てる。 */
@@ -46,6 +48,7 @@ export function buildSaveData(deps: SaveSnapshotDeps): Omit<SaveData, "version" 
         autoProcessingStorage,
         cartStorage,
         reputationSystem,
+        missionSystem,
     } = deps;
     const inventory = playerState.inventory;
     return {
@@ -93,5 +96,6 @@ export function buildSaveData(deps: SaveSnapshotDeps): Omit<SaveData, "version" 
         },
         cartStorage: cartStorage.toSaveData(),
         reputation: reputationSystem.toSaveData(),
+        mission: missionSystem.toSaveData(),
     };
 }

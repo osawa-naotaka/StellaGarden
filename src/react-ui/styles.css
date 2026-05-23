@@ -800,3 +800,79 @@
 .sg-toggle-switch.is-on:hover {
     background: rgba(136, 192, 112, 0.25);
 }
+
+/* ─── ミッションパネル（左下） ───────────────────────────── */
+.sg-mission-panel {
+    position: absolute;
+    left: 16px;
+    bottom: 16px;
+    min-width: 260px;
+    max-width: 360px;
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(6px);
+    border-radius: var(--sg-radius);
+    padding: 10px 14px;
+    pointer-events: none;
+    color: var(--sg-fg);
+    font-size: var(--sg-font-size-sm);
+    line-height: 1.4;
+}
+
+.sg-mission-main {
+    color: var(--sg-accent-strong);
+    font-weight: 600;
+    font-size: var(--sg-font-size);
+    margin-bottom: 4px;
+}
+
+.sg-mission-sub-area {
+    position: relative;
+    min-height: 1.4em;
+}
+
+.sg-mission-sub {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    animation: sg-mission-sub-in 320ms var(--sg-easing) both;
+}
+
+.sg-mission-sub.is-completed {
+    color: var(--sg-success);
+    animation: sg-mission-sub-out 1500ms var(--sg-easing) both;
+}
+
+.sg-mission-checkmark {
+    color: var(--sg-success);
+    font-weight: 700;
+}
+
+.sg-mission-sub-text {
+    color: inherit;
+}
+
+@keyframes sg-mission-sub-in {
+    from {
+        opacity: 0;
+        transform: translateY(4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes sg-mission-sub-out {
+    0% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    40% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+}

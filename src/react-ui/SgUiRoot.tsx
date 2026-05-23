@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { MissionPanel } from "./components/MissionPanel";
 import { Toolbar } from "./components/Toolbar";
 import { EngineProvider, type EngineRefs, useEngine } from "./EngineContext";
 import { useUIMode } from "./hooks/useUIMode";
@@ -48,6 +49,7 @@ export function SgUiRoot({ engine, onSave, saveState }: { engine: EngineRefs; on
                     </button>
                 </div>
                 <GuidePanel open={guideOpen} onClose={() => setGuideOpen(false)} />
+                <MissionPanel />
                 <PanelDispatcher />
             </div>
         </EngineProvider>

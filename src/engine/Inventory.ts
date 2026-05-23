@@ -195,7 +195,10 @@ export class Inventory implements IInventoryWriter {
 
     /** 複数種類のアイテムをアトミックに追加する。
      *  全アイテムが追加可能な場合のみ追加し true を返す。
-     *  1つでも入りきらない場合は何も変更せず false を返す。 */
+     *  1つでも入りきらない場合は何も変更せず false を返す。
+     *
+     *  変更があったスロットごとに `inventory_changed` を publish する。
+     *  単一の addItems 呼び出しで複数のイベントが発火する場合がある。 */
     addItems(items: ReadonlyArray<{ itemId: ItemId; count: number }>): boolean {
         // スナップショットを作成してシミュレーション
         const tbSnapshot = this.toolbarSlots_.map((s) => (s ? { ...s } : null));
@@ -208,8 +211,31 @@ export class Inventory implements IInventoryWriter {
         }
 
         // シミュレーション成功 → スナップショットを実スロットに適用
-        for (let i = 0; i < tbSnapshot.length; i++) this.toolbarSlots_[i] = tbSnapshot[i];
-        for (let i = 0; i < invSnapshot.length; i++) this.inventorySlots_[i] = invSnapshot[i];
+        // 差分のあったスロットに対してのみ inventory_changed を発火する。
+        for (let i = 0; i < tbSnapshot.length; i++) {
+            const oldStack = this.toolbarSlots_[i];
+            const newStack = tbSnapshot[i];
+            this.toolbarSlots_[i] = newStack;
+            if (!isSameStack(oldStack, newStack)) {
+                this.broker?.publish("inventory_changed", {
+                    slotIndex: i,
+                    isToolbar: true,
+                    stack: newStack ? { itemId: newStack.itemId, count: newStack.count } : null,
+                });
+            }
+        }
+        for (let i = 0; i < invSnapshot.length; i++) {
+            const oldStack = this.inventorySlots_[i];
+            const newStack = invSnapshot[i];
+            this.inventorySlots_[i] = newStack;
+            if (!isSameStack(oldStack, newStack)) {
+                this.broker?.publish("inventory_changed", {
+                    slotIndex: i,
+                    isToolbar: false,
+                    stack: newStack ? { itemId: newStack.itemId, count: newStack.count } : null,
+                });
+            }
+        }
         return true;
     }
 
@@ -265,4 +291,11 @@ export class Inventory implements IInventoryWriter {
         const slot = this.toolbarSlots_[this.selectedIndex_];
         return slot !== null && slot.count >= count;
     }
+}
+
+/** 2 つのスタックが内容として同一かを判定する（差分検出用）。 */
+function isSameStack(a: ItemStack | null, b: ItemStack | null): boolean {
+    if (a === null && b === null) return true;
+    if (a === null || b === null) return false;
+    return a.itemId === b.itemId && a.count === b.count;
 }

@@ -36,7 +36,6 @@ export const RECIPES: readonly RecipeDef[] = [
         id: "hardwood_teeth",
         station: "workbench",
         ingredients: [{ itemId: "trunk", count: 1 }],
-        requiredTool: { itemId: "chisel" },
         result: { itemId: "hardwood_teeth", count: 4 },
     },
     {
@@ -331,8 +330,6 @@ export const RECIPES: readonly RecipeDef[] = [
             { itemId: "board", count: 2 },
             { itemId: "shaft", count: 1 },
             { itemId: "wheel", count: 1 },
-            { itemId: "pulley", count: 1 },
-            { itemId: "rope", count: 1 },
         ],
         result: { itemId: "spinning_wheel", count: 1 },
     },

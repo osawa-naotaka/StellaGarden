@@ -10,6 +10,7 @@ export type {
     GameTimeSaveData,
     InventorySaveData,
     ManualProcessingStorageSaveData,
+    MissionSaveData,
     PlayerStateSaveData,
     ReputationSaveData,
     SaveData,
@@ -44,7 +45,7 @@ export interface SlotEntry {
 const DB_NAME = "stella-garden";
 const DB_VERSION = 1;
 const STORE_NAME = "saveData";
-const CURRENT_SAVE_VERSION = 13;
+const CURRENT_SAVE_VERSION = 14;
 /** これより古いバージョンはマイグレーションパスがなく、ロード不可。 */
 const MIN_SUPPORTED_VERSION = 6;
 
@@ -109,6 +110,14 @@ const migrations: Record<number, (data: RawSave) => RawSave> = {
     // マイグレーション時点ではスロットIDから命名できないため、一律 "セーブデータ" とする。
     // ユーザーはタイトル画面のスロット選択画面からリネーム可能。
     12: (data) => ({ ...data, slotName: "セーブデータ" }),
+    // v13 → v14: ミッション進捗フィールドを追加（doc/25_MISSION_SYSTEM.md §6）。
+    // 並列フラグモデルのため、既存セーブはミッション進行ゼロから開始する。
+    // 既存セーブで先回り済みの操作（既に建てた作業台等）は、ミッションが表示順になったタイミングで
+    // 再度操作するか、将来の起動時スキャン機能（doc/25_MISSION_SYSTEM.md §7.6）で対応する。
+    13: (data) => ({
+        ...data,
+        mission: { completedSubs: [], completedMains: [] },
+    }),
 };
 
 /**

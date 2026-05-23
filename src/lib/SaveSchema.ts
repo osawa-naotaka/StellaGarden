@@ -145,6 +145,16 @@ export const ReputationSaveDataSchema = v.object({
     cumulativeShipped: v.array(v.tuple([ItemIdSchema, v.number()])),
 });
 
+/**
+ * ミッション進捗。並列フラグモデル（doc/25_MISSION_SYSTEM.md §4.1）。
+ * 達成済みのサブ ID とメイン ID を文字列配列で保持する。
+ * 「現在進行中のミッション」は状態として保持せず、表示時にフラグから動的に導出する。
+ */
+export const MissionSaveDataSchema = v.object({
+    completedSubs: v.array(v.string()),
+    completedMains: v.array(v.string()),
+});
+
 // ─── ルートスキーマ ───────────────────────────────────────────────────────────
 
 export const SaveDataSchema = v.object({
@@ -165,6 +175,7 @@ export const SaveDataSchema = v.object({
     autoProcessingStorage: AutoProcessingStorageSaveDataSchema,
     cartStorage: CartStorageSaveDataSchema,
     reputation: ReputationSaveDataSchema,
+    mission: MissionSaveDataSchema,
 });
 
 /** スロット一覧表示用の軽量ヘッダースキーマ。 */
@@ -190,3 +201,4 @@ export type DailyProcessingStorageSaveData = v.InferOutput<typeof DailyProcessin
 export type AutoProcessingStorageSaveData = v.InferOutput<typeof AutoProcessingStorageSaveDataSchema>;
 export type CartStorageSaveData = v.InferOutput<typeof CartStorageSaveDataSchema>;
 export type ReputationSaveData = v.InferOutput<typeof ReputationSaveDataSchema>;
+export type MissionSaveData = v.InferOutput<typeof MissionSaveDataSchema>;

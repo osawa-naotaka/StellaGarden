@@ -9,6 +9,7 @@ registerItem({
     onItemUse(ctx) {
         if (getTerrainTypeFromVoxel(ctx.voxel) !== TERRAIN_TYPES.soil) return false;
         ctx.voxelMap.set(setTerrainTypeInVoxel(ctx.voxel, TERRAIN_TYPES.wetSoil), ctx.surfacePos);
+        ctx.eventBroker.publish("crop_watered", { pos: { x: ctx.surfacePos.x, z: ctx.surfacePos.z } });
         return true;
     },
 });
