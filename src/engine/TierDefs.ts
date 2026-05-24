@@ -22,7 +22,7 @@ export const TIER_DEFS: readonly TierDef[] = [
         itemId: "soybeans",
         baseScore: 300,
         displayRow: 1,
-        unlock: { sourceItemId: "potato", threshold: 50 },
+        unlock: { sourceItemId: "potato", threshold: 64 },
     },
     {
         id: "tier3a",
@@ -30,7 +30,7 @@ export const TIER_DEFS: readonly TierDef[] = [
         itemId: "flaxseed_oil",
         baseScore: 800 * 8,
         displayRow: 2,
-        unlock: { sourceItemId: "soybeans", threshold: 30 },
+        unlock: { sourceItemId: "soybeans", threshold: 64 },
     },
     {
         id: "tier3b",
@@ -38,7 +38,7 @@ export const TIER_DEFS: readonly TierDef[] = [
         itemId: "soybean_oil",
         baseScore: 600 * 8,
         displayRow: 2,
-        unlock: { sourceItemId: "soybeans", threshold: 30 },
+        unlock: { sourceItemId: "soybeans", threshold: 64 },
     },
     {
         id: "tier4",
@@ -46,7 +46,7 @@ export const TIER_DEFS: readonly TierDef[] = [
         itemId: "thread",
         baseScore: 1200,
         displayRow: 3,
-        unlock: { sourceItemId: "flaxseed_oil", threshold: 20 },
+        unlock: { sourceItemId: "flaxseed_oil", threshold: 8 },
     },
     {
         id: "tier5",
@@ -54,7 +54,7 @@ export const TIER_DEFS: readonly TierDef[] = [
         itemId: "cloth",
         baseScore: 2000 * 8,
         displayRow: 4,
-        unlock: { sourceItemId: "thread", threshold: 30 },
+        unlock: { sourceItemId: "thread", threshold: 64 },
     },
     {
         id: "tier6a",
@@ -62,7 +62,7 @@ export const TIER_DEFS: readonly TierDef[] = [
         itemId: "bagged_potatos",
         baseScore: 1500 * 64,
         displayRow: 5,
-        unlock: { sourceItemId: "cloth", threshold: 30 },
+        unlock: { sourceItemId: "cloth", threshold: 8 },
     },
     {
         id: "tier6b",
@@ -70,7 +70,7 @@ export const TIER_DEFS: readonly TierDef[] = [
         itemId: "bagged_soybeans",
         baseScore: 5000 * 64,
         displayRow: 5,
-        unlock: { sourceItemId: "cloth", threshold: 30 },
+        unlock: { sourceItemId: "cloth", threshold: 8 },
         isGoal: true,
     },
 ];

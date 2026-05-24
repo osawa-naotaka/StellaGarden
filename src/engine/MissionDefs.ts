@@ -167,7 +167,7 @@ const M_03: MissionDef = {
     title: "じゃがいもを地球へ送ろう",
     subs: [
         { id: "M-03-1", order: 1, text: "転移ゲートを設置しよう", trigger: entityPlaced("warp_gate") },
-        { id: "M-03-2", order: 2, text: "じゃがいもを30個出荷して大豆ラインを開放しよう", trigger: tierUnlocked("soybeans") },
+        { id: "M-03-2", order: 2, text: "じゃがいもを64個出荷して大豆ラインを開放しよう", trigger: tierUnlocked("soybeans") },
     ],
     dialogue: [
         "収穫したじゃがいも、いよいよ地球へ送る番です！",
@@ -427,7 +427,7 @@ const M_15: MissionDef = {
     order: 15,
     title: "亜麻糸を出荷しよう",
     subs: [
-        { id: "M-15-1", order: 1, text: "浸漬槽を作って設置しよう", trigger: entityPlaced("soaking_basket") },
+        { id: "M-15-1", order: 1, text: "浸漬槽を水辺に作って設置しよう", trigger: entityPlaced("soaking_basket") },
         { id: "M-15-2", order: 2, text: "亜麻の茎を浸漬してレッティングしよう", trigger: itemObtained("processed_flax") },
         { id: "M-15-3", order: 3, text: "叩き台を作って繊維分離しよう", trigger: itemObtained("flax_fiber") },
         { id: "M-15-4", order: 4, text: "紡ぎ車を作って糸を紡ごう", trigger: itemObtained("thread") },

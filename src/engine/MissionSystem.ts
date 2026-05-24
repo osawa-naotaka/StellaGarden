@@ -167,6 +167,11 @@ export class MissionSystem {
         packet: unknown,
         triggers: Array<{ subId: string; mainId: string; predicate?: (p: unknown) => boolean }>,
     ): void {
+        // イベント処理前の「現在プレイヤーに表示されているメイン」を控える。
+        // 完了会話の発火は、このメインが今このイベントで完了した場合だけに絞る。
+        // doc/25 §4.4 の「先回りプレイヤーは静かにスキップ」を ADV 会話側にも適用する。
+        const displayedMainBefore = this.getCurrentMain();
+
         let anyChanged = false;
         const newlyCompletedMains = new Set<string>();
 
@@ -186,11 +191,11 @@ export class MissionSystem {
 
         if (anyChanged) {
             this.notifyChange();
-            // 新たに完了したメインがあれば、その完了会話（completionDialogue）を発火する。
-            // DialogView 側で完了会話が閉じられると dialog_finished が発行され、
-            // onDialogFinished で次のメインの開始会話が連続表示される。
-            for (const mainId of newlyCompletedMains) {
-                const main = ALL_MISSIONS.find((m) => m.id === mainId);
+            // 「いま表示中だったメイン」が今のイベントで完了した場合のみ completionDialogue を発火する。
+            // 先回り完了で裏側のメインが完了しても、唐突に完了会話が出ないようにする
+            // （プレイヤーは既にその内容を経験済みなので、会話を流さない方が自然）。
+            if (displayedMainBefore && newlyCompletedMains.has(displayedMainBefore.id)) {
+                const main = ALL_MISSIONS.find((m) => m.id === displayedMainBefore.id);
                 if (main?.completionDialogue) {
                     this.publishDialog(main.id, "completion", main.completionDialogue);
                 }
