@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { DialogView } from "./components/DialogView";
 import { MissionPanel } from "./components/MissionPanel";
 import { Toolbar } from "./components/Toolbar";
 import { EngineProvider, type EngineRefs, useEngine } from "./EngineContext";
@@ -18,6 +19,7 @@ import "./panels/WinchPanel";
 
 import { PropertyPanel } from "./components/PropertyPanel";
 import { getRegisteredPanels } from "./PanelRegistry";
+import { ChatLogPanel } from "./panels/ChatLogPanel";
 import { GuidePanel } from "./panels/GuidePanel";
 import "./styles.css";
 
@@ -27,6 +29,7 @@ import "./styles.css";
  */
 export function SgUiRoot({ engine, onSave, saveState }: { engine: EngineRefs; onSave: () => Promise<void>; saveState: "idle" | "saving" | "done" }) {
     const [guideOpen, setGuideOpen] = useState(false);
+    const [backLogOpen, setBackLogOpen] = useState(false);
 
     const saveLabel = saveState === "saving" ? "SAVING..." : saveState === "done" ? "SAVED!" : "SAVE";
 
@@ -47,9 +50,14 @@ export function SgUiRoot({ engine, onSave, saveState }: { engine: EngineRefs; on
                     >
                         {saveLabel}
                     </button>
+                    <button type="button" className="sg-backlog-button" onClick={() => setBackLogOpen((v) => !v)} aria-label="会話ログを開く">
+                        BackLog
+                    </button>
                 </div>
                 <GuidePanel open={guideOpen} onClose={() => setGuideOpen(false)} />
+                <ChatLogPanel open={backLogOpen} onClose={() => setBackLogOpen(false)} />
                 <MissionPanel />
+                <DialogView />
                 <PanelDispatcher />
             </div>
         </EngineProvider>

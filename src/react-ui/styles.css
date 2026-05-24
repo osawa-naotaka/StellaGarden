@@ -540,7 +540,8 @@
 }
 
 .sg-guide-button,
-.sg-save-button {
+.sg-save-button,
+.sg-backlog-button {
     background: rgba(0, 0, 0, 0.55);
     backdrop-filter: blur(6px);
     border: 1px solid var(--sg-border);
@@ -559,7 +560,8 @@
 }
 
 .sg-guide-button:hover,
-.sg-save-button:hover:not(:disabled) {
+.sg-save-button:hover:not(:disabled),
+.sg-backlog-button:hover {
     background: var(--sg-bg-elev2);
     border-color: var(--sg-accent);
     color: var(--sg-accent-strong);
@@ -875,4 +877,172 @@
         opacity: 0;
         transform: translateY(-4px);
     }
+}
+
+/* ─── ADV 会話モーダル ─────────────────────────────────────── */
+.sg-dialog-overlay {
+    position: fixed;
+    inset: 0;
+    pointer-events: auto;
+    cursor: pointer;
+    z-index: 800;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 0 24px 24px;
+}
+
+.sg-dialog-window {
+    width: 100%;
+    max-width: 1100px;
+    min-height: 168px;
+    background: rgba(0, 0, 0, 0.78);
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--sg-border);
+    border-radius: var(--sg-radius);
+    display: grid;
+    grid-template-columns: 144px 1fr;
+    gap: 16px;
+    padding: 16px 20px;
+    color: var(--sg-fg);
+    animation: sg-dialog-in 180ms var(--sg-easing) both;
+}
+
+.sg-dialog-portrait {
+    width: 144px;
+    height: 144px;
+    background: linear-gradient(135deg, #5a6f8a 0%, #3a4a5e 100%);
+    border: 1px solid var(--sg-border);
+    border-radius: var(--sg-radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.sg-dialog-portrait-placeholder {
+    color: var(--sg-fg-dim);
+    font-size: var(--sg-font-size-sm);
+    letter-spacing: 2px;
+}
+
+.sg-dialog-body {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+    position: relative;
+    padding-right: 20px;
+}
+
+.sg-dialog-speaker {
+    font-size: var(--sg-font-size);
+    font-weight: 700;
+    color: var(--sg-accent-strong);
+    letter-spacing: 1px;
+}
+
+.sg-dialog-text {
+    font-size: var(--sg-font-size-lg);
+    line-height: 1.6;
+    color: var(--sg-fg);
+    white-space: pre-wrap;
+    flex: 1;
+}
+
+.sg-dialog-marker {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    color: var(--sg-accent-strong);
+    font-size: var(--sg-font-size);
+    animation: sg-dialog-marker-blink 1200ms ease-in-out infinite;
+}
+
+.sg-dialog-marker.is-last {
+    color: var(--sg-success);
+}
+
+@keyframes sg-dialog-in {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes sg-dialog-marker-blink {
+    0%,
+    100% {
+        opacity: 0.4;
+    }
+    50% {
+        opacity: 1;
+    }
+}
+
+/* ─── 会話ログパネル（左側からスライドイン） ───────────────── */
+.sg-chatlog-panel {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.sg-chatlog-panel.is-open {
+    pointer-events: auto;
+}
+
+.sg-chatlog-panel .sg-sidepanel {
+    width: 520px;
+    left: 0;
+    right: auto;
+    transform: translateX(-100%);
+    box-shadow: var(--sg-shadow);
+}
+
+.sg-chatlog-panel .sg-sidepanel.is-open {
+    transform: translateX(0);
+}
+
+.sg-chatlog-body {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.sg-chatlog-empty {
+    color: var(--sg-fg-dim);
+    font-size: var(--sg-font-size-sm);
+    margin: 0;
+    text-align: center;
+    padding: 24px 0;
+}
+
+.sg-chatlog-entry {
+    background: var(--sg-bg-elev);
+    border: 1px solid var(--sg-border);
+    border-radius: var(--sg-radius-sm);
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.sg-chatlog-speaker {
+    font-size: var(--sg-font-size-sm);
+    font-weight: 700;
+    color: var(--sg-accent-strong);
+    letter-spacing: 1px;
+}
+
+.sg-chatlog-line {
+    margin: 0;
+    font-size: var(--sg-font-size);
+    line-height: 1.6;
+    color: var(--sg-fg);
+    white-space: pre-wrap;
 }

@@ -149,10 +149,28 @@ export const ReputationSaveDataSchema = v.object({
  * ミッション進捗。並列フラグモデル（doc/25_MISSION_SYSTEM.md §4.1）。
  * 達成済みのサブ ID とメイン ID を文字列配列で保持する。
  * 「現在進行中のミッション」は状態として保持せず、表示時にフラグから動的に導出する。
+ *
+ * triggeredDialogs: 既に表示済みの ADV 会話の scriptId 一覧（"M-01:opening" / "M-01:completion" 形式）。
+ * 同じ会話の重複表示を防ぐためのフラグ。既存セーブとの互換性のため optional。
  */
 export const MissionSaveDataSchema = v.object({
     completedSubs: v.array(v.string()),
     completedMains: v.array(v.string()),
+    triggeredDialogs: v.optional(v.array(v.string()), () => []),
+});
+
+/**
+ * 会話ログ（doc/25_MISSION_SYSTEM.md §3.3）。
+ * ADV 型会話の履歴を時系列で保持する。BackLog ボタンから読み返せる。
+ */
+const ChatEntrySchema = v.object({
+    scriptId: v.string(),
+    speakerName: v.string(),
+    lines: v.array(v.string()),
+});
+
+export const ChatHistorySaveDataSchema = v.object({
+    entries: v.array(ChatEntrySchema),
 });
 
 // ─── ルートスキーマ ───────────────────────────────────────────────────────────
@@ -176,6 +194,7 @@ export const SaveDataSchema = v.object({
     cartStorage: CartStorageSaveDataSchema,
     reputation: ReputationSaveDataSchema,
     mission: MissionSaveDataSchema,
+    chatHistory: v.optional(ChatHistorySaveDataSchema, () => ({ entries: [] })),
 });
 
 /** スロット一覧表示用の軽量ヘッダースキーマ。 */
@@ -202,3 +221,4 @@ export type AutoProcessingStorageSaveData = v.InferOutput<typeof AutoProcessingS
 export type CartStorageSaveData = v.InferOutput<typeof CartStorageSaveDataSchema>;
 export type ReputationSaveData = v.InferOutput<typeof ReputationSaveDataSchema>;
 export type MissionSaveData = v.InferOutput<typeof MissionSaveDataSchema>;
+export type ChatHistorySaveData = v.InferOutput<typeof ChatHistorySaveDataSchema>;

@@ -16,14 +16,20 @@ import { ALL_MISSIONS, type MissionDef, type SubMissionDef } from "./MissionDefs
  * - 現在のミッションとは無関係な操作で達成条件が満たされても、対応するフラグが裏で立つ
  * - 後でそのミッションが表示順になったとき、既達成のため自動的にスキップされる
  */
+/** 後輩キャラの表示名（仮）。Phase 5 で正式名称に差し替える。 */
+const SPEAKER_NAME = "後輩";
+
 export class MissionSystem {
     private completedSubs: Set<string>;
     private completedMains: Set<string>;
+    private triggeredDialogs: Set<string>;
+    private broker: IEventBroker | null = null;
     private changeListeners: Set<() => void> = new Set();
 
     constructor(init?: MissionSaveData) {
         this.completedSubs = new Set(init?.completedSubs ?? []);
         this.completedMains = new Set(init?.completedMains ?? []);
+        this.triggeredDialogs = new Set(init?.triggeredDialogs ?? []);
         // 念のため、ロード直後にメイン完了判定を再評価する（サブ定義の変更等に追随）
         this.recomputeMainsFromSubs();
     }
@@ -35,6 +41,7 @@ export class MissionSystem {
      * 戻り値の dispose 関数を呼ぶと、全リスナーが解除される。
      */
     subscribeEvents(broker: IEventBroker): () => void {
+        this.broker = broker;
         const triggersByEvent = this.groupTriggersByEvent();
         const disposers: Array<() => void> = [];
 
@@ -46,9 +53,30 @@ export class MissionSystem {
             );
         }
 
+        // 完了会話が閉じられたら、次のメインミッションの開始会話を発火する（連続表示）
+        disposers.push(
+            broker.subscribe("dialog_finished", ({ scriptId }) => {
+                this.onDialogFinished(scriptId);
+            }),
+        );
+
         return () => {
             for (const d of disposers) d();
+            this.broker = null;
         };
+    }
+
+    /**
+     * 現在のメインミッションの開始会話（dialogue）を発火する。
+     * ゲーム起動直後（DialogView のマウント時など）に一度呼ぶことで、
+     * 該当ミッションを初めて表示する場合に opening 会話が再生される。
+     * 二重再生は triggeredDialogs により防がれる。
+     */
+    triggerOpeningForCurrentMain(): void {
+        const main = this.getCurrentMain();
+        if (main?.dialogue) {
+            this.publishDialog(main.id, "opening", main.dialogue);
+        }
     }
 
     /** 現在表示すべきメインミッション（未達成のうち order 最小）。全完了なら null。 */
@@ -102,6 +130,7 @@ export class MissionSystem {
         return {
             completedSubs: Array.from(this.completedSubs),
             completedMains: Array.from(this.completedMains),
+            triggeredDialogs: Array.from(this.triggeredDialogs),
         };
     }
 
@@ -155,7 +184,46 @@ export class MissionSystem {
             }
         }
 
-        if (anyChanged) this.notifyChange();
+        if (anyChanged) {
+            this.notifyChange();
+            // 新たに完了したメインがあれば、その完了会話（completionDialogue）を発火する。
+            // DialogView 側で完了会話が閉じられると dialog_finished が発行され、
+            // onDialogFinished で次のメインの開始会話が連続表示される。
+            for (const mainId of newlyCompletedMains) {
+                const main = ALL_MISSIONS.find((m) => m.id === mainId);
+                if (main?.completionDialogue) {
+                    this.publishDialog(main.id, "completion", main.completionDialogue);
+                }
+            }
+        }
+    }
+
+    /**
+     * 完了会話の終了通知を受けて、次のメインミッションの開始会話を発火する。
+     * 開始会話の終了通知は無視する（プレイヤーがミッションを始める時間に充てる）。
+     */
+    private onDialogFinished(scriptId: string): void {
+        if (!scriptId.endsWith(":completion")) return;
+        const next = this.getCurrentMain();
+        if (next?.dialogue) {
+            this.publishDialog(next.id, "opening", next.dialogue);
+        }
+    }
+
+    /**
+     * ADV 型会話を発行する。scriptId は `${mainId}:${kind}` で一意化し、
+     * 既に表示済みの会話は再発火しない（triggeredDialogs で管理）。
+     */
+    private publishDialog(mainId: string, kind: "opening" | "completion", lines: ReadonlyArray<string>): void {
+        if (!this.broker || lines.length === 0) return;
+        const scriptId = `${mainId}:${kind}`;
+        if (this.triggeredDialogs.has(scriptId)) return;
+        this.triggeredDialogs.add(scriptId);
+        this.broker.publish("dialog_requested", {
+            scriptId,
+            speakerName: SPEAKER_NAME,
+            lines,
+        });
     }
 
     /** 指定メインの全サブが達成済みかを判定する。 */

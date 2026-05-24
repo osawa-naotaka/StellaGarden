@@ -10,6 +10,7 @@ import type {
 } from "../_boundary/interfaces";
 import type { AutoProcessingStorage } from "../engine/AutoProcessingStorage";
 import type { CartStorage } from "../engine/CartStorage";
+import type { ChatHistory } from "../engine/ChatHistory";
 import type { ChestStorage } from "../engine/ChestStorage";
 import type { DailyProcessingStorage } from "../engine/DailyProcessingStorage";
 import type { ForgeStorage } from "../engine/ForgeStorage";
@@ -39,6 +40,7 @@ export interface EngineRefs {
     uiState: UIState;
     eventBroker: IEventBroker;
     missionSystem: MissionSystem;
+    chatHistory: ChatHistory;
 }
 
 const EngineContext = createContext<EngineRefs | null>(null);

@@ -1,5 +1,6 @@
 import type { AutoProcessingStorage } from "../../engine/AutoProcessingStorage";
 import type { CartStorage } from "../../engine/CartStorage";
+import type { ChatHistory } from "../../engine/ChatHistory";
 import type { ChestStorage } from "../../engine/ChestStorage";
 import type { DailyProcessingStorage } from "../../engine/DailyProcessingStorage";
 import type { ForgeStorage } from "../../engine/ForgeStorage";
@@ -29,6 +30,7 @@ export interface SaveSnapshotDeps {
     cartStorage: CartStorage;
     reputationSystem: ReputationSystem;
     missionSystem: MissionSystem;
+    chatHistory: ChatHistory;
 }
 
 /** 各サブシステムの現在状態から saveGame に渡すペイロードを組み立てる。 */
@@ -49,6 +51,7 @@ export function buildSaveData(deps: SaveSnapshotDeps): Omit<SaveData, "version" 
         cartStorage,
         reputationSystem,
         missionSystem,
+        chatHistory,
     } = deps;
     const inventory = playerState.inventory;
     return {
@@ -97,5 +100,6 @@ export function buildSaveData(deps: SaveSnapshotDeps): Omit<SaveData, "version" 
         cartStorage: cartStorage.toSaveData(),
         reputation: reputationSystem.toSaveData(),
         mission: missionSystem.toSaveData(),
+        chatHistory: chatHistory.toSaveData(),
     };
 }

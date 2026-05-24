@@ -100,4 +100,18 @@ export type GameEventMap = {
      *  購読: MissionSystem。itemId はアンロックされた Tier の itemId（例: "soybeans" = Tier 2 解放）。
      *  Tier 3a/3b、Tier 6a/6b のような並行アンロックでは複数の tier_unlocked が連続して発行される。 */
     tier_unlocked: { itemId: string };
+
+    // ─── ADV 会話システム関連 ────────────────────────────────────────────────
+    // doc/25_MISSION_SYSTEM.md §3.2 の ADV 型会話ウィンドウを駆動するイベント。
+    /** ADV 型会話の表示要求。メインミッション開始/完了時などに発行される。
+     *  発行: MissionSystem（メインミッション完了 → 次メイン開始の流れ）。
+     *  購読: DialogView（モーダル表示開始、uiState.setTimeSpeed("paused") を呼ぶ）。
+     *  scriptId はミッション ID + サフィックス（例: "M-01:opening", "M-01:completion"）。
+     *  lines は表示するセリフの配列（各要素が 1 クリック分のセリフ）。
+     *  speakerName は会話枠に表示する話者名。立ち絵差分は将来拡張時に追加する。 */
+    dialog_requested: { scriptId: string; speakerName: string; lines: ReadonlyArray<string> };
+    /** ADV 型会話の表示終了通知。最終セリフをクリックして閉じられたタイミングで発行される。
+     *  発行: DialogView。
+     *  購読: MissionSystem（完了会話の終了を検知して次ミッション開始の dialog_requested を連続発行する場合に使う）。 */
+    dialog_finished: { scriptId: string };
 };

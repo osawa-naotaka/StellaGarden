@@ -2,6 +2,7 @@ import { Application, ColorMatrixFilter, Container, TextureSource } from "pixi.j
 import { useEffect, useRef, useState } from "react";
 import { PIXEL_PER_TILE, TILE_PER_CHUNK } from "../../_boundary/constants";
 import type { GameEventMap } from "../../_boundary/events";
+import { ChatHistory } from "../../engine/ChatHistory";
 import { regenerateClay } from "../../engine/ClaySystem";
 import { CraftSystem } from "../../engine/CraftSystem";
 import { processDailyTick } from "../../engine/CropSystem";
@@ -142,6 +143,9 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
             const missionSystem = new MissionSystem(saveData?.mission);
             disposers.push(missionSystem.subscribeEvents(eventBroker));
 
+            const chatHistory = new ChatHistory(saveData?.chatHistory);
+            disposers.push(chatHistory.subscribeEvents(eventBroker));
+
             const craftSystem = new CraftSystem(playerState.inventory, workbenchStorage, uiState);
 
             await loadSprite();
@@ -206,6 +210,7 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
                 uiState,
                 eventBroker,
                 missionSystem,
+                chatHistory,
             });
 
             const inputHandler = new InputHandler(topView.top, playerState, eventBroker);
@@ -240,6 +245,7 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
                         cartStorage,
                         reputationSystem,
                         missionSystem,
+                        chatHistory,
                     }),
                 )
                     .catch((e) => console.warn("Save failed:", e))
