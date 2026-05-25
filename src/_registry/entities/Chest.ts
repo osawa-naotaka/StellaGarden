@@ -1,7 +1,7 @@
 import type { ChestStorage } from "../../engine/ChestStorage";
 import { ENTITY_TYPES } from "../../engine/VoxelDefs";
 import { type EntitySpriteInfo, type InteractionContext, registerEntity } from "../EntityRegistry";
-import { placeFacility, removeFacilityAtPos } from "../facilityUtil";
+import { findFacilityAnchor, placeFacility, removeFacilityAtPos } from "../facilityUtil";
 import { registerItem } from "../ItemRegistry";
 
 let chestStorage: ChestStorage | null = null;
@@ -33,7 +33,9 @@ registerEntity({
     },
 
     onOpenFacilityUI(ctx: InteractionContext): boolean {
-        ctx.eventBroker.publish("open_chest_ui", { pos: { x: ctx.surfacePos.x, z: ctx.surfacePos.z } });
+        const anchor = findFacilityAnchor(ctx.voxelMap, ctx.surfacePos.x, ctx.surfacePos.z);
+        
+        ctx.eventBroker.publish("open_chest_ui", { pos: { x: anchor.anchorX, z: anchor.anchorZ } });
         return true;
     },
 });

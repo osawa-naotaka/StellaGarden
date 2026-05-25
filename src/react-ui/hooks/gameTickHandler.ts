@@ -1,6 +1,6 @@
 import type { Application, ColorMatrixFilter, Container, Ticker } from "pixi.js";
 import { PIXEL_PER_TILE, TILE_PER_CHUNK } from "../../_boundary/constants";
-import type { ICartStorageWriter, IEventBroker, IVoxelReader } from "../../_boundary/interfaces";
+import type { ICartStorageWriter, IEventBroker, IVoxelWriter } from "../../_boundary/interfaces";
 import type { GameTime } from "../../engine/GameTime";
 import type { PlayerState } from "../../engine/PlayerState";
 import type { InputHandler } from "../../input/InputHandler";
@@ -30,7 +30,7 @@ export interface GameTickDeps {
     initialChunks: Size2D;
     requestSave: () => Promise<void>;
     cartStorage: ICartStorageWriter;
-    voxelMap: IVoxelReader;
+    voxelMap: IVoxelWriter;
 }
 
 /**
@@ -66,7 +66,7 @@ export function createGameTickHandler(deps: GameTickDeps): (ticker: Ticker) => v
             const timeMultiplier = uiState.timeSpeed === "fast" ? 8 : 1;
             gameTime.tick(ticker.deltaMS * timeMultiplier, eventBroker);
             inputHandler.tick(ticker.deltaMS);
-            cartStorage.tickAll(voxelMap, ticker.deltaMS * timeMultiplier);
+            cartStorage.tickAll(voxelMap, ticker.deltaMS * timeMultiplier, eventBroker);
         }
         dayNightFilter.brightness(gameTime.worldBrightness, false);
 

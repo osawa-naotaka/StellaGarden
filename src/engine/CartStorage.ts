@@ -1,6 +1,7 @@
-import type { Direction8, ICartReader, ICartStorageWriter, ICartWriter, ItemStack, IVoxelReader, Pos2D } from "../_boundary/interfaces";
+import type { Direction8, ICartReader, ICartStorageWriter, ICartWriter, IEventBroker, ItemStack, IVoxelWriter, Pos2D } from "../_boundary/interfaces";
 import type { CartStorageSaveData } from "../lib/SaveSchema";
 import { CART_INVENTORY_SLOTS, Cart } from "./Cart";
+import { executeCartActionsOnEnterTile } from "./CartActionSystem";
 import { RAIL_CONNECTION_DOWN, RAIL_CONNECTION_LEFT, RAIL_CONNECTION_RIGHT, RAIL_CONNECTION_UP } from "./RailConnection";
 import { ENTITY_TYPES, getConnectionsFromVoxel, getDirectionFromVoxel, getEnabledFromVoxel, getEntityTypeFromVoxel, VOXEL_DIRECTION } from "./VoxelDefs";
 
@@ -141,7 +142,7 @@ export class CartStorage implements ICartStorageWriter {
      *   タイル境界に到達したら posInWorld を辺中央にスナップ（誤差ゼロ）し、隣タイル番号を
      *   明示的に進めてループ継続。残距離が脱出辺中央に届かなければ線分上で中間停止。
      */
-    tickAll(voxelMap: IVoxelReader, deltaMS: number): void {
+    tickAll(voxelMap: IVoxelWriter, deltaMS: number, eventBroker: IEventBroker): void {
         const dt = deltaMS / 1000;
         const MAX_HOPS = 8; // 1フレームで跨げる最大タイル数（無限ループ防止）
 
@@ -201,6 +202,8 @@ export class CartStorage implements ICartStorageWriter {
                         // 既に脱出辺中央: 隣タイルに踏み込んでループ継続
                         tx = next.tx;
                         tz = next.tz;
+                        // 新タイルに踏み込んだ瞬間にアクション実行
+                        executeCartActionsOnEnterTile(voxelMap, cart, eventBroker);
                         continue;
                     }
                     // タイル中央でちょうど停止
@@ -214,6 +217,8 @@ export class CartStorage implements ICartStorageWriter {
                         // 脱出辺中央にスナップ → 次タイルへ
                         tx = next.tx;
                         tz = next.tz;
+                        // 新タイルに踏み込んだ瞬間にアクション実行
+                        executeCartActionsOnEnterTile(voxelMap, cart, eventBroker);
                     } else {
                         // タイル中央到達 → 停止
                         break;

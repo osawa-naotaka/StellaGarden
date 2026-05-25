@@ -38,7 +38,9 @@ StellaGarden は Vite + React 19 + TypeScript + PixiJS 8 で作られたチル�
 | `ForgeStorage.ts` | 炉（Forge）のスロット状態を座標ベースで保持する（ingredient / fuel / output の3スロット）。`advanceDayAllForges(voxelMap)` で日次精錬処理。セーブ/ロード対応。 |
 | `AutoProcessingStorage.ts` | 自動加工機（auto_thresher 等）のスロット状態を座標ベースで管理する（入力 8 スロット / 出力 16 スロット）。`onDailyTick` で動力伝達済みシャフト隣接判定 → 全入力一括処理。セーブ/ロード対応。 |
 | `Cart.ts` | 台車エンティティ。`ICartWriter` を implements。ID・posInWorld・inventorySlots（16スロット）・attachmentSlot を保持。`setFacing/setPosInWorld` は CartStorage 専用。 |
-| `CartStorage.ts` | 全台車の生成・撤去・フレーム移動を ID ベースで管理する。`ICartStorageWriter` を implements。`tickAll(voxelMap, deltaMS)` でレール voxel の direction/connectionMask テーブルに基づき移動。セーブ/ロード対応。 |
+| `CartStorage.ts` | 全台車の生成・撤去・フレーム移動を ID ベースで管理する。`ICartStorageWriter` を implements。`tickAll(voxelMap, deltaMS, eventBroker)` でレール voxel の direction/connectionMask テーブルに基づき移動。新タイル進入時に `CartActionSystem.executeCartActionsOnEnterTile` を呼ぶ。セーブ/ロード対応。 |
+| `CartItems.ts` | 台車関連の定数（`CART_ATTACHMENT_ALLOWED`, `SEED_TO_ENTITY`, `FERTILIZER_ITEMS`）。純粋定数のみ。 |
+| `CartActionSystem.ts` | カートが新タイルに踏み込んだ瞬間に実行する散布・収穫アクション。`executeCartActionsOnEnterTile(voxelMap, cart, eventBroker)` を公開。 |
 
 ## あなたが発行するイベント（EventBroker.publish）
 

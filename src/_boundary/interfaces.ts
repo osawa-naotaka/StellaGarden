@@ -296,8 +296,10 @@ export interface ICartStorageWriter extends ICartStorageReader {
     remove(id: number): boolean;
     /** ID 指定で書き込み可能なカート参照を返す。 */
     getByIdWritable(id: number): ICartWriter | undefined;
-    /** 全カートに対して移動ロジックを 1 フレーム分実行する。 */
-    tickAll(voxelMap: IVoxelReader, deltaMS: number): void;
+    /** 全カートに対して移動ロジックを 1 フレーム分実行する。
+     *  新タイルに踏み込んだ瞬間に CartActionSystem を呼ぶため、書き込み可能な voxelMap と
+     *  eventBroker（収穫等の通知発行用）が必要。 */
+    tickAll(voxelMap: IVoxelWriter, deltaMS: number, eventBroker: IEventBroker): void;
 }
 
 // ─── EventBroker インターフェース ────────────────────────────────────────────

@@ -1,5 +1,7 @@
 import { useCallback } from "react";
 import type { IInventoryWriter, ItemStack, SlotRef } from "../../_boundary/interfaces";
+import { Cart } from "../../engine/Cart";
+import { CART_ATTACHMENT_ALLOWED } from "../../engine/CartItems";
 import type { CartStorage } from "../../engine/CartStorage";
 import type { UIState } from "../../view/UIState";
 import { CursorStack } from "../components/CursorStack";
@@ -9,14 +11,14 @@ import { useFrameTick } from "../hooks/useFrameTick";
 import { usePickup } from "../hooks/usePickup";
 import { registerPanel } from "../PanelRegistry";
 
-const CART_ROWS = 4;
-const CART_COLS = 4;
+const CART_ROWS = 8;
+const CART_COLS = 8;
 const CART_TOTAL = CART_ROWS * CART_COLS;
 const INV_ROWS = 8;
 const COLS = 8;
 const TOOLBAR_COLS = 9;
 
-type CartSlotArea = "inventory" | "toolbar" | "cart";
+type CartSlotArea = "inventory" | "toolbar" | "cart" | "attachment";
 type CartSlotRef = { area: CartSlotArea; index: number };
 
 export interface CartPanelProps {
@@ -37,6 +39,11 @@ export function CartPanel({ open, inventory, cartStorage, uiState }: CartPanelPr
                 const cart = cartStorage.getByIdWritable(targetCartId);
                 return cart?.inventorySlots[ref.index] ?? null;
             }
+            if (ref.area === "attachment") {
+                if (targetCartId === null) return null;
+                const cart = cartStorage.getByIdWritable(targetCartId);
+                return cart?.attachmentSlot ?? null;
+            }
             return inventory.getSlot(ref as SlotRef);
         },
         [inventory, cartStorage, targetCartId],
@@ -50,22 +57,36 @@ export function CartPanel({ open, inventory, cartStorage, uiState }: CartPanelPr
                 cart?.setInventorySlot(ref.index, stack);
                 return;
             }
+            if (ref.area === "attachment") {
+                if (targetCartId === null) return;
+                const cart = cartStorage.getByIdWritable(targetCartId);
+                if (!(cart instanceof Cart)) return;
+                cart.attachmentSlot = stack;
+                return;
+            }
             inventory.setSlot(ref as SlotRef, stack);
         },
         [inventory, cartStorage, targetCartId],
     );
 
+    const canPlaceTo = useCallback((ref: CartSlotRef, stack: ItemStack): boolean => {
+        if (ref.area === "attachment") {
+            return CART_ATTACHMENT_ALLOWED.has(stack.itemId);
+        }
+        return true;
+    }, []);
+
     const getQuickTransferTargets = useCallback(
         (ref: CartSlotRef): CartSlotRef[] | undefined => {
             const invTotal = INV_ROWS * COLS;
-            if (ref.area === "cart") {
-                // cart → inventory → toolbar 1..9 (hand=0 を除外)
+            if (ref.area === "cart" || ref.area === "attachment") {
+                // cart / attachment → inventory → toolbar 1..9 (hand=0 を除外)
                 const targets: CartSlotRef[] = [];
                 for (let i = 0; i < invTotal; i++) targets.push({ area: "inventory", index: i });
                 for (let i = 1; i <= TOOLBAR_COLS; i++) targets.push({ area: "toolbar", index: i });
                 return targets;
             }
-            // inventory / toolbar → cart
+            // inventory / toolbar → cart（attachment はクイック転送対象から除外: allowlist 制限のため個別操作を要求）
             if (targetCartId === null) return undefined;
             const targets: CartSlotRef[] = [];
             for (let i = 0; i < CART_TOTAL; i++) targets.push({ area: "cart", index: i });
@@ -76,7 +97,7 @@ export function CartPanel({ open, inventory, cartStorage, uiState }: CartPanelPr
 
     const getQuickTransferSources = useCallback((ref: CartSlotRef): CartSlotRef[] => {
         const invTotal = INV_ROWS * COLS;
-        if (ref.area === "cart") {
+        if (ref.area === "cart" || ref.area === "attachment") {
             const sources: CartSlotRef[] = [];
             for (let i = 0; i < CART_TOTAL; i++) sources.push({ area: "cart", index: i });
             return sources;
@@ -91,6 +112,7 @@ export function CartPanel({ open, inventory, cartStorage, uiState }: CartPanelPr
     const { pickedUp, cursorPos, handleLeftClick, handleRightClick } = usePickup<CartSlotRef>(open, {
         getSlot,
         setSlot,
+        canPlaceTo,
         getQuickTransferTargets,
         getQuickTransferSources,
     });
@@ -109,13 +131,28 @@ export function CartPanel({ open, inventory, cartStorage, uiState }: CartPanelPr
         [cartStorage, targetCartId],
     );
 
+    const getAttachmentSlot = useCallback(
+        (_i: number): ItemStack | null => {
+            if (targetCartId === null) return null;
+            const cart = cartStorage.getByIdWritable(targetCartId);
+            return cart?.attachmentSlot ?? null;
+        },
+        [cartStorage, targetCartId],
+    );
+
     return (
         <>
             <SidePanel open={open} title="Cart" onClose={close}>
                 <section className="sg-sidepanel-section">
                     <h3 className="sg-section-title">Attachment</h3>
-                    {/* MVP: アタッチメントスロットは表示のみ。クリックしても何も起きない。 */}
-                    <InventoryGrid rows={1} cols={1} getStack={() => null} onLeftClick={() => {}} onRightClick={() => {}} />
+                    {/* sickle のみ装着可能。canPlaceTo で allowlist チェックされる。 */}
+                    <InventoryGrid
+                        rows={1}
+                        cols={1}
+                        getStack={getAttachmentSlot}
+                        onLeftClick={(_i, e) => handleLeftClick({ area: "attachment", index: 0 }, e.nativeEvent)}
+                        onRightClick={(_i) => handleRightClick({ area: "attachment", index: 0 })}
+                    />
                 </section>
 
                 <section className="sg-sidepanel-section">

@@ -7,7 +7,7 @@ import { ENTITY_TYPES, getEntityTypeFromVoxel, getTerrainTypeFromVoxel, TERRAIN_
 import type { UIState } from "./UIState";
 
 /** 配置可能な地形タイプの集合。 */
-const PLACEABLE_TERRAINS: ReadonlySet<number> = new Set([TERRAIN_TYPES.grass, TERRAIN_TYPES.dirt, TERRAIN_TYPES.soil]);
+const PLACEABLE_TERRAINS: ReadonlySet<number> = new Set([TERRAIN_TYPES.grass, TERRAIN_TYPES.dirt, TERRAIN_TYPES.soil, TERRAIN_TYPES.wetSoil]);
 
 /**
  * 配置モード中にマウスカーソルに追従する半透明プレビューを描画するビュークラス。
