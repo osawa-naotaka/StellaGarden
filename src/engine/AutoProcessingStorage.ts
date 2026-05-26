@@ -3,7 +3,7 @@ import { findFacilityAnchor } from "../_registry/facilityUtil";
 import { getItemDef } from "../_registry/ItemRegistry";
 import { KeyedSlotStorage } from "./KeyedSlotStorage";
 import { findRecipeForInput, getAutoProcessingDef, isAcceptableInputItem } from "./ProcessingRecipes";
-import { ENTITY_TYPES, getEnabledFromVoxel, getEntityTypeFromVoxel } from "./VoxelDefs";
+import { getEnabledFromVoxel, getEntityTypeFromVoxel } from "./VoxelDefs";
 
 /** 1施設のスロット状態。inputs が入力 8 スロット、outputs が出力 16 スロット。 */
 export interface AutoProcessingSlots {
@@ -12,38 +12,17 @@ export interface AutoProcessingSlots {
 }
 
 // ---------------------------------------------------------------------------
-// 動力判定（拡張ポイント）
+// 動力判定
 // ---------------------------------------------------------------------------
+//
+// 動力供給判定は recomputeAllShaftPowerFlow が行い、結果は施設のアンカーボクセルの
+// enabled ビットに書き込まれている。ここではアンカーの enabled を読むだけ。
+//
+// 関連: src/engine/ShaftPowerFlow.ts, src/engine/PowerSinkRegistry.ts
 
-/**
- * 自動加工機の「動力受け入れ位置」を返す。
- * 現状: 施設の外周4辺の全タイル（コーナーを除く）。
- * 将来: _entityType ごとに特定の 2 タイルだけを返すよう変更する想定。
- */
-function getPowerConnectionPositions(anchorPos: Pos2D, size: { w: number; h: number }, _entityType: number): Pos2D[] {
-    const result: Pos2D[] = [];
-    // 上辺・下辺
-    for (let dx = 0; dx < size.w; dx++) {
-        result.push({ x: anchorPos.x + dx, z: anchorPos.z - 1 });
-        result.push({ x: anchorPos.x + dx, z: anchorPos.z + size.h });
-    }
-    // 左辺・右辺
-    for (let dz = 0; dz < size.h; dz++) {
-        result.push({ x: anchorPos.x - 1, z: anchorPos.z + dz });
-        result.push({ x: anchorPos.x + size.w, z: anchorPos.z + dz });
-    }
-    return result;
-}
-
-function isPoweredShaftAdjacent(voxelMap: IVoxelWriter, anchorPos: Pos2D, size: { w: number; h: number }, entityType: number): boolean {
-    for (const p of getPowerConnectionPositions(anchorPos, size, entityType)) {
-        if (p.x < 0 || p.z < 0 || p.x >= voxelMap.width || p.z >= voxelMap.depth) continue;
-        const surface = voxelMap.getSurfacePosition({ x: p.x, y: 0, z: p.z });
-        const v = voxelMap.get(surface);
-        if (getEntityTypeFromVoxel(v) !== ENTITY_TYPES.shaft) continue;
-        if (getEnabledFromVoxel(v)) return true;
-    }
-    return false;
+function isPoweredFromAnchor(voxelMap: IVoxelWriter, anchorPos: Pos2D): boolean {
+    const surface = voxelMap.getSurfacePosition({ x: anchorPos.x, y: 0, z: anchorPos.z });
+    return getEnabledFromVoxel(voxelMap.get(surface));
 }
 
 // ---------------------------------------------------------------------------
@@ -134,11 +113,11 @@ export class AutoProcessingStorage extends KeyedSlotStorage<AutoProcessingSlots>
 
     // ── 動力状態（UI 向け公開） ──
 
-    /** この施設に動力伝達済みシャフトが隣接しているかどうか。 */
+    /** この施設に動力が伝達されているかどうか（アンカーボクセルの enabled を参照）。 */
     isPowered(pos: Pos2D, voxelMap: IVoxelWriter): boolean {
         try {
             const anchor = findFacilityAnchor(voxelMap, pos.x, pos.z);
-            return isPoweredShaftAdjacent(voxelMap, { x: anchor.anchorX, z: anchor.anchorZ }, anchor.size, anchor.entityType);
+            return isPoweredFromAnchor(voxelMap, { x: anchor.anchorX, z: anchor.anchorZ });
         } catch {
             return false;
         }
@@ -150,22 +129,22 @@ export class AutoProcessingStorage extends KeyedSlotStorage<AutoProcessingSlots>
         for (const [key] of this.entries()) {
             const pos = this.posFromKey(key);
 
-            // アンカーを解決して entityType と size を取得
+            // アンカーを解決して entityType を取得
             let anchor: ReturnType<typeof findFacilityAnchor>;
             try {
                 anchor = findFacilityAnchor(voxelMap, pos.x, pos.z);
             } catch {
                 continue;
             }
-            const { entityType, size } = anchor;
+            const { entityType } = anchor;
             const anchorPos: Pos2D = { x: anchor.anchorX, z: anchor.anchorZ };
 
             // 自動処理定義を取得
             const def = getAutoProcessingDef(entityType);
             if (!def) continue;
 
-            // 動力 OFF なら完全停止
-            if (!isPoweredShaftAdjacent(voxelMap, anchorPos, size, entityType)) continue;
+            // 動力 OFF なら完全停止（アンカーボクセルの enabled を参照）
+            if (!isPoweredFromAnchor(voxelMap, anchorPos)) continue;
 
             // アンカー座標のスロットを使用（pos はアンカーの可能性があるが念のため anchorPos で取得）
             const slots = this.getRaw(anchorPos);

@@ -12,7 +12,9 @@
  */
 import type { ItemId } from "../../_boundary/interfaces";
 import type { AutoProcessingStorage } from "../../engine/AutoProcessingStorage";
-import { ENTITY_TYPES, getVariantFromVoxel } from "../../engine/VoxelDefs";
+import { defaultPowerConnectionPositions, registerPowerSink } from "../../engine/PowerSinkRegistry";
+import { recomputeAllShaftPowerFlow } from "../../engine/ShaftPowerFlow";
+import { ENTITY_TYPES, getEnabledFromVoxel, getVariantFromVoxel } from "../../engine/VoxelDefs";
 import { type EntitySpriteInfo, type InteractionContext, registerEntity } from "../EntityRegistry";
 import { findFacilityAnchor, placeFacility, removeFacility } from "../facilityUtil";
 import { registerItem } from "../ItemRegistry";
@@ -28,7 +30,7 @@ interface AutoProcessingEntityOptions {
     entityType: number;
     itemId: ItemId;
     displayName: string;
-    getFieldSpriteName: ((variant: number) => string);
+    getFieldSpriteName: ((enabled: boolean, variant: number) => string);
     inventorySpriteName: string;
     entitySize: { w: number; h: number };
 }
@@ -36,6 +38,12 @@ interface AutoProcessingEntityOptions {
 /** カテゴリ4施設を1つ登録する。 */
 export function registerAutoProcessingEntity(opts: AutoProcessingEntityOptions): void {
     const { entityType, itemId, displayName, getFieldSpriteName, inventorySpriteName, entitySize } = opts;
+
+    registerPowerSink({
+        entityType,
+        getSize: () => entitySize,
+        getPowerConnectionPositions: defaultPowerConnectionPositions,
+    });
 
     registerEntity({
         entityType,
@@ -46,7 +54,8 @@ export function registerAutoProcessingEntity(opts: AutoProcessingEntityOptions):
 
         getSprites(voxel: bigint): EntitySpriteInfo[] {
             const variant = getVariantFromVoxel(voxel);
-            return [[getFieldSpriteName(variant), 0, 0]];
+            const enabled = getEnabledFromVoxel(voxel);
+            return [[getFieldSpriteName(enabled, variant), 0, 0]];
         },
 
         // 左クリック: axe による撤去（中身は一緒にインベントリへ回収）
@@ -57,7 +66,10 @@ export function registerAutoProcessingEntity(opts: AutoProcessingEntityOptions):
             const anchorPos = { x: anchor.anchorX, z: anchor.anchorZ };
             const extraItems = autoProcessingStorage?.collectAllStacks(anchorPos) ?? [];
             const removed = removeFacility(ctx.voxelMap, ctx.inventory, anchor.anchorX, anchor.anchorZ, anchor.entityType, 0, extraItems);
-            if (removed) autoProcessingStorage?.remove(anchorPos);
+            if (removed) {
+                autoProcessingStorage?.remove(anchorPos);
+                recomputeAllShaftPowerFlow(ctx.voxelMap);
+            }
             return removed;
         },
 
@@ -80,10 +92,11 @@ export function registerAutoProcessingEntity(opts: AutoProcessingEntityOptions):
         maxStack: 64,
         placement: {
             entityType,
-            getFieldSpriteName,
+            getFieldSpriteName: (variant: number) => getFieldSpriteName(false, variant),
             onPlace(voxelMap, pos) {
                 placeFacility(voxelMap, pos, entityType, entitySize);
                 autoProcessingStorage?.create(pos);
+                recomputeAllShaftPowerFlow(voxelMap);
             },
         },
     });
