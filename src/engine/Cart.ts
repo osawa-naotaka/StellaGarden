@@ -1,6 +1,6 @@
 import type { Direction8, ICartWriter, ItemStack, Pos2D } from "../_boundary/interfaces";
 
-export const CART_INVENTORY_SLOTS = 16;
+export const CART_INVENTORY_SLOTS = 64;
 
 /**
  * 台車（Cart）エンティティ。
