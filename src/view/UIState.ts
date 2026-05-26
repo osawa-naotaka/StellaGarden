@@ -11,7 +11,6 @@ export type UIMode =
     | "processing-manual"
     | "processing-daily"
     | "processing-auto"
-    | "winch"
     | "cart";
 export type TimeSpeed = "paused" | "normal" | "fast";
 
@@ -100,13 +99,7 @@ export class UIState {
             this.targetPos = pos;
         });
 
-        const d9 = broker.subscribe("open_winch_ui", ({ pos }) => {
-            if (this.mode === "placement") return;
-            this.mode = "winch";
-            this.targetPos = pos;
-        });
-
-        const d10 = broker.subscribe("open_cart_ui", ({ cartId }) => {
+        const d9 = broker.subscribe("open_cart_ui", ({ cartId }) => {
             if (this.mode === "placement") return;
             this.mode = "cart";
             this.targetCartId = cartId;
@@ -123,7 +116,6 @@ export class UIState {
             d7();
             d8();
             d9();
-            d10();
         };
     }
 

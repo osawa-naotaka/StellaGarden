@@ -34,9 +34,6 @@ export type GameEventMap = {
     /** 自動処理施設（auto_thresher 等。シャフト動力で day_changed 時に一括処理）の UI を開く。
      *  発行: 各エンティティの onOpenFacilityUI（右クリック）。購読: UIState → AutoProcessingPanel。 */
     open_processing_auto_ui: { pos: Pos2D };
-    /** ウインチを右クリックして ON/OFF パネルを開く。
-     *  発行: Winch.ts の onOpenFacilityUI。購読: UIState → WinchPanel。 */
-    open_winch_ui: { pos: Pos2D };
     /** 台車を右クリックして台車UIを開く。
      *  発行: InteractionSystem（cartStorage.findAt がヒットした時、施設パスより先に発行）。
      *  購読: UIState → CartPanel。台車は voxel 外管理のため pos ではなく cartId で特定する。 */

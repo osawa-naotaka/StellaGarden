@@ -1,13 +1,23 @@
+import { defaultPowerConnectionPositions, registerPowerSink } from "../../engine/PowerSinkRegistry";
+import { recomputeAllShaftPowerFlow } from "../../engine/ShaftPowerFlow";
 import { ENTITY_TYPES } from "../../engine/VoxelDefs";
 import { type EntitySpriteInfo, type InteractionContext, registerEntity } from "../EntityRegistry";
-import { findFacilityAnchor, placeFacility, removeFacilityAtPos } from "../facilityUtil";
+import { placeFacility, removeFacilityAtPos } from "../facilityUtil";
 import { registerItem } from "../ItemRegistry";
+
+const WINCH_SIZE = { w: 1, h: 2 } as const;
+
+registerPowerSink({
+    entityType: ENTITY_TYPES.winch,
+    getSize: () => WINCH_SIZE,
+    getPowerConnectionPositions: defaultPowerConnectionPositions,
+});
 
 registerEntity({
     entityType: ENTITY_TYPES.winch,
 
     getEntitySize() {
-        return { w: 1, h: 2 };
+        return WINCH_SIZE;
     },
 
     getSprites(): EntitySpriteInfo[] {
@@ -17,15 +27,11 @@ registerEntity({
     onInteract(ctx: InteractionContext): boolean {
         // axe で撤去
         if (ctx.tool === "axe") {
-            return removeFacilityAtPos(ctx.voxelMap, ctx.inventory, ctx.surfacePos.x, ctx.surfacePos.z, ENTITY_TYPES.winch);
+            const removed = removeFacilityAtPos(ctx.voxelMap, ctx.inventory, ctx.surfacePos.x, ctx.surfacePos.z, ENTITY_TYPES.winch);
+            if (removed) recomputeAllShaftPowerFlow(ctx.voxelMap);
+            return removed;
         }
         return false;
-    },
-
-    onOpenFacilityUI(ctx: InteractionContext): boolean {
-        const anchor = findFacilityAnchor(ctx.voxelMap, ctx.surfacePos.x, ctx.surfacePos.z);
-        ctx.eventBroker.publish("open_winch_ui", { pos: { x: anchor.anchorX, z: anchor.anchorZ } });
-        return true;
     },
 });
 
@@ -40,7 +46,8 @@ registerItem({
             return "winch";
         },
         onPlace(voxelMap, pos) {
-            placeFacility(voxelMap, pos, ENTITY_TYPES.winch, { w: 1, h: 2 });
+            placeFacility(voxelMap, pos, ENTITY_TYPES.winch, WINCH_SIZE);
+            recomputeAllShaftPowerFlow(voxelMap);
         },
     },
 });

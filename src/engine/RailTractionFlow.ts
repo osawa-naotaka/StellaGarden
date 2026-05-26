@@ -1,6 +1,6 @@
 import type { IVoxelWriter, Pos3D } from "../_boundary/interfaces";
 import { findFacilityAnchor } from "../_registry/facilityUtil";
-import { ENTITY_TYPES, getConnectionsFromVoxel, getEntityTypeFromVoxel, setDirectionInVoxel, setEnabledInVoxel, VOXEL_DIRECTION } from "./VoxelDefs";
+import { ENTITY_TYPES, getConnectionsFromVoxel, getEnabledFromVoxel, getEntityTypeFromVoxel, setDirectionInVoxel, setEnabledInVoxel, VOXEL_DIRECTION } from "./VoxelDefs";
 
 const RAIL_CONNECTION_UP = 1 << 0;
 const RAIL_CONNECTION_DOWN = 1 << 1;
@@ -38,6 +38,9 @@ export function recomputeAllRailTractionFlow(voxelMap: IVoxelWriter): void {
     const visited = new Set<number>();
 
     // まず牽引力のソースとなるウインチと、牽引力を伝播するレールを全て見つける
+    // 動力 ON のウインチ（アンカーボクセルの enabled=true）のみを牽引源とする。
+    // 動力 OFF のウインチも visited にマークして、ここで伝播を止める
+    // （OFFウインチを介して反対側のレールへ伝播するのを防ぐため）。
     const allWinches: Pos3D[] = [];
     const allRails: Pos3D[] = [];
     for (let z = 0; z < voxelMap.depth; z++) {
@@ -46,15 +49,21 @@ export function recomputeAllRailTractionFlow(voxelMap: IVoxelWriter): void {
             const voxel = voxelMap.get(pos);
             const entityType = getEntityTypeFromVoxel(voxel);
             if (entityType === ENTITY_TYPES.winch) {
-                allWinches.push(pos);
                 visited.add(keyOf(voxelMap, x, z));
+                if (getEnabledFromVoxel(voxel)) {
+                    allWinches.push(pos);
+                }
             } else if (entityType === ENTITY_TYPES.rail) {
                 allRails.push(pos);
             } else if (entityType === ENTITY_TYPES.facility_part) {
                 const anchor = findFacilityAnchor(voxelMap, x, z);
                 if (anchor.entityType === ENTITY_TYPES.winch) {
-                    allWinches.push(pos);
                     visited.add(keyOf(voxelMap, x, z));
+                    const anchorSurface = voxelMap.getSurfacePosition({ x: anchor.anchorX, y: 0, z: anchor.anchorZ });
+                    const anchorVoxel = voxelMap.get(anchorSurface);
+                    if (getEnabledFromVoxel(anchorVoxel)) {
+                        allWinches.push(pos);
+                    }
                 }
             }
         }

@@ -15,7 +15,6 @@ import "./panels/ForgePanel";
 import "./panels/InventoryPanel";
 import "./panels/ManualProcessingPanel";
 import "./panels/WarpGatePanel";
-import "./panels/WinchPanel";
 
 import { PropertyPanel } from "./components/PropertyPanel";
 import { getRegisteredPanels } from "./PanelRegistry";

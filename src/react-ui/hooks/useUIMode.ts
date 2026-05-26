@@ -9,7 +9,6 @@ const MODE_CHANGING_EVENTS: ReadonlyArray<keyof GameEventMap> = [
     "open_chest_ui",
     "open_forge_ui",
     "open_warp_gate_ui",
-    "open_winch_ui",
 ];
 
 /**

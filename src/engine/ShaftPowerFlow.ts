@@ -1,6 +1,7 @@
 import type { IVoxelWriter, Pos2D } from "../_boundary/interfaces";
 import { findFacilityAnchor } from "../_registry/facilityUtil";
 import { getAllPowerSinks } from "./PowerSinkRegistry";
+import { recomputeAllRailTractionFlow } from "./RailTractionFlow";
 import { isShaftStraightMask } from "./ShaftShape";
 import { ENTITY_TYPES, getConnectionsFromVoxel, getEntityTypeFromVoxel, setDirectionInVoxel, setEnabledInVoxel, VOXEL_DIRECTION } from "./VoxelDefs";
 
@@ -196,31 +197,35 @@ export function recomputeAllShaftPowerFlow(voxelMap: IVoxelWriter): void {
     // 全マップ走査して、登録済み entityType のアンカーを見つけ、
     // 接続位置にある動力供給済みシャフト（visited 入り）の有無で enabled を決める。
     const sinks = getAllPowerSinks();
-    if (sinks.size === 0) return;
+    if (sinks.size > 0) {
+        for (let z = 0; z < voxelMap.depth; z++) {
+            for (let x = 0; x < voxelMap.width; x++) {
+                const surfacePos = voxelMap.getSurfacePosition({ x, y: 0, z });
+                const voxel = voxelMap.get(surfacePos);
+                const entityType = getEntityTypeFromVoxel(voxel);
+                const sink = sinks.get(entityType);
+                if (!sink) continue;
 
-    for (let z = 0; z < voxelMap.depth; z++) {
-        for (let x = 0; x < voxelMap.width; x++) {
-            const surfacePos = voxelMap.getSurfacePosition({ x, y: 0, z });
-            const voxel = voxelMap.get(surfacePos);
-            const entityType = getEntityTypeFromVoxel(voxel);
-            const sink = sinks.get(entityType);
-            if (!sink) continue;
+                // アンカータイル（entityType がそのまま登録 entityType と一致するタイル）のみで処理する。
+                // facility_part のボクセルには displacement と enabled が衝突するため書き込まない。
+                const size = sink.getSize();
+                const connections = sink.getPowerConnectionPositions({ x, z }, size);
 
-            // アンカータイル（entityType がそのまま登録 entityType と一致するタイル）のみで処理する。
-            // facility_part のボクセルには displacement と enabled が衝突するため書き込まない。
-            const size = sink.getSize();
-            const connections = sink.getPowerConnectionPositions({ x, z }, size);
-
-            let powered = false;
-            for (const p of connections) {
-                if (!isInBounds(voxelMap, p.x, p.z)) continue;
-                if (visited.has(keyOf(voxelMap, p.x, p.z))) {
-                    powered = true;
-                    break;
+                let powered = false;
+                for (const p of connections) {
+                    if (!isInBounds(voxelMap, p.x, p.z)) continue;
+                    if (visited.has(keyOf(voxelMap, p.x, p.z))) {
+                        powered = true;
+                        break;
+                    }
                 }
-            }
 
-            voxelMap.set(setEnabledInVoxel(voxel, powered), surfacePos);
+                voxelMap.set(setEnabledInVoxel(voxel, powered), surfacePos);
+            }
         }
     }
+
+    // PowerSink の enabled 更新によって Winch の状態が変化しうるため、
+    // レール牽引も連鎖的に再計算する。
+    recomputeAllRailTractionFlow(voxelMap);
 }
