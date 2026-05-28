@@ -305,20 +305,23 @@ function loadDailyToCart(
 
 /**
  * カートが新タイルに踏み込んだ瞬間に呼ぶ。
- * カートの現在タイルに隣接する全ステーションについて搬送アクションを実行する。
+ * 進入したタイル (tileX, tileZ) に隣接する全ステーションについて搬送アクションを実行する。
  * 実際に1個でも移動した場合のみ station_fired を発行する。
+ *
+ * 進入タイルは呼び出し側（CartStorage.tickAll）が確定値を渡す。
+ * cart.posInWorld は発火時タイル境界上にあり floor が移動方向によって
+ * 古いタイルを指す（左/上移動でのオフバイワン）ため、ここでは使わない。
  */
 export function executeStationTransfersOnCartEnter(
     voxelMap: IVoxelWriter,
     cart: ICartWriter,
+    tileX: number,
+    tileZ: number,
     eventBroker: IEventBroker,
 ): void {
     if (!chestStorageRef || !dailyStorageRef || !autoStorageRef) return;
 
-    const T: Pos2D = {
-        x: Math.floor(cart.posInWorld.x),
-        z: Math.floor(cart.posInWorld.z),
-    };
+    const T: Pos2D = { x: tileX, z: tileZ };
 
     // 4方向の隣接タイルを順に確認する
     const directions: { vec: Vec2; side: StationSide }[] = [

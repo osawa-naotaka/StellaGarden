@@ -37,6 +37,8 @@ const DEFAULT_INVENTORY_ITEMS: readonly (DefaultItem | null)[] = [
     { itemId: "spinning_machine", count: 1 },
     { itemId: "auto_loom", count: 1 },
     { itemId: "auto_screw_press", count: 1 },
+    { itemId: "station", count: 64 },
+    { itemId: "chest", count: 64 },
     // { itemId: "compost_bin", count: 64 },
     // { itemId: "threshing_machine", count: 64 },
     // { itemId: "screw_presses", count: 64 },

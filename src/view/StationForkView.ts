@@ -1,19 +1,17 @@
-import { Container, Graphics, Sprite, Texture } from "pixi.js";
+import { Container, Graphics } from "pixi.js";
 import { PIXEL_PER_TILE } from "../_boundary/constants";
 import type { IEventBroker, Pos2D } from "../_boundary/interfaces";
 
 /** アニメーション1回分の継続時間（ms）。 */
 const DURATION = 350;
 
-/** 進行中のフォークアニメーション1インスタンス。 */
-interface ForkAnimation {
-    /** フォークの Sprite。アニメ完了時に destroy する。 */
-    forkSprite: Sprite;
-    /** 運搬アイテムを表す小さな Graphics（往路のみ表示）。アニメ完了時に destroy する。 */
+/** 進行中の搬送アニメーション1インスタンス。 */
+interface TransferAnimation {
+    /** 運搬アイテムを表す小さな Graphics。アニメ完了時に destroy する。 */
     itemGraphics: Graphics;
-    /** フォークが往路出発するタイル中心（ワールド座標、タイル単位）。 */
+    /** 出発タイル中心（休止辺側、ワールド座標タイル単位）。 */
     restCenter: Pos2D;
-    /** フォークが往路到着するタイル中心（ワールド座標、タイル単位）。 */
+    /** 到着タイル中心（逆側、ワールド座標タイル単位）。 */
     oppCenter: Pos2D;
     /** 経過時間（ms）。 */
     elapsed: number;
@@ -28,9 +26,6 @@ function sideToVec(restSide: "up" | "down" | "left" | "right"): Pos2D {
         case "right": return { x: 1,  z:  0 };
     }
 }
-
-// 専用スプライト（doc/09 ID 171）が未作図のため、暫定的に ss_sprite_051 を縦横とも流用する。
-const FORK_PLACEHOLDER_SPRITE = "ss_sprite_051.png";
 
 /**
  * itemId 文字列から決定的に色（0xRRGGBB）を生成する簡易ハッシュ。
@@ -50,16 +45,17 @@ function itemIdToColor(itemId: string): number {
 }
 
 /**
- * ステーションフォークのアニメーションを描画するビュー。
+ * ステーションの搬送演出を描画するビュー。
  *
- * station_fired イベントを購読し、350ms のワンショットアニメを再生する。
- * フォークは restSide タイル → 逆側タイルへ往復する（往路でアイテムを運ぶ演出）。
- * 常時表示のフォークは描かず、発火時のみ一時スプライトを生成して完了後に destroy する。
+ * フォーク本体は常時表示（向きの可視化）のため EntityRegistry の getSprites 側で
+ * チャンク描画に乗せている。この層では二重表示を避けるためフォークは描かず、
+ * station_fired イベントを購読して「運ばれるアイテム」が休止辺タイル → 逆側タイルへ
+ * 飛ぶ 350ms のワンショット演出だけを描く。
  */
 export class StationForkView {
     readonly top: Container;
 
-    private animations: ForkAnimation[] = [];
+    private animations: TransferAnimation[] = [];
     private readonly disposeSubscription: () => void;
 
     constructor(eventBroker: IEventBroker) {
@@ -76,70 +72,44 @@ export class StationForkView {
                 z: e.stationPos.z + 0.5 - sv.z,
             };
 
-            const forkSprite = new Sprite(Texture.from(FORK_PLACEHOLDER_SPRITE));
-            forkSprite.anchor.set(0.5, 0.5);
-            forkSprite.scale = 2;
-            this.top.addChild(forkSprite);
-
             const itemGraphics = new Graphics();
             const color = itemIdToColor(e.itemId);
             // アイテムを表す 6x6 の小さな矩形
             itemGraphics.rect(-3, -3, 6, 6).fill({ color });
             this.top.addChild(itemGraphics);
 
-            this.animations.push({ forkSprite, itemGraphics, restCenter, oppCenter, elapsed: 0 });
+            this.animations.push({ itemGraphics, restCenter, oppCenter, elapsed: 0 });
         });
     }
 
     /** subscribe を解除してリソースを解放する。 */
     dispose(): void {
         this.disposeSubscription();
-        // 残存アニメがあれば全て破棄
         for (const anim of this.animations) {
-            anim.forkSprite.destroy();
             anim.itemGraphics.destroy();
         }
         this.animations = [];
     }
 
     tick(viewportOrigin: Pos2D, deltaMS: number): void {
-        const toRemove: ForkAnimation[] = [];
+        const toRemove: TransferAnimation[] = [];
 
         for (const anim of this.animations) {
             anim.elapsed += deltaMS;
             const t = Math.min(anim.elapsed / DURATION, 1);
 
-            // t ∈ [0, 0.5]: 往路 restCenter → oppCenter（正規化した t' = t * 2）
-            // t ∈ [0.5, 1]: 復路 oppCenter → restCenter（正規化した t' = (t - 0.5) * 2）
-            let worldX: number;
-            let worldZ: number;
-            if (t <= 0.5) {
-                const tp = t * 2;
-                worldX = anim.restCenter.x + (anim.oppCenter.x - anim.restCenter.x) * tp;
-                worldZ = anim.restCenter.z + (anim.oppCenter.z - anim.restCenter.z) * tp;
-                // 往路中はアイテムをフォークと同じ位置に表示
-                anim.itemGraphics.visible = true;
-                anim.itemGraphics.x = (worldX - viewportOrigin.x) * PIXEL_PER_TILE;
-                anim.itemGraphics.y = (worldZ - viewportOrigin.z) * PIXEL_PER_TILE;
-            } else {
-                const tp = (t - 0.5) * 2;
-                worldX = anim.oppCenter.x + (anim.restCenter.x - anim.oppCenter.x) * tp;
-                worldZ = anim.oppCenter.z + (anim.restCenter.z - anim.oppCenter.z) * tp;
-                // 復路中はアイテムを非表示（空荷で戻る）
-                anim.itemGraphics.visible = false;
-            }
-
-            anim.forkSprite.x = (worldX - viewportOrigin.x) * PIXEL_PER_TILE;
-            anim.forkSprite.y = (worldZ - viewportOrigin.z) * PIXEL_PER_TILE;
+            // アイテムは休止辺タイル → 逆側タイルへ片道で運ばれる（搬送方向の可視化）
+            const worldX = anim.restCenter.x + (anim.oppCenter.x - anim.restCenter.x) * t;
+            const worldZ = anim.restCenter.z + (anim.oppCenter.z - anim.restCenter.z) * t;
+            anim.itemGraphics.x = (worldX - viewportOrigin.x) * PIXEL_PER_TILE;
+            anim.itemGraphics.y = (worldZ - viewportOrigin.z) * PIXEL_PER_TILE;
 
             if (t >= 1) {
                 toRemove.push(anim);
             }
         }
 
-        // 完了したアニメをクリーンアップ
         for (const anim of toRemove) {
-            anim.forkSprite.destroy();
             anim.itemGraphics.destroy();
             const idx = this.animations.indexOf(anim);
             if (idx !== -1) this.animations.splice(idx, 1);
