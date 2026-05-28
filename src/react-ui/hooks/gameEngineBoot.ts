@@ -14,6 +14,7 @@ import { ChestStorage } from "../../engine/ChestStorage";
 import { DailyProcessingStorage } from "../../engine/DailyProcessingStorage";
 import { ForgeStorage } from "../../engine/ForgeStorage";
 import { ManualProcessingStorage } from "../../engine/ManualProcessingStorage";
+import { setStationStorages } from "../../engine/StationSystem";
 import { generateTerrain } from "../../engine/TerrainGenerator";
 import { WarpGateStorage } from "../../engine/WarpGateStorage";
 import { WorkbenchStorage } from "../../engine/WorkbenchStorage";
@@ -83,6 +84,9 @@ export function bootstrapStorages(saveData: SaveData | null): Storages {
     const autoProcessingStorage = new AutoProcessingStorage();
     if (saveData) autoProcessingStorage.loadSaveData(saveData.autoProcessingStorage.facilities);
     setAutoProcessingStorage(autoProcessingStorage);
+
+    // ステーション（フォーク搬送）は chest / daily / auto の3ストレージにアクセスする
+    setStationStorages(chestStorage, dailyProcessingStorage, autoProcessingStorage);
 
     const cartStorage = new CartStorage();
     if (saveData) cartStorage.loadSaveData(saveData.cartStorage);

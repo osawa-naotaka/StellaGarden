@@ -85,6 +85,7 @@ export const ITEM_IDS = [
     "pulley",
     "iron_teeth",
     "furrow_canal",
+    "station",
 ] as const;
 
 export type ItemId = (typeof ITEM_IDS)[number];

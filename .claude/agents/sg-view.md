@@ -37,6 +37,7 @@ StellaGarden は Vite + React 19 + TypeScript + PixiJS 8 で作られたチル�
 | `PlacementOverlay.ts` | 配置モード中にマウスカーソルに追従する半透明プレビュー。`IVoxelReader` で配置可否を判定し、確定/キャンセルをコールバックで通知する。 |
 | `PlayerCharacterView.ts` | プレイヤーキャラクターの `AnimatedSprite` を管理。`Idle_down` アニメーションをループ再生。位置は呼び出し元が `top.x/y` を直接設定する。 |
 | `CartView.ts` | 全台車をプレースホルダー Graphics（茶色 16x16 四角）で描画。`Map<cartId, Graphics>` プールパターン。`tick(cartStorage, viewportOrigin)` を毎フレーム呼ぶ。 |
+| `StationForkView.ts` | `station_fired` を購読してフォークの往復アニメ（350ms）を再生。完了した Sprite/Graphics は即 destroy。`tick(viewportOrigin, deltaMS)` を毎フレーム呼ぶ。`dispose()` で購読解除。 |
 
 ## 描画の基本方針（最重要）
 
@@ -53,6 +54,7 @@ StellaGarden は Vite + React 19 + TypeScript + PixiJS 8 で作られたチル�
 | イベント名 | 処理 |
 |---|---|
 | `toggle_inventory` | `InventoryView.show()` / `hide()` を切り替える（App.tsx でワイヤリング）|
+| `station_fired` | `StationForkView` がコンストラクタ内で購読。フォークアニメーション用ワンショット演出。|
 
 **それ以外のイベントは購読しないこと。**
 

@@ -22,6 +22,7 @@ import { CartView } from "../../view/CartView";
 import { DebugText } from "../../view/DebugText";
 import { PlacementOverlay } from "../../view/PlacementOverlay";
 import { PlayerCharacterView } from "../../view/PlayerCharacterView";
+import { StationForkView } from "../../view/StationForkView";
 import { loadSprite } from "../../view/Sprite";
 import { TopView } from "../../view/TopView";
 import { UIState } from "../../view/UIState";
@@ -163,6 +164,10 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
             const cartView = new CartView();
             worldContainer.addChild(cartView.top);
 
+            const stationForkView = new StationForkView(eventBroker);
+            worldContainer.addChild(stationForkView.top);
+            disposers.push(() => stationForkView.dispose());
+
             disposers.push(createInteractionHandler(voxelMap, playerState.inventory, eventBroker, uiState, playerState, cartStorage));
             disposers.push(createPlayerRescueHandler(voxelMap, playerState, eventBroker));
 
@@ -266,6 +271,7 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
                     placementOverlay,
                     playerCharView,
                     cartView,
+                    stationForkView,
                     inputHandler,
                     playerState,
                     gameTime,

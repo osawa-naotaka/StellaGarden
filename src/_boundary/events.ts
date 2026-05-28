@@ -81,6 +81,13 @@ export type GameEventMap = {
     crop_harvested: { pos: Pos2D; itemId: string; count: number };
     /** 木が伐採された */
     tree_felled: { pos: Pos2D };
+    /** ステーションがアイテムを搬送した（フォークアニメーション駆動用）。
+     *  発行: engine/StationSystem（カート通過時に実際にアイテムが移動したときのみ）。
+     *  購読: view/StationForkView。実際の搬送は即時に完了しており、これは描画演出専用のイベント。
+     *  stationPos はステーション本体タイル座標、restSide はフォークの休止辺（向き）。
+     *  フォークは restSide のタイル → その逆側のタイルへ平行移動し、アイテムを運ぶ演出を行う。
+     *  itemId は浮遊アイコンの種類（搬送した代表アイテム）。 */
+    station_fired: { stationPos: Pos2D; restSide: "up" | "down" | "left" | "right"; itemId: string };
 
     // ─── ミッションシステム関連 ──────────────────────────────────────────────
     // ミッション進捗判定（engine/MissionSystem）が購読する。

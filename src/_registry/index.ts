@@ -15,6 +15,7 @@ import "./entities/FurrowCanal";
 import "./entities/Rail";
 import "./entities/Cart";
 import "./entities/Shaft";
+import "./entities/Station";
 import "./entities/Stone";
 import "./entities/Tree";
 import "./entities/WarpGate";

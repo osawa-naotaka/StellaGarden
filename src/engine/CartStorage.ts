@@ -2,6 +2,7 @@ import type { Direction8, ICartReader, ICartStorageWriter, ICartWriter, IEventBr
 import type { CartStorageSaveData } from "../lib/SaveSchema";
 import { CART_INVENTORY_SLOTS, Cart } from "./Cart";
 import { executeCartActionsOnEnterTile } from "./CartActionSystem";
+import { executeStationTransfersOnCartEnter } from "./StationSystem";
 import { RAIL_CONNECTION_DOWN, RAIL_CONNECTION_LEFT, RAIL_CONNECTION_RIGHT, RAIL_CONNECTION_UP } from "./RailConnection";
 import { ENTITY_TYPES, getConnectionsFromVoxel, getDirectionFromVoxel, getEnabledFromVoxel, getEntityTypeFromVoxel, VOXEL_DIRECTION } from "./VoxelDefs";
 
@@ -218,6 +219,7 @@ export class CartStorage implements ICartStorageWriter {
                         tz = next.tz;
                         // 新タイルに踏み込んだ瞬間にアクション実行
                         executeCartActionsOnEnterTile(voxelMap, cart, eventBroker);
+                        executeStationTransfersOnCartEnter(voxelMap, cart, eventBroker);
                         continue;
                     }
                     // タイル中央でちょうど停止
@@ -233,6 +235,7 @@ export class CartStorage implements ICartStorageWriter {
                         tz = next.tz;
                         // 新タイルに踏み込んだ瞬間にアクション実行
                         executeCartActionsOnEnterTile(voxelMap, cart, eventBroker);
+                        executeStationTransfersOnCartEnter(voxelMap, cart, eventBroker);
                     } else {
                         // タイル中央到達 → 停止
                         break;

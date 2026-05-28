@@ -8,6 +8,7 @@ import type { Pos2D, Size2D } from "../../lib/VoxelMap";
 import type { CartView } from "../../view/CartView";
 import type { PlacementOverlay } from "../../view/PlacementOverlay";
 import type { PlayerCharacterView } from "../../view/PlayerCharacterView";
+import type { StationForkView } from "../../view/StationForkView";
 import type { TopView } from "../../view/TopView";
 import type { UIState } from "../../view/UIState";
 import { calcChunkPerViewport, calcTilePerViewport } from "./viewport";
@@ -22,6 +23,7 @@ export interface GameTickDeps {
     placementOverlay: PlacementOverlay;
     playerCharView: PlayerCharacterView;
     cartView: CartView;
+    stationForkView: StationForkView;
     inputHandler: InputHandler;
     playerState: PlayerState;
     gameTime: GameTime;
@@ -46,6 +48,7 @@ export function createGameTickHandler(deps: GameTickDeps): (ticker: Ticker) => v
         placementOverlay,
         playerCharView,
         cartView,
+        stationForkView,
         inputHandler,
         playerState,
         gameTime,
@@ -109,5 +112,6 @@ export function createGameTickHandler(deps: GameTickDeps): (ticker: Ticker) => v
         };
         placementOverlay.tick(playerState.pointerPosInWorld, viewportOrigin);
         cartView.tick(cartStorage, viewportOrigin);
+        stationForkView.tick(viewportOrigin, ticker.deltaMS);
     };
 }

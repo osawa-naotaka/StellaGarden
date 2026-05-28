@@ -464,6 +464,15 @@ export const RECIPES: readonly RecipeDef[] = [
         ],
         result: { itemId: "cart", count: 1 },
     },
+    {
+        id: "station",
+        station: "workbench",
+        ingredients: [
+            { itemId: "board", count: 4 },
+            { itemId: "wooden_gear", count: 2 },
+        ],
+        result: { itemId: "station", count: 1 },
+    },
 
     // ────────────────────────────────────────────────────────────────
     // 繊維・出荷

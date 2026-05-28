@@ -41,6 +41,7 @@ StellaGarden は Vite + React 19 + TypeScript + PixiJS 8 で作られたチル�
 | `CartStorage.ts` | 全台車の生成・撤去・フレーム移動を ID ベースで管理する。`ICartStorageWriter` を implements。`tickAll(voxelMap, deltaMS, eventBroker)` でレール voxel の direction/connectionMask テーブルに基づき移動。新タイル進入時に `CartActionSystem.executeCartActionsOnEnterTile` を呼ぶ。セーブ/ロード対応。 |
 | `CartItems.ts` | 台車関連の定数（`CART_ATTACHMENT_ALLOWED`, `SEED_TO_ENTITY`, `FERTILIZER_ITEMS`）。純粋定数のみ。 |
 | `CartActionSystem.ts` | カートが新タイルに踏み込んだ瞬間に実行する散布・収穫アクション。`executeCartActionsOnEnterTile(voxelMap, cart, eventBroker)` を公開。 |
+| `StationSystem.ts` | ステーション搬送ロジック。カート通過時に隣接ステーション→対向施設（chest/auto/daily）へアイテムを移動する。`setStationStorages` で ChestStorage・DailyProcessingStorage・AutoProcessingStorage を注入。`executeStationTransfersOnCartEnter` を公開。 |
 
 ## あなたが発行するイベント（EventBroker.publish）
 
@@ -54,6 +55,7 @@ StellaGarden は Vite + React 19 + TypeScript + PixiJS 8 で作られたチル�
 | `crop_watered` | 水やり時 | `{ pos: Pos2D }` |
 | `crop_harvested` | 収穫時 | `{ pos: Pos2D; itemId: string; count: number }` |
 | `tree_felled` | 木の伐採時 | `{ pos: Pos2D }` |
+| `station_fired` | ステーションが実際にアイテムを搬送したとき（1個以上移動した場合のみ） | `{ stationPos: Pos2D; restSide: StationSide; itemId: string }` |
 
 **注意**: `Inventory.addItem()` は複数スロットに影響するため `inventory_changed` を発行しない（view は tick で全描画するため問題なし）。
 

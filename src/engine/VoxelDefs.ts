@@ -56,6 +56,7 @@ export const ENTITY_TYPES = {
     scutching_mill: 41,
     spinning_machine: 42,
     auto_loom: 43,
+    station: 44,
 } as const;
 
 // ---------------------------------------------------------------------------
