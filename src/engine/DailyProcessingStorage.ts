@@ -1,4 +1,4 @@
-import type { ItemStack, IVoxelWriter, Pos2D } from "../_boundary/interfaces";
+import type { ItemId, ItemStack, IVoxelWriter, Pos2D } from "../_boundary/interfaces";
 import { getItemDef } from "../_registry/ItemRegistry";
 import { KeyedSlotStorage } from "./KeyedSlotStorage";
 import { findRecipeForInput, getDailyProcessingDef, hasEnoughInput, isAcceptableInputItem } from "./ProcessingRecipes";
@@ -65,15 +65,61 @@ export class DailyProcessingStorage extends KeyedSlotStorage<DailyProcessingSlot
         return getDaysElapsedFromVoxel(voxelMap.get(surface));
     }
 
-    /** 入力スロットを更新する。itemId が変わる場合は進行日数（growthStage）を 0 にリセットする。 */
+    /**
+     * 入力スロットをまるごと置き換える（主に UI からの直接設定用）。
+     * itemId が変わる場合は進行日数をリセットする。
+     *
+     * プログラム的に「アイテムを追加」したい場合は置換ではなく `addInput` を使うこと
+     * （置換セマンティクスは呼び出し側にマージ責務を負わせ、取りこぼしを招きやすいため）。
+     */
     setInput(pos: Pos2D, stack: ItemStack | null, voxelMap: IVoxelWriter): void {
         const slots = this.getRaw(pos);
         if (!slots) throw new Error("cannot found slots.");
         const oldItemId = slots.input?.itemId ?? null;
         const newItemId = stack?.itemId ?? null;
         slots.input = stack;
+        this.recomputeInputProgress(pos, voxelMap, oldItemId !== newItemId);
+    }
 
-        if (newItemId === null) {
+    /**
+     * 入力スロットに itemId を count 個まで「加算」する。実際に追加できた個数を返す。
+     * 容量・単一 itemId 制約・進行日数の再計算を内部で完結させるため、呼び出し側はマージ計算不要。
+     *
+     * 0 を返すケース: ストレージ未生成（アンカーずれ等）／count<=0／レシピ非受理／
+     * 既存入力と itemId 不一致（単一スロットのため混在不可）／入力が満杯。
+     */
+    addInput(pos: Pos2D, itemId: ItemId, count: number, voxelMap: IVoxelWriter): number {
+        const slots = this.getRaw(pos);
+        if (!slots) return 0; // アンカーずれ等で未生成でも tick を巻き込まず素通り
+        if (count <= 0) return 0;
+        if (!this.canAcceptInput(pos, itemId, voxelMap)) return 0;
+
+        const existing = slots.input;
+        if (existing !== null && existing.itemId !== itemId) return 0;
+
+        const maxStack = getItemDef(itemId)?.maxStack ?? 64;
+        const existingCount = existing?.itemId === itemId ? existing.count : 0;
+        const space = maxStack - existingCount;
+        if (space <= 0) return 0;
+
+        const moved = Math.min(space, count);
+        const wasEmpty = existing === null;
+        slots.input = { itemId, count: existingCount + moved };
+        // 空スロットへの新規投入は「itemId 変化」扱いにして進行を仕切り直す（同 itemId の追い投入は進行を保持）。
+        this.recomputeInputProgress(pos, voxelMap, wasEmpty);
+        return moved;
+    }
+
+    /**
+     * 現在の入力スロット状態から進行日数（voxel の growthStage）を導出して書き戻す。
+     * 旧→新の遷移差分ではなく「いま入力に何個あるか」から決めるため冪等。
+     * `itemIdChanged` が true の場合のみ進行をリセットして仕切り直す。
+     */
+    private recomputeInputProgress(pos: Pos2D, voxelMap: IVoxelWriter, itemIdChanged: boolean): void {
+        const slots = this.getRaw(pos);
+        if (!slots) return;
+
+        if (slots.input === null) {
             this.resetDaysElapsed(pos, voxelMap, 0);
             return;
         }
@@ -81,27 +127,18 @@ export class DailyProcessingStorage extends KeyedSlotStorage<DailyProcessingSlot
         const baseEntityType = this.getBaseEntityTypeAt(pos, voxelMap);
         if (baseEntityType === ENTITY_TYPES.none) throw new Error("cannot found entity.");
         const def = getDailyProcessingDef(baseEntityType);
-        if (!def) throw new Error("cannot found daily processing def.");
+        const hasEnough = hasEnoughInput(def, slots.input.itemId, slots.input.count);
 
-        const hasEnough = hasEnoughInput(def, newItemId, slots.input?.count ?? 0);
+        if (itemIdChanged) {
+            this.resetDaysElapsed(pos, voxelMap, hasEnough ? 1 : 0);
+            return;
+        }
 
-        if (oldItemId !== newItemId) {
-            if (hasEnough) {
-                this.resetDaysElapsed(pos, voxelMap, 1);
-            } else {
-                this.resetDaysElapsed(pos, voxelMap, 0);
-            }
+        const currentDaysElapsed = this.getDaysElapsed(pos, voxelMap);
+        if (currentDaysElapsed > 0) {
+            if (!hasEnough) this.resetDaysElapsed(pos, voxelMap, 0);
         } else {
-            const currentDaysElapsed = this.getDaysElapsed(pos, voxelMap);
-            if (currentDaysElapsed > 0) {
-                if (!hasEnough) {
-                    this.resetDaysElapsed(pos, voxelMap, 0);
-                }
-            } else {
-                if (hasEnough) {
-                    this.resetDaysElapsed(pos, voxelMap, 1);
-                }
-            }
+            if (hasEnough) this.resetDaysElapsed(pos, voxelMap, 1);
         }
     }
 

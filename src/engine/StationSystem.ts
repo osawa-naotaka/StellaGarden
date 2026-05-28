@@ -1,4 +1,4 @@
-import type { ICartWriter, IEventBroker, ItemStack, IVoxelWriter, Pos2D } from "../_boundary/interfaces";
+import type { ICartWriter, IEventBroker, IVoxelWriter, Pos2D } from "../_boundary/interfaces";
 import { findFacilityAnchor } from "../_registry/facilityUtil";
 import { getItemDef } from "../_registry/ItemRegistry";
 import type { AutoProcessingStorage } from "./AutoProcessingStorage";
@@ -202,47 +202,19 @@ function unloadCartToDaily(
     dailyStorage: DailyProcessingStorage,
     voxelMap: IVoxelWriter,
 ): boolean {
-    const currentInput = dailyStorage.getInput(anchorPos);
-
-    // 投入対象の itemId を1種に決める（入力スロットは単一のため混在不可）。
-    // 入力スロットが空ならカート内で最初に受理可能なアイテム種、既に入力中ならその itemId のみ。
-    let targetItemId: string | null = currentInput?.itemId ?? null;
-    if (targetItemId === null) {
-        for (const slot of cart.inventorySlots) {
-            if (slot !== null && dailyStorage.canAcceptInput(anchorPos, slot.itemId, voxelMap)) {
-                targetItemId = slot.itemId;
-                break;
-            }
-        }
-    } else if (!dailyStorage.canAcceptInput(anchorPos, targetItemId, voxelMap)) {
-        return false;
-    }
-    if (targetItemId === null) return false;
-
-    const maxStack = getItemDef(targetItemId)?.maxStack ?? 64;
-    const existingCount = currentInput?.itemId === targetItemId ? currentInput.count : 0;
-    let space = maxStack - existingCount;
-    if (space <= 0) return false;
-
-    // カート内の targetItemId を全スロットから集約し、入力スロットの空き容量まで取り出す。
-    // setInput は単一スロットへ1回だけ書き込む（複数回呼ぶと前回投入分を上書きしてしまうため）。
-    let totalMoved = 0;
-    for (let i = 0; i < cart.inventorySlots.length && space > 0; i++) {
+    let moved = false;
+    // 各カートスロットを addInput に渡すだけ。addInput が容量・単一 itemId 制約・進行度を内包する。
+    // 入力が満杯 or itemId 不一致になった以降のスロットは addInput が 0 を返すため自然にスキップされる。
+    for (let i = 0; i < cart.inventorySlots.length; i++) {
         const slot = cart.inventorySlots[i];
-        if (slot === null || slot.itemId !== targetItemId) continue;
-        const take = Math.min(space, slot.count);
-        const remainingInSlot = slot.count - take;
-        cart.setInventorySlot(i, remainingInSlot > 0 ? { itemId: slot.itemId, count: remainingInSlot } : null);
-        totalMoved += take;
-        space -= take;
+        if (slot === null) continue;
+        const movedCount = dailyStorage.addInput(anchorPos, slot.itemId, slot.count, voxelMap);
+        if (movedCount <= 0) continue;
+        const remaining = slot.count - movedCount;
+        cart.setInventorySlot(i, remaining > 0 ? { itemId: slot.itemId, count: remaining } : null);
+        moved = true;
     }
-
-    if (totalMoved <= 0) return false;
-
-    // setInput は内部で daysElapsed をリセットするため、集約後の最終 stack を1度だけ渡す。
-    const newInputStack: ItemStack = { itemId: targetItemId as never, count: existingCount + totalMoved };
-    dailyStorage.setInput(anchorPos, newInputStack, voxelMap);
-    return true;
+    return moved;
 }
 
 // ---------------------------------------------------------------------------
