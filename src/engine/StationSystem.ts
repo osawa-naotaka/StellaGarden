@@ -202,36 +202,47 @@ function unloadCartToDaily(
     dailyStorage: DailyProcessingStorage,
     voxelMap: IVoxelWriter,
 ): boolean {
-    let moved = false;
     const currentInput = dailyStorage.getInput(anchorPos);
 
-    for (let i = 0; i < cart.inventorySlots.length; i++) {
-        const slot = cart.inventorySlots[i];
-        if (slot === null) continue;
-        if (!dailyStorage.canAcceptInput(anchorPos, slot.itemId, voxelMap)) continue;
-
-        // 空の場合: カート内の受理可能アイテムを投入
-        // 既に入力中の場合: itemId が一致するものだけを追加
-        if (currentInput !== null && currentInput.itemId !== slot.itemId) continue;
-
-        const itemId = slot.itemId;
-        const maxStack = getItemDef(itemId)?.maxStack ?? 64;
-        const existingCount = currentInput?.itemId === itemId ? (currentInput?.count ?? 0) : 0;
-        const space = maxStack - existingCount;
-        if (space <= 0) continue;
-
-        const add = Math.min(space, slot.count);
-        const newInputStack: ItemStack = { itemId: itemId as never, count: existingCount + add };
-        // setInput は内部で daysElapsed をリセットするため最終的なマージ済み stack を渡す
-        dailyStorage.setInput(anchorPos, newInputStack, voxelMap);
-
-        const newCartCount = slot.count - add;
-        cart.setInventorySlot(i, newCartCount > 0 ? { itemId: slot.itemId, count: newCartCount } : null);
-        moved = true;
-        // daily は入力単一スロットなので1種類だけ投入して終了
-        break;
+    // 投入対象の itemId を1種に決める（入力スロットは単一のため混在不可）。
+    // 入力スロットが空ならカート内で最初に受理可能なアイテム種、既に入力中ならその itemId のみ。
+    let targetItemId: string | null = currentInput?.itemId ?? null;
+    if (targetItemId === null) {
+        for (const slot of cart.inventorySlots) {
+            if (slot !== null && dailyStorage.canAcceptInput(anchorPos, slot.itemId, voxelMap)) {
+                targetItemId = slot.itemId;
+                break;
+            }
+        }
+    } else if (!dailyStorage.canAcceptInput(anchorPos, targetItemId, voxelMap)) {
+        return false;
     }
-    return moved;
+    if (targetItemId === null) return false;
+
+    const maxStack = getItemDef(targetItemId)?.maxStack ?? 64;
+    const existingCount = currentInput?.itemId === targetItemId ? currentInput.count : 0;
+    let space = maxStack - existingCount;
+    if (space <= 0) return false;
+
+    // カート内の targetItemId を全スロットから集約し、入力スロットの空き容量まで取り出す。
+    // setInput は単一スロットへ1回だけ書き込む（複数回呼ぶと前回投入分を上書きしてしまうため）。
+    let totalMoved = 0;
+    for (let i = 0; i < cart.inventorySlots.length && space > 0; i++) {
+        const slot = cart.inventorySlots[i];
+        if (slot === null || slot.itemId !== targetItemId) continue;
+        const take = Math.min(space, slot.count);
+        const remainingInSlot = slot.count - take;
+        cart.setInventorySlot(i, remainingInSlot > 0 ? { itemId: slot.itemId, count: remainingInSlot } : null);
+        totalMoved += take;
+        space -= take;
+    }
+
+    if (totalMoved <= 0) return false;
+
+    // setInput は内部で daysElapsed をリセットするため、集約後の最終 stack を1度だけ渡す。
+    const newInputStack: ItemStack = { itemId: targetItemId as never, count: existingCount + totalMoved };
+    dailyStorage.setInput(anchorPos, newInputStack, voxelMap);
+    return true;
 }
 
 // ---------------------------------------------------------------------------
@@ -305,23 +316,20 @@ function loadDailyToCart(
 
 /**
  * カートが新タイルに踏み込んだ瞬間に呼ぶ。
- * 進入したタイル (tileX, tileZ) に隣接する全ステーションについて搬送アクションを実行する。
+ * カートの現在タイルに隣接する全ステーションについて搬送アクションを実行する。
  * 実際に1個でも移動した場合のみ station_fired を発行する。
- *
- * 進入タイルは呼び出し側（CartStorage.tickAll）が確定値を渡す。
- * cart.posInWorld は発火時タイル境界上にあり floor が移動方向によって
- * 古いタイルを指す（左/上移動でのオフバイワン）ため、ここでは使わない。
  */
 export function executeStationTransfersOnCartEnter(
     voxelMap: IVoxelWriter,
     cart: ICartWriter,
-    tileX: number,
-    tileZ: number,
     eventBroker: IEventBroker,
 ): void {
     if (!chestStorageRef || !dailyStorageRef || !autoStorageRef) return;
 
-    const T: Pos2D = { x: tileX, z: tileZ };
+    const T: Pos2D = {
+        x: Math.floor(cart.posInWorld.x),
+        z: Math.floor(cart.posInWorld.z),
+    };
 
     // 4方向の隣接タイルを順に確認する
     const directions: { vec: Vec2; side: StationSide }[] = [

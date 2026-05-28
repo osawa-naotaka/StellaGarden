@@ -219,7 +219,7 @@ export class CartStorage implements ICartStorageWriter {
                         tz = next.tz;
                         // 新タイルに踏み込んだ瞬間にアクション実行
                         executeCartActionsOnEnterTile(voxelMap, cart, eventBroker);
-                        executeStationTransfersOnCartEnter(voxelMap, cart, tx, tz, eventBroker);
+                        executeStationTransfersOnCartEnter(voxelMap, cart, eventBroker);
                         continue;
                     }
                     // タイル中央でちょうど停止
@@ -235,7 +235,7 @@ export class CartStorage implements ICartStorageWriter {
                         tz = next.tz;
                         // 新タイルに踏み込んだ瞬間にアクション実行
                         executeCartActionsOnEnterTile(voxelMap, cart, eventBroker);
-                        executeStationTransfersOnCartEnter(voxelMap, cart, tx, tz, eventBroker);
+                        executeStationTransfersOnCartEnter(voxelMap, cart, eventBroker);
                     } else {
                         // タイル中央到達 → 停止
                         break;
