@@ -146,6 +146,14 @@ export class CartStorage implements ICartStorageWriter {
         const dt = deltaMS / 1000;
         const MAX_HOPS = 8; // 1フレームで跨げる最大タイル数（無限ループ防止）
 
+        // 移動前の全台車位置から占有タイルを記録する（1タイル1台車の当たり判定用）。
+        // 処理順に依存させないため、移動を始める前にスナップショットを取る。
+        const occupied = new Map<number, number>();
+        for (const cart of this.carts.values()) {
+            const key = Math.floor(cart.posInWorld.z) * voxelMap.width + Math.floor(cart.posInWorld.x);
+            occupied.set(key, cart.id);
+        }
+
         for (const cart of this.carts.values()) {
             let remaining = CART_MOVE_SPEED * dt;
             let tx = Math.floor(cart.posInWorld.x);
@@ -172,9 +180,15 @@ export class CartStorage implements ICartStorageWriter {
                 const nextVoxel = voxelMap.get(nextSurfacePos);
                 const nextIsRail = getEntityTypeFromVoxel(nextVoxel) === ENTITY_TYPES.rail;
 
+                // 次タイルが他の台車に占有されているなら進入不可（1タイル1台車）。
+                // 占有時は nextIsRail=false と同じ扱いになり、手前のタイル中央で自然停止する。
+                const nextKey = next.tz * voxelMap.width + next.tx;
+                const occupant = occupied.get(nextKey);
+                const canAdvance = nextIsRail && (occupant === undefined || occupant === cart.id);
+
                 // 線分終点を決定
                 let segmentEnd: Pos2D;
-                if (nextIsRail) {
+                if (canAdvance) {
                     segmentEnd = edgeCenterWorld(tx, tz, exitBit);
                 } else {
                     // 進入辺中央〜脱出辺中央の線分上で、現在位置 t を計算
@@ -198,7 +212,7 @@ export class CartStorage implements ICartStorageWriter {
                 const distToEnd = Math.sqrt(dx * dx + dz * dz);
 
                 if (distToEnd <= 0) {
-                    if (nextIsRail) {
+                    if (canAdvance) {
                         // 既に脱出辺中央: 隣タイルに踏み込んでループ継続
                         tx = next.tx;
                         tz = next.tz;
@@ -213,7 +227,7 @@ export class CartStorage implements ICartStorageWriter {
                 if (remaining >= distToEnd) {
                     cart.setPosInWorld({ x: segmentEnd.x, z: segmentEnd.z });
                     remaining -= distToEnd;
-                    if (nextIsRail) {
+                    if (canAdvance) {
                         // 脱出辺中央にスナップ → 次タイルへ
                         tx = next.tx;
                         tz = next.tz;

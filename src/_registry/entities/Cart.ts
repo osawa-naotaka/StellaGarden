@@ -39,7 +39,9 @@ registerItem({
             // rail エンティティの上のみ配置可
             const surfacePos = voxelMap.getSurfacePosition({ x: pos.x, y: 0, z: pos.z });
             const voxel = voxelMap.get(surfacePos);
-            return getEntityTypeFromVoxel(voxel) === ENTITY_TYPES.rail;
+            if (getEntityTypeFromVoxel(voxel) !== ENTITY_TYPES.rail) return false;
+            // 既に台車がいるタイルには配置不可（1タイル1台車）
+            return cartStorage?.findAt(pos, 0) == null;
         },
         onPlace(_voxelMap, pos, _variant) {
             // voxel には何も書かない。CartStorage に登録するだけ。
