@@ -1,3 +1,4 @@
+import { PIXEL_PER_TILE } from "../../_boundary/constants";
 import { ENTITY_TYPES, getVariantFromVoxel, setVariantInVoxel } from "../../engine/VoxelDefs";
 import { type EntitySpriteInfo, type InteractionContext, registerEntity } from "../EntityRegistry";
 import { placeFacility, removeFacilityAtPos } from "../facilityUtil";
@@ -14,10 +15,10 @@ const FORK_PLACEHOLDER_SPRITE = "ss_sprite_051.png";
 // variant 0=up, 1=down, 2=left, 3=right。隣接タイル上にフォークを描いて向きを示す。
 // （StationForkView の搬送アニメ開始位置 restCenter と同じ位置）
 const FORK_REST_OFFSETS: ReadonlyArray<readonly [number, number]> = [
-    [0, -16], // up
-    [0, 16], // down
-    [-16, 0], // left
-    [16, 0], // right
+    [0, -PIXEL_PER_TILE], // up
+    [0, PIXEL_PER_TILE], // down
+    [-PIXEL_PER_TILE, 0], // left
+    [PIXEL_PER_TILE, 0], // right
 ];
 
 registerEntity({
