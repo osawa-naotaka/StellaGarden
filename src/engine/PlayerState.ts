@@ -143,7 +143,8 @@ export class PlayerState implements IPlayerStateWriter {
             entityType === ENTITY_TYPES.sunflower ||
             entityType === ENTITY_TYPES.furrow_canal ||
             entityType === ENTITY_TYPES.shaft ||
-            entityType === ENTITY_TYPES.rail
+            entityType === ENTITY_TYPES.rail ||
+            entityType === ENTITY_TYPES.station
         )
             return false;
 
