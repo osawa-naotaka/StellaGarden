@@ -42,7 +42,8 @@ registerEntity({
 
 registerItem({
     itemId: "shaft",
-    spriteName: "ss_sprite_095.png",
+    spriteName: "ss_sprite_131.png",
+    // spriteName: "ss_sprite_095.png",
     displayName: "シャフト",
     maxStack: 64,
     placement: {
