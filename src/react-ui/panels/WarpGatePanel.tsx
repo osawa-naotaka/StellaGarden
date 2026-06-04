@@ -1,9 +1,11 @@
 import { useCallback } from "react";
 import type { IInventoryWriter, IReputationSystemReader, ItemStack, SlotRef } from "../../_boundary/interfaces";
+import { SEED_REQUEST_DEFS, SEED_STACK_COUNT, type SeedRequestSystem } from "../../engine/SeedRequestSystem";
 import type { WarpGateStorage } from "../../engine/WarpGateStorage";
 import type { UIState } from "../../view/UIState";
 import { CursorStack } from "../components/CursorStack";
 import { InventoryGrid } from "../components/InventoryGrid";
+import { ItemIcon } from "../components/ItemIcon";
 import { SidePanel } from "../components/SidePanel";
 import { TierList } from "../components/TierList";
 import { useFrameTick } from "../hooks/useFrameTick";
@@ -23,10 +25,11 @@ export interface WarpGatePanelProps {
     inventory: IInventoryWriter;
     warpGateStorage: WarpGateStorage;
     reputationSystem: IReputationSystemReader;
+    seedRequestSystem: SeedRequestSystem;
     uiState: UIState;
 }
 
-export function WarpGatePanel({ open, inventory, warpGateStorage, reputationSystem, uiState }: WarpGatePanelProps) {
+export function WarpGatePanel({ open, inventory, warpGateStorage, reputationSystem, seedRequestSystem, uiState }: WarpGatePanelProps) {
     useFrameTick(open);
 
     const getSlot = useCallback(
@@ -88,6 +91,20 @@ export function WarpGatePanel({ open, inventory, warpGateStorage, reputationSyst
         uiState.targetPos = null;
     }, [uiState]);
 
+    const handleSeedRequest = useCallback(
+        (seedId: (typeof SEED_REQUEST_DEFS)[number]["seedId"]) => {
+            // 同じ種を再度押したら取り消し、それ以外は上書きリクエスト（1日1件）。
+            if (seedRequestSystem.getPending() === seedId) {
+                seedRequestSystem.cancel();
+            } else {
+                seedRequestSystem.request(seedId);
+            }
+        },
+        [seedRequestSystem],
+    );
+
+    const pendingSeed = seedRequestSystem.getPending();
+
     const tiers = reputationSystem.getAllTierProgress();
     const points = reputationSystem.getPoints();
     let preview = 0;
@@ -117,6 +134,36 @@ export function WarpGatePanel({ open, inventory, warpGateStorage, reputationSyst
                         onLeftClick={(i, e) => handleLeftClick({ area: "warp_gate", index: i }, e.nativeEvent)}
                         onRightClick={(i) => handleRightClick({ area: "warp_gate", index: i })}
                     />
+                </section>
+
+                <hr className="sg-section-divider" />
+
+                <section className="sg-sidepanel-section">
+                    <h3 className="sg-section-title">Seed Request</h3>
+                    <div className="sg-seed-request-grid">
+                        {SEED_REQUEST_DEFS.map((def) => {
+                            const isPending = pendingSeed === def.seedId;
+                            return (
+                                <button
+                                    key={def.seedId}
+                                    type="button"
+                                    className={`sg-seed-request-row${isPending ? " is-pending" : ""}`}
+                                    onClick={() => handleSeedRequest(def.seedId)}
+                                >
+                                    <ItemIcon itemId={def.seedId} size={24} />
+                                    <span className="sg-seed-request-name">
+                                        {def.displayName} ×{SEED_STACK_COUNT}
+                                    </span>
+                                    <span className="sg-seed-request-penalty">-{def.penalty.toLocaleString()} pt</span>
+                                </button>
+                            );
+                        })}
+                    </div>
+                    <p className="sg-seed-request-status">
+                        {pendingSeed
+                            ? `リクエスト中: 翌朝5時に1スタック配達され、評価値が減点されます（再度押すと取消）`
+                            : `1日1種類・1スタックまで地球に種をリクエストできます`}
+                    </p>
                 </section>
 
                 <hr className="sg-section-divider" />
@@ -164,6 +211,7 @@ registerPanel({
             inventory={engine.inventory}
             warpGateStorage={engine.warpGateStorage}
             reputationSystem={engine.reputationSystem}
+            seedRequestSystem={engine.seedRequestSystem}
             uiState={engine.uiState}
         />
     ),

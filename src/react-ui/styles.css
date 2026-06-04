@@ -243,6 +243,53 @@
     color: var(--sg-fg-dim);
 }
 
+/* ─── 種リクエスト（転移ゲートからの詰み救済）───────────────── */
+.sg-seed-request-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.sg-seed-request-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--sg-bg-elev2);
+    border: 1px solid var(--sg-border);
+    color: var(--sg-fg);
+    font-family: var(--sg-font);
+    font-size: var(--sg-font-size-sm);
+    padding: 4px 8px;
+    border-radius: var(--sg-radius);
+    cursor: pointer;
+    user-select: none;
+    text-align: left;
+    transition: border-color var(--sg-duration) var(--sg-easing);
+}
+
+.sg-seed-request-row:hover:not(:disabled) {
+    border-color: var(--sg-accent);
+}
+
+.sg-seed-request-row.is-pending {
+    border-color: var(--sg-accent-strong);
+}
+
+.sg-seed-request-name {
+    flex: 1;
+}
+
+.sg-seed-request-penalty {
+    color: #e06c6c;
+    font-weight: 700;
+}
+
+.sg-seed-request-status {
+    margin-top: 6px;
+    font-size: var(--sg-font-size-sm);
+    color: var(--sg-fg-dim);
+}
+
 /* ─── クラフト ─────────────────────────────────────────────── */
 .sg-craft-tool-row {
     display: flex;

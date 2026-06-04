@@ -49,6 +49,14 @@ export class ReputationSystem implements IReputationSystemReader {
         return this.points;
     }
 
+    /**
+     * 評価値にペナルティ（減点）を課す。種リクエスト等の代償に使う。
+     * points は負の値まで下がりうる（下限クランプはしない）。
+     */
+    applyPenalty(points: number): void {
+        this.points -= points;
+    }
+
     /** 指定品目の累計出荷数を返す。 */
     getCumulativeShipped(itemId: ItemId): number {
         return this.cumulativeShipped.get(itemId) ?? 0;

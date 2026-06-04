@@ -12,6 +12,7 @@ import { MissionSystem } from "../../engine/MissionSystem";
 import { createPlayerRescueHandler } from "../../engine/PlayerRescueSystem";
 import { PlayerState } from "../../engine/PlayerState";
 import { ReputationSystem } from "../../engine/ReputationSystem";
+import { SeedRequestSystem } from "../../engine/SeedRequestSystem";
 import { InputHandler } from "../../input/InputHandler";
 import { createInteractionHandler } from "../../input/InteractionSystem";
 import { DEBUG } from "../../lib/debugFlag";
@@ -145,6 +146,8 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
             });
             reputationSystem.setEventBroker(eventBroker);
 
+            const seedRequestSystem = new SeedRequestSystem(saveData?.seedRequest);
+
             const missionSystem = new MissionSystem(saveData?.mission);
             disposers.push(missionSystem.subscribeEvents(eventBroker));
 
@@ -204,6 +207,9 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
                     }
                     reputationSystem.processShipment(shippedItems);
                     warpGateStorage.clear();
+
+                    // 種リクエスト（詰み救済）: 保留中の種を1スタック配達し、評価値に大幅減点を課す。
+                    seedRequestSystem.fulfill(playerState.inventory, reputationSystem);
                     // ミッションシステムなどへ通知。ItemId は string のリテラルユニオンなのでキャスト安全。
                     if (shippedItems.size > 0) {
                         eventBroker.publish("item_shipped", { items: shippedItems as ReadonlyMap<string, number> });
@@ -218,6 +224,7 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
                 gameTime,
                 warpGateStorage,
                 reputationSystem,
+                seedRequestSystem,
                 chestStorage,
                 forgeStorage,
                 bonfireStorage,
@@ -271,6 +278,7 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
                         autoProcessingStorage,
                         cartStorage,
                         reputationSystem,
+                        seedRequestSystem,
                         missionSystem,
                         chatHistory,
                     }),

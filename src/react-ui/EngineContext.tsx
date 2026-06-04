@@ -20,6 +20,7 @@ import type { ForgeStorage } from "../engine/ForgeStorage";
 import type { ManualProcessingStorage } from "../engine/ManualProcessingStorage";
 import type { MissionSystem } from "../engine/MissionSystem";
 import type { SaltPanStorage } from "../engine/SaltPanStorage";
+import type { SeedRequestSystem } from "../engine/SeedRequestSystem";
 import type { WarpGateStorage } from "../engine/WarpGateStorage";
 import type { UIState } from "../view/UIState";
 
@@ -33,6 +34,7 @@ export interface EngineRefs {
     gameTime: IGameTimeReader;
     warpGateStorage: WarpGateStorage;
     reputationSystem: IReputationSystemReader;
+    seedRequestSystem: SeedRequestSystem;
     chestStorage: ChestStorage;
     forgeStorage: ForgeStorage;
     bonfireStorage: BonfireStorage;

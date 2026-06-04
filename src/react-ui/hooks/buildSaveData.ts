@@ -13,6 +13,7 @@ import type { MissionSystem } from "../../engine/MissionSystem";
 import type { PlayerState } from "../../engine/PlayerState";
 import type { ReputationSystem } from "../../engine/ReputationSystem";
 import type { SaltPanStorage } from "../../engine/SaltPanStorage";
+import type { SeedRequestSystem } from "../../engine/SeedRequestSystem";
 import type { WarpGateStorage } from "../../engine/WarpGateStorage";
 import type { WorkbenchStorage } from "../../engine/WorkbenchStorage";
 import type { SaveData } from "../../lib/SaveSystem";
@@ -37,6 +38,7 @@ export interface SaveSnapshotDeps {
     autoProcessingStorage: AutoProcessingStorage;
     cartStorage: CartStorage;
     reputationSystem: ReputationSystem;
+    seedRequestSystem: SeedRequestSystem;
     missionSystem: MissionSystem;
     chatHistory: ChatHistory;
 }
@@ -62,6 +64,7 @@ export function buildSaveData(deps: SaveSnapshotDeps): Omit<SaveData, "version" 
         autoProcessingStorage,
         cartStorage,
         reputationSystem,
+        seedRequestSystem,
         missionSystem,
         chatHistory,
     } = deps;
@@ -123,6 +126,7 @@ export function buildSaveData(deps: SaveSnapshotDeps): Omit<SaveData, "version" 
         },
         cartStorage: cartStorage.toSaveData(),
         reputation: reputationSystem.toSaveData(),
+        seedRequest: seedRequestSystem.toSaveData(),
         mission: missionSystem.toSaveData(),
         chatHistory: chatHistory.toSaveData(),
     };
