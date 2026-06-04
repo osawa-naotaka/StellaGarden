@@ -43,6 +43,9 @@ export type GameEventMap = {
     /** 塩田（入力なしの受動生成。塩を取り出す）の UI を開く。
      *  発行: Saltpan.ts の onOpenFacilityUI（右クリック）。購読: UIState → SaltPanPanel。 */
     open_saltpan_ui: { pos: Pos2D };
+    /** 発酵桶（多入力の長期熟成。味噌/醤油もろみ/麦もろみ/酢/熟成麦焼酎）の UI を開く。
+     *  発行: FermentationVat.ts の onOpenFacilityUI（右クリック）。購読: UIState → FermentationPanel。 */
+    open_fermentation_ui: { pos: Pos2D };
     /** 台車を右クリックして台車UIを開く。
      *  発行: InteractionSystem（cartStorage.findAt がヒットした時、施設パスより先に発行）。
      *  購読: UIState → CartPanel。台車は voxel 外管理のため pos ではなく cartId で特定する。 */

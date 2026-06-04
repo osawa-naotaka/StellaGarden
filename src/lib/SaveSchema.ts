@@ -113,6 +113,20 @@ export const SaltPanStorageSaveDataSchema = v.object({
     ),
 });
 
+// 発酵桶（多入力＋出力1＋品目選択）。既存セーブとの互換のため、ルートでは optional にする。
+export const FermentationStorageSaveDataSchema = v.object({
+    vats: v.array(
+        v.object({
+            key: v.string(),
+            slots: v.object({
+                inputs: v.array(NullableItemStackSchema),
+                output: NullableItemStackSchema,
+                selectedRecipeIndex: v.number(),
+            }),
+        }),
+    ),
+});
+
 export const WorkbenchStorageSaveDataSchema = v.object({
     workbenches: v.array(
         v.object({
@@ -233,6 +247,7 @@ export const SaveDataSchema = v.object({
     bonfireStorage: v.optional(BonfireStorageSaveDataSchema, () => ({ bonfires: [] })),
     distillerStorage: v.optional(DistillerStorageSaveDataSchema, () => ({ distillers: [] })),
     saltPanStorage: v.optional(SaltPanStorageSaveDataSchema, () => ({ saltpans: [] })),
+    fermentationStorage: v.optional(FermentationStorageSaveDataSchema, () => ({ vats: [] })),
     workbenchStorage: WorkbenchStorageSaveDataSchema,
     warpGateStorage: WarpGateStorageSaveDataSchema,
     manualProcessingStorage: ManualProcessingStorageSaveDataSchema,
@@ -263,6 +278,7 @@ export type ForgeStorageSaveData = v.InferOutput<typeof ForgeStorageSaveDataSche
 export type BonfireStorageSaveData = v.InferOutput<typeof BonfireStorageSaveDataSchema>;
 export type DistillerStorageSaveData = v.InferOutput<typeof DistillerStorageSaveDataSchema>;
 export type SaltPanStorageSaveData = v.InferOutput<typeof SaltPanStorageSaveDataSchema>;
+export type FermentationStorageSaveData = v.InferOutput<typeof FermentationStorageSaveDataSchema>;
 export type WorkbenchStorageSaveData = v.InferOutput<typeof WorkbenchStorageSaveDataSchema>;
 export type WarpGateStorageSaveData = v.InferOutput<typeof WarpGateStorageSaveDataSchema>;
 export type ManualProcessingStorageSaveData = v.InferOutput<typeof ManualProcessingStorageSaveDataSchema>;

@@ -10,6 +10,7 @@ export type UIMode =
     | "bonfire"
     | "distiller"
     | "saltpan"
+    | "fermentation"
     | "warp_gate"
     | "processing-manual"
     | "processing-daily"
@@ -127,6 +128,12 @@ export class UIState {
             this.targetPos = pos;
         });
 
+        const d13 = broker.subscribe("open_fermentation_ui", ({ pos }) => {
+            if (this.mode === "placement") return;
+            this.mode = "fermentation";
+            this.targetPos = pos;
+        });
+
         return () => {
             d1();
             d2();
@@ -140,6 +147,7 @@ export class UIState {
             d10();
             d11();
             d12();
+            d13();
         };
     }
 

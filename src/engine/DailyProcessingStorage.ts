@@ -1,7 +1,7 @@
 import type { ItemId, ItemStack, IVoxelWriter, Pos2D } from "../_boundary/interfaces";
 import { getItemDef } from "../_registry/ItemRegistry";
 import { KeyedSlotStorage } from "./KeyedSlotStorage";
-import { findRecipeForInput, getDailyProcessingDef, hasEnoughInput, isAcceptableInputItem } from "./ProcessingRecipes";
+import { DAILY_PROCESSING_DEFS, findRecipeForInput, getDailyProcessingDef, hasEnoughInput, isAcceptableInputItem } from "./ProcessingRecipes";
 import { ENTITY_TYPES, getDaysElapsedFromVoxel, getEntityTypeFromVoxel, setDaysElapsedInVoxel, setEnabledInVoxel } from "./VoxelDefs";
 
 /** カテゴリ3（日次処理）の状態。 */
@@ -175,7 +175,9 @@ export class DailyProcessingStorage extends KeyedSlotStorage<DailyProcessingSlot
             const surface = voxelMap.getSurfacePosition({ x: pos.x, y: 0, z: pos.z });
             const voxel = voxelMap.get(surface);
             const entityType = getEntityTypeFromVoxel(voxel);
-            const def = getDailyProcessingDef(entityType);
+            // 日次処理対象外の entityType（旧セーブに残った焚き火など）は安全にスキップする。
+            const def = DAILY_PROCESSING_DEFS[entityType];
+            if (!def) continue;
             if (!slots.input) continue;
 
             const recipe = findRecipeForInput(def, slots.input.itemId);

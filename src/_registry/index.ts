@@ -11,6 +11,7 @@ import "./entities/Chest";
 import "./entities/Clay";
 import "./entities/Crops";
 import "./entities/Distiller";
+import "./entities/FermentationVat";
 import "./entities/Forge";
 import "./entities/MeteoricIron";
 import "./entities/FurrowCanal";

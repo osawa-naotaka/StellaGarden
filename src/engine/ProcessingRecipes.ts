@@ -67,6 +67,15 @@ export const MANUAL_PROCESSING_DEFS: Readonly<Record<number, ManualProcessingDef
                     { itemId: "oil_cake", count: 1 },
                 ],
             },
+            // 醤油もろみの圧搾（doc/26 §4.1）: 搾油機を流用。醤油＋醤油粕（内部肥料）。
+            {
+                inputItemId: "soy_sauce_moromi",
+                inputCountPerCycle: 8,
+                outputs: [
+                    { itemId: "soy_sauce", count: 4 },
+                    { itemId: "soy_sauce_lees", count: 2 },
+                ],
+            },
         ],
     },
     [ENTITY_TYPES.scutching_board]: {
@@ -203,6 +212,63 @@ export const DISTILLER_MATERIAL_DEF = { recipes: DISTILLER_MATERIAL_RECIPES } as
 export const DISTILLER_FUEL_ITEMS: ReadonlyArray<ItemId> = ["trunk"];
 /** 1サイクル（1日）の蒸留で消費する燃料の本数。 */
 export const DISTILLER_FUEL_PER_CYCLE = 1;
+
+/**
+ * 発酵桶（fermentation_vat）の多入力レシピ（doc/26 §4.1）。
+ * 複数の素材を投入し、揃った状態で daysRequired 日経過すると出力を1サイクル産出する。
+ * 「仕込んで放置 → 数日〜十数日で完成」の長期熟成設備。
+ */
+export interface FermentationRecipe {
+    /** この品目の表示・選択に使う出力（ドロップダウンのラベル兼用）。 */
+    readonly output: { readonly itemId: ItemId; readonly count: number };
+    /** 必要な投入素材セット。各 itemId が count 以上揃うと発酵が進む。 */
+    readonly inputs: ReadonlyArray<{ readonly itemId: ItemId; readonly count: number }>;
+    /** 仕込みが揃ってから完成までの日数。 */
+    readonly daysRequired: number;
+}
+
+export const FERMENTATION_RECIPES: ReadonlyArray<FermentationRecipe> = [
+    {
+        output: { itemId: "miso", count: 8 },
+        inputs: [
+            { itemId: "steamed_soybeans", count: 8 },
+            { itemId: "salt", count: 2 },
+            { itemId: "koji", count: 4 },
+        ],
+        daysRequired: 10,
+    },
+    {
+        output: { itemId: "soy_sauce_moromi", count: 8 },
+        inputs: [
+            { itemId: "steamed_soybeans", count: 8 },
+            { itemId: "roasted_wheat", count: 4 },
+            { itemId: "salt", count: 2 },
+            { itemId: "koji", count: 4 },
+        ],
+        daysRequired: 12,
+    },
+    {
+        output: { itemId: "wheat_moromi", count: 8 },
+        inputs: [
+            { itemId: "koji", count: 4 },
+            { itemId: "steamed_wheat", count: 8 },
+        ],
+        daysRequired: 5,
+    },
+    {
+        output: { itemId: "vinegar", count: 8 },
+        inputs: [{ itemId: "wheat_moromi", count: 8 }],
+        daysRequired: 5,
+    },
+    {
+        output: { itemId: "aged_shochu", count: 8 },
+        inputs: [{ itemId: "shochu", count: 8 }],
+        daysRequired: 7,
+    },
+];
+
+/** 発酵桶の入力スロット数（全レシピ中の最大投入種類数）。 */
+export const FERMENTATION_MAX_INGREDIENTS = FERMENTATION_RECIPES.reduce((m, r) => Math.max(m, r.inputs.length), 0);
 
 /** 自動処理（シャフト動力 ON のとき day_changed で全入力を一括処理）。 */
 export interface AutoProcessingDef {

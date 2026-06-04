@@ -5,6 +5,7 @@ import { setCartStorage } from "../../_registry/entities/Cart";
 import { setChestStorage } from "../../_registry/entities/Chest";
 import { setDailyProcessingStorage } from "../../_registry/entities/DailyProcessing";
 import { setDistillerStorage } from "../../_registry/entities/Distiller";
+import { setFermentationStorage } from "../../_registry/entities/FermentationVat";
 import { setForgeStorage } from "../../_registry/entities/Forge";
 import { setManualProcessingStorage } from "../../_registry/entities/ManualProcessing";
 import { setSaltPanStorage } from "../../_registry/entities/Saltpan";
@@ -15,6 +16,7 @@ import { AutoProcessingStorage } from "../../engine/AutoProcessingStorage";
 import { BonfireStorage } from "../../engine/BonfireStorage";
 import { CartStorage } from "../../engine/CartStorage";
 import { DistillerStorage } from "../../engine/DistillerStorage";
+import { FermentationStorage } from "../../engine/FermentationStorage";
 import { ChestStorage } from "../../engine/ChestStorage";
 import { DailyProcessingStorage } from "../../engine/DailyProcessingStorage";
 import { ForgeStorage } from "../../engine/ForgeStorage";
@@ -52,6 +54,7 @@ export interface Storages {
     bonfireStorage: BonfireStorage;
     distillerStorage: DistillerStorage;
     saltPanStorage: SaltPanStorage;
+    fermentationStorage: FermentationStorage;
     workbenchStorage: WorkbenchStorage;
     warpGateStorage: WarpGateStorage;
     manualProcessingStorage: ManualProcessingStorage;
@@ -84,6 +87,10 @@ export function bootstrapStorages(saveData: SaveData | null): Storages {
     const saltPanStorage = new SaltPanStorage();
     if (saveData) saltPanStorage.loadSaveData(saveData.saltPanStorage.saltpans);
     setSaltPanStorage(saltPanStorage);
+
+    const fermentationStorage = new FermentationStorage();
+    if (saveData) fermentationStorage.loadSaveData(saveData.fermentationStorage.vats);
+    setFermentationStorage(fermentationStorage);
 
     const workbenchStorage = new WorkbenchStorage();
     if (saveData) workbenchStorage.loadSaveData(saveData.workbenchStorage.workbenches);
@@ -119,6 +126,7 @@ export function bootstrapStorages(saveData: SaveData | null): Storages {
         bonfireStorage,
         distillerStorage,
         saltPanStorage,
+        fermentationStorage,
         workbenchStorage,
         warpGateStorage,
         manualProcessingStorage,

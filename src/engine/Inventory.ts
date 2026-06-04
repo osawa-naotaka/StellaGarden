@@ -26,6 +26,8 @@ const DEFAULT_INVENTORY_ITEMS: readonly (DefaultItem | null)[] = [
     { itemId: "wheat_moromi", count: 64 },
     { itemId: "koji_muro", count: 4 },
     { itemId: "saltpan", count: 16 },
+    { itemId: "fermentation_vat", count: 16 },
+    { itemId: "screw_presses", count: 1 },
     { itemId: "waterwheel", count: 8 },
     { itemId: "shaft", count: 64 },
     { itemId: "shaft", count: 64 },

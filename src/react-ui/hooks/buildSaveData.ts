@@ -5,6 +5,7 @@ import type { BonfireStorage } from "../../engine/BonfireStorage";
 import type { ChestStorage } from "../../engine/ChestStorage";
 import type { DailyProcessingStorage } from "../../engine/DailyProcessingStorage";
 import type { DistillerStorage } from "../../engine/DistillerStorage";
+import type { FermentationStorage } from "../../engine/FermentationStorage";
 import type { ForgeStorage } from "../../engine/ForgeStorage";
 import type { GameTime } from "../../engine/GameTime";
 import type { ManualProcessingStorage } from "../../engine/ManualProcessingStorage";
@@ -28,6 +29,7 @@ export interface SaveSnapshotDeps {
     bonfireStorage: BonfireStorage;
     distillerStorage: DistillerStorage;
     saltPanStorage: SaltPanStorage;
+    fermentationStorage: FermentationStorage;
     workbenchStorage: WorkbenchStorage;
     warpGateStorage: WarpGateStorage;
     manualProcessingStorage: ManualProcessingStorage;
@@ -52,6 +54,7 @@ export function buildSaveData(deps: SaveSnapshotDeps): Omit<SaveData, "version" 
         bonfireStorage,
         distillerStorage,
         saltPanStorage,
+        fermentationStorage,
         workbenchStorage,
         warpGateStorage,
         manualProcessingStorage,
@@ -101,6 +104,9 @@ export function buildSaveData(deps: SaveSnapshotDeps): Omit<SaveData, "version" 
         },
         saltPanStorage: {
             saltpans: saltPanStorage.toSaveData(),
+        },
+        fermentationStorage: {
+            vats: fermentationStorage.toSaveData(),
         },
         workbenchStorage: {
             workbenches: workbenchStorage.toSaveData(),

@@ -13,6 +13,7 @@ import "./panels/CartPanel";
 import "./panels/ChestPanel";
 import "./panels/DailyProcessingPanel";
 import "./panels/DistillerPanel";
+import "./panels/FermentationPanel";
 import "./panels/ForgePanel";
 import "./panels/InventoryPanel";
 import "./panels/ManualProcessingPanel";
