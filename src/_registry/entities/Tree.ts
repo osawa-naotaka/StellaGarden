@@ -5,6 +5,7 @@ import {
     getTerrainTypeFromVoxel,
     setDaysElapsedInVoxel,
     setEntityTypeInVoxel,
+    setTerrainTypeInVoxel,
     TERRAIN_TYPES,
 } from "../../engine/VoxelDefs";
 import { type DailyTickContext, type EntitySpriteInfo, type InteractionContext, registerEntity } from "../EntityRegistry";
@@ -59,7 +60,7 @@ registerEntity({
             voxel = setDaysElapsedInVoxel(voxel, stage + 1);
         }
         if (isWet) {
-            voxel = (voxel & ~0xffn) | BigInt(TERRAIN_TYPES.soil);
+            voxel = setTerrainTypeInVoxel(voxel, TERRAIN_TYPES.soil);
         }
         voxelMap.set(voxel, pos);
     },

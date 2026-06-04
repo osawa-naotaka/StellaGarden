@@ -33,7 +33,7 @@ export function applyCropDailyTick(ctx: DailyTickContext, cropDef: CropDef): voi
 
     // 既に枯死済み: 乾燥のみ
     if (dayCounter >= cropDef.witherDay) {
-        if (isWet) voxelMap.set((voxel & ~0xffn) | BigInt(TERRAIN_TYPES.soil), pos);
+        if (isWet) voxelMap.set(setTerrainTypeInVoxel(voxel, TERRAIN_TYPES.soil), pos);
         return;
     }
 
@@ -43,7 +43,7 @@ export function applyCropDailyTick(ctx: DailyTickContext, cropDef: CropDef): voi
             // 水やり済み: 成長 + drought リセット + 乾燥
             voxel = setDaysElapsedInVoxel(voxel, dayCounter + 1);
             voxel = setDroughtCounterInVoxel(voxel, 0);
-            voxel = (voxel & ~0xffn) | BigInt(TERRAIN_TYPES.soil);
+            voxel = setTerrainTypeInVoxel(voxel, TERRAIN_TYPES.soil);
         } else {
             // 水切れ: 成長停止 + drought インクリメント
             const drought = getDroughtCounterFromVoxel(voxel);
@@ -100,6 +100,7 @@ export function isCrop(entityType: number): boolean {
         case ENTITY_TYPES.potato:
         case ENTITY_TYPES.soy:
         case ENTITY_TYPES.sunflower:
+        case ENTITY_TYPES.wheat:
             return true;
         default:
             return false;

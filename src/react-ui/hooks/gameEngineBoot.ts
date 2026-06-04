@@ -114,7 +114,7 @@ export function bootstrapStorages(saveData: SaveData | null): Storages {
     setAutoProcessingStorage(autoProcessingStorage);
 
     // ステーション（フォーク搬送）は chest / daily / auto の3ストレージにアクセスする
-    setStationStorages(chestStorage, dailyProcessingStorage, autoProcessingStorage);
+    setStationStorages(bonfireStorage, chestStorage, dailyProcessingStorage, autoProcessingStorage);
 
     const cartStorage = new CartStorage();
     if (saveData) cartStorage.loadSaveData(saveData.cartStorage);

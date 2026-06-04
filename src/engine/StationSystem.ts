@@ -2,6 +2,7 @@ import type { ICartWriter, IEventBroker, IVoxelWriter, Pos2D } from "../_boundar
 import { findFacilityAnchor } from "../_registry/facilityUtil";
 import { getItemDef } from "../_registry/ItemRegistry";
 import type { AutoProcessingStorage } from "./AutoProcessingStorage";
+import type { BonfireStorage } from "./BonfireStorage";
 import type { ChestStorage } from "./ChestStorage";
 import type { DailyProcessingStorage } from "./DailyProcessingStorage";
 import { AUTO_PROCESSING_DEFS, DAILY_PROCESSING_DEFS } from "./ProcessingRecipes";
@@ -51,6 +52,7 @@ function isParallel(a: Vec2, b: Vec2): boolean {
 // ストレージ注入
 // ---------------------------------------------------------------------------
 
+let bonfireStorageRef: BonfireStorage | null = null;
 let chestStorageRef: ChestStorage | null = null;
 let dailyStorageRef: DailyProcessingStorage | null = null;
 let autoStorageRef: AutoProcessingStorage | null = null;
@@ -60,10 +62,12 @@ let autoStorageRef: AutoProcessingStorage | null = null;
  * Chest.ts の setChestStorage と同じパターン。
  */
 export function setStationStorages(
+    bonfire: BonfireStorage,
     chest: ChestStorage,
     daily: DailyProcessingStorage,
     auto: AutoProcessingStorage,
 ): void {
+    bonfireStorageRef = bonfire;
     chestStorageRef = chest;
     dailyStorageRef = daily;
     autoStorageRef = auto;
@@ -217,6 +221,35 @@ function unloadCartToDaily(
     return moved;
 }
 
+function unloadCartToBonfire(
+    cart: ICartWriter,
+    anchorPos: Pos2D,
+    bonfireStorage: BonfireStorage,
+    voxelMap: IVoxelWriter,
+): boolean {
+    let moved = false;
+    // 各カートスロットを「燃料 / 素材」に振り分けて addToInputSlot に渡す。
+    // addToInputSlot が容量・単一 itemId 制約・enabled 更新を内包するため、ここではマージ計算不要。
+    for (let i = 0; i < cart.inventorySlots.length; i++) {
+        const slot = cart.inventorySlots[i];
+        if (slot === null) continue;
+
+        const kind: "fuel" | "material" | null = bonfireStorage.canAcceptFuel(slot.itemId)
+            ? "fuel"
+            : bonfireStorage.canAcceptMaterial(slot.itemId)
+              ? "material"
+              : null;
+        if (kind === null) continue;
+
+        const movedCount = bonfireStorage.addToInputSlot(anchorPos, kind, slot.itemId, slot.count, voxelMap);
+        if (movedCount <= 0) continue;
+        const remaining = slot.count - movedCount;
+        cart.setInventorySlot(i, remaining > 0 ? { itemId: slot.itemId, count: remaining } : null);
+        moved = true;
+    }
+    return moved;
+}
+
 // ---------------------------------------------------------------------------
 // ローダー: 施設出力 → カート
 // ---------------------------------------------------------------------------
@@ -261,6 +294,27 @@ function loadAutoToCart(
     return moved;
 }
 
+function loadBonfireToCart(
+    cart: ICartWriter,
+    anchorPos: Pos2D,
+    bonfireStorage: BonfireStorage,
+    voxelMap: IVoxelWriter,
+): boolean {
+    let moved = false;
+    // 草木灰（outputAsh）と蒸し系（outputSteamed）の2出力をカートへ排出する。
+    for (const kind of ["outputAsh", "outputSteamed"] as const) {
+        const slot = bonfireStorage.getSlot(anchorPos, kind);
+        if (slot === null) continue;
+        const added = addItemToCart(cart, slot.itemId, slot.count);
+        if (added > 0) {
+            const remaining = slot.count - added;
+            bonfireStorage.setSlot(anchorPos, kind, remaining > 0 ? { itemId: slot.itemId, count: remaining } : null, voxelMap);
+            moved = true;
+        }
+    }
+    return moved;
+}
+
 function loadDailyToCart(
     cart: ICartWriter,
     anchorPos: Pos2D,
@@ -296,7 +350,7 @@ export function executeStationTransfersOnCartEnter(
     cart: ICartWriter,
     eventBroker: IEventBroker,
 ): void {
-    if (!chestStorageRef || !dailyStorageRef || !autoStorageRef) return;
+    if (!bonfireStorageRef || !chestStorageRef || !dailyStorageRef || !autoStorageRef) return;
 
     const T: Pos2D = {
         x: Math.floor(cart.posInWorld.x),
@@ -397,6 +451,25 @@ export function executeStationTransfersOnCartEnter(
                 if (moved) {
                     const inputSlot = dailyStorageRef.getInput(anchorPos);
                     if (inputSlot !== null) representativeItemId = inputSlot.itemId;
+                }
+            }
+        } else if (facilityEntityType === ENTITY_TYPES.bonfire) {
+            if (isLoader) {
+                moved = loadBonfireToCart(cart, anchorPos, bonfireStorageRef, voxelMap);
+                if (moved) {
+                    for (const slot of cart.inventorySlots) {
+                        if (slot !== null) {
+                            representativeItemId = slot.itemId;
+                            break;
+                        }
+                    }
+                }
+            } else {
+                moved = unloadCartToBonfire(cart, anchorPos, bonfireStorageRef, voxelMap);
+                if (moved) {
+                    const fuelSlot = bonfireStorageRef.getSlot(anchorPos, "fuel");
+                    const materialSlot = bonfireStorageRef.getSlot(anchorPos, "material");
+                    representativeItemId = fuelSlot?.itemId ?? materialSlot?.itemId ?? null;
                 }
             }
         } else {

@@ -121,6 +121,32 @@ export class BonfireStorage extends KeyedSlotStorage<BonfireSlots> {
         this.updateVoxelEnabled(pos, voxelMap);
     }
 
+    /**
+     * fuel / material スロットに itemId を count 個までマージ加算する。実際に追加できた個数を返す。
+     * 容量・単一 itemId 制約・enabled 更新を内包するため、呼び出し側（ステーション）はマージ計算不要。
+     * 0 を返すケース: ストレージ未生成／受理不可 itemId／既存スタックと itemId 不一致／満杯。
+     */
+    addToInputSlot(pos: Pos2D, kind: "fuel" | "material", itemId: string, count: number, voxelMap: IVoxelWriter): number {
+        const slots = this.getRaw(pos);
+        if (!slots) return 0;
+        if (count <= 0) return 0;
+        if (kind === "fuel" && !this.canAcceptFuel(itemId)) return 0;
+        if (kind === "material" && !this.canAcceptMaterial(itemId)) return 0;
+
+        const existing = slots[kind];
+        if (existing !== null && existing.itemId !== itemId) return 0;
+
+        const maxStack = getItemDef(itemId)?.maxStack ?? 64;
+        const existingCount = existing?.count ?? 0;
+        const space = maxStack - existingCount;
+        if (space <= 0) return 0;
+
+        const moved = Math.min(space, count);
+        slots[kind] = { itemId: itemId as ItemStack["itemId"], count: existingCount + moved };
+        this.updateVoxelEnabled(pos, voxelMap);
+        return moved;
+    }
+
     override onDailyTick(voxelMap: IVoxelWriter): void {
         for (const [key, slots] of this.entries()) {
             const pos = this.posFromKey(key);

@@ -113,7 +113,7 @@ export class VoxelMap implements IVoxelWriter {
             const pos3d: Pos3D = { x: pos.x, y, z: pos.z };
             const voxel = this.get(pos3d);
             if (voxel === 0n) continue;
-            const terrainType = Number(voxel & 0xffn);
+            const terrainType = Number(voxel & 0x1fn);
             if (terrainType === TERRAIN_TYPES.water || terrainType === TERRAIN_TYPES.waterSource) continue;
             return pos3d;
         }
