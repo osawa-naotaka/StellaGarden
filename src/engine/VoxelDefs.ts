@@ -1,4 +1,4 @@
-/** 地形タイプの定数。ボクセル値の下位 8 ビットに格納される。 */
+/** 地形タイプの定数。ボクセル値の bits 0-4（5bit）に格納される。 */
 export const TERRAIN_TYPES = {
     empty: 0,
     water: 1,
@@ -10,71 +10,77 @@ export const TERRAIN_TYPES = {
     disorderedSoil: 7,
 } as const;
 
-/** エンティティタイプの定数。ボクセル値の 8〜15 ビット目に格納される。 */
+/**
+ * エンティティタイプの定数。ボクセル値の bits 24-31（8bit）に格納される。
+ *
+ * 番号割り当て（後方互換性は破棄して詰め直し済み）:
+ *   1-31  : 農作物用に予約（last_crop が 5bit のためそのまま代入可能）
+ *   32    : facility_part（anchor タイルへの displacement を持つ特別なエンティティ）
+ *   33-   : その他のエンティティを連番で割り当て
+ */
 export const ENTITY_TYPES = {
     none: 0,
-    tree: 1,
-    potato: 2,
-    soy: 3,
-    flax: 4,
-    sunflower: 5,
-    workbench: 6,
-    facility_part: 7,
-    forge: 8,
-    compost_bin: 9,
-    threshing_machine: 10,
-    screw_presses: 11,
-    soaking_basket: 12,
-    scutching_board: 13,
-    spinning_wheel: 14,
-    loom: 15,
-    stone: 16,
-    chest: 17,
-    bonfire: 18,
-    kiln: 19,
-    // bonfire_lit: 20,
-    // bonfire_done: 21,
-    // kiln_burning: 22,
-    // compost_bin_loaded: 23,
-    // compost_bin_fermenting: 24,
-    // compost_bin_done: 25,
-    clay: 26,
-    meteoric_iron: 27,
-    anvil: 28,
-    forge_burning: 29,
-    furrow_canal: 30,
-    warp_gate: 31,
-    // soaking_basket_loaded: 32,
-    // soaking_basket_done: 33,
-    rail: 34,
-    waterwheel: 35,
-    shaft: 36,
-    auto_thresher: 37,
-    winch: 38,
-    cart: 39,
-    auto_screw_press: 40,
-    scutching_mill: 41,
-    spinning_machine: 42,
-    auto_loom: 43,
-    station: 44,
+    // --- 農作物（1-31 を予約。last_crop に直接代入する） ---
+    potato: 1,
+    soy: 2,
+    flax: 3,
+    sunflower: 4,
+    // --- facility_part ---
+    facility_part: 32,
+    // --- その他のエンティティ（33 以降） ---
+    tree: 33,
+    workbench: 34,
+    forge: 35,
+    compost_bin: 36,
+    threshing_machine: 37,
+    screw_presses: 38,
+    soaking_basket: 39,
+    scutching_board: 40,
+    spinning_wheel: 41,
+    loom: 42,
+    stone: 43,
+    chest: 44,
+    bonfire: 45,
+    kiln: 46,
+    clay: 47,
+    meteoric_iron: 48,
+    anvil: 49,
+    forge_burning: 50,
+    furrow_canal: 51,
+    warp_gate: 52,
+    rail: 53,
+    waterwheel: 54,
+    shaft: 55,
+    auto_thresher: 56,
+    winch: 57,
+    cart: 58,
+    auto_screw_press: 59,
+    scutching_mill: 60,
+    spinning_machine: 61,
+    auto_loom: 62,
+    station: 63,
 } as const;
 
 // ---------------------------------------------------------------------------
-// ビットフィールドレイアウト
+// ビットフィールドレイアウト（後方互換性なし・新規割り当て）
 //
-//   bits  0- 7: terrain type      (8bit)
-//   bits  8-15: entity type       (8bit)
-//   bits 16-19: growth day counter (4bit, 0-15)
-//   bits 20-21: fertilizer type   (2bit, 0=none/1=compost/2=plant_ashes/3=oil_cake)
-//   bits 22-23: drought counter   (2bit, 0-3)
-//   bits 24-26: last_crop         (3bit, entity type of previous crop)
-//   bits 27-29: fatigue           (3bit, 0-7)
-//   bit     30: direction         (1bit, 0=forward/1=backword)
-//   bits 31-34: connections       (4bit, up/down/left/right)
-//   bit     35: enabled           (1bit, 0=dry,disable/1=filled,enable)
-//   bit  30-32: displacement to anchor X (3bit, 0-7)
-//   bit  33-35: displacement to anchor Z (3bit, 0-7)
-// 　　bit  36-38: entity variant    (3bit, 0-7)
+//   bits  0- 4: terrain type      (5bit)
+//   bits  5- 7: fertilizer type   (3bit)
+//   bits  8- 9: drought counter   (2bit)
+//   bits 10-14: last crop         (5bit)
+//   bits 15-16: fatigue           (2bit)
+//   bits 17-23: days elapsed      (7bit)
+//   bits 24-31: entity type       (8bit)
+//   bits 32-35: entity variant    (4bit)
+//   bits    36: enabled           (1bit)
+//   bits    37: rotated/tracted   (1bit)
+//   bits 38-39: direction         (2bit)
+//   bits 40-43: connections       (4bit)
+//
+// entity type が facility_part のときに限り、bits 32-37 は以下に読み替える。
+// このとき entity variant / enabled / rotated は使用しない。
+//   bits 32-34: displacement to anchor X (3bit)
+//   bits 35-37: displacement to anchor Z (3bit)
 // ---------------------------------------------------------------------------
 
 /** 肥料タイプの定数。 */
@@ -85,170 +91,178 @@ export const FERTILIZER_TYPES = {
     oil_cake: 3,
 } as const;
 
-/** ボクセル値から地形タイプを取り出す。 */
+/** ボクセル値から地形タイプを取り出す（bits 0-4）。 */
 export function getTerrainTypeFromVoxel(voxel: bigint): number {
-    return Number(voxel & 0xffn);
+    return Number(voxel & 0x1fn);
 }
 
 export function initializeVoxel(terrainType: number): bigint {
-    return BigInt(terrainType) & 0xffn;
+    return BigInt(terrainType) & 0x1fn;
 }
 
 export function setTerrainTypeInVoxel(voxel: bigint, terrainType: number): bigint {
-    return (voxel & ~0xffn) | (BigInt(terrainType) & 0xffn);
+    return (voxel & ~0x1fn) | (BigInt(terrainType) & 0x1fn);
 }
 
-/** ボクセル値からエンティティタイプを取り出す。 */
-export function getEntityTypeFromVoxel(voxel: bigint): number {
-    return Number((voxel >> 8n) & 0xffn);
-}
-
-export function setEntityTypeInVoxel(voxel: bigint, entityType: number): bigint {
-    return (voxel & ~(0xffn << 8n)) | ((BigInt(entityType) & 0xffn) << 8n);
-}
-
-export function clearEntityTypeInVoxel(voxel: bigint): bigint {
-    return voxel & ~(0xffn << 8n);
-}
-
-/**
- * ボクセル値から作物の育成日カウンタを取り出す（bits 16-19、4bit）。
- * 0 = 植えたて、1〜 = 経過日数。
- */
-export function getDaysElapsedFromVoxel(voxel: bigint): number {
-    return Number((voxel >> 16n) & 0xfn);
-}
-
-/**
- * ボクセル値に育成日カウンタを書き込んだ新しい値を返す（bits 16-19）。
- * 元の値は変更しない（純粋関数）。
- */
-export function setDaysElapsedInVoxel(voxel: bigint, stage: number): bigint {
-    return (voxel & ~(0xfn << 16n)) | ((BigInt(stage) & 0xfn) << 16n);
-}
-
-/**
- * ボクセル値から肥料タイプを取り出す（bits 20-21、2bit）。
- * 0 = 未施肥、1 = compost、2 = plant_ashes、3 = oil_cake。
- */
+/** ボクセル値から肥料タイプを取り出す（bits 5-7）。 */
 export function getFertilizerTypeFromVoxel(voxel: bigint): number {
-    return Number((voxel >> 20n) & 0x3n);
+    return Number((voxel >> 5n) & 0x7n);
 }
 
-/**
- * ボクセル値に肥料タイプを書き込んだ新しい値を返す（bits 20-21）。
- * 元の値は変更しない（純粋関数）。
- */
+/** ボクセル値に肥料タイプを書き込んだ新しい値を返す（bits 5-7）。 */
 export function setFertilizerTypeInVoxel(voxel: bigint, fertType: number): bigint {
-    return (voxel & ~(0x3n << 20n)) | ((BigInt(fertType) & 0x3n) << 20n);
+    return (voxel & ~(0x7n << 5n)) | ((BigInt(fertType) & 0x7n) << 5n);
 }
 
-/** 後方互換: 施肥済みかどうかを返す。 */
+/** 施肥済みかどうかを返す。 */
 export function getFertilizedFromVoxel(voxel: bigint): boolean {
     return getFertilizerTypeFromVoxel(voxel) !== 0;
 }
 
-/** 後方互換: 施肥フラグを書き込む。true → compost(1), false → none(0)。 */
+/** 施肥フラグを書き込む。true → compost(1), false → none(0)。 */
 export function setFertilizedInVoxel(voxel: bigint, fertilized: boolean): bigint {
     return setFertilizerTypeInVoxel(voxel, fertilized ? FERTILIZER_TYPES.compost : FERTILIZER_TYPES.none);
 }
 
 /**
- * ボクセル値から水切れカウンタを取り出す（bits 22-23、2bit）。
+ * ボクセル値から水切れカウンタを取り出す（bits 8-9、2bit）。
  * 水やり必須作物: 連続水切れ日数（3で枯死）。
  */
 export function getDroughtCounterFromVoxel(voxel: bigint): number {
-    return Number((voxel >> 22n) & 0x3n);
+    return Number((voxel >> 8n) & 0x3n);
 }
 
-/** ボクセル値に水切れカウンタを書き込んだ新しい値を返す（bits 22-23）。 */
+/** ボクセル値に水切れカウンタを書き込んだ新しい値を返す（bits 8-9）。 */
 export function setDroughtCounterInVoxel(voxel: bigint, count: number): bigint {
-    return (voxel & ~(0x3n << 22n)) | ((BigInt(count) & 0x3n) << 22n);
+    return (voxel & ~(0x3n << 8n)) | ((BigInt(count) & 0x3n) << 8n);
 }
 
 /**
- * ボクセル値から前作の作物タイプを取り出す（bits 24-26、3bit）。
- * ENTITY_TYPES の値（0=none, 2=potato, 3=soy, 4=flax, 5=sunflower）。
+ * ボクセル値から前作の作物タイプを取り出す（bits 10-14、5bit）。
+ * ENTITY_TYPES の値（0=none, potato/soy/flax/sunflower など）。
  */
 export function getLastCropFromVoxel(voxel: bigint): number {
-    return Number((voxel >> 24n) & 0x7n);
+    return Number((voxel >> 10n) & 0x1fn);
 }
 
-/** ボクセル値に前作の作物タイプを書き込んだ新しい値を返す（bits 24-26）。 */
+/** ボクセル値に前作の作物タイプを書き込んだ新しい値を返す（bits 10-14）。 */
 export function setLastCropInVoxel(voxel: bigint, cropType: number): bigint {
-    return (voxel & ~(0x7n << 24n)) | ((BigInt(cropType) & 0x7n) << 24n);
+    return (voxel & ~(0x1fn << 10n)) | ((BigInt(cropType) & 0x1fn) << 10n);
+}
+
+/** ボクセル値から連作疲労カウンタを取り出す（bits 15-16、2bit、0-3）。 */
+export function getFatigueFromVoxel(voxel: bigint): number {
+    return Number((voxel >> 15n) & 0x3n);
+}
+
+/** ボクセル値に連作疲労カウンタを書き込んだ新しい値を返す（bits 15-16）。 */
+export function setFatigueInVoxel(voxel: bigint, fatigue: number): bigint {
+    return (voxel & ~(0x3n << 15n)) | ((BigInt(fatigue) & 0x3n) << 15n);
 }
 
 /**
- * ボクセル値から連作疲労カウンタを取り出す（bits 27-29、3bit、0-7）。
+ * ボクセル値から作物の育成日カウンタを取り出す（bits 17-23、7bit）。
+ * 0 = 植えたて、1〜 = 経過日数。
  */
-export function getFatigueFromVoxel(voxel: bigint): number {
-    return Number((voxel >> 27n) & 0x7n);
+export function getDaysElapsedFromVoxel(voxel: bigint): number {
+    return Number((voxel >> 17n) & 0x7fn);
 }
 
-/** ボクセル値に連作疲労カウンタを書き込んだ新しい値を返す（bits 27-29）。 */
-export function setFatigueInVoxel(voxel: bigint, fatigue: number): bigint {
-    return (voxel & ~(0x7n << 27n)) | ((BigInt(fatigue) & 0x7n) << 27n);
+/**
+ * ボクセル値に育成日カウンタを書き込んだ新しい値を返す（bits 17-23）。
+ * 元の値は変更しない（純粋関数）。
+ */
+export function setDaysElapsedInVoxel(voxel: bigint, stage: number): bigint {
+    return (voxel & ~(0x7fn << 17n)) | ((BigInt(stage) & 0x7fn) << 17n);
 }
 
-/** ボクセル値からダイレクションを取り出す（bits 30）。 */
-export function getDirectionFromVoxel(voxel: bigint): number {
-    return Number((voxel >> 30n) & 0x1n);
+/** ボクセル値からエンティティタイプを取り出す（bits 24-31）。 */
+export function getEntityTypeFromVoxel(voxel: bigint): number {
+    return Number((voxel >> 24n) & 0xffn);
 }
 
-/** ボクセル値にダイレクションを書き込んだ新しい値を返す（bit 30）。 */
-export function setDirectionInVoxel(voxel: bigint, direction: number): bigint {
-    return (voxel & ~(0x1n << 30n)) | ((BigInt(direction) & 0x1n) << 30n);
+export function setEntityTypeInVoxel(voxel: bigint, entityType: number): bigint {
+    return (voxel & ~(0xffn << 24n)) | ((BigInt(entityType) & 0xffn) << 24n);
 }
 
-/** 畝間水路、シャフト、レールなどの接続マスクを取り出す（bits 31-34）。 */
-export function getConnectionsFromVoxel(voxel: bigint): number {
-    return Number((voxel >> 31n) & 0xfn);
+export function clearEntityTypeInVoxel(voxel: bigint): bigint {
+    return voxel & ~(0xffn << 24n);
 }
 
-/** 畝間水路、シャフト、レールなどのの接続マスクを書き込んだ新しい値を返す（bits 31-34）。 */
-export function setConnectionsInVoxel(voxel: bigint, mask: number): bigint {
-    return (voxel & ~(0xfn << 31n)) | ((BigInt(mask) & 0xfn) << 31n);
-}
-
-/** 畝間水路に水が満たされているかどうかを返す（bit 35）。 */
-export function getEnabledFromVoxel(voxel: bigint): boolean {
-    return ((voxel >> 35n) & 0x1n) === 0x1n;
-}
-
-/** 畝間水路の通水ビットを書き込んだ新しい値を返す（bit 35）。 */
-export function setEnabledInVoxel(voxel: bigint, filled: boolean): bigint {
-    return (voxel & ~(0x1n << 35n)) | ((filled ? 1n : 0n) << 35n);
-}
-
-/** エンティティのディスプレイスメント(X)を取り出す（bit 30-32）。 */
-export function getDisplacementXFromVoxel(voxel: bigint): number {
-    return Number((voxel >> 30n) & 0x7n);
-}
-
-/** エンティティのディスプレイスメント(X)を書き込んだ新しい値を返す（bit 30-32）。 */
-export function setDisplacementXInVoxel(voxel: bigint, displacement: number): bigint {
-    return (voxel & ~(0x7n << 30n)) | ((BigInt(displacement) & 0x7n) << 30n);
-}
-
-/** エンティティのディスプレイスメント(Z)を取り出す（bit 33-35）。 */
-export function getDisplacementZFromVoxel(voxel: bigint): number {
-    return Number((voxel >> 33n) & 0x7n);
-}
-
-/** エンティティのディスプレイスメント(Z)を書き込んだ新しい値を返す（bit 33-35）。 */
-export function setDisplacementZInVoxel(voxel: bigint, displacement: number): bigint {
-    return (voxel & ~(0x7n << 33n)) | ((BigInt(displacement) & 0x7n) << 33n);
-}
-
-/** エンティティのバリアントを取り出す（bit 36-38）。 */
+/** エンティティのバリアントを取り出す（bits 32-35、4bit）。 */
 export function getVariantFromVoxel(voxel: bigint): number {
-    return Number((voxel >> 36n) & 0x7n);
+    return Number((voxel >> 32n) & 0xfn);
 }
 
-/** エンティティのバリアントを書き込んだ新しい値を返す（bit 36-38）。 */
+/** エンティティのバリアントを書き込んだ新しい値を返す（bits 32-35）。 */
 export function setVariantInVoxel(voxel: bigint, variant: number): bigint {
-    return (voxel & ~(0x7n << 36n)) | ((BigInt(variant) & 0x7n) << 36n);
+    return (voxel & ~(0xfn << 32n)) | ((BigInt(variant) & 0xfn) << 32n);
+}
+
+/** enabled ビットを返す（bit 36、0=dry/disable, 1=filled/enable）。 */
+export function getEnabledFromVoxel(voxel: bigint): boolean {
+    return ((voxel >> 36n) & 0x1n) === 0x1n;
+}
+
+/** enabled ビットを書き込んだ新しい値を返す（bit 36）。 */
+export function setEnabledInVoxel(voxel: bigint, filled: boolean): bigint {
+    return (voxel & ~(0x1n << 36n)) | ((filled ? 1n : 0n) << 36n);
+}
+
+/** rotated/tracted ビットを返す（bit 37）。 */
+export function getRotatedFromVoxel(voxel: bigint): boolean {
+    return ((voxel >> 37n) & 0x1n) === 0x1n;
+}
+
+/** rotated/tracted ビットを書き込んだ新しい値を返す（bit 37）。 */
+export function setRotatedInVoxel(voxel: bigint, rotated: boolean): bigint {
+    return (voxel & ~(0x1n << 37n)) | ((rotated ? 1n : 0n) << 37n);
+}
+
+/** ボクセル値からダイレクションを取り出す（bits 38-39、2bit）。 */
+export function getDirectionFromVoxel(voxel: bigint): number {
+    return Number((voxel >> 38n) & 0x3n);
+}
+
+/** ボクセル値にダイレクションを書き込んだ新しい値を返す（bits 38-39）。 */
+export function setDirectionInVoxel(voxel: bigint, direction: number): bigint {
+    return (voxel & ~(0x3n << 38n)) | ((BigInt(direction) & 0x3n) << 38n);
+}
+
+/** 畝間水路、シャフト、レールなどの接続マスクを取り出す（bits 40-43）。 */
+export function getConnectionsFromVoxel(voxel: bigint): number {
+    return Number((voxel >> 40n) & 0xfn);
+}
+
+/** 畝間水路、シャフト、レールなどの接続マスクを書き込んだ新しい値を返す（bits 40-43）。 */
+export function setConnectionsInVoxel(voxel: bigint, mask: number): bigint {
+    return (voxel & ~(0xfn << 40n)) | ((BigInt(mask) & 0xfn) << 40n);
+}
+
+/**
+ * エンティティのディスプレイスメント(X)を取り出す（bits 32-34）。
+ * entity type が facility_part のときのみ有効。
+ */
+export function getDisplacementXFromVoxel(voxel: bigint): number {
+    return Number((voxel >> 32n) & 0x7n);
+}
+
+/** エンティティのディスプレイスメント(X)を書き込んだ新しい値を返す（bits 32-34）。 */
+export function setDisplacementXInVoxel(voxel: bigint, displacement: number): bigint {
+    return (voxel & ~(0x7n << 32n)) | ((BigInt(displacement) & 0x7n) << 32n);
+}
+
+/**
+ * エンティティのディスプレイスメント(Z)を取り出す（bits 35-37）。
+ * entity type が facility_part のときのみ有効。
+ */
+export function getDisplacementZFromVoxel(voxel: bigint): number {
+    return Number((voxel >> 35n) & 0x7n);
+}
+
+/** エンティティのディスプレイスメント(Z)を書き込んだ新しい値を返す（bits 35-37）。 */
+export function setDisplacementZInVoxel(voxel: bigint, displacement: number): bigint {
+    return (voxel & ~(0x7n << 35n)) | ((BigInt(displacement) & 0x7n) << 35n);
 }
 
 export function placeEntity(voxel: bigint, entityType: number): bigint {
