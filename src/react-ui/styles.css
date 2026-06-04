@@ -591,9 +591,6 @@
 
 .sg-guide-panel .sg-sidepanel {
     width: 600px;
-    left: 0;
-    right: auto;
-    transform: translateX(-100%);
     box-shadow: var(--sg-shadow);
 }
 
@@ -984,7 +981,7 @@
     }
 }
 
-/* ─── 会話ログパネル（左側からスライドイン） ───────────────── */
+/* ─── 会話ログパネル（右側からスライドイン） ───────────────── */
 .sg-chatlog-panel {
     position: absolute;
     inset: 0;
@@ -998,9 +995,6 @@
 
 .sg-chatlog-panel .sg-sidepanel {
     width: 520px;
-    left: 0;
-    right: auto;
-    transform: translateX(-100%);
     box-shadow: var(--sg-shadow);
 }
 

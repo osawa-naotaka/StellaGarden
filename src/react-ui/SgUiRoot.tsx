@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { DialogView } from "./components/DialogView";
 import { MissionPanel } from "./components/MissionPanel";
 import { Toolbar } from "./components/Toolbar";
@@ -21,6 +21,7 @@ import { getRegisteredPanels } from "./PanelRegistry";
 import { ChatLogPanel } from "./panels/ChatLogPanel";
 import { GuidePanel } from "./panels/GuidePanel";
 import "./styles.css";
+import type { UIMode } from "../view/UIState";
 
 /**
  * React UI 層のルート。canvas の上に重ねるオーバーレイとして配置する。
@@ -30,6 +31,32 @@ export function SgUiRoot({ engine, onSave, saveState }: { engine: EngineRefs; on
     const [guideOpen, setGuideOpen] = useState(false);
     const [backLogOpen, setBackLogOpen] = useState(false);
 
+    // 右側オーバーレイ（Guide / ChatLog / ゲーム系パネル）は常に 1 枚だけにする排他制御。
+    // mode はここで一度だけ観測し、PanelDispatcher に渡す（useUIMode の RAF ループを二重化しない）。
+    const mode = useUIMode(engine.uiState, engine.eventBroker);
+
+    // ゲーム系パネルが開いたら Guide / ChatLog を閉じる。
+    useEffect(() => {
+        if (mode !== "normal") {
+            setGuideOpen(false);
+            setBackLogOpen(false);
+        }
+    }, [mode]);
+
+    // Guide / ChatLog を開くときはゲーム系パネルと相手側オーバーレイを閉じる（トグルは維持）。
+    const toggleGuide = () => {
+        engine.uiState.mode = "normal";
+        engine.uiState.targetPos = null;
+        setBackLogOpen(false);
+        setGuideOpen((v) => !v);
+    };
+    const toggleBackLog = () => {
+        engine.uiState.mode = "normal";
+        engine.uiState.targetPos = null;
+        setGuideOpen(false);
+        setBackLogOpen((v) => !v);
+    };
+
     const saveLabel = saveState === "saving" ? "SAVING..." : saveState === "done" ? "SAVED!" : "SAVE";
 
     return (
@@ -37,7 +64,7 @@ export function SgUiRoot({ engine, onSave, saveState }: { engine: EngineRefs; on
             <div className="sg-ui-root">
                 <PropertyPanel />
                 <div className="sg-corner-buttons">
-                    <button type="button" className="sg-guide-button" onClick={() => setGuideOpen((v) => !v)} aria-label="プレイガイドを開く">
+                    <button type="button" className="sg-guide-button" onClick={toggleGuide} aria-label="プレイガイドを開く">
                         GUIDE
                     </button>
                     <button
@@ -49,7 +76,7 @@ export function SgUiRoot({ engine, onSave, saveState }: { engine: EngineRefs; on
                     >
                         {saveLabel}
                     </button>
-                    <button type="button" className="sg-backlog-button" onClick={() => setBackLogOpen((v) => !v)} aria-label="会話ログを開く">
+                    <button type="button" className="sg-backlog-button" onClick={toggleBackLog} aria-label="会話ログを開く">
                         BackLog
                     </button>
                 </div>
@@ -57,15 +84,14 @@ export function SgUiRoot({ engine, onSave, saveState }: { engine: EngineRefs; on
                 <ChatLogPanel open={backLogOpen} onClose={() => setBackLogOpen(false)} />
                 <MissionPanel />
                 <DialogView />
-                <PanelDispatcher />
+                <PanelDispatcher mode={mode} />
             </div>
         </EngineProvider>
     );
 }
 
-function PanelDispatcher() {
+function PanelDispatcher({ mode }: { mode: UIMode }) {
     const engine = useEngine();
-    const mode = useUIMode(engine.uiState, engine.eventBroker);
     const panels = getRegisteredPanels();
 
     return (
