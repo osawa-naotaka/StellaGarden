@@ -86,6 +86,16 @@ export class FermentationStorage extends KeyedSlotStorage<FermentationSlots> {
         this.updateVoxelEnabled(pos, voxelMap);
     }
 
+    /** 全スロット（投入・出力）を空にし、熟成経過日を 0 にリセットする。品目切替時に使う。 */
+    clearSlots(pos: Pos2D, voxelMap: IVoxelWriter): void {
+        const slots = this.getRaw(pos);
+        if (!slots) return;
+        slots.inputs.fill(null);
+        slots.output = null;
+        const surface = voxelMap.getSurfacePosition({ x: pos.x, y: 0, z: pos.z });
+        voxelMap.set(setEnabledInVoxel(setDaysElapsedInVoxel(voxelMap.get(surface), 0), false), surface);
+    }
+
     /** 指定 itemId の投入スロットを設定する（取り出し時は stack=null）。 */
     setInput(pos: Pos2D, itemId: ItemId, stack: ItemStack | null, voxelMap: IVoxelWriter): void {
         const slots = this.getRaw(pos);

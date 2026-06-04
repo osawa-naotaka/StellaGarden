@@ -155,7 +155,15 @@ export function FermentationPanel({ open, inventory, fermentationStorage, voxelM
                         <select
                             id="sg-fermentation-recipe-select"
                             value={selectedRecipeIndex}
-                            onChange={(e) => fermentationStorage.setSelectedRecipeIndex(pos, Number(e.target.value), voxelMap)}
+                            onChange={(e) => {
+                                const newIndex = Number(e.target.value);
+                                if (newIndex === selectedRecipeIndex) return;
+                                // 品目変更時はスロットの中身を一旦インベントリへ戻す（戻せなければ品目を変えない）。
+                                const stacks = fermentationStorage.collectAllStacks(pos);
+                                if (stacks.length > 0 && !inventory.addItems(stacks)) return;
+                                fermentationStorage.clearSlots(pos, voxelMap);
+                                fermentationStorage.setSelectedRecipeIndex(pos, newIndex, voxelMap);
+                            }}
                         >
                             {FERMENTATION_RECIPES.map((r, i) => (
                                 <option key={i} value={i}>
