@@ -70,7 +70,6 @@ export const ForgeStorageSaveDataSchema = v.object({
 });
 
 // 焚き火（炉型に拡張）。燃料・素材・出力2スロット＋素材レシピ選択。
-// 既存セーブ（bonfire を持たない）との互換のため、ルートでは optional にする。
 export const BonfireStorageSaveDataSchema = v.object({
     bonfires: v.array(
         v.object({
@@ -86,7 +85,7 @@ export const BonfireStorageSaveDataSchema = v.object({
     ),
 });
 
-// 蒸留器（燃料＋素材＋出力1）。既存セーブとの互換のため、ルートでは optional にする。
+// 蒸留器（燃料＋素材＋出力1）。
 export const DistillerStorageSaveDataSchema = v.object({
     distillers: v.array(
         v.object({
@@ -101,7 +100,7 @@ export const DistillerStorageSaveDataSchema = v.object({
     ),
 });
 
-// 塩田（受動生成。出力1のみ）。既存セーブとの互換のため、ルートでは optional にする。
+// 塩田（受動生成。出力1のみ）。
 export const SaltPanStorageSaveDataSchema = v.object({
     saltpans: v.array(
         v.object({
@@ -113,7 +112,7 @@ export const SaltPanStorageSaveDataSchema = v.object({
     ),
 });
 
-// 発酵桶（多入力＋出力1＋品目選択）。既存セーブとの互換のため、ルートでは optional にする。
+// 発酵桶（多入力＋出力1＋品目選択）。
 export const FermentationStorageSaveDataSchema = v.object({
     vats: v.array(
         v.object({
@@ -244,10 +243,10 @@ export const SaveDataSchema = v.object({
     gameTime: GameTimeSaveDataSchema,
     chestStorage: ChestStorageSaveDataSchema,
     forgeStorage: ForgeStorageSaveDataSchema,
-    bonfireStorage: v.optional(BonfireStorageSaveDataSchema, () => ({ bonfires: [] })),
-    distillerStorage: v.optional(DistillerStorageSaveDataSchema, () => ({ distillers: [] })),
-    saltPanStorage: v.optional(SaltPanStorageSaveDataSchema, () => ({ saltpans: [] })),
-    fermentationStorage: v.optional(FermentationStorageSaveDataSchema, () => ({ vats: [] })),
+    bonfireStorage: BonfireStorageSaveDataSchema,
+    distillerStorage: DistillerStorageSaveDataSchema,
+    saltPanStorage: SaltPanStorageSaveDataSchema,
+    fermentationStorage: FermentationStorageSaveDataSchema,
     workbenchStorage: WorkbenchStorageSaveDataSchema,
     warpGateStorage: WarpGateStorageSaveDataSchema,
     manualProcessingStorage: ManualProcessingStorageSaveDataSchema,
