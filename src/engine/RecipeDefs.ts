@@ -510,4 +510,50 @@ export const RECIPES: readonly RecipeDef[] = [
         ],
         result: { itemId: "bagged_potatos", count: 1 },
     },
+
+    // ────────────────────────────────────────────────────────────────
+    // 醸造・発酵（doc/26）。コスト勾配: 塩田(入口・最安) → 麹室 → 発酵桶 → 蒸留器(最高価格)
+    // ────────────────────────────────────────────────────────────────
+    // 塩田: 粘土で固めた浅い区画＋木枠。金属を使わず発酵軸の入口らしく安価。
+    {
+        id: "saltpan",
+        station: "workbench",
+        ingredients: [
+            { itemId: "clay", count: 6 },
+            { itemId: "trunk", count: 4 },
+        ],
+        result: { itemId: "saltpan", count: 1 },
+    },
+    // 麹室: 蒸麦を広げる木の棚（board）＋保温のための厚い土壁（clay）。
+    {
+        id: "koji_muro",
+        station: "workbench",
+        ingredients: [
+            { itemId: "board", count: 6 },
+            { itemId: "clay", count: 4 },
+        ],
+        result: { itemId: "koji_muro", count: 1 },
+    },
+    // 発酵桶: 側板（board）をたが＝フープ（rope）で締めた木桶。多数並べる前提で手頃に。
+    {
+        id: "fermentation_vat",
+        station: "workbench",
+        ingredients: [
+            { itemId: "board", count: 4 },
+            { itemId: "rope", count: 2 },
+        ],
+        result: { itemId: "fermentation_vat", count: 1 },
+    },
+    // 蒸留器: 粘土のボイラー釜（clay）＋木の架台（frame）＋金属の冷却管（blade）。
+    // 要燃料・高単価の麦焼酎を生むため4施設で最も重く、金属加工をゲートにする。
+    {
+        id: "distiller",
+        station: "workbench",
+        ingredients: [
+            { itemId: "clay", count: 6 },
+            { itemId: "frame", count: 2 },
+            { itemId: "blade", count: 2 },
+        ],
+        result: { itemId: "distiller", count: 1 },
+    },
 ];
