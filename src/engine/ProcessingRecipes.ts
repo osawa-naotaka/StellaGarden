@@ -142,14 +142,7 @@ export const DAILY_PROCESSING_DEFS: Readonly<Record<number, DailyProcessingDef>>
             },
         ],
     },
-    [ENTITY_TYPES.bonfire]: {
-        daysRequired: 1,
-        outputSlotCount: 1,
-        recipes: [
-            { inputItemId: "trunk", inputCountPerCycle: 4, outputs: [{ itemId: "plant_ashes", count: 4 }] },
-            { inputItemId: "stem", inputCountPerCycle: 20, outputs: [{ itemId: "plant_ashes", count: 4 }] },
-        ],
-    },
+    // bonfire は炉型に拡張され、BonfireStorage が独自に処理する（DailyProcessing 対象外）。
     [ENTITY_TYPES.kiln]: {
         daysRequired: 4,
         outputSlotCount: 1,
@@ -161,7 +154,55 @@ export const DAILY_PROCESSING_DEFS: Readonly<Record<number, DailyProcessingDef>>
             },
         ],
     },
+    // 麹室（doc/26 §3.3）: 好気・短期（2日仮）。蒸麦 → 麹。
+    // 種麹循環（麹を種として取り分け）は簡略化し、当面は単入力（蒸麦→麹）とする。
+    [ENTITY_TYPES.koji_muro]: {
+        daysRequired: 2,
+        outputSlotCount: 1,
+        recipes: [
+            {
+                inputItemId: "steamed_wheat",
+                inputCountPerCycle: 8,
+                outputs: [{ itemId: "koji", count: 8 }],
+            },
+        ],
+    },
 };
+
+/**
+ * 焚き火（bonfire）の拡張レシピ（doc/26 §3.2）。
+ * 焚き火は炉型に拡張され、燃料スロット（→草木灰）と素材スロット（→蒸し系）を持つ。
+ * 1日経過ごとに「燃料を燃やして草木灰」「素材を蒸す/炒る」を同時に行う。
+ */
+export const BONFIRE_FUEL_RECIPES: ReadonlyArray<ProcessingRecipe> = [
+    { inputItemId: "trunk", inputCountPerCycle: 4, outputs: [{ itemId: "plant_ashes", count: 4 }] },
+    { inputItemId: "stem", inputCountPerCycle: 20, outputs: [{ itemId: "plant_ashes", count: 4 }] },
+];
+
+export const BONFIRE_MATERIAL_RECIPES: ReadonlyArray<ProcessingRecipe> = [
+    { inputItemId: "soybeans", inputCountPerCycle: 8, outputs: [{ itemId: "steamed_soybeans", count: 8 }] },
+    { inputItemId: "wheat", inputCountPerCycle: 8, outputs: [{ itemId: "steamed_wheat", count: 8 }] },
+    { inputItemId: "wheat", inputCountPerCycle: 8, outputs: [{ itemId: "roasted_wheat", count: 8 }] },
+];
+
+/** findRecipeForInput 等の `{ recipes }` ヘルパーにそのまま渡せるラッパ。 */
+export const BONFIRE_FUEL_DEF = { recipes: BONFIRE_FUEL_RECIPES } as const;
+export const BONFIRE_MATERIAL_DEF = { recipes: BONFIRE_MATERIAL_RECIPES } as const;
+
+/**
+ * 蒸留器（distiller）のレシピ（doc/26 §3.5）。
+ * 焚き火と同じ「燃料スロット＋素材スロット」型だが、草木灰のような副産物は無く、
+ * 燃料は蒸留を回すためだけに消費される（産物は麦焼酎1スロットのみ）。
+ * 蒸留で量が凝縮するため n:1（麦もろみ ×n → 麦焼酎 ×1）。
+ */
+export const DISTILLER_MATERIAL_RECIPES: ReadonlyArray<ProcessingRecipe> = [
+    { inputItemId: "wheat_moromi", inputCountPerCycle: 8, outputs: [{ itemId: "shochu", count: 2 }] },
+];
+export const DISTILLER_MATERIAL_DEF = { recipes: DISTILLER_MATERIAL_RECIPES } as const;
+/** 蒸留器の燃料として受け入れる itemId。 */
+export const DISTILLER_FUEL_ITEMS: ReadonlyArray<ItemId> = ["trunk"];
+/** 1サイクル（1日）の蒸留で消費する燃料の本数。 */
+export const DISTILLER_FUEL_PER_CYCLE = 1;
 
 /** 自動処理（シャフト動力 ON のとき day_changed で全入力を一括処理）。 */
 export interface AutoProcessingDef {

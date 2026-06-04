@@ -22,3 +22,19 @@ registerItem({ itemId: "wheel", displayName: "木製ホイール", spriteName: n
 registerItem({ itemId: "drum", displayName: "ドラム", spriteName: null, placeholderColor: 0x946028, maxStack: 64 });
 registerItem({ itemId: "pulley", displayName: "プーリー", spriteName: null, placeholderColor: 0xb47840, maxStack: 64 });
 registerItem({ itemId: "iron_teeth", displayName: "扱き歯", spriteName: null, placeholderColor: 0x707080, maxStack: 64 });
+
+// 醸造・発酵（doc/26）。スプライト未作成のため仮アイコン（色付き矩形）で表示する。
+// 加工施設の配置アイテム（saltpan / koji_muro / fermentation_vat / distiller）は各エンティティ定義側で登録する。
+registerItem({ itemId: "salt", displayName: "塩", spriteName: null, placeholderColor: 0xeeeeee, maxStack: 64 });
+registerItem({ itemId: "steamed_wheat", displayName: "蒸麦", spriteName: null, placeholderColor: 0xe8d8a0, maxStack: 64 });
+registerItem({ itemId: "roasted_wheat", displayName: "炒り麦", spriteName: null, placeholderColor: 0xc89858, maxStack: 64 });
+registerItem({ itemId: "steamed_soybeans", displayName: "蒸し大豆", spriteName: null, placeholderColor: 0xcdd98a, maxStack: 64 });
+registerItem({ itemId: "koji", displayName: "麹", spriteName: null, placeholderColor: 0xdcd0a0, maxStack: 64 });
+registerItem({ itemId: "wheat_moromi", displayName: "麦もろみ", spriteName: null, placeholderColor: 0xd8cba0, maxStack: 64 });
+registerItem({ itemId: "shochu", displayName: "麦焼酎", spriteName: null, placeholderColor: 0xe0e8e8, maxStack: 64 });
+registerItem({ itemId: "aged_shochu", displayName: "熟成麦焼酎", spriteName: null, placeholderColor: 0xc8923c, maxStack: 64 });
+registerItem({ itemId: "vinegar", displayName: "酢", spriteName: null, placeholderColor: 0xd8c070, maxStack: 64 });
+registerItem({ itemId: "miso", displayName: "味噌", spriteName: null, placeholderColor: 0x9c6b3c, maxStack: 64 });
+registerItem({ itemId: "soy_sauce_moromi", displayName: "醤油もろみ", spriteName: null, placeholderColor: 0x6b4a2a, maxStack: 64 });
+registerItem({ itemId: "soy_sauce", displayName: "醤油", spriteName: null, placeholderColor: 0x3a2415, maxStack: 64 });
+registerItem({ itemId: "soy_sauce_lees", displayName: "醤油粕", spriteName: null, placeholderColor: 0xa0805a, maxStack: 64 });

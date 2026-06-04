@@ -69,6 +69,50 @@ export const ForgeStorageSaveDataSchema = v.object({
     ),
 });
 
+// 焚き火（炉型に拡張）。燃料・素材・出力2スロット＋素材レシピ選択。
+// 既存セーブ（bonfire を持たない）との互換のため、ルートでは optional にする。
+export const BonfireStorageSaveDataSchema = v.object({
+    bonfires: v.array(
+        v.object({
+            key: v.string(),
+            slots: v.object({
+                fuel: NullableItemStackSchema,
+                material: NullableItemStackSchema,
+                outputAsh: NullableItemStackSchema,
+                outputSteamed: NullableItemStackSchema,
+                selectedRecipeIndex: v.number(),
+            }),
+        }),
+    ),
+});
+
+// 蒸留器（燃料＋素材＋出力1）。既存セーブとの互換のため、ルートでは optional にする。
+export const DistillerStorageSaveDataSchema = v.object({
+    distillers: v.array(
+        v.object({
+            key: v.string(),
+            slots: v.object({
+                fuel: NullableItemStackSchema,
+                material: NullableItemStackSchema,
+                output: NullableItemStackSchema,
+                selectedRecipeIndex: v.number(),
+            }),
+        }),
+    ),
+});
+
+// 塩田（受動生成。出力1のみ）。既存セーブとの互換のため、ルートでは optional にする。
+export const SaltPanStorageSaveDataSchema = v.object({
+    saltpans: v.array(
+        v.object({
+            key: v.string(),
+            slots: v.object({
+                output: NullableItemStackSchema,
+            }),
+        }),
+    ),
+});
+
 export const WorkbenchStorageSaveDataSchema = v.object({
     workbenches: v.array(
         v.object({
@@ -186,6 +230,9 @@ export const SaveDataSchema = v.object({
     gameTime: GameTimeSaveDataSchema,
     chestStorage: ChestStorageSaveDataSchema,
     forgeStorage: ForgeStorageSaveDataSchema,
+    bonfireStorage: v.optional(BonfireStorageSaveDataSchema, () => ({ bonfires: [] })),
+    distillerStorage: v.optional(DistillerStorageSaveDataSchema, () => ({ distillers: [] })),
+    saltPanStorage: v.optional(SaltPanStorageSaveDataSchema, () => ({ saltpans: [] })),
     workbenchStorage: WorkbenchStorageSaveDataSchema,
     warpGateStorage: WarpGateStorageSaveDataSchema,
     manualProcessingStorage: ManualProcessingStorageSaveDataSchema,
@@ -213,6 +260,9 @@ export type InventorySaveData = v.InferOutput<typeof InventorySaveDataSchema>;
 export type GameTimeSaveData = v.InferOutput<typeof GameTimeSaveDataSchema>;
 export type ChestStorageSaveData = v.InferOutput<typeof ChestStorageSaveDataSchema>;
 export type ForgeStorageSaveData = v.InferOutput<typeof ForgeStorageSaveDataSchema>;
+export type BonfireStorageSaveData = v.InferOutput<typeof BonfireStorageSaveDataSchema>;
+export type DistillerStorageSaveData = v.InferOutput<typeof DistillerStorageSaveDataSchema>;
+export type SaltPanStorageSaveData = v.InferOutput<typeof SaltPanStorageSaveDataSchema>;
 export type WorkbenchStorageSaveData = v.InferOutput<typeof WorkbenchStorageSaveDataSchema>;
 export type WarpGateStorageSaveData = v.InferOutput<typeof WarpGateStorageSaveDataSchema>;
 export type ManualProcessingStorageSaveData = v.InferOutput<typeof ManualProcessingStorageSaveDataSchema>;

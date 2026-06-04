@@ -6,13 +6,16 @@
  * App.tsx 側に登録モジュールが大量に並ぶのを防ぐことが目的。
  */
 
+import "./entities/Bonfire";
 import "./entities/Chest";
 import "./entities/Clay";
 import "./entities/Crops";
+import "./entities/Distiller";
 import "./entities/Forge";
 import "./entities/MeteoricIron";
 import "./entities/FurrowCanal";
 import "./entities/Rail";
+import "./entities/Saltpan";
 import "./entities/Cart";
 import "./entities/Shaft";
 import "./entities/Station";

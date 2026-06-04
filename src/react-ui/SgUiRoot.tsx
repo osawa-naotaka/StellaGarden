@@ -8,12 +8,15 @@ import { useUIMode } from "./hooks/useUIMode";
 // パネルの自己登録（モジュールロード時の副作用）
 // 新しいパネルを追加する時はここに 1 行追加するだけ。
 import "./panels/AutoProcessingPanel";
+import "./panels/BonfirePanel";
 import "./panels/CartPanel";
 import "./panels/ChestPanel";
 import "./panels/DailyProcessingPanel";
+import "./panels/DistillerPanel";
 import "./panels/ForgePanel";
 import "./panels/InventoryPanel";
 import "./panels/ManualProcessingPanel";
+import "./panels/SaltPanPanel";
 import "./panels/WarpGatePanel";
 
 import { PropertyPanel } from "./components/PropertyPanel";

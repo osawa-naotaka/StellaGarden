@@ -99,11 +99,6 @@ export function registerDailyProcessingEntity(opts: DailyProcessingEntityOptions
 // アニメーションスプライトの共通フレーム時間
 const ANIM_FRAME_MS = 300;
 
-const BONFIRE_LIT_FRAMES = ["ss_sprite_074_1.png", "ss_sprite_074_2.png", "ss_sprite_074_3.png"];
-function bonfireLitFrame(): string {
-    return BONFIRE_LIT_FRAMES[Math.floor(Date.now() / ANIM_FRAME_MS) % BONFIRE_LIT_FRAMES.length];
-}
-
 const KILN_BURNING_FRAMES = ["ss_sprite_078_1.png", "ss_sprite_078_2.png", "ss_sprite_078_3.png"];
 function kilnBurningFrame(): string {
     return KILN_BURNING_FRAMES[Math.floor(Date.now() / ANIM_FRAME_MS) % KILN_BURNING_FRAMES.length];
@@ -141,25 +136,8 @@ registerDailyProcessingEntity({
 // soaking_basket は独立実装に移行（_registry/entities/SoakingBasket.ts）。
 // 縦横バリアントと水隣接判定を持つため、registerDailyProcessingEntity の枠から外れる。
 
-// bonfire: loading と progressing は同じく bonfire_lit（アニメーション）
-registerDailyProcessingEntity({
-    baseEntityType: ENTITY_TYPES.bonfire,
-    sprites: (voxel) => {
-        const days = getDaysElapsedFromVoxel(voxel);
-        switch (days) {
-            case 0:
-                return getEnabledFromVoxel(voxel) ? "ss_sprite_075.png" : "ss_sprite_076.png";
-            case 1:
-                return bonfireLitFrame();
-            default:
-                return "ss_sprite_075.png";
-        }
-    },
-    itemId: "bonfire",
-    displayName: "焚き火",
-    inventorySpriteName: "ss_sprite_076.png",
-    entitySize: { w: 1, h: 1 },
-});
+// bonfire は炉型に拡張され独立実装に移行（_registry/entities/Bonfire.ts）。
+// 燃料スロット＋素材スロットを持ち BonfireStorage が処理するため、汎用ヘルパーの枠から外れる。
 
 // kiln: loading と progressing は kiln_burning（アニメーション）。
 // 完了時は empty と同じ kiln スプライトに戻り、output から charcoal + dirt を取り出す。
@@ -184,5 +162,28 @@ registerDailyProcessingEntity({
     itemId: "kiln",
     displayName: "炭焼き窯",
     inventorySpriteName: "ss_sprite_068.png",
+    entitySize: { w: 2, h: 2 },
+});
+
+// koji_muro（麹室・doc/26 §3.3）: 蒸麦 → 麹。スプライト未作成のため 2x2 の堆肥場を流用する。
+registerDailyProcessingEntity({
+    baseEntityType: ENTITY_TYPES.koji_muro,
+    sprites: (voxel) => {
+        const days = getDaysElapsedFromVoxel(voxel);
+        if (getEnabledFromVoxel(voxel)) {
+            return "ss_sprite_053_3.png"; // 完了（麹あり）
+        }
+        switch (days) {
+            case 0:
+                return "ss_sprite_071.png"; // 空
+            case 1:
+                return "ss_sprite_053_1.png";
+            default:
+                return "ss_sprite_053_2.png"; // 発酵中
+        }
+    },
+    itemId: "koji_muro",
+    displayName: "麹室",
+    inventorySpriteName: "ss_sprite_062.png",
     entitySize: { w: 2, h: 2 },
 });

@@ -9,13 +9,16 @@ import type {
     IVoxelWriter,
 } from "../_boundary/interfaces";
 import type { AutoProcessingStorage } from "../engine/AutoProcessingStorage";
+import type { BonfireStorage } from "../engine/BonfireStorage";
 import type { CartStorage } from "../engine/CartStorage";
 import type { ChatHistory } from "../engine/ChatHistory";
 import type { ChestStorage } from "../engine/ChestStorage";
 import type { DailyProcessingStorage } from "../engine/DailyProcessingStorage";
+import type { DistillerStorage } from "../engine/DistillerStorage";
 import type { ForgeStorage } from "../engine/ForgeStorage";
 import type { ManualProcessingStorage } from "../engine/ManualProcessingStorage";
 import type { MissionSystem } from "../engine/MissionSystem";
+import type { SaltPanStorage } from "../engine/SaltPanStorage";
 import type { WarpGateStorage } from "../engine/WarpGateStorage";
 import type { UIState } from "../view/UIState";
 
@@ -31,6 +34,9 @@ export interface EngineRefs {
     reputationSystem: IReputationSystemReader;
     chestStorage: ChestStorage;
     forgeStorage: ForgeStorage;
+    bonfireStorage: BonfireStorage;
+    distillerStorage: DistillerStorage;
+    saltPanStorage: SaltPanStorage;
     cartStorage: CartStorage;
     manualProcessingStorage: ManualProcessingStorage;
     dailyProcessingStorage: DailyProcessingStorage;

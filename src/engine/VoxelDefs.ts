@@ -25,6 +25,7 @@ export const ENTITY_TYPES = {
     soy: 2,
     flax: 3,
     sunflower: 4,
+    wheat: 5,
     // --- facility_part ---
     facility_part: 32,
     // --- その他のエンティティ（33 以降） ---
@@ -59,6 +60,11 @@ export const ENTITY_TYPES = {
     spinning_machine: 61,
     auto_loom: 62,
     station: 63,
+    // --- 醸造・発酵（doc/26） ---
+    distiller: 64,
+    saltpan: 65,
+    koji_muro: 66,
+    fermentation_vat: 67,
 } as const;
 
 // ---------------------------------------------------------------------------

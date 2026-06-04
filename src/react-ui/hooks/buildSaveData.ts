@@ -1,14 +1,17 @@
 import type { AutoProcessingStorage } from "../../engine/AutoProcessingStorage";
 import type { CartStorage } from "../../engine/CartStorage";
 import type { ChatHistory } from "../../engine/ChatHistory";
+import type { BonfireStorage } from "../../engine/BonfireStorage";
 import type { ChestStorage } from "../../engine/ChestStorage";
 import type { DailyProcessingStorage } from "../../engine/DailyProcessingStorage";
+import type { DistillerStorage } from "../../engine/DistillerStorage";
 import type { ForgeStorage } from "../../engine/ForgeStorage";
 import type { GameTime } from "../../engine/GameTime";
 import type { ManualProcessingStorage } from "../../engine/ManualProcessingStorage";
 import type { MissionSystem } from "../../engine/MissionSystem";
 import type { PlayerState } from "../../engine/PlayerState";
 import type { ReputationSystem } from "../../engine/ReputationSystem";
+import type { SaltPanStorage } from "../../engine/SaltPanStorage";
 import type { WarpGateStorage } from "../../engine/WarpGateStorage";
 import type { WorkbenchStorage } from "../../engine/WorkbenchStorage";
 import type { SaveData } from "../../lib/SaveSystem";
@@ -22,6 +25,9 @@ export interface SaveSnapshotDeps {
     gameTime: GameTime;
     chestStorage: ChestStorage;
     forgeStorage: ForgeStorage;
+    bonfireStorage: BonfireStorage;
+    distillerStorage: DistillerStorage;
+    saltPanStorage: SaltPanStorage;
     workbenchStorage: WorkbenchStorage;
     warpGateStorage: WarpGateStorage;
     manualProcessingStorage: ManualProcessingStorage;
@@ -43,6 +49,9 @@ export function buildSaveData(deps: SaveSnapshotDeps): Omit<SaveData, "version" 
         gameTime,
         chestStorage,
         forgeStorage,
+        bonfireStorage,
+        distillerStorage,
+        saltPanStorage,
         workbenchStorage,
         warpGateStorage,
         manualProcessingStorage,
@@ -83,6 +92,15 @@ export function buildSaveData(deps: SaveSnapshotDeps): Omit<SaveData, "version" 
         },
         forgeStorage: {
             forges: forgeStorage.toSaveData(),
+        },
+        bonfireStorage: {
+            bonfires: bonfireStorage.toSaveData(),
+        },
+        distillerStorage: {
+            distillers: distillerStorage.toSaveData(),
+        },
+        saltPanStorage: {
+            saltpans: saltPanStorage.toSaveData(),
         },
         workbenchStorage: {
             workbenches: workbenchStorage.toSaveData(),

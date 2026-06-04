@@ -1,19 +1,25 @@
 import type { IEventBroker } from "../../_boundary/interfaces";
 import { setAutoProcessingStorage } from "../../_registry/entities/AutoProcessing";
+import { setBonfireStorage } from "../../_registry/entities/Bonfire";
 import { setCartStorage } from "../../_registry/entities/Cart";
 import { setChestStorage } from "../../_registry/entities/Chest";
 import { setDailyProcessingStorage } from "../../_registry/entities/DailyProcessing";
+import { setDistillerStorage } from "../../_registry/entities/Distiller";
 import { setForgeStorage } from "../../_registry/entities/Forge";
 import { setManualProcessingStorage } from "../../_registry/entities/ManualProcessing";
+import { setSaltPanStorage } from "../../_registry/entities/Saltpan";
 import { setSoakingBasketStorage } from "../../_registry/entities/SoakingBasket";
 import { setWarpGateStorage } from "../../_registry/entities/WarpGate";
 import { setWorkbenchStorage } from "../../_registry/entities/Workbench";
 import { AutoProcessingStorage } from "../../engine/AutoProcessingStorage";
+import { BonfireStorage } from "../../engine/BonfireStorage";
 import { CartStorage } from "../../engine/CartStorage";
+import { DistillerStorage } from "../../engine/DistillerStorage";
 import { ChestStorage } from "../../engine/ChestStorage";
 import { DailyProcessingStorage } from "../../engine/DailyProcessingStorage";
 import { ForgeStorage } from "../../engine/ForgeStorage";
 import { ManualProcessingStorage } from "../../engine/ManualProcessingStorage";
+import { SaltPanStorage } from "../../engine/SaltPanStorage";
 import { setStationStorages } from "../../engine/StationSystem";
 import { generateTerrain } from "../../engine/TerrainGenerator";
 import { WarpGateStorage } from "../../engine/WarpGateStorage";
@@ -43,6 +49,9 @@ export function restoreOrGenerateVoxelMap(saveData: SaveData | null, worldSize: 
 export interface Storages {
     chestStorage: ChestStorage;
     forgeStorage: ForgeStorage;
+    bonfireStorage: BonfireStorage;
+    distillerStorage: DistillerStorage;
+    saltPanStorage: SaltPanStorage;
     workbenchStorage: WorkbenchStorage;
     warpGateStorage: WarpGateStorage;
     manualProcessingStorage: ManualProcessingStorage;
@@ -63,6 +72,18 @@ export function bootstrapStorages(saveData: SaveData | null): Storages {
     const forgeStorage = new ForgeStorage();
     if (saveData) forgeStorage.loadSaveData(saveData.forgeStorage.forges);
     setForgeStorage(forgeStorage);
+
+    const bonfireStorage = new BonfireStorage();
+    if (saveData) bonfireStorage.loadSaveData(saveData.bonfireStorage.bonfires);
+    setBonfireStorage(bonfireStorage);
+
+    const distillerStorage = new DistillerStorage();
+    if (saveData) distillerStorage.loadSaveData(saveData.distillerStorage.distillers);
+    setDistillerStorage(distillerStorage);
+
+    const saltPanStorage = new SaltPanStorage();
+    if (saveData) saltPanStorage.loadSaveData(saveData.saltPanStorage.saltpans);
+    setSaltPanStorage(saltPanStorage);
 
     const workbenchStorage = new WorkbenchStorage();
     if (saveData) workbenchStorage.loadSaveData(saveData.workbenchStorage.workbenches);
@@ -95,6 +116,9 @@ export function bootstrapStorages(saveData: SaveData | null): Storages {
     return {
         chestStorage,
         forgeStorage,
+        bonfireStorage,
+        distillerStorage,
+        saltPanStorage,
         workbenchStorage,
         warpGateStorage,
         manualProcessingStorage,

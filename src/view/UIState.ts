@@ -7,6 +7,9 @@ export type UIMode =
     | "placement"
     | "chest"
     | "forge"
+    | "bonfire"
+    | "distiller"
+    | "saltpan"
     | "warp_gate"
     | "processing-manual"
     | "processing-daily"
@@ -106,6 +109,24 @@ export class UIState {
             this.targetPos = null;
         });
 
+        const d10 = broker.subscribe("open_bonfire_ui", ({ pos }) => {
+            if (this.mode === "placement") return;
+            this.mode = "bonfire";
+            this.targetPos = pos;
+        });
+
+        const d11 = broker.subscribe("open_distiller_ui", ({ pos }) => {
+            if (this.mode === "placement") return;
+            this.mode = "distiller";
+            this.targetPos = pos;
+        });
+
+        const d12 = broker.subscribe("open_saltpan_ui", ({ pos }) => {
+            if (this.mode === "placement") return;
+            this.mode = "saltpan";
+            this.targetPos = pos;
+        });
+
         return () => {
             d1();
             d2();
@@ -116,6 +137,9 @@ export class UIState {
             d7();
             d8();
             d9();
+            d10();
+            d11();
+            d12();
         };
     }
 

@@ -10,6 +10,7 @@ export const ITEM_IDS = [
     "potato",
     "soybeans",
     "flaxseed",
+    "wheat",
     "dirt",
     "workbench",
     "stem",
@@ -86,6 +87,25 @@ export const ITEM_IDS = [
     "iron_teeth",
     "furrow_canal",
     "station",
+    // ── 醸造・発酵（doc/26）。スプライト未作成のため仮アイコンで表示 ──
+    "salt",
+    "steamed_wheat",
+    "roasted_wheat",
+    "steamed_soybeans",
+    "koji",
+    "wheat_moromi",
+    "shochu",
+    "aged_shochu",
+    "vinegar",
+    "miso",
+    "soy_sauce_moromi",
+    "soy_sauce",
+    "soy_sauce_lees",
+    // 醸造施設（配置アイテム）
+    "saltpan",
+    "koji_muro",
+    "fermentation_vat",
+    "distiller",
 ] as const;
 
 export type ItemId = (typeof ITEM_IDS)[number];

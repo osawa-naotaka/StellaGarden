@@ -72,6 +72,9 @@ const sunflowerSprites: EntitySpriteInfo[][] = [
     [cropPositionOf("ss_sprite_061.png")],
 ];
 
+// 麦（doc/26）: 専用スプライト未作成のため、当面は大豆（同じ乾田作物）の段階スプライトを流用する。
+const wheatSprites: EntitySpriteInfo[][] = soySprites;
+
 type HarvestFn = (num: number) => { itemId: ItemId; count: number }[];
 
 // ── 登録 ──
@@ -80,8 +83,9 @@ export function registerCrop(
     itemId: ItemId,
     displayName: string,
     sprites: EntitySpriteInfo[][],
-    itemSprite: string,
+    itemSprite: string | null,
     harvestFn: HarvestFn,
+    itemPlaceholderColor?: number,
 ): void {
     const cropDef = CROP_DEFS[entityType];
     if (!cropDef) throw new Error(`Crop entity type ${entityType} not found`);
@@ -138,6 +142,7 @@ export function registerCrop(
         itemId,
         displayName,
         spriteName: itemSprite,
+        placeholderColor: itemPlaceholderColor,
         maxStack: 64,
         onItemUse(ctx: InteractionContext): boolean {
             // 植え付け: アイテムを soil/wetSoil に使用
@@ -209,3 +214,17 @@ registerCrop(ENTITY_TYPES.sunflower, "sunflower_seed", "ひまわりの種", sun
     { itemId: "sunflower_seed", count: num },
     { itemId: "stem", count: num },
 ]);
+
+// wheat（doc/26）: 麦粒（種兼用）+ 麦わら（stem 流用）。麦粒アイコンは未作成のためプレースホルダ色で表示。
+registerCrop(
+    ENTITY_TYPES.wheat,
+    "wheat",
+    "麦",
+    wheatSprites,
+    null,
+    (num) => [
+        { itemId: "wheat", count: num },
+        { itemId: "stem", count: num },
+    ],
+    0xd9b65c,
+);

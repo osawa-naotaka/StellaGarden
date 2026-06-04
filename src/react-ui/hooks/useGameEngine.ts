@@ -127,6 +127,9 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
             const {
                 chestStorage,
                 forgeStorage,
+                bonfireStorage,
+                distillerStorage,
+                saltPanStorage,
                 workbenchStorage,
                 warpGateStorage,
                 manualProcessingStorage,
@@ -174,7 +177,16 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
             const gameTime = new GameTime(saveData?.gameTime.elapsedMs);
 
             // 日次処理対象のストレージ群（KeyedSlotStorage 派生）。新規ストレージ追加時はここに足すだけで day_changed に乗る。
-            const dailyTickStorages = [chestStorage, forgeStorage, workbenchStorage, dailyProcessingStorage, autoProcessingStorage];
+            const dailyTickStorages = [
+                chestStorage,
+                forgeStorage,
+                bonfireStorage,
+                distillerStorage,
+                saltPanStorage,
+                workbenchStorage,
+                dailyProcessingStorage,
+                autoProcessingStorage,
+            ];
 
             disposers.push(
                 eventBroker.subscribe("day_changed", () => {
@@ -206,6 +218,9 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
                 reputationSystem,
                 chestStorage,
                 forgeStorage,
+                bonfireStorage,
+                distillerStorage,
+                saltPanStorage,
                 manualProcessingStorage,
                 dailyProcessingStorage,
                 autoProcessingStorage,
@@ -242,6 +257,9 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
                         gameTime,
                         chestStorage,
                         forgeStorage,
+                        bonfireStorage,
+                        distillerStorage,
+                        saltPanStorage,
                         workbenchStorage,
                         warpGateStorage,
                         manualProcessingStorage,

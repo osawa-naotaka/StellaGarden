@@ -43,6 +43,14 @@ export const CROP_DEFS: Readonly<Record<number, CropDef>> = {
         needsWater: true,
         fatigueThreshold: 5,
     },
+    // 麦（doc/26 §2.1）: 乾田作物。大豆と同等の回転（成熟4日・連作耐性普通）。
+    [ENTITY_TYPES.wheat]: {
+        entityType: ENTITY_TYPES.wheat,
+        maturityDay: 4,
+        witherDay: 8,
+        needsWater: true,
+        fatigueThreshold: 4,
+    },
 };
 
 /**
@@ -94,6 +102,7 @@ const CROP_NPK_RESPONSE: Readonly<Record<number, readonly [number, number, numbe
     [ENTITY_TYPES.soy]: [0.0, 0.5, 0.5],
     [ENTITY_TYPES.flax]: [0.6, 0.3, 0.2],
     [ENTITY_TYPES.sunflower]: [0.3, 0.3, 0.3],
+    [ENTITY_TYPES.wheat]: [0.6, 0.3, 0.3],
 };
 
 /**

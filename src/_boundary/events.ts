@@ -34,6 +34,15 @@ export type GameEventMap = {
     /** 自動処理施設（auto_thresher 等。シャフト動力で day_changed 時に一括処理）の UI を開く。
      *  発行: 各エンティティの onOpenFacilityUI（右クリック）。購読: UIState → AutoProcessingPanel。 */
     open_processing_auto_ui: { pos: Pos2D };
+    /** 焚き火（炉型に拡張。燃料スロット＋素材スロット）の UI を開く。
+     *  発行: Bonfire.ts の onOpenFacilityUI（右クリック）。購読: UIState → BonfirePanel。 */
+    open_bonfire_ui: { pos: Pos2D };
+    /** 蒸留器（燃料スロット＋素材スロット。麦もろみ→麦焼酎）の UI を開く。
+     *  発行: Distiller.ts の onOpenFacilityUI（右クリック）。購読: UIState → DistillerPanel。 */
+    open_distiller_ui: { pos: Pos2D };
+    /** 塩田（入力なしの受動生成。塩を取り出す）の UI を開く。
+     *  発行: Saltpan.ts の onOpenFacilityUI（右クリック）。購読: UIState → SaltPanPanel。 */
+    open_saltpan_ui: { pos: Pos2D };
     /** 台車を右クリックして台車UIを開く。
      *  発行: InteractionSystem（cartStorage.findAt がヒットした時、施設パスより先に発行）。
      *  購読: UIState → CartPanel。台車は voxel 外管理のため pos ではなく cartId で特定する。 */
