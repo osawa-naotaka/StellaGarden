@@ -8,7 +8,7 @@ import {
     isAcceptableInputItem,
     type ProcessingRecipe,
 } from "./ProcessingRecipes";
-import { setEnabledInVoxel } from "./VoxelDefs";
+import { setEnabledInVoxel, setRotatedInVoxel } from "./VoxelDefs";
 
 /**
  * 焚き火（bonfire）のスロット種別（doc/26 §3.2）。
@@ -73,10 +73,17 @@ export class BonfireStorage extends KeyedSlotStorage<BonfireSlots> {
         return result;
     }
 
-    /** 燃料があれば燃焼中（点火状態）。 */
+    /** 1日の燃焼に必要な量（燃料レシピの inputCountPerCycle）以上の燃料があれば燃焼中（点火状態）。 */
     isBurning(pos: Pos2D): boolean {
         const slots = this.getRaw(pos);
-        return slots != null && slots.fuel != null && slots.fuel.count >= 1;
+        if (!slots || slots.fuel === null) return false;
+        const recipe = this.matchFuelRecipe(slots.fuel.itemId);
+        return recipe !== null && slots.fuel.count >= recipe.inputCountPerCycle;
+    }
+
+    /** 取り出し可能な草木灰があるか（消火時のスプライト出し分けに使う）。 */
+    hasAsh(pos: Pos2D): boolean {
+        return this.getRaw(pos)?.outputAsh != null;
     }
 
     getSlot(pos: Pos2D, kind: BonfireSlotKind): ItemStack | null {
@@ -118,7 +125,7 @@ export class BonfireStorage extends KeyedSlotStorage<BonfireSlots> {
         }
 
         slots[kind] = stack;
-        this.updateVoxelEnabled(pos, voxelMap);
+        this.updateVoxelSpriteState(pos, voxelMap);
     }
 
     /**
@@ -143,43 +150,42 @@ export class BonfireStorage extends KeyedSlotStorage<BonfireSlots> {
 
         const moved = Math.min(space, count);
         slots[kind] = { itemId: itemId as ItemStack["itemId"], count: existingCount + moved };
-        this.updateVoxelEnabled(pos, voxelMap);
+        this.updateVoxelSpriteState(pos, voxelMap);
         return moved;
     }
 
     override onDailyTick(voxelMap: IVoxelWriter): void {
         for (const [key, slots] of this.entries()) {
             const pos = this.posFromKey(key);
-            const lit = slots.fuel != null && slots.fuel.count >= 1;
+            const fuelRecipe = slots.fuel != null ? this.matchFuelRecipe(slots.fuel.itemId) : null;
+            // 1日の燃焼に必要な量に満たない（または燃料ゼロ）なら消火＝何も処理しない。
+            const lit = slots.fuel != null && fuelRecipe != null && slots.fuel.count >= fuelRecipe.inputCountPerCycle;
 
-            if (lit) {
+            if (lit && fuelRecipe != null) {
                 // 燃料 → 草木灰（燃焼副産物）
                 const fuel = slots.fuel as ItemStack;
-                const fuelRecipe = this.matchFuelRecipe(fuel.itemId);
-                if (fuelRecipe && fuel.count >= fuelRecipe.inputCountPerCycle) {
-                    const out = fuelRecipe.outputs[0];
-                    if (canStackInto(slots.outputAsh, out)) {
-                        fuel.count -= fuelRecipe.inputCountPerCycle;
-                        slots.outputAsh = addToSlot(slots.outputAsh, out);
-                        if (fuel.count <= 0) slots.fuel = null;
-                    }
+                const ashOut = fuelRecipe.outputs[0];
+                if (canStackInto(slots.outputAsh, ashOut)) {
+                    fuel.count -= fuelRecipe.inputCountPerCycle;
+                    slots.outputAsh = addToSlot(slots.outputAsh, ashOut);
+                    if (fuel.count <= 0) slots.fuel = null;
                 }
 
                 // 素材 → 蒸し系（火に掛けて加工）
                 if (slots.material != null) {
                     const recipe = this.matchMaterialRecipe(slots.material.itemId, slots.selectedRecipeIndex);
                     if (recipe && slots.material.count >= recipe.inputCountPerCycle) {
-                        const out = recipe.outputs[0];
-                        if (canStackInto(slots.outputSteamed, out)) {
+                        const steamOut = recipe.outputs[0];
+                        if (canStackInto(slots.outputSteamed, steamOut)) {
                             slots.material.count -= recipe.inputCountPerCycle;
-                            slots.outputSteamed = addToSlot(slots.outputSteamed, out);
+                            slots.outputSteamed = addToSlot(slots.outputSteamed, steamOut);
                             if (slots.material.count <= 0) slots.material = null;
                         }
                     }
                 }
             }
 
-            this.updateVoxelEnabled(pos, voxelMap);
+            this.updateVoxelSpriteState(pos, voxelMap);
         }
     }
 
@@ -195,10 +201,14 @@ export class BonfireStorage extends KeyedSlotStorage<BonfireSlots> {
         return matches[idx];
     }
 
-    /** voxel の enabled ビットに点火状態を反映する（スプライト切替に使う）。 */
-    private updateVoxelEnabled(pos: Pos2D, voxelMap: IVoxelWriter): void {
+    /**
+     * スプライト切替用の状態を voxel に反映する。
+     * enabled ビット = 点火状態（燃料が1日分以上）、rotated ビット = 草木灰の有無。
+     */
+    private updateVoxelSpriteState(pos: Pos2D, voxelMap: IVoxelWriter): void {
         const surface = voxelMap.getSurfacePosition({ x: pos.x, y: 0, z: pos.z });
         const voxel = voxelMap.get(surface);
-        voxelMap.set(setEnabledInVoxel(voxel, this.isBurning(pos)), surface);
+        const updated = setRotatedInVoxel(setEnabledInVoxel(voxel, this.isBurning(pos)), this.hasAsh(pos));
+        voxelMap.set(updated, surface);
     }
 }

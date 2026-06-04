@@ -10,7 +10,7 @@
  *  - 左クリック (onInteract) + axe → 撤去（中身は一緒にインベントリへ回収）
  */
 import type { BonfireStorage } from "../../engine/BonfireStorage";
-import { ENTITY_TYPES, getEnabledFromVoxel } from "../../engine/VoxelDefs";
+import { ENTITY_TYPES, getEnabledFromVoxel, getRotatedFromVoxel } from "../../engine/VoxelDefs";
 import { type EntitySpriteInfo, type InteractionContext, registerEntity } from "../EntityRegistry";
 import { findFacilityAnchor, placeFacility, removeFacility } from "../facilityUtil";
 import { registerItem } from "../ItemRegistry";
@@ -36,9 +36,13 @@ registerEntity({
     },
 
     getSprites(voxel: bigint): EntitySpriteInfo[] {
-        // 点火中（燃料あり）はアニメーション、消火中は点火前スプライト。
+        // 点火中（燃料が1日分以上）はアニメーション。
         if (getEnabledFromVoxel(voxel)) {
             return [[bonfireLitFrame(), 0, 0]];
+        }
+        // 消火中: 草木灰があれば灰の山スプライト、なければ点火前スプライト。
+        if (getRotatedFromVoxel(voxel)) {
+            return [["ss_sprite_075.png", 0, 0]];
         }
         return [["ss_sprite_076.png", 0, 0]];
     },
