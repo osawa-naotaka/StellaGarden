@@ -5,7 +5,6 @@ import type { BonfireStorage } from "../../engine/BonfireStorage";
 import type { DailyProcessingStorage } from "../../engine/DailyProcessingStorage";
 import type { DistillerStorage } from "../../engine/DistillerStorage";
 import type { FermentationStorage } from "../../engine/FermentationStorage";
-import type { ForgeStorage } from "../../engine/ForgeStorage";
 import type { GameTime } from "../../engine/GameTime";
 import type { ManualProcessingStorage } from "../../engine/ManualProcessingStorage";
 import type { MissionSystem } from "../../engine/MissionSystem";
@@ -25,7 +24,6 @@ export interface SaveSnapshotDeps {
     voxelMap: VoxelMap;
     playerState: PlayerState;
     gameTime: GameTime;
-    forgeStorage: ForgeStorage;
     bonfireStorage: BonfireStorage;
     distillerStorage: DistillerStorage;
     saltPanStorage: SaltPanStorage;
@@ -50,7 +48,6 @@ export function buildSaveData(deps: SaveSnapshotDeps): Omit<SaveData, "version" 
         voxelMap,
         playerState,
         gameTime,
-        forgeStorage,
         bonfireStorage,
         distillerStorage,
         saltPanStorage,
@@ -92,9 +89,6 @@ export function buildSaveData(deps: SaveSnapshotDeps): Omit<SaveData, "version" 
             elapsedMs: gameTime.getElapsedMs(),
         },
         storage: getStorages(),
-        forgeStorage: {
-            forges: forgeStorage.toSaveData(),
-        },
         bonfireStorage: {
             bonfires: bonfireStorage.toSaveData(),
         },

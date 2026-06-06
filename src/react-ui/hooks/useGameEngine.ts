@@ -33,6 +33,7 @@ import { buildSaveData } from "./buildSaveData";
 import { bootstrapStorages, restoreOrGenerateVoxelMap } from "./gameEngineBoot";
 import { createGameTickHandler } from "./gameTickHandler";
 import { calcChunkPerViewport, calcTilePerViewport } from "./viewport";
+import { onDailyTickStorage } from "../../_registry/StorageRegistry";
 
 export interface UseGameEngineResult {
     containerRef: React.RefObject<HTMLDivElement | null>;
@@ -126,7 +127,6 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
             worldContainer.addChild(placementOverlay.top);
 
             const {
-                forgeStorage,
                 bonfireStorage,
                 distillerStorage,
                 saltPanStorage,
@@ -181,7 +181,6 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
 
             // 日次処理対象のストレージ群（KeyedSlotStorage 派生）。新規ストレージ追加時はここに足すだけで day_changed に乗る。
             const dailyTickStorages = [
-                forgeStorage,
                 bonfireStorage,
                 distillerStorage,
                 saltPanStorage,
@@ -196,6 +195,7 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
                     processDailyTick(voxelMap);
                     regenerateClay(voxelMap);
                     for (const s of dailyTickStorages) s.onDailyTick(voxelMap);
+                    onDailyTickStorage(voxelMap);
 
                     // WarpGate は座標管理しない別系統。出荷集計→reputation→clear をここで明示的に行う。
                     const shippedItems = new Map();
@@ -223,7 +223,6 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
                 warpGateStorage,
                 reputationSystem,
                 seedRequestSystem,
-                forgeStorage,
                 bonfireStorage,
                 distillerStorage,
                 saltPanStorage,
@@ -262,7 +261,6 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
                         voxelMap,
                         playerState,
                         gameTime,
-                        forgeStorage,
                         bonfireStorage,
                         distillerStorage,
                         saltPanStorage,

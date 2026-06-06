@@ -5,7 +5,6 @@ import { setCartStorage } from "../../_registry/entities/Cart";
 import { setDailyProcessingStorage } from "../../_registry/entities/DailyProcessing";
 import { setDistillerStorage } from "../../_registry/entities/Distiller";
 import { setFermentationStorage } from "../../_registry/entities/FermentationVat";
-import { setForgeStorage } from "../../_registry/entities/Forge";
 import { setManualProcessingStorage } from "../../_registry/entities/ManualProcessing";
 import { setSaltPanStorage } from "../../_registry/entities/Saltpan";
 import { setSoakingBasketStorage } from "../../_registry/entities/SoakingBasket";
@@ -17,7 +16,6 @@ import { CartStorage } from "../../engine/CartStorage";
 import { DistillerStorage } from "../../engine/DistillerStorage";
 import { FermentationStorage } from "../../engine/FermentationStorage";
 import { DailyProcessingStorage } from "../../engine/DailyProcessingStorage";
-import { ForgeStorage } from "../../engine/ForgeStorage";
 import { ManualProcessingStorage } from "../../engine/ManualProcessingStorage";
 import { SaltPanStorage } from "../../engine/SaltPanStorage";
 import { setStationStorages } from "../../engine/StationSystem";
@@ -48,7 +46,6 @@ export function restoreOrGenerateVoxelMap(saveData: SaveData | null, worldSize: 
 }
 
 export interface Storages {
-    forgeStorage: ForgeStorage;
     bonfireStorage: BonfireStorage;
     distillerStorage: DistillerStorage;
     saltPanStorage: SaltPanStorage;
@@ -70,10 +67,6 @@ export function bootstrapStorages(saveData: SaveData | null): Storages {
         loadStorages(saveData.storage);
     }
     
-    const forgeStorage = new ForgeStorage();
-    if (saveData) forgeStorage.loadSaveData(saveData.forgeStorage.forges);
-    setForgeStorage(forgeStorage);
-
     const bonfireStorage = new BonfireStorage();
     if (saveData) bonfireStorage.loadSaveData(saveData.bonfireStorage.bonfires);
     setBonfireStorage(bonfireStorage);
@@ -119,7 +112,6 @@ export function bootstrapStorages(saveData: SaveData | null): Storages {
     setCartStorage(cartStorage);
 
     return {
-        forgeStorage,
         bonfireStorage,
         distillerStorage,
         saltPanStorage,

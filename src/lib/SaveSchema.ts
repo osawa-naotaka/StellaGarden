@@ -241,7 +241,6 @@ export const SaveDataSchema = v.object({
     inventory: InventorySaveDataSchema,
     gameTime: GameTimeSaveDataSchema,
     storage: StoragesSchema,
-    forgeStorage: ForgeStorageSaveDataSchema,
     bonfireStorage: BonfireStorageSaveDataSchema,
     distillerStorage: DistillerStorageSaveDataSchema,
     saltPanStorage: SaltPanStorageSaveDataSchema,

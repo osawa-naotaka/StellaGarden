@@ -1,5 +1,5 @@
 import * as v from "valibot";
-import type { ItemStack, Pos2D } from "../_boundary/interfaces";
+import type { ItemStack, IVoxelWriter, Pos2D } from "../_boundary/interfaces";
 import { ItemIdSchema } from "../engine/ItemDefs";
 
 export const StorageIdSchema = ItemIdSchema;
@@ -30,14 +30,24 @@ export type Storage = v.InferOutput<typeof StorageSchema>;
 export const StoragesSchema = v.record(StorageIdSchema, StorageSchema);
 export type Storages = v.InferOutput<typeof StoragesSchema>;
 
+type OnDailyTick = (voxelMap: IVoxelWriter) => void;
+
 let storages: Storages = {};
+const onDailyTicks: Array<OnDailyTick> = [];
 
 function key(pos: Pos2D): string {
     return `${pos.x},${pos.z}`;
 }
 
-export function registerStorage(storageId: StorageId, initialValue: StorageSet): void {
+export function registerStorage(storageId: StorageId, initialValue: StorageSet, onDailyTick?: OnDailyTick): void {
     storages[storageId] = { value: {}, initialValue };
+    if (onDailyTick) onDailyTicks.push(onDailyTick);
+}
+
+export function onDailyTickStorage(voxelMap: IVoxelWriter): void {
+    for (const v of onDailyTicks) {
+        v(voxelMap);
+    }
 }
 
 export function createStorage(storageId: StorageId, pos: Pos2D): void {
@@ -59,7 +69,7 @@ export function getStorageSet(storageId: StorageId, pos: Pos2D | null): StorageS
 
 export function getStorageSlot(storageId: StorageId, pos: Pos2D, kind: StorageKind, index: number): ItemStack | null {
     const storageSet = getStorageSet(storageId, pos)
-    if (storageSet === undefined) throw new Error(`Storage not found at ${pos.x},${pos.z}`);
+    if (storageSet === undefined) return null;
     const storage = storageSet[kind];
     if (storage === undefined) throw new Error(`Storage kind ${kind} not found`);
     return storage[index];
@@ -81,7 +91,10 @@ export function removeStorage(storageId: StorageId, pos: Pos2D): void {
     delete storage.value[key(pos)];
 }
 
-export function collectAllStacks(storageSet: StorageSet, kind?: StorageKind): ItemStack[] {
+export function collectAllStacks(storageId: StorageId, pos: Pos2D, kind?: StorageKind): ItemStack[] {
+    const storage = get(storageId);
+    const storageSet = storage.value[key(pos)];
+    if (!storageSet) return [];
     const allSlots: ItemStack[] = [];
     for (const slots of kind ? [storageSet[kind]] : Object.values(storageSet)) {
         allSlots.push(...slots.filter((x) => x !== null));
@@ -95,6 +108,11 @@ export function loadStorages(saveStorages: Storages): void {
 
 export function getStorages(): Storages {
     return storages;
+}
+
+export function posFromStorageKey(key: string): Pos2D {
+    const [x, z] = key.split(",").map(Number);
+    return { x, z };
 }
 
 function get(storageId: StorageId): Storage {

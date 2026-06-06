@@ -1,6 +1,5 @@
 import { useCallback } from "react";
 import type { IInventoryWriter, ItemStack, IVoxelWriter, SlotRef } from "../../_boundary/interfaces";
-import type { ForgeSlotKind, ForgeStorage } from "../../engine/ForgeStorage";
 import type { UIState } from "../../view/UIState";
 import { CursorStack } from "../components/CursorStack";
 import { InventoryGrid } from "../components/InventoryGrid";
@@ -9,6 +8,8 @@ import { Slot } from "../components/Slot";
 import { useFrameTick } from "../hooks/useFrameTick";
 import { usePickup } from "../hooks/usePickup";
 import { registerPanel } from "../PanelRegistry";
+import { getStorageSet, getStorageSlot, type StorageSet } from "../../_registry/StorageRegistry";
+import { isForgeBurning, setForgeSlot, type ForgeSlotKind } from "../../_registry/entities/Forge";
 
 const COLS = 8;
 const INV_ROWS = 8;
@@ -26,7 +27,7 @@ const ALLOWED_ITEM_BY_KIND: Record<ForgeSlotKind, string> = {
 export interface ForgePanelProps {
     open: boolean;
     inventory: IInventoryWriter;
-    forgeStorage: ForgeStorage;
+    forgeStorage: StorageSet | null;
     voxelMap: IVoxelWriter;
     uiState: UIState;
 }
@@ -45,7 +46,7 @@ export function ForgePanel({ open, inventory, forgeStorage, voxelMap, uiState }:
     const getSlot = useCallback(
         (ref: ForgeSlotRef): ItemStack | null => {
             const kind = slotAreaToKind(ref.area);
-            if (kind) return targetPos ? forgeStorage.getSlot(targetPos, kind) : null;
+            if (kind) return targetPos ? getStorageSlot("forge", targetPos, kind, 0) : null;
             return inventory.getSlot(ref as SlotRef);
         },
         [inventory, forgeStorage, targetPos, slotAreaToKind],
@@ -55,8 +56,10 @@ export function ForgePanel({ open, inventory, forgeStorage, voxelMap, uiState }:
         (ref: ForgeSlotRef, stack: ItemStack | null) => {
             const kind = slotAreaToKind(ref.area);
             if (kind) {
-                if (targetPos) forgeStorage.setSlot(targetPos, kind, stack, voxelMap);
-                return;
+                if (targetPos) {
+                    setForgeSlot(targetPos, kind, stack, voxelMap);
+                    return;
+                }
             }
             inventory.setSlot(ref as SlotRef, stack);
         },
@@ -117,10 +120,10 @@ export function ForgePanel({ open, inventory, forgeStorage, voxelMap, uiState }:
         uiState.targetPos = null;
     }, [uiState]);
 
-    const ingredient = targetPos ? forgeStorage.getSlot(targetPos, "ingredient") : null;
-    const fuel = targetPos ? forgeStorage.getSlot(targetPos, "fuel") : null;
-    const output = targetPos ? forgeStorage.getSlot(targetPos, "output") : null;
-    const isBurning = targetPos ? forgeStorage.isBurning(targetPos) : false;
+    const ingredient = targetPos ? getStorageSlot("forge", targetPos, "ingredient", 0) : null;
+    const fuel = targetPos ? getStorageSlot("forge", targetPos, "fuel", 0) : null;
+    const output = targetPos ? getStorageSlot("forge", targetPos, "output", 0) : null;
+    const isBurning = targetPos ? isForgeBurning(targetPos) : false;
 
     return (
         <>
@@ -188,6 +191,6 @@ export function ForgePanel({ open, inventory, forgeStorage, voxelMap, uiState }:
 registerPanel({
     mode: "forge",
     component: ({ open, engine }) => (
-        <ForgePanel open={open} inventory={engine.inventory} forgeStorage={engine.forgeStorage} voxelMap={engine.voxelMap} uiState={engine.uiState} />
+        <ForgePanel open={open} inventory={engine.inventory} forgeStorage={getStorageSet("forge", engine.uiState.targetPos) ?? null} voxelMap={engine.voxelMap} uiState={engine.uiState} />
     ),
 });
