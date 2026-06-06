@@ -12,7 +12,6 @@ import type { PlayerState } from "../../engine/PlayerState";
 import type { ReputationSystem } from "../../engine/ReputationSystem";
 import type { SaltPanStorage } from "../../engine/SaltPanStorage";
 import type { SeedRequestSystem } from "../../engine/SeedRequestSystem";
-import type { WarpGateStorage } from "../../engine/WarpGateStorage";
 import type { WorkbenchStorage } from "../../engine/WorkbenchStorage";
 import type { SaveData } from "../../lib/SaveSystem";
 import type { VoxelMap } from "../../lib/VoxelMap";
@@ -29,7 +28,6 @@ export interface SaveSnapshotDeps {
     saltPanStorage: SaltPanStorage;
     fermentationStorage: FermentationStorage;
     workbenchStorage: WorkbenchStorage;
-    warpGateStorage: WarpGateStorage;
     manualProcessingStorage: ManualProcessingStorage;
     dailyProcessingStorage: DailyProcessingStorage;
     autoProcessingStorage: AutoProcessingStorage;
@@ -53,7 +51,6 @@ export function buildSaveData(deps: SaveSnapshotDeps): Omit<SaveData, "version" 
         saltPanStorage,
         fermentationStorage,
         workbenchStorage,
-        warpGateStorage,
         manualProcessingStorage,
         dailyProcessingStorage,
         autoProcessingStorage,
@@ -104,7 +101,6 @@ export function buildSaveData(deps: SaveSnapshotDeps): Omit<SaveData, "version" 
         workbenchStorage: {
             workbenches: workbenchStorage.toSaveData(),
         },
-        warpGateStorage: warpGateStorage.toSaveData(),
         manualProcessingStorage: {
             facilities: manualProcessingStorage.toSaveData(),
         },

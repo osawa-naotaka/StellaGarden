@@ -1,7 +1,6 @@
 import { useCallback } from "react";
 import type { IInventoryWriter, IReputationSystemReader, ItemStack, SlotRef } from "../../_boundary/interfaces";
 import { SEED_REQUEST_DEFS, SEED_STACK_COUNT, type SeedRequestSystem } from "../../engine/SeedRequestSystem";
-import type { WarpGateStorage } from "../../engine/WarpGateStorage";
 import type { UIState } from "../../view/UIState";
 import { CursorStack } from "../components/CursorStack";
 import { InventoryGrid } from "../components/InventoryGrid";
@@ -11,6 +10,7 @@ import { TierList } from "../components/TierList";
 import { useFrameTick } from "../hooks/useFrameTick";
 import { usePickup } from "../hooks/usePickup";
 import { registerPanel } from "../PanelRegistry";
+import { getStorageSet, getStorageSlot, setStorageSlot, type StorageSet } from "../../_registry/StorageRegistry";
 
 const EARTH_INV_ROWS = 4;
 const COLS = 8;
@@ -23,7 +23,7 @@ type WarpGateSlotRef = { area: WarpGateSlotArea; index: number };
 export interface WarpGatePanelProps {
     open: boolean;
     inventory: IInventoryWriter;
-    warpGateStorage: WarpGateStorage;
+    warpGateStorage:  StorageSet | null;
     reputationSystem: IReputationSystemReader;
     seedRequestSystem: SeedRequestSystem;
     uiState: UIState;
@@ -31,10 +31,11 @@ export interface WarpGatePanelProps {
 
 export function WarpGatePanel({ open, inventory, warpGateStorage, reputationSystem, seedRequestSystem, uiState }: WarpGatePanelProps) {
     useFrameTick(open);
+    const targetPos = uiState.targetPos;
 
     const getSlot = useCallback(
         (ref: WarpGateSlotRef): ItemStack | null => {
-            if (ref.area === "warp_gate") return warpGateStorage.getSlot(ref.index);
+            if (ref.area === "warp_gate") return targetPos ? getStorageSlot("warp_gate", targetPos, "main", ref.index) : null;
             return inventory.getSlot(ref as SlotRef);
         },
         [inventory, warpGateStorage],
@@ -43,8 +44,10 @@ export function WarpGatePanel({ open, inventory, warpGateStorage, reputationSyst
     const setSlot = useCallback(
         (ref: WarpGateSlotRef, stack: ItemStack | null) => {
             if (ref.area === "warp_gate") {
-                warpGateStorage.setSlot(ref.index, stack);
-                return;
+                if (targetPos) {
+                    setStorageSlot("warp_gate", targetPos, "main", ref.index, stack);
+                    return;
+                }
             }
             inventory.setSlot(ref as SlotRef, stack);
         },
@@ -108,7 +111,7 @@ export function WarpGatePanel({ open, inventory, warpGateStorage, reputationSyst
     const tiers = reputationSystem.getAllTierProgress();
     const points = reputationSystem.getPoints();
     let preview = 0;
-    for (const stack of warpGateStorage.getSlots()) {
+    for (const stack of getStorageSet("warp_gate", uiState.targetPos)?.main ?? []) {
         if (stack) preview += reputationSystem.calculateStackPoints(stack.itemId, stack.count);
     }
 
@@ -130,7 +133,7 @@ export function WarpGatePanel({ open, inventory, warpGateStorage, reputationSyst
                     <InventoryGrid
                         rows={EARTH_INV_ROWS}
                         cols={COLS}
-                        getStack={(i) => warpGateStorage.getSlot(i)}
+                        getStack={(i) => uiState.targetPos ? getStorageSlot("warp_gate", uiState.targetPos, "main", i) : null }
                         onLeftClick={(i, e) => handleLeftClick({ area: "warp_gate", index: i }, e.nativeEvent)}
                         onRightClick={(i) => handleRightClick({ area: "warp_gate", index: i })}
                     />
@@ -209,7 +212,7 @@ registerPanel({
         <WarpGatePanel
             open={open}
             inventory={engine.inventory}
-            warpGateStorage={engine.warpGateStorage}
+            warpGateStorage={getStorageSet("warp_gate", engine.uiState.targetPos) ?? null}
             reputationSystem={engine.reputationSystem}
             seedRequestSystem={engine.seedRequestSystem}
             uiState={engine.uiState}

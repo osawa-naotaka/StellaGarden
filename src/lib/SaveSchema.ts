@@ -246,7 +246,6 @@ export const SaveDataSchema = v.object({
     saltPanStorage: SaltPanStorageSaveDataSchema,
     fermentationStorage: FermentationStorageSaveDataSchema,
     workbenchStorage: WorkbenchStorageSaveDataSchema,
-    warpGateStorage: WarpGateStorageSaveDataSchema,
     manualProcessingStorage: ManualProcessingStorageSaveDataSchema,
     dailyProcessingStorage: DailyProcessingStorageSaveDataSchema,
     autoProcessingStorage: AutoProcessingStorageSaveDataSchema,
@@ -271,13 +270,11 @@ export type VoxelMapSaveData = v.InferOutput<typeof VoxelMapSaveDataSchema>;
 export type PlayerStateSaveData = v.InferOutput<typeof PlayerStateSaveDataSchema>;
 export type InventorySaveData = v.InferOutput<typeof InventorySaveDataSchema>;
 export type GameTimeSaveData = v.InferOutput<typeof GameTimeSaveDataSchema>;
-export type ForgeStorageSaveData = v.InferOutput<typeof ForgeStorageSaveDataSchema>;
 export type BonfireStorageSaveData = v.InferOutput<typeof BonfireStorageSaveDataSchema>;
 export type DistillerStorageSaveData = v.InferOutput<typeof DistillerStorageSaveDataSchema>;
 export type SaltPanStorageSaveData = v.InferOutput<typeof SaltPanStorageSaveDataSchema>;
 export type FermentationStorageSaveData = v.InferOutput<typeof FermentationStorageSaveDataSchema>;
 export type WorkbenchStorageSaveData = v.InferOutput<typeof WorkbenchStorageSaveDataSchema>;
-export type WarpGateStorageSaveData = v.InferOutput<typeof WarpGateStorageSaveDataSchema>;
 export type ManualProcessingStorageSaveData = v.InferOutput<typeof ManualProcessingStorageSaveDataSchema>;
 export type DailyProcessingStorageSaveData = v.InferOutput<typeof DailyProcessingStorageSaveDataSchema>;
 export type AutoProcessingStorageSaveData = v.InferOutput<typeof AutoProcessingStorageSaveDataSchema>;

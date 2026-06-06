@@ -19,7 +19,6 @@ import type { ManualProcessingStorage } from "../engine/ManualProcessingStorage"
 import type { MissionSystem } from "../engine/MissionSystem";
 import type { SaltPanStorage } from "../engine/SaltPanStorage";
 import type { SeedRequestSystem } from "../engine/SeedRequestSystem";
-import type { WarpGateStorage } from "../engine/WarpGateStorage";
 import type { UIState } from "../view/UIState";
 
 /**
@@ -30,7 +29,6 @@ export interface EngineRefs {
     inventory: IInventoryWriter;
     playerState: IPlayerStateReader;
     gameTime: IGameTimeReader;
-    warpGateStorage: WarpGateStorage;
     reputationSystem: IReputationSystemReader;
     seedRequestSystem: SeedRequestSystem;
     bonfireStorage: BonfireStorage;

@@ -78,6 +78,7 @@ export function getStorageSlot(storageId: StorageId, pos: Pos2D, kind: StorageKi
 export function setStorageSlot(storageId: StorageId, pos: Pos2D, kind: StorageKind, index: number, itemStack: ItemStack | null): void {
     const storage = get(storageId);
     const storageSet = storage.value[key(pos)];
+    if (storageSet === undefined) throw new Error(`Storage not found at ${pos.x},${pos.z}`);
     if (!storageSet[kind]) throw new Error(`Storage kind ${kind} not found`);
     const newStorageSet = {
         ...storageSet

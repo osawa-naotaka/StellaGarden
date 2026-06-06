@@ -8,7 +8,6 @@ import { setFermentationStorage } from "../../_registry/entities/FermentationVat
 import { setManualProcessingStorage } from "../../_registry/entities/ManualProcessing";
 import { setSaltPanStorage } from "../../_registry/entities/Saltpan";
 import { setSoakingBasketStorage } from "../../_registry/entities/SoakingBasket";
-import { setWarpGateStorage } from "../../_registry/entities/WarpGate";
 import { setWorkbenchStorage } from "../../_registry/entities/Workbench";
 import { AutoProcessingStorage } from "../../engine/AutoProcessingStorage";
 import { BonfireStorage } from "../../engine/BonfireStorage";
@@ -20,7 +19,6 @@ import { ManualProcessingStorage } from "../../engine/ManualProcessingStorage";
 import { SaltPanStorage } from "../../engine/SaltPanStorage";
 import { setStationStorages } from "../../engine/StationSystem";
 import { generateTerrain } from "../../engine/TerrainGenerator";
-import { WarpGateStorage } from "../../engine/WarpGateStorage";
 import { WorkbenchStorage } from "../../engine/WorkbenchStorage";
 import type { SaveData } from "../../lib/SaveSystem";
 import type { Size2D } from "../../lib/VoxelMap";
@@ -51,7 +49,6 @@ export interface Storages {
     saltPanStorage: SaltPanStorage;
     fermentationStorage: FermentationStorage;
     workbenchStorage: WorkbenchStorage;
-    warpGateStorage: WarpGateStorage;
     manualProcessingStorage: ManualProcessingStorage;
     dailyProcessingStorage: DailyProcessingStorage;
     autoProcessingStorage: AutoProcessingStorage;
@@ -87,10 +84,6 @@ export function bootstrapStorages(saveData: SaveData | null): Storages {
     if (saveData) workbenchStorage.loadSaveData(saveData.workbenchStorage.workbenches);
     setWorkbenchStorage(workbenchStorage);
 
-    const warpGateStorage = new WarpGateStorage();
-    if (saveData) warpGateStorage.loadSaveData(saveData.warpGateStorage);
-    setWarpGateStorage(warpGateStorage);
-
     const manualProcessingStorage = new ManualProcessingStorage();
     if (saveData) manualProcessingStorage.loadSaveData(saveData.manualProcessingStorage.facilities);
     setManualProcessingStorage(manualProcessingStorage);
@@ -117,7 +110,6 @@ export function bootstrapStorages(saveData: SaveData | null): Storages {
         saltPanStorage,
         fermentationStorage,
         workbenchStorage,
-        warpGateStorage,
         manualProcessingStorage,
         dailyProcessingStorage,
         autoProcessingStorage,

@@ -5,7 +5,6 @@ import { SaveDataSchema, SlotHeaderSchema } from "./SaveSchema";
 export type {
     AutoProcessingStorageSaveData,
     DailyProcessingStorageSaveData,
-    ForgeStorageSaveData,
     GameTimeSaveData,
     InventorySaveData,
     ManualProcessingStorageSaveData,
@@ -14,7 +13,6 @@ export type {
     ReputationSaveData,
     SaveData,
     VoxelMapSaveData,
-    WarpGateStorageSaveData,
     WorkbenchStorageSaveData,
 } from "./SaveSchema";
 

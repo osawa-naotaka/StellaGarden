@@ -33,7 +33,8 @@ import { buildSaveData } from "./buildSaveData";
 import { bootstrapStorages, restoreOrGenerateVoxelMap } from "./gameEngineBoot";
 import { createGameTickHandler } from "./gameTickHandler";
 import { calcChunkPerViewport, calcTilePerViewport } from "./viewport";
-import { onDailyTickStorage } from "../../_registry/StorageRegistry";
+import { getStorage, getStorageSlot, onDailyTickStorage, posFromStorageKey, setStorageSlot } from "../../_registry/StorageRegistry";
+import { WARP_GATE_SLOT_COUNT } from "../../_registry/entities/WarpGate";
 
 export interface UseGameEngineResult {
     containerRef: React.RefObject<HTMLDivElement | null>;
@@ -132,7 +133,6 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
                 saltPanStorage,
                 fermentationStorage,
                 workbenchStorage,
-                warpGateStorage,
                 manualProcessingStorage,
                 dailyProcessingStorage,
                 autoProcessingStorage,
@@ -199,12 +199,16 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
 
                     // WarpGate は座標管理しない別系統。出荷集計→reputation→clear をここで明示的に行う。
                     const shippedItems = new Map();
-                    for (const stack of warpGateStorage.getSlots()) {
-                        if (!stack) continue;
-                        shippedItems.set(stack.itemId, (shippedItems.get(stack.itemId) ?? 0) + stack.count);
+                    for (const key of Object.keys(getStorage("warp_gate").value || [])) {
+                      for (let i = 0; i < WARP_GATE_SLOT_COUNT; i++) {
+                          const stack = getStorageSlot("warp_gate", posFromStorageKey(key), "main", i);
+                          if (stack) {
+                              shippedItems.set(stack.itemId, (shippedItems.get(stack.itemId) ?? 0) + stack.count);
+                              setStorageSlot("warp_gate", posFromStorageKey(key), "main", i, null);
+                          }
+                      }
                     }
-                    reputationSystem.processShipment(shippedItems);
-                    warpGateStorage.clear();
+                    reputationSystem.processShipment(shippedItems);                    
 
                     // 種リクエスト（詰み救済）: 保留中の種を1スタック配達し、評価値に大幅減点を課す。
                     seedRequestSystem.fulfill(playerState.inventory, reputationSystem);
@@ -220,7 +224,6 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
                 inventory: playerState.inventory,
                 playerState,
                 gameTime,
-                warpGateStorage,
                 reputationSystem,
                 seedRequestSystem,
                 bonfireStorage,
@@ -266,7 +269,6 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
                         saltPanStorage,
                         fermentationStorage,
                         workbenchStorage,
-                        warpGateStorage,
                         manualProcessingStorage,
                         dailyProcessingStorage,
                         autoProcessingStorage,
