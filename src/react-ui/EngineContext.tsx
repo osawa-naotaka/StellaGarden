@@ -12,7 +12,6 @@ import type { AutoProcessingStorage } from "../engine/AutoProcessingStorage";
 import type { BonfireStorage } from "../engine/BonfireStorage";
 import type { CartStorage } from "../engine/CartStorage";
 import type { ChatHistory } from "../engine/ChatHistory";
-import type { ChestStorage } from "../engine/ChestStorage";
 import type { DailyProcessingStorage } from "../engine/DailyProcessingStorage";
 import type { DistillerStorage } from "../engine/DistillerStorage";
 import type { FermentationStorage } from "../engine/FermentationStorage";
@@ -35,7 +34,6 @@ export interface EngineRefs {
     warpGateStorage: WarpGateStorage;
     reputationSystem: IReputationSystemReader;
     seedRequestSystem: SeedRequestSystem;
-    chestStorage: ChestStorage;
     forgeStorage: ForgeStorage;
     bonfireStorage: BonfireStorage;
     distillerStorage: DistillerStorage;

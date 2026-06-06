@@ -1,3 +1,5 @@
+import * as v from "valibot";
+
 /** インベントリに配置できるアイテムの ID 一覧。valibot picklist にも使う。 */
 export const ITEM_IDS = [
     "hand",
@@ -108,4 +110,6 @@ export const ITEM_IDS = [
     "distiller",
 ] as const;
 
-export type ItemId = (typeof ITEM_IDS)[number];
+export const ItemIdSchema = v.picklist(ITEM_IDS);
+
+export type ItemId = v.InferOutput<typeof ItemIdSchema>;

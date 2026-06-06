@@ -2,7 +2,6 @@ import type { IEventBroker } from "../../_boundary/interfaces";
 import { setAutoProcessingStorage } from "../../_registry/entities/AutoProcessing";
 import { setBonfireStorage } from "../../_registry/entities/Bonfire";
 import { setCartStorage } from "../../_registry/entities/Cart";
-import { setChestStorage } from "../../_registry/entities/Chest";
 import { setDailyProcessingStorage } from "../../_registry/entities/DailyProcessing";
 import { setDistillerStorage } from "../../_registry/entities/Distiller";
 import { setFermentationStorage } from "../../_registry/entities/FermentationVat";
@@ -17,7 +16,6 @@ import { BonfireStorage } from "../../engine/BonfireStorage";
 import { CartStorage } from "../../engine/CartStorage";
 import { DistillerStorage } from "../../engine/DistillerStorage";
 import { FermentationStorage } from "../../engine/FermentationStorage";
-import { ChestStorage } from "../../engine/ChestStorage";
 import { DailyProcessingStorage } from "../../engine/DailyProcessingStorage";
 import { ForgeStorage } from "../../engine/ForgeStorage";
 import { ManualProcessingStorage } from "../../engine/ManualProcessingStorage";
@@ -29,6 +27,7 @@ import { WorkbenchStorage } from "../../engine/WorkbenchStorage";
 import type { SaveData } from "../../lib/SaveSystem";
 import type { Size2D } from "../../lib/VoxelMap";
 import { VoxelMap } from "../../lib/VoxelMap";
+import { loadStorages } from "../../_registry/StorageRegistry";
 
 /**
  * セーブデータがあれば復元、なければ新規地形生成して VoxelMap を返す。
@@ -49,7 +48,6 @@ export function restoreOrGenerateVoxelMap(saveData: SaveData | null, worldSize: 
 }
 
 export interface Storages {
-    chestStorage: ChestStorage;
     forgeStorage: ForgeStorage;
     bonfireStorage: BonfireStorage;
     distillerStorage: DistillerStorage;
@@ -68,10 +66,10 @@ export interface Storages {
  * Chest / Forge / Workbench / WarpGate の同型な初期化処理を一括化。
  */
 export function bootstrapStorages(saveData: SaveData | null): Storages {
-    const chestStorage = new ChestStorage();
-    if (saveData) chestStorage.loadSaveData(saveData.chestStorage.chests);
-    setChestStorage(chestStorage);
-
+    if (saveData) {
+        loadStorages(saveData.storage);
+    }
+    
     const forgeStorage = new ForgeStorage();
     if (saveData) forgeStorage.loadSaveData(saveData.forgeStorage.forges);
     setForgeStorage(forgeStorage);
@@ -114,14 +112,13 @@ export function bootstrapStorages(saveData: SaveData | null): Storages {
     setAutoProcessingStorage(autoProcessingStorage);
 
     // ステーション（フォーク搬送）は chest / daily / auto の3ストレージにアクセスする
-    setStationStorages(bonfireStorage, chestStorage, dailyProcessingStorage, autoProcessingStorage);
+    setStationStorages(bonfireStorage, dailyProcessingStorage, autoProcessingStorage);
 
     const cartStorage = new CartStorage();
     if (saveData) cartStorage.loadSaveData(saveData.cartStorage);
     setCartStorage(cartStorage);
 
     return {
-        chestStorage,
         forgeStorage,
         bonfireStorage,
         distillerStorage,

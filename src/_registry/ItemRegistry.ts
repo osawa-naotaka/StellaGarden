@@ -62,8 +62,8 @@ export function registerItem(def: ItemDef): void {
         const maxVariant = def.placement.maxVariant ?? 0;
         const defaultVariant = def.placement.defaultVariant ?? 0;
 
-        if (!Number.isInteger(maxVariant) || maxVariant < 0 || maxVariant > 7) {
-            throw new Error(`Invalid maxVariant for item "${def.itemId}": ${maxVariant}. Expected an integer in range 0..7.`);
+        if (!Number.isInteger(maxVariant) || maxVariant < 0 || maxVariant > 15) {
+            throw new Error(`Invalid maxVariant for item "${def.itemId}": ${maxVariant}. Expected an integer in range 0..15.`);
         }
         if (!Number.isInteger(defaultVariant) || defaultVariant < 0 || defaultVariant > maxVariant) {
             throw new Error(`Invalid defaultVariant for item "${def.itemId}": ${defaultVariant}. Expected an integer in range 0..${maxVariant}.`);

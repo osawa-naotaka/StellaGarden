@@ -4,7 +4,6 @@ import { SaveDataSchema, SlotHeaderSchema } from "./SaveSchema";
 
 export type {
     AutoProcessingStorageSaveData,
-    ChestStorageSaveData,
     DailyProcessingStorageSaveData,
     ForgeStorageSaveData,
     GameTimeSaveData,

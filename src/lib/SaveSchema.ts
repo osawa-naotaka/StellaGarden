@@ -1,5 +1,6 @@
 import * as v from "valibot";
 import { ITEM_IDS } from "../engine/ItemDefs";
+import { StoragesSchema } from "../_registry/StorageRegistry";
 
 // ─── 共通プリミティブ ──────────────────────────────────────────────────────────
 
@@ -45,15 +46,6 @@ export const InventorySaveDataSchema = v.object({
 
 export const GameTimeSaveDataSchema = v.object({
     elapsedMs: v.number(),
-});
-
-export const ChestStorageSaveDataSchema = v.object({
-    chests: v.array(
-        v.object({
-            key: v.string(),
-            slots: v.array(NullableItemStackSchema),
-        }),
-    ),
 });
 
 export const ForgeStorageSaveDataSchema = v.object({
@@ -248,7 +240,7 @@ export const SaveDataSchema = v.object({
     playerState: PlayerStateSaveDataSchema,
     inventory: InventorySaveDataSchema,
     gameTime: GameTimeSaveDataSchema,
-    chestStorage: ChestStorageSaveDataSchema,
+    storage: StoragesSchema,
     forgeStorage: ForgeStorageSaveDataSchema,
     bonfireStorage: BonfireStorageSaveDataSchema,
     distillerStorage: DistillerStorageSaveDataSchema,
@@ -280,7 +272,6 @@ export type VoxelMapSaveData = v.InferOutput<typeof VoxelMapSaveDataSchema>;
 export type PlayerStateSaveData = v.InferOutput<typeof PlayerStateSaveDataSchema>;
 export type InventorySaveData = v.InferOutput<typeof InventorySaveDataSchema>;
 export type GameTimeSaveData = v.InferOutput<typeof GameTimeSaveDataSchema>;
-export type ChestStorageSaveData = v.InferOutput<typeof ChestStorageSaveDataSchema>;
 export type ForgeStorageSaveData = v.InferOutput<typeof ForgeStorageSaveDataSchema>;
 export type BonfireStorageSaveData = v.InferOutput<typeof BonfireStorageSaveDataSchema>;
 export type DistillerStorageSaveData = v.InferOutput<typeof DistillerStorageSaveDataSchema>;

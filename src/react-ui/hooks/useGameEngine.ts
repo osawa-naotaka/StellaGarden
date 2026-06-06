@@ -126,7 +126,6 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
             worldContainer.addChild(placementOverlay.top);
 
             const {
-                chestStorage,
                 forgeStorage,
                 bonfireStorage,
                 distillerStorage,
@@ -182,7 +181,6 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
 
             // 日次処理対象のストレージ群（KeyedSlotStorage 派生）。新規ストレージ追加時はここに足すだけで day_changed に乗る。
             const dailyTickStorages = [
-                chestStorage,
                 forgeStorage,
                 bonfireStorage,
                 distillerStorage,
@@ -225,7 +223,6 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
                 warpGateStorage,
                 reputationSystem,
                 seedRequestSystem,
-                chestStorage,
                 forgeStorage,
                 bonfireStorage,
                 distillerStorage,
@@ -265,7 +262,6 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
                         voxelMap,
                         playerState,
                         gameTime,
-                        chestStorage,
                         forgeStorage,
                         bonfireStorage,
                         distillerStorage,

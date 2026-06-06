@@ -1,15 +1,8 @@
-import type { ChestStorage } from "../../engine/ChestStorage";
 import { ENTITY_TYPES } from "../../engine/VoxelDefs";
 import { type EntitySpriteInfo, type InteractionContext, registerEntity } from "../EntityRegistry";
 import { findFacilityAnchor, placeFacility, removeFacilityAtPos } from "../facilityUtil";
 import { registerItem } from "../ItemRegistry";
-
-let chestStorage: ChestStorage | null = null;
-
-/** App.tsx から ChestStorage を注入する。 */
-export function setChestStorage(storage: ChestStorage): void {
-    chestStorage = storage;
-}
+import { collectAllStacks, createStorage, getStorageSet, registerStorage, removeStorage } from "../StorageRegistry";
 
 registerEntity({
     entityType: ENTITY_TYPES.chest,
@@ -24,11 +17,12 @@ registerEntity({
 
     onInteract(ctx: InteractionContext): boolean {
         if (ctx.tool !== "axe") return false;
-        if (!chestStorage) return false;
         const pos = { x: ctx.surfacePos.x, z: ctx.surfacePos.z };
-        const extraItems = chestStorage.collectAllStacks(pos);
+        const storage = getStorageSet("chest", pos);
+        if (storage === undefined) return false;
+        const extraItems = collectAllStacks(storage);
         const removed = removeFacilityAtPos(ctx.voxelMap, ctx.inventory, pos.x, pos.z, ENTITY_TYPES.chest, extraItems);
-        if (removed) chestStorage.remove(pos);
+        if (removed) removeStorage("chest", pos);
         return removed;
     },
 
@@ -50,7 +44,12 @@ registerItem({
         fieldSpriteName: "chest.png",
         onPlace(voxelMap, pos) {
             placeFacility(voxelMap, pos, ENTITY_TYPES.chest, { w: 2, h: 1 });
-            chestStorage?.create(pos);
+            createStorage("chest", pos);
         },
     },
 });
+
+
+const CHEST_SLOT_COUNT = 64;
+
+registerStorage("chest", { main: new Array(CHEST_SLOT_COUNT).fill(null) });

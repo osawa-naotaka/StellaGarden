@@ -2,7 +2,6 @@ import type { AutoProcessingStorage } from "../../engine/AutoProcessingStorage";
 import type { CartStorage } from "../../engine/CartStorage";
 import type { ChatHistory } from "../../engine/ChatHistory";
 import type { BonfireStorage } from "../../engine/BonfireStorage";
-import type { ChestStorage } from "../../engine/ChestStorage";
 import type { DailyProcessingStorage } from "../../engine/DailyProcessingStorage";
 import type { DistillerStorage } from "../../engine/DistillerStorage";
 import type { FermentationStorage } from "../../engine/FermentationStorage";
@@ -18,6 +17,7 @@ import type { WarpGateStorage } from "../../engine/WarpGateStorage";
 import type { WorkbenchStorage } from "../../engine/WorkbenchStorage";
 import type { SaveData } from "../../lib/SaveSystem";
 import type { VoxelMap } from "../../lib/VoxelMap";
+import { getStorages } from "../../_registry/StorageRegistry";
 
 export interface SaveSnapshotDeps {
     slotName: string;
@@ -25,7 +25,6 @@ export interface SaveSnapshotDeps {
     voxelMap: VoxelMap;
     playerState: PlayerState;
     gameTime: GameTime;
-    chestStorage: ChestStorage;
     forgeStorage: ForgeStorage;
     bonfireStorage: BonfireStorage;
     distillerStorage: DistillerStorage;
@@ -51,7 +50,6 @@ export function buildSaveData(deps: SaveSnapshotDeps): Omit<SaveData, "version" 
         voxelMap,
         playerState,
         gameTime,
-        chestStorage,
         forgeStorage,
         bonfireStorage,
         distillerStorage,
@@ -93,9 +91,7 @@ export function buildSaveData(deps: SaveSnapshotDeps): Omit<SaveData, "version" 
         gameTime: {
             elapsedMs: gameTime.getElapsedMs(),
         },
-        chestStorage: {
-            chests: chestStorage.toSaveData(),
-        },
+        storage: getStorages(),
         forgeStorage: {
             forges: forgeStorage.toSaveData(),
         },
