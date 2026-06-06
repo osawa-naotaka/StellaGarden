@@ -16,6 +16,7 @@ export const SEED_TO_ENTITY: ReadonlyMap<ItemId, number> = new Map<ItemId, numbe
     ["soybeans", ENTITY_TYPES.soy],
     ["flaxseed", ENTITY_TYPES.flax],
     ["sunflower_seed", ENTITY_TYPES.sunflower],
+    ["wheat", ENTITY_TYPES.wheat],
 ]);
 
 /**

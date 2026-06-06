@@ -43,6 +43,11 @@ function harvestProducts(entityType: number, count: number): HarvestProduct[] {
                 { itemId: "sunflower_seed", count },
                 { itemId: "stem", count },
             ];
+        case ENTITY_TYPES.wheat:
+            return [
+                { itemId: "wheat", count },
+                { itemId: "stem", count },
+            ];
         default:
             return [];
     }

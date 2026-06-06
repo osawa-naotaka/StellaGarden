@@ -32,6 +32,7 @@ export const ENTITY_NAMES: Record<number, string> = {
     [ENTITY_TYPES.potato]: "じゃがいも",
     [ENTITY_TYPES.soy]: "大豆",
     [ENTITY_TYPES.flax]: "亜麻",
+    [ENTITY_TYPES.wheat]: "小麦",
     [ENTITY_TYPES.sunflower]: "ひまわり",
     [ENTITY_TYPES.workbench]: "作業台",
     [ENTITY_TYPES.facility_part]: "facility_part",
