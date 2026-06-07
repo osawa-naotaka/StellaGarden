@@ -1,7 +1,8 @@
+import { getStorages } from "../../_registry/StorageRegistry";
 import type { AutoProcessingStorage } from "../../engine/AutoProcessingStorage";
+import type { BonfireStorage } from "../../engine/BonfireStorage";
 import type { CartStorage } from "../../engine/CartStorage";
 import type { ChatHistory } from "../../engine/ChatHistory";
-import type { BonfireStorage } from "../../engine/BonfireStorage";
 import type { FermentationStorage } from "../../engine/FermentationStorage";
 import type { GameTime } from "../../engine/GameTime";
 import type { ManualProcessingStorage } from "../../engine/ManualProcessingStorage";
@@ -11,7 +12,6 @@ import type { ReputationSystem } from "../../engine/ReputationSystem";
 import type { SeedRequestSystem } from "../../engine/SeedRequestSystem";
 import type { SaveData } from "../../lib/SaveSystem";
 import type { VoxelMap } from "../../lib/VoxelMap";
-import { getStorages } from "../../_registry/StorageRegistry";
 
 export interface SaveSnapshotDeps {
     slotName: string;

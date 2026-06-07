@@ -1,7 +1,9 @@
 import { useCallback, useMemo } from "react";
 import type { IInventoryWriter, ItemId, ItemStack, IVoxelWriter, Pos2D, SlotRef } from "../../_boundary/interfaces";
+import { dailyProcessingCanAcceptInput, getDaysElapsed } from "../../_registry/entities/DailyProcessing";
 import { getItemDefByEntityType } from "../../_registry/ItemRegistry";
 import { findRecipeForInput, getDailyProcessingDef } from "../../_registry/ProcessingRecipes";
+import { getStorageSet, getStorageSlot, type StorageSet, setStorageSlot } from "../../_registry/StorageRegistry";
 import { getEntityTypeFromVoxel } from "../../engine/VoxelDefs";
 import type { UIState } from "../../view/UIState";
 import { CursorStack } from "../components/CursorStack";
@@ -11,8 +13,6 @@ import { Slot } from "../components/Slot";
 import { useFrameTick } from "../hooks/useFrameTick";
 import { usePickup } from "../hooks/usePickup";
 import { registerPanel } from "../PanelRegistry";
-import { getStorageSet, getStorageSlot, setStorageSlot, type StorageSet } from "../../_registry/StorageRegistry";
-import { dailyProcessingCanAcceptInput, getDaysElapsed } from "../../_registry/entities/DailyProcessing";
 
 const COLS = 8;
 const INV_ROWS = 8;
@@ -34,7 +34,7 @@ function getItemIdFromPos(pos: Pos2D | null, voxelMap: IVoxelWriter): ItemId {
     const surface = voxelMap.getSurfacePosition(pos);
     const entityType = getEntityTypeFromVoxel(voxelMap.get(surface));
     const itemDef = entityType !== null ? getItemDefByEntityType(entityType) : null;
-    return itemDef?.itemId ?? "none" as const;
+    return itemDef?.itemId ?? ("none" as const);
 }
 
 export function DailyProcessingPanel({ open, inventory, dailyProcessingStorage, voxelMap, uiState }: DailyProcessingPanelProps) {
@@ -50,7 +50,7 @@ export function DailyProcessingPanel({ open, inventory, dailyProcessingStorage, 
 
     const def = baseEntityType !== null ? getDailyProcessingDef(baseEntityType) : null;
     const itemDef = baseEntityType !== null ? getItemDefByEntityType(baseEntityType) : null;
-    const itemId = itemDef?.itemId ?? "none" as const;
+    const itemId = itemDef?.itemId ?? ("none" as const);
     const title = itemDef?.displayName ?? "Processing";
 
     const getSlot = useCallback(

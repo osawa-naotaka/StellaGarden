@@ -35,7 +35,7 @@ export function createInteractionHandler(
         if (cartReadOnly) {
             if (tool === "axe") {
                 const cart = cartStorage.getByIdWritable(cartReadOnly.id);
-                if (cart && cart.isInventoryEmpty() && cart.attachmentSlot === null) {
+                if (cart?.isInventoryEmpty() && cart.attachmentSlot === null) {
                     cartStorage.remove(cart.id);
                     inventory.addItems([{ itemId: "cart", count: 1 }]);
                 }
@@ -68,7 +68,7 @@ export function createInteractionHandler(
         // パス2: ItemRegistry — アイテムベース
         if (tool) {
             const ctx: InteractionContext = { voxelMap, inventory, eventBroker, interactPos, anchorPos, voxel, tool };
-            
+
             const itemDef = getItemDef(tool);
             if (itemDef?.onItemUse?.(ctx)) return;
         }
@@ -103,7 +103,15 @@ export function createInteractionHandler(
         if (terrainType === TERRAIN_TYPES.waterSource) return;
 
         const { entityType, anchorX, anchorZ } = findFacilityAnchor(voxelMap, packet.pos.x, packet.pos.z);
-        const ctx: InteractionContext = { voxelMap, inventory, eventBroker, interactPos, voxel, tool: inventory.selectedTool, anchorPos: { x: anchorX, z: anchorZ } };
+        const ctx: InteractionContext = {
+            voxelMap,
+            inventory,
+            eventBroker,
+            interactPos,
+            voxel,
+            tool: inventory.selectedTool,
+            anchorPos: { x: anchorX, z: anchorZ },
+        };
 
         const entityDef = getEntityDef(entityType);
         entityDef.onOpenFacilityUI?.(ctx);

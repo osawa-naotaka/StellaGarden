@@ -1,5 +1,7 @@
 import { useCallback } from "react";
 import type { IInventoryWriter, ItemStack, IVoxelWriter, SlotRef } from "../../_boundary/interfaces";
+import { type ForgeSlotKind, isForgeBurning, setForgeSlot } from "../../_registry/entities/Forge";
+import { getStorageSet, getStorageSlot, type StorageSet } from "../../_registry/StorageRegistry";
 import type { UIState } from "../../view/UIState";
 import { CursorStack } from "../components/CursorStack";
 import { InventoryGrid } from "../components/InventoryGrid";
@@ -8,8 +10,6 @@ import { Slot } from "../components/Slot";
 import { useFrameTick } from "../hooks/useFrameTick";
 import { usePickup } from "../hooks/usePickup";
 import { registerPanel } from "../PanelRegistry";
-import { getStorageSet, getStorageSlot, type StorageSet } from "../../_registry/StorageRegistry";
-import { isForgeBurning, setForgeSlot, type ForgeSlotKind } from "../../_registry/entities/Forge";
 
 const COLS = 8;
 const INV_ROWS = 8;
@@ -191,6 +191,12 @@ export function ForgePanel({ open, inventory, forgeStorage, voxelMap, uiState }:
 registerPanel({
     mode: "forge",
     component: ({ open, engine }) => (
-        <ForgePanel open={open} inventory={engine.inventory} forgeStorage={getStorageSet("forge", engine.uiState.targetPos) ?? null} voxelMap={engine.voxelMap} uiState={engine.uiState} />
+        <ForgePanel
+            open={open}
+            inventory={engine.inventory}
+            forgeStorage={getStorageSet("forge", engine.uiState.targetPos) ?? null}
+            voxelMap={engine.voxelMap}
+            uiState={engine.uiState}
+        />
     ),
 });

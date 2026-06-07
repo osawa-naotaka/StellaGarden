@@ -102,7 +102,7 @@ export function usePickup<R>(active: boolean, config: UsePickupConfig<R>): Picku
                     const slot = cfg.getSlot(s);
                     if (slot && slot.itemId === itemId) matchingSources.push(s);
                 }
-                const clickedIdx = matchingSources.findIndex((s) => s === ref);
+                const clickedIdx = matchingSources.indexOf(ref);
                 if (clickedIdx > 0) {
                     matchingSources.splice(clickedIdx, 1);
                     matchingSources.unshift(ref);

@@ -30,7 +30,7 @@ interface AutoProcessingEntityOptions {
     entityType: number;
     itemId: ItemId;
     displayName: string;
-    getFieldSpriteName: ((enabled: boolean, variant: number) => string);
+    getFieldSpriteName: (enabled: boolean, variant: number) => string;
     inventorySpriteName: string;
     entitySize: { w: number; h: number };
 }

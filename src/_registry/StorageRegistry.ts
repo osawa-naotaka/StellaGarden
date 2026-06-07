@@ -1,10 +1,10 @@
 import * as v from "valibot";
 import type { ItemId, ItemStack, IVoxelWriter, Pos2D } from "../_boundary/interfaces";
 import { ItemIdSchema } from "../engine/ItemDefs";
-import { getItemDef } from "./ItemRegistry";
 import { getEntityTypeFromVoxel, getVariantFromVoxel } from "../engine/VoxelDefs";
-import { removeFacility } from "./facilityUtil";
 import type { InteractionContext } from "./EntityRegistry";
+import { removeFacility } from "./facilityUtil";
+import { getItemDef } from "./ItemRegistry";
 
 export const StorageIdSchema = ItemIdSchema;
 export const StorageKindSchema = v.string();
@@ -14,10 +14,14 @@ export type StorageId = v.InferOutput<typeof StorageIdSchema>;
 export type StorageKind = v.InferOutput<typeof StorageKindSchema>;
 export type StorageKey = v.InferOutput<typeof StorageKeySchema>;
 
-export const StorageSlotsSchema = v.array(v.nullable(v.object({
-    itemId: StorageIdSchema,
-    count: v.number(),
-})));
+export const StorageSlotsSchema = v.array(
+    v.nullable(
+        v.object({
+            itemId: StorageIdSchema,
+            count: v.number(),
+        }),
+    ),
+);
 export const StorageSetSchema = v.record(StorageKindSchema, StorageSlotsSchema);
 export const StorageValueSchema = v.record(StorageKeySchema, StorageSetSchema);
 export const StorageSchema = v.object({
@@ -61,7 +65,7 @@ export function onDailyTickStorage(voxelMap: IVoxelWriter): void {
 
 export function createStorage(storageId: StorageId, pos: Pos2D): void {
     const storage = get(storageId);
-    const value = storage.value[(key(pos))];
+    const value = storage.value[key(pos)];
     if (value !== undefined) throw new Error(`Storage ${storageId} already exists at ${pos.x},${pos.z}`);
     storage.value[key(pos)] = JSON.parse(JSON.stringify(storage.initialValue));
 }
@@ -77,7 +81,7 @@ export function getStorageSet(storageId: StorageId, pos: Pos2D | null): StorageS
 }
 
 export function getStorageSlot(storageId: StorageId, pos: Pos2D, kind: StorageKind, index: number): ItemStack | null {
-    const storageSet = getStorageSet(storageId, pos)
+    const storageSet = getStorageSet(storageId, pos);
     if (storageSet === undefined) return null;
     const storage = storageSet[kind];
     if (storage === undefined) throw new Error(`Storage kind ${kind} not found`);
@@ -95,7 +99,7 @@ export function setStorageSlot(storageId: StorageId, pos: Pos2D, kind: StorageKi
     if (storageSet === undefined) throw new Error(`Storage not found at ${pos.x},${pos.z}`);
     if (!storageSet[kind]) throw new Error(`Storage kind ${kind} not found`);
     const newStorageSet = {
-        ...storageSet
+        ...storageSet,
     };
     newStorageSet[kind][index] = itemStack;
     storage.value[key(pos)] = newStorageSet;
@@ -106,7 +110,7 @@ export function addToStorage(storageId: StorageId, pos: Pos2D, kind: StorageKind
     const canAccept = canAccepts.get(storageId);
 
     const maxStack = getItemDef(itemStack.itemId)?.maxStack ?? 1;
-    
+
     const storage = get(storageId);
     const storageSet = storage.value[key(pos)];
     if (storageSet === undefined) throw new Error(`Storage not found at ${pos.x},${pos.z}`);
@@ -123,7 +127,7 @@ export function addToStorage(storageId: StorageId, pos: Pos2D, kind: StorageKind
                 slots[i] = itemStack;
                 acc += itemStack.count;
             }
-            continue; 
+            continue;
         }
         if (slot.itemId === itemStack.itemId) {
             slots[i] = {
@@ -141,7 +145,7 @@ export function addToStorage(storageId: StorageId, pos: Pos2D, kind: StorageKind
 
 export function setStorageNumberValue(storageId: StorageId, pos: Pos2D, kind: StorageKind, value: number): void {
     const itemStack = storageNumberValueOf(value);
-    setStorageSlot(storageId, pos, kind, 0, itemStack)
+    setStorageSlot(storageId, pos, kind, 0, itemStack);
 }
 
 export function storageNumberValueOf(value: number): ItemStack {
@@ -152,14 +156,13 @@ export function storageNumberValueOf(value: number): ItemStack {
     return itemStack;
 }
 
-
 export function removeStorage(storageId: StorageId, pos: Pos2D): void {
     const storage = get(storageId);
     delete storage.value[key(pos)];
 }
 
 export function removeFacilityAndReturnItemsToInventory(storageId: StorageId, ctx: InteractionContext): boolean {
-    const extraItems = storageId === "none" ? [] : (collectAllStacks(storageId, ctx.anchorPos) ?? []);    
+    const extraItems = storageId === "none" ? [] : (collectAllStacks(storageId, ctx.anchorPos) ?? []);
     const entityType = getEntityTypeFromVoxel(ctx.voxel);
     const variant = getVariantFromVoxel(ctx.voxel);
     const removed = removeFacility(ctx.voxelMap, ctx.inventory, ctx.anchorPos, entityType, variant, extraItems);

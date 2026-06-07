@@ -1,7 +1,7 @@
 import type { ItemId, ItemStack, IVoxelWriter, Pos2D } from "../_boundary/interfaces";
 import { getItemDef } from "../_registry/ItemRegistry";
-import { KeyedSlotStorage } from "./KeyedSlotStorage";
 import { FERMENTATION_MAX_INGREDIENTS, FERMENTATION_RECIPES, type FermentationRecipe } from "../_registry/ProcessingRecipes";
+import { KeyedSlotStorage } from "./KeyedSlotStorage";
 import { getDaysElapsedFromVoxel, setDaysElapsedInVoxel, setEnabledInVoxel } from "./VoxelDefs";
 
 /**
@@ -108,7 +108,7 @@ export class FermentationStorage extends KeyedSlotStorage<FermentationSlots> {
             if (idx >= 0) {
                 slots.inputs[idx] = stack;
             } else {
-                const free = slots.inputs.findIndex((s) => s === null);
+                const free = slots.inputs.indexOf(null);
                 if (free < 0) return;
                 slots.inputs[free] = stack;
             }
@@ -168,7 +168,9 @@ export class FermentationStorage extends KeyedSlotStorage<FermentationSlots> {
             }
             // 出力を加算
             slots.output =
-                slots.output === null ? { itemId: recipe.output.itemId, count: recipe.output.count } : { ...slots.output, count: slots.output.count + recipe.output.count };
+                slots.output === null
+                    ? { itemId: recipe.output.itemId, count: recipe.output.count }
+                    : { ...slots.output, count: slots.output.count + recipe.output.count };
 
             // 次バッチが組めるなら 1、組めないなら 0 にリセット
             voxelMap.set(setDaysElapsedInVoxel(voxel, this.isReady(pos) ? 1 : 0), surface);

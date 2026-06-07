@@ -2,6 +2,8 @@ import { Application, ColorMatrixFilter, Container, TextureSource } from "pixi.j
 import { useEffect, useRef, useState } from "react";
 import { PIXEL_PER_TILE, TILE_PER_CHUNK } from "../../_boundary/constants";
 import type { GameEventMap } from "../../_boundary/events";
+import { WARP_GATE_SLOT_COUNT } from "../../_registry/entities/WarpGate";
+import { getStorage, getStorageSlot, onDailyTickStorage, posFromStorageKey, setStorageSlot } from "../../_registry/StorageRegistry";
 import { ChatHistory } from "../../engine/ChatHistory";
 import { regenerateClay } from "../../engine/ClaySystem";
 import { CraftSystem } from "../../engine/CraftSystem";
@@ -23,8 +25,8 @@ import { CartView } from "../../view/CartView";
 import { DebugText } from "../../view/DebugText";
 import { PlacementOverlay } from "../../view/PlacementOverlay";
 import { PlayerCharacterView } from "../../view/PlayerCharacterView";
-import { StationForkView } from "../../view/StationForkView";
 import { loadSprite } from "../../view/Sprite";
+import { StationForkView } from "../../view/StationForkView";
 import { TopView } from "../../view/TopView";
 import { UIState } from "../../view/UIState";
 import type { EngineRefs } from "../EngineContext";
@@ -33,8 +35,6 @@ import { buildSaveData } from "./buildSaveData";
 import { bootstrapStorages, restoreOrGenerateVoxelMap } from "./gameEngineBoot";
 import { createGameTickHandler } from "./gameTickHandler";
 import { calcChunkPerViewport, calcTilePerViewport } from "./viewport";
-import { getStorage, getStorageSlot, onDailyTickStorage, posFromStorageKey, setStorageSlot } from "../../_registry/StorageRegistry";
-import { WARP_GATE_SLOT_COUNT } from "../../_registry/entities/WarpGate";
 
 export interface UseGameEngineResult {
     containerRef: React.RefObject<HTMLDivElement | null>;
@@ -127,13 +127,7 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
             const placementOverlay = new PlacementOverlay(voxelMap, playerState.inventory, uiState, eventBroker, playerState);
             worldContainer.addChild(placementOverlay.top);
 
-            const {
-                bonfireStorage,
-                fermentationStorage,
-                manualProcessingStorage,
-                autoProcessingStorage,
-                cartStorage,
-            } = bootstrapStorages(saveData);
+            const { bonfireStorage, fermentationStorage, manualProcessingStorage, autoProcessingStorage, cartStorage } = bootstrapStorages(saveData);
 
             const reputationSystem = new ReputationSystem({
                 points: saveData?.reputation.points ?? 0,
@@ -176,11 +170,7 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
             const gameTime = new GameTime(saveData?.gameTime.elapsedMs);
 
             // 日次処理対象のストレージ群（KeyedSlotStorage 派生）。新規ストレージ追加時はここに足すだけで day_changed に乗る。
-            const dailyTickStorages = [
-                bonfireStorage,
-                fermentationStorage,
-                autoProcessingStorage,
-            ];
+            const dailyTickStorages = [bonfireStorage, fermentationStorage, autoProcessingStorage];
 
             disposers.push(
                 eventBroker.subscribe("day_changed", () => {
@@ -192,13 +182,13 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
                     // WarpGate は座標管理しない別系統。出荷集計→reputation→clear をここで明示的に行う。
                     const shippedItems = new Map();
                     for (const key of Object.keys(getStorage("warp_gate").value || [])) {
-                      for (let i = 0; i < WARP_GATE_SLOT_COUNT; i++) {
-                          const stack = getStorageSlot("warp_gate", posFromStorageKey(key), "main", i);
-                          if (stack) {
-                              shippedItems.set(stack.itemId, (shippedItems.get(stack.itemId) ?? 0) + stack.count);
-                              setStorageSlot("warp_gate", posFromStorageKey(key), "main", i, null);
-                          }
-                      }
+                        for (let i = 0; i < WARP_GATE_SLOT_COUNT; i++) {
+                            const stack = getStorageSlot("warp_gate", posFromStorageKey(key), "main", i);
+                            if (stack) {
+                                shippedItems.set(stack.itemId, (shippedItems.get(stack.itemId) ?? 0) + stack.count);
+                                setStorageSlot("warp_gate", posFromStorageKey(key), "main", i, null);
+                            }
+                        }
                     }
                     reputationSystem.processShipment(shippedItems);
 

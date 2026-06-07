@@ -1,10 +1,10 @@
 import type { ICartWriter, IEventBroker, IVoxelWriter, Pos2D } from "../_boundary/interfaces";
 import { findFacilityAnchor } from "../_registry/facilityUtil";
 import { getItemDef, getItemDefByEntityType } from "../_registry/ItemRegistry";
+import { AUTO_PROCESSING_DEFS, DAILY_PROCESSING_DEFS } from "../_registry/ProcessingRecipes";
 import { addToStorage, getStorageSlot, setStorageSlot } from "../_registry/StorageRegistry";
 import type { AutoProcessingStorage } from "./AutoProcessingStorage";
 import type { BonfireStorage } from "./BonfireStorage";
-import { AUTO_PROCESSING_DEFS, DAILY_PROCESSING_DEFS } from "../_registry/ProcessingRecipes";
 import { ENTITY_TYPES, getEntityTypeFromVoxel, getVariantFromVoxel } from "./VoxelDefs";
 
 // ---------------------------------------------------------------------------
@@ -34,10 +34,14 @@ type Vec2 = { dx: number; dz: number };
 
 function sideToVec(side: StationSide): Vec2 {
     switch (side) {
-        case "up":    return { dx: 0, dz: -1 };
-        case "down":  return { dx: 0, dz:  1 };
-        case "left":  return { dx: -1, dz: 0 };
-        case "right": return { dx:  1, dz: 0 };
+        case "up":
+            return { dx: 0, dz: -1 };
+        case "down":
+            return { dx: 0, dz: 1 };
+        case "left":
+            return { dx: -1, dz: 0 };
+        case "right":
+            return { dx: 1, dz: 0 };
     }
 }
 
@@ -58,10 +62,7 @@ let autoStorageRef: AutoProcessingStorage | null = null;
  * App.tsx から各ストレージを注入する。
  * Chest.ts の setChestStorage と同じパターン。
  */
-export function setStationStorages(
-    bonfire: BonfireStorage,
-    auto: AutoProcessingStorage,
-): void {
+export function setStationStorages(bonfire: BonfireStorage, auto: AutoProcessingStorage): void {
     bonfireStorageRef = bonfire;
     autoStorageRef = auto;
 }
@@ -105,10 +106,7 @@ function addItemToCart(cart: ICartWriter, itemId: string, count: number): number
 // アンローダー: カート → 施設入力
 // ---------------------------------------------------------------------------
 
-function unloadCartToChest(
-    cart: ICartWriter,
-    anchorPos: Pos2D,
-): boolean {
+function unloadCartToChest(cart: ICartWriter, anchorPos: Pos2D): boolean {
     let moved = false;
     for (let i = 0; i < cart.inventorySlots.length; i++) {
         const slot = cart.inventorySlots[i];
@@ -147,12 +145,7 @@ function unloadCartToChest(
     return moved;
 }
 
-function unloadCartToAuto(
-    cart: ICartWriter,
-    anchorPos: Pos2D,
-    autoStorage: AutoProcessingStorage,
-    voxelMap: IVoxelWriter,
-): boolean {
+function unloadCartToAuto(cart: ICartWriter, anchorPos: Pos2D, autoStorage: AutoProcessingStorage, voxelMap: IVoxelWriter): boolean {
     let moved = false;
     for (let i = 0; i < cart.inventorySlots.length; i++) {
         const slot = cart.inventorySlots[i];
@@ -193,11 +186,7 @@ function unloadCartToAuto(
     return moved;
 }
 
-function unloadCartToDaily(
-    cart: ICartWriter,
-    anchorPos: Pos2D,
-    voxelMap: IVoxelWriter,
-): boolean {
+function unloadCartToDaily(cart: ICartWriter, anchorPos: Pos2D, voxelMap: IVoxelWriter): boolean {
     let moved = false;
     // 各カートスロットを addInput に渡すだけ。addInput が容量・単一 itemId 制約・進行度を内包する。
     // 入力が満杯 or itemId 不一致になった以降のスロットは addInput が 0 を返すため自然にスキップされる。
@@ -216,12 +205,7 @@ function unloadCartToDaily(
     return moved;
 }
 
-function unloadCartToBonfire(
-    cart: ICartWriter,
-    anchorPos: Pos2D,
-    bonfireStorage: BonfireStorage,
-    voxelMap: IVoxelWriter,
-): boolean {
+function unloadCartToBonfire(cart: ICartWriter, anchorPos: Pos2D, bonfireStorage: BonfireStorage, voxelMap: IVoxelWriter): boolean {
     let moved = false;
     // 各カートスロットを「燃料 / 素材」に振り分けて addToInputSlot に渡す。
     // addToInputSlot が容量・単一 itemId 制約・enabled 更新を内包するため、ここではマージ計算不要。
@@ -249,10 +233,7 @@ function unloadCartToBonfire(
 // ローダー: 施設出力 → カート
 // ---------------------------------------------------------------------------
 
-function loadChestToCart(
-    cart: ICartWriter,
-    anchorPos: Pos2D,
-): boolean {
+function loadChestToCart(cart: ICartWriter, anchorPos: Pos2D): boolean {
     let moved = false;
     for (let j = 0; j < 64; j++) {
         const slot = getStorageSlot("chest", anchorPos, "main", j);
@@ -267,12 +248,7 @@ function loadChestToCart(
     return moved;
 }
 
-function loadAutoToCart(
-    cart: ICartWriter,
-    anchorPos: Pos2D,
-    autoStorage: AutoProcessingStorage,
-    voxelMap: IVoxelWriter,
-): boolean {
+function loadAutoToCart(cart: ICartWriter, anchorPos: Pos2D, autoStorage: AutoProcessingStorage, voxelMap: IVoxelWriter): boolean {
     let moved = false;
     const outputs = autoStorage.getOutputs(anchorPos);
     for (let j = 0; j < outputs.length; j++) {
@@ -288,12 +264,7 @@ function loadAutoToCart(
     return moved;
 }
 
-function loadBonfireToCart(
-    cart: ICartWriter,
-    anchorPos: Pos2D,
-    bonfireStorage: BonfireStorage,
-    voxelMap: IVoxelWriter,
-): boolean {
+function loadBonfireToCart(cart: ICartWriter, anchorPos: Pos2D, bonfireStorage: BonfireStorage, voxelMap: IVoxelWriter): boolean {
     let moved = false;
     // 草木灰（outputAsh）と蒸し系（outputSteamed）の2出力をカートへ排出する。
     for (const kind of ["outputAsh", "outputSteamed"] as const) {
@@ -309,11 +280,7 @@ function loadBonfireToCart(
     return moved;
 }
 
-function loadDailyToCart(
-    cart: ICartWriter,
-    anchorPos: Pos2D,
-    voxelMap: IVoxelWriter,
-): boolean {
+function loadDailyToCart(cart: ICartWriter, anchorPos: Pos2D, voxelMap: IVoxelWriter): boolean {
     let moved = false;
     const entityType = getEntityTypeFromVoxel(voxelMap.getSurface(anchorPos));
     const itemId = getItemDefByEntityType(entityType)?.itemId ?? "none";
@@ -340,12 +307,8 @@ function loadDailyToCart(
  * カートの現在タイルに隣接する全ステーションについて搬送アクションを実行する。
  * 実際に1個でも移動した場合のみ station_fired を発行する。
  */
-export function executeStationTransfersOnCartEnter(
-    voxelMap: IVoxelWriter,
-    cart: ICartWriter,
-    eventBroker: IEventBroker,
-): void {
-    if (!bonfireStorageRef  || !autoStorageRef) return;
+export function executeStationTransfersOnCartEnter(voxelMap: IVoxelWriter, cart: ICartWriter, eventBroker: IEventBroker): void {
+    if (!bonfireStorageRef || !autoStorageRef) return;
 
     const T: Pos2D = {
         x: Math.floor(cart.posInWorld.x),
@@ -355,9 +318,9 @@ export function executeStationTransfersOnCartEnter(
     // 4方向の隣接タイルを順に確認する
     const directions: { vec: Vec2; side: StationSide }[] = [
         { vec: { dx: 0, dz: -1 }, side: "up" },
-        { vec: { dx: 0, dz:  1 }, side: "down" },
+        { vec: { dx: 0, dz: 1 }, side: "down" },
         { vec: { dx: -1, dz: 0 }, side: "left" },
-        { vec: { dx:  1, dz: 0 }, side: "right" },
+        { vec: { dx: 1, dz: 0 }, side: "right" },
     ];
 
     for (const { vec: d } of directions) {
@@ -391,7 +354,7 @@ export function executeStationTransfersOnCartEnter(
         // ローダー / アンローダー判定
         // restVec == d: フォーク休止辺がエンティティ側 → ローダー（E出力 → カート）
         // restVec == -d: フォーク休止辺がカート側 → アンローダー（カート → E入力）
-        const isLoader = (restVec.dx === d.dx && restVec.dz === d.dz);
+        const isLoader = restVec.dx === d.dx && restVec.dz === d.dz;
 
         let moved = false;
         let representativeItemId: string | null = null;
@@ -402,7 +365,10 @@ export function executeStationTransfersOnCartEnter(
                 if (moved) {
                     // 移動後の代表アイテムを出力スロットから取得（移動済みなのでカートから取る）
                     for (const slot of cart.inventorySlots) {
-                        if (slot !== null) { representativeItemId = slot.itemId; break; }
+                        if (slot !== null) {
+                            representativeItemId = slot.itemId;
+                            break;
+                        }
                     }
                 }
             } else {
@@ -412,7 +378,10 @@ export function executeStationTransfersOnCartEnter(
                     // チェストから代表を取る
                     for (let j = 0; j < 64; j++) {
                         const slot = getStorageSlot("chest", anchorPos, "main", j);
-                        if (slot !== null) { representativeItemId = slot.itemId; break; }
+                        if (slot !== null) {
+                            representativeItemId = slot.itemId;
+                            break;
+                        }
                     }
                 }
             }
@@ -421,7 +390,10 @@ export function executeStationTransfersOnCartEnter(
                 moved = loadAutoToCart(cart, anchorPos, autoStorageRef, voxelMap);
                 if (moved) {
                     for (const slot of cart.inventorySlots) {
-                        if (slot !== null) { representativeItemId = slot.itemId; break; }
+                        if (slot !== null) {
+                            representativeItemId = slot.itemId;
+                            break;
+                        }
                     }
                 }
             } else {
@@ -429,7 +401,10 @@ export function executeStationTransfersOnCartEnter(
                 if (moved) {
                     for (let j = 0; j < 8; j++) {
                         const slot = autoStorageRef.getInput(anchorPos, j);
-                        if (slot !== null) { representativeItemId = slot.itemId; break; }
+                        if (slot !== null) {
+                            representativeItemId = slot.itemId;
+                            break;
+                        }
                     }
                 }
             }
@@ -438,7 +413,10 @@ export function executeStationTransfersOnCartEnter(
                 moved = loadDailyToCart(cart, anchorPos, voxelMap);
                 if (moved) {
                     for (const slot of cart.inventorySlots) {
-                        if (slot !== null) { representativeItemId = slot.itemId; break; }
+                        if (slot !== null) {
+                            representativeItemId = slot.itemId;
+                            break;
+                        }
                     }
                 }
             } else {

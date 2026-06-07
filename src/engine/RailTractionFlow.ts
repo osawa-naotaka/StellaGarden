@@ -1,6 +1,14 @@
 import type { IVoxelWriter, Pos3D } from "../_boundary/interfaces";
 import { findFacilityAnchor } from "../_registry/facilityUtil";
-import { ENTITY_TYPES, getConnectionsFromVoxel, getEnabledFromVoxel, getEntityTypeFromVoxel, setDirectionInVoxel, setEnabledInVoxel, VOXEL_DIRECTION } from "./VoxelDefs";
+import {
+    ENTITY_TYPES,
+    getConnectionsFromVoxel,
+    getEnabledFromVoxel,
+    getEntityTypeFromVoxel,
+    setDirectionInVoxel,
+    setEnabledInVoxel,
+    VOXEL_DIRECTION,
+} from "./VoxelDefs";
 
 const RAIL_CONNECTION_UP = 1 << 0;
 const RAIL_CONNECTION_DOWN = 1 << 1;

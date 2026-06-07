@@ -1,16 +1,4 @@
-import {
-    Box,
-    Button,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogContentText,
-    DialogTitle,
-    IconButton,
-    Stack,
-    TextField,
-    Typography,
-} from "@mui/material";
+import { Box, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, IconButton, Stack, TextField, Typography } from "@mui/material";
 import { useCallback, useEffect, useState } from "react";
 import { deleteSlot, duplicateSlot, listSlots, newSlotId, renameSlot, type SaveSlot, type SlotEntry } from "../../lib/SaveSystem";
 import { TITLE_BG, TITLE_TEXT_SX } from "./titleStyles";
@@ -241,9 +229,7 @@ export function SlotSelectScreen({ mode, onSelect, onBack }: Props) {
             <Dialog open={confirmDelete !== null} onClose={() => setConfirmDelete(null)}>
                 <DialogTitle>セーブデータを削除しますか？</DialogTitle>
                 <DialogContent>
-                    <DialogContentText>
-                        「{confirmDelete?.slotName}」を削除します。この操作は取り消せません。
-                    </DialogContentText>
+                    <DialogContentText>「{confirmDelete?.slotName}」を削除します。この操作は取り消せません。</DialogContentText>
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={() => setConfirmDelete(null)}>キャンセル</Button>

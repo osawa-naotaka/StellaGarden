@@ -63,7 +63,7 @@ function canPlaceSoakingBasket(map: IVoxelReader, pos: Pos2D, variant: Placement
         for (let dx = 0; dx < size.w; dx++) {
             const surfacePos = map.getSurfacePosition({ x: x + dx, z: z + dz });
             if (surfacePos.y !== baseY) return false;
-            const voxel = map.getSurface({ x: x + dx,  z: z + dz });
+            const voxel = map.getSurface({ x: x + dx, z: z + dz });
             if (!PLACEABLE_TERRAINS.has(getTerrainTypeFromVoxel(voxel))) return false;
             if (getEntityTypeFromVoxel(voxel) !== ENTITY_TYPES.none) return false;
         }
@@ -110,7 +110,7 @@ registerEntity({
 
     onInteract(ctx: InteractionContext): boolean {
         if (ctx.tool !== "axe") return false;
-        const removed = removeFacilityAndReturnItemsToInventory("soaking_basket", ctx);        
+        const removed = removeFacilityAndReturnItemsToInventory("soaking_basket", ctx);
         if (removed) dailyProcessingStorage?.remove(ctx.anchorPos);
         return removed;
     },

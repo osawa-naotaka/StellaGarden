@@ -1,6 +1,6 @@
 import * as v from "valibot";
-import { ITEM_IDS } from "../engine/ItemDefs";
 import { StoragesSchema } from "../_registry/StorageRegistry";
+import { ITEM_IDS } from "../engine/ItemDefs";
 
 // ─── 共通プリミティブ ──────────────────────────────────────────────────────────
 

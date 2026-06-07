@@ -44,7 +44,7 @@ export function MissionPanel() {
             return () => window.clearTimeout(timer);
         }
         prevSubRef.current = newSub;
-    }, [currentSub?.id, currentSub?.text]);
+    }, [currentSub?.id, currentSub?.text, currentSub]);
 
     if (!currentMain) {
         // 全完了。何も表示しない。

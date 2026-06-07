@@ -1,7 +1,7 @@
 import type { ICartWriter, IEventBroker, ItemStack, IVoxelWriter, Pos2D, Pos3D } from "../_boundary/interfaces";
+import { CART_ATTACHMENT_ALLOWED, FERTILIZER_ITEMS, SEED_TO_ENTITY } from "./CartItems";
 import { CROP_DEFS, getFertilizerYieldMultiplier } from "./CropDefs";
 import type { ItemId } from "./ItemDefs";
-import { CART_ATTACHMENT_ALLOWED, FERTILIZER_ITEMS, SEED_TO_ENTITY } from "./CartItems";
 import {
     ENTITY_TYPES,
     getDaysElapsedFromVoxel,
@@ -152,15 +152,30 @@ type Offset = { dx: number; dz: number };
 function sideOffsets(facing: string): [Offset, Offset] {
     switch (facing) {
         case "right":
-            return [{ dx: 0, dz: -1 }, { dx: 0, dz: 1 }];
+            return [
+                { dx: 0, dz: -1 },
+                { dx: 0, dz: 1 },
+            ];
         case "left":
-            return [{ dx: 0, dz: 1 }, { dx: 0, dz: -1 }];
+            return [
+                { dx: 0, dz: 1 },
+                { dx: 0, dz: -1 },
+            ];
         case "down":
-            return [{ dx: 1, dz: 0 }, { dx: -1, dz: 0 }];
+            return [
+                { dx: 1, dz: 0 },
+                { dx: -1, dz: 0 },
+            ];
         case "up":
-            return [{ dx: -1, dz: 0 }, { dx: 1, dz: 0 }];
+            return [
+                { dx: -1, dz: 0 },
+                { dx: 1, dz: 0 },
+            ];
         default:
-            return [{ dx: 0, dz: 0 }, { dx: 0, dz: 0 }];
+            return [
+                { dx: 0, dz: 0 },
+                { dx: 0, dz: 0 },
+            ];
     }
 }
 
@@ -168,12 +183,7 @@ function sideOffsets(facing: string): [Offset, Offset] {
 // 散布処理（アタッチメントなしの場合）
 // ---------------------------------------------------------------------------
 
-function scatterOnTile(
-    voxelMap: IVoxelWriter,
-    cart: ICartWriter,
-    tilePos: Pos2D,
-    eventBroker: IEventBroker,
-): void {
+function scatterOnTile(voxelMap: IVoxelWriter, cart: ICartWriter, tilePos: Pos2D, eventBroker: IEventBroker): void {
     const surfacePos: Pos3D = voxelMap.getSurfacePosition(tilePos);
     const voxel = voxelMap.get(surfacePos);
     const terrainType = getTerrainTypeFromVoxel(voxel);
@@ -245,12 +255,7 @@ function scatterOnTile(
 // 収穫処理（アタッチメントが sickle の場合）
 // ---------------------------------------------------------------------------
 
-function harvestOnTile(
-    voxelMap: IVoxelWriter,
-    cart: ICartWriter,
-    tilePos: Pos2D,
-    eventBroker: IEventBroker,
-): void {
+function harvestOnTile(voxelMap: IVoxelWriter, cart: ICartWriter, tilePos: Pos2D, eventBroker: IEventBroker): void {
     const surfacePos: Pos3D = voxelMap.getSurfacePosition(tilePos);
     const voxel = voxelMap.get(surfacePos);
     const entityType = getEntityTypeFromVoxel(voxel);
@@ -299,11 +304,7 @@ function harvestOnTile(
  * カートが新タイルに踏み込んだ瞬間に呼ぶ。
  * 進行方向に対する左右 1 タイルに対してアタッチメントに応じたアクションを実行する。
  */
-export function executeCartActionsOnEnterTile(
-    voxelMap: IVoxelWriter,
-    cart: ICartWriter,
-    eventBroker: IEventBroker,
-): void {
+export function executeCartActionsOnEnterTile(voxelMap: IVoxelWriter, cart: ICartWriter, eventBroker: IEventBroker): void {
     const cx = Math.floor(cart.posInWorld.x);
     const cz = Math.floor(cart.posInWorld.z);
 

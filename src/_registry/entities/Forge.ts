@@ -4,7 +4,15 @@ import type { Pos2D } from "../../lib/VoxelMap";
 import { type EntitySpriteInfo, type InteractionContext, registerEntity } from "../EntityRegistry";
 import { placeFacility } from "../facilityUtil";
 import { registerItem, registerItemAlias } from "../ItemRegistry";
-import { createStorage, getStorage, getStorageSet, posFromStorageKey, registerStorage, removeFacilityAndReturnItemsToInventory, setStorageSlot } from "../StorageRegistry";
+import {
+    createStorage,
+    getStorage,
+    getStorageSet,
+    posFromStorageKey,
+    registerStorage,
+    removeFacilityAndReturnItemsToInventory,
+    setStorageSlot,
+} from "../StorageRegistry";
 
 // ── 燃焼中アニメーション用スプライトテーブル ──
 
@@ -84,45 +92,47 @@ registerItemAlias(ENTITY_TYPES.forge_burning, "forge");
 
 const OUTPUT_STACK_MAX = 64;
 
-registerStorage("forge", {
+registerStorage(
+    "forge",
+    {
         ingredient: [null],
         fuel: [null],
         output: [null],
     },
     (voxelMap) => {
-      for (const [key, slots] of Object.entries(getStorage("forge").value)) {
-          if (slots.ingredient[0] === null || slots.ingredient[0].count < 1) continue;
-          if (slots.fuel[0] === null || slots.fuel[0].count < 1) continue;
+        for (const [key, slots] of Object.entries(getStorage("forge").value)) {
+            if (slots.ingredient[0] === null || slots.ingredient[0].count < 1) continue;
+            if (slots.fuel[0] === null || slots.fuel[0].count < 1) continue;
 
-          // output が満杯または想定外の itemId ならスキップ
-          if (slots.output[0] !== null) {
-              if (slots.output[0].itemId !== "hot_meteoric_iron") continue;
-              if (slots.output[0].count >= OUTPUT_STACK_MAX) continue;
-          }
+            // output が満杯または想定外の itemId ならスキップ
+            if (slots.output[0] !== null) {
+                if (slots.output[0].itemId !== "hot_meteoric_iron") continue;
+                if (slots.output[0].count >= OUTPUT_STACK_MAX) continue;
+            }
 
-          // ingredient 消費
-          slots.ingredient[0].count -= 1;
-          if (slots.ingredient[0].count === 0) slots.ingredient[0] = null;
+            // ingredient 消費
+            slots.ingredient[0].count -= 1;
+            if (slots.ingredient[0].count === 0) slots.ingredient[0] = null;
 
-          // fuel 消費
-          slots.fuel[0].count -= 1;
-          if (slots.fuel[0].count === 0) slots.fuel[0] = null;
+            // fuel 消費
+            slots.fuel[0].count -= 1;
+            if (slots.fuel[0].count === 0) slots.fuel[0] = null;
 
-          // output 加算
-          if (slots.output[0] === null) {
-              slots.output[0] = { itemId: "hot_meteoric_iron", count: 1 };
-          } else {
-              slots.output[0].count += 1;
-          }
+            // output 加算
+            if (slots.output[0] === null) {
+                slots.output[0] = { itemId: "hot_meteoric_iron", count: 1 };
+            } else {
+                slots.output[0].count += 1;
+            }
 
-          const pos = posFromStorageKey(key);
-          setStorageSlot("forge", pos, "ingredient", 0, slots.ingredient[0]);
-          setStorageSlot("forge", pos, "fuel", 0, slots.fuel[0]);
-          setStorageSlot("forge", pos, "output", 0, slots.output[0]);
+            const pos = posFromStorageKey(key);
+            setStorageSlot("forge", pos, "ingredient", 0, slots.ingredient[0]);
+            setStorageSlot("forge", pos, "fuel", 0, slots.fuel[0]);
+            setStorageSlot("forge", pos, "output", 0, slots.output[0]);
 
-          // voxelMap のアンカー entityType を再判定して書き戻す
-          updateVoxelEntityType(pos, voxelMap);
-      }
+            // voxelMap のアンカー entityType を再判定して書き戻す
+            updateVoxelEntityType(pos, voxelMap);
+        }
     },
 );
 

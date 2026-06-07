@@ -1,13 +1,7 @@
 import type { ItemStack, IVoxelWriter, Pos2D } from "../_boundary/interfaces";
 import { getItemDef } from "../_registry/ItemRegistry";
+import { BONFIRE_FUEL_DEF, BONFIRE_MATERIAL_DEF, findAllRecipesForInput, isAcceptableInputItem, type ProcessingRecipe } from "../_registry/ProcessingRecipes";
 import { KeyedSlotStorage } from "./KeyedSlotStorage";
-import {
-    BONFIRE_FUEL_DEF,
-    BONFIRE_MATERIAL_DEF,
-    findAllRecipesForInput,
-    isAcceptableInputItem,
-    type ProcessingRecipe,
-} from "../_registry/ProcessingRecipes";
 import { setEnabledInVoxel, setRotatedInVoxel } from "./VoxelDefs";
 
 /**

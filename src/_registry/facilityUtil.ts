@@ -64,11 +64,7 @@ export function removeFacility(
     return true;
 }
 
-
-export function removeFacilityByContext(
-    ctx: InteractionContext,
-    extraItems: ReadonlyArray<ItemStack> = [],
-): boolean {
+export function removeFacilityByContext(ctx: InteractionContext, extraItems: ReadonlyArray<ItemStack> = []): boolean {
     const entityType = getEntityTypeFromVoxel(ctx.voxel);
     const def = getItemDefByEntityType(entityType);
     if (!def) return false;

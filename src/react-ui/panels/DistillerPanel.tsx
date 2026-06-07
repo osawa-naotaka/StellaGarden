@@ -1,8 +1,10 @@
 import { useCallback } from "react";
 import type { IInventoryWriter, ItemStack, IVoxelWriter, SlotRef } from "../../_boundary/interfaces";
-import { getItemDisplayName } from "../../_registry/ItemRegistry";
 import type { DistillerSlotKind } from "../../_registry/entities/Distiller";
+import { distillerCanAcceptFuel, distillerCanAcceptMaterial } from "../../_registry/entities/Distiller";
+import { getItemDisplayName } from "../../_registry/ItemRegistry";
 import { DISTILLER_MATERIAL_DEF, findAllRecipesForInput } from "../../_registry/ProcessingRecipes";
+import { getStorageNumberValue, getStorageSet, getStorageSlot, type StorageSet, setStorageNumberValue, setStorageSlot } from "../../_registry/StorageRegistry";
 import type { UIState } from "../../view/UIState";
 import { CursorStack } from "../components/CursorStack";
 import { InventoryGrid } from "../components/InventoryGrid";
@@ -11,8 +13,6 @@ import { Slot } from "../components/Slot";
 import { useFrameTick } from "../hooks/useFrameTick";
 import { usePickup } from "../hooks/usePickup";
 import { registerPanel } from "../PanelRegistry";
-import { getStorageNumberValue, getStorageSet, getStorageSlot, setStorageNumberValue, setStorageSlot, type StorageSet } from "../../_registry/StorageRegistry";
-import { distillerCanAcceptFuel, distillerCanAcceptMaterial } from "../../_registry/entities/Distiller";
 
 const COLS = 8;
 const INV_ROWS = 8;
@@ -122,11 +122,11 @@ export function DistillerPanel({ open, inventory, distillerStorage, voxelMap, ui
     const fuel = targetPos ? getStorageSlot("distiller", targetPos, "fuel", 0) : null;
     const material = targetPos ? getStorageSlot("distiller", targetPos, "material", 0) : null;
     const output = targetPos ? getStorageSlot("distiller", targetPos, "output", 0) : null;
-//    const isBurning = targetPos ? distillerStorage.isBurning(targetPos) : false;
+    //    const isBurning = targetPos ? distillerStorage.isBurning(targetPos) : false;
 
     const materialRecipes = material ? findAllRecipesForInput(DISTILLER_MATERIAL_DEF, material.itemId) : [];
     const showRecipeSelector = materialRecipes.length > 1;
-    const selectedRecipeIndex = targetPos ? getStorageNumberValue("distiller", targetPos, "recipe") ?? 0 : 0;
+    const selectedRecipeIndex = targetPos ? (getStorageNumberValue("distiller", targetPos, "recipe") ?? 0) : 0;
     const onSelectRecipe = (index: number) => {
         if (targetPos) setStorageNumberValue("distiller", targetPos, "recipe", index);
     };
@@ -163,11 +163,7 @@ export function DistillerPanel({ open, inventory, distillerStorage, voxelMap, ui
                         {showRecipeSelector && (
                             <div className="sg-processing-recipe-selector">
                                 <label htmlFor="sg-distiller-recipe-select">蒸留先:</label>
-                                <select
-                                    id="sg-distiller-recipe-select"
-                                    value={selectedRecipeIndex}
-                                    onChange={(e) => onSelectRecipe(Number(e.target.value))}
-                                >
+                                <select id="sg-distiller-recipe-select" value={selectedRecipeIndex} onChange={(e) => onSelectRecipe(Number(e.target.value))}>
                                     {materialRecipes.map((r, i) => (
                                         <option key={i} value={i}>
                                             {getItemDisplayName(r.outputs[0].itemId)} ×{r.outputs[0].count}

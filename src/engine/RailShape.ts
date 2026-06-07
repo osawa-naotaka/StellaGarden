@@ -25,7 +25,7 @@ export function getRailOrientation(voxel: bigint): number {
  */
 export function isRailStraightMask(mask: number): boolean {
     // return mask === 0 || mask === 3 || mask === 12;
-    return mask === 0 || mask === 1 || mask === 2 || mask === 3 || mask === 4 || mask == 8 || mask === 12;
+    return mask === 0 || mask === 1 || mask === 2 || mask === 3 || mask === 4 || mask === 8 || mask === 12;
 }
 
 export function getRailShapeKey(voxel: bigint): RailShapeKey {

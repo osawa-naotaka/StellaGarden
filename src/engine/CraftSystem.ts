@@ -29,7 +29,7 @@ export class CraftSystem implements ICraftSystem {
     setToolSlot(stack: ItemStack | null): void {
         const pos = this.uiState.targetPos;
         if (!pos) return;
-        setStorageSlot("workbench", pos, "tool", 0, stack)
+        setStorageSlot("workbench", pos, "tool", 0, stack);
     }
 
     canCraft(recipe: RecipeDef): boolean {

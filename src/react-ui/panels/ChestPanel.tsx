@@ -1,5 +1,6 @@
 import { useCallback } from "react";
 import type { IInventoryWriter, ItemStack, SlotRef } from "../../_boundary/interfaces";
+import { getStorageSet, getStorageSlot, type StorageSet, setStorageSlot } from "../../_registry/StorageRegistry";
 import type { UIState } from "../../view/UIState";
 import { CursorStack } from "../components/CursorStack";
 import { InventoryGrid } from "../components/InventoryGrid";
@@ -7,7 +8,6 @@ import { SidePanel } from "../components/SidePanel";
 import { useFrameTick } from "../hooks/useFrameTick";
 import { usePickup } from "../hooks/usePickup";
 import { registerPanel } from "../PanelRegistry";
-import { getStorageSet, getStorageSlot, setStorageSlot, type StorageSet } from "../../_registry/StorageRegistry";
 
 const CHEST_ROWS = 8;
 const COLS = 8;
@@ -30,7 +30,7 @@ export function ChestPanel({ open, inventory, chestStorage, uiState }: ChestPane
 
     const getSlot = useCallback(
         (ref: ChestSlotRef): ItemStack | null => {
-            if (ref.area === "chest") {                
+            if (ref.area === "chest") {
                 return targetPos ? getStorageSlot("chest", targetPos, "main", ref.index) : null;
             }
             return inventory.getSlot(ref as SlotRef);
@@ -142,5 +142,7 @@ export function ChestPanel({ open, inventory, chestStorage, uiState }: ChestPane
 
 registerPanel({
     mode: "chest",
-    component: ({ open, engine }) => <ChestPanel open={open} inventory={engine.inventory} chestStorage={getStorageSet("chest", engine.uiState.targetPos) ?? null} uiState={engine.uiState} />,
+    component: ({ open, engine }) => (
+        <ChestPanel open={open} inventory={engine.inventory} chestStorage={getStorageSet("chest", engine.uiState.targetPos) ?? null} uiState={engine.uiState} />
+    ),
 });

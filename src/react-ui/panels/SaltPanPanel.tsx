@@ -1,6 +1,7 @@
 import { useCallback } from "react";
 import type { IInventoryWriter, ItemStack, IVoxelWriter, SlotRef } from "../../_boundary/interfaces";
 import { SALT_DAYS_PER_CYCLE } from "../../_registry/entities/Saltpan";
+import { getStorageSet, getStorageSlot, type StorageSet, setStorageSlot } from "../../_registry/StorageRegistry";
 import { getDaysElapsedFromVoxel } from "../../engine/VoxelDefs";
 import type { UIState } from "../../view/UIState";
 import { CursorStack } from "../components/CursorStack";
@@ -10,7 +11,6 @@ import { Slot } from "../components/Slot";
 import { useFrameTick } from "../hooks/useFrameTick";
 import { usePickup } from "../hooks/usePickup";
 import { registerPanel } from "../PanelRegistry";
-import { getStorageSet, getStorageSlot, setStorageSlot, type StorageSet } from "../../_registry/StorageRegistry";
 
 const COLS = 8;
 const INV_ROWS = 8;

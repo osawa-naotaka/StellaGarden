@@ -44,7 +44,6 @@ registerItem({
     },
 });
 
-
 const CHEST_SLOT_COUNT = 64;
 
 registerStorage("chest", { main: new Array(CHEST_SLOT_COUNT).fill(null) });

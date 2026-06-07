@@ -1,8 +1,8 @@
 import { useCallback, useMemo } from "react";
 import type { IInventoryWriter, ItemStack, IVoxelWriter, SlotRef } from "../../_boundary/interfaces";
 import { getItemDefByEntityType } from "../../_registry/ItemRegistry";
-import type { AutoProcessingStorage } from "../../engine/AutoProcessingStorage";
 import { getAutoProcessingDef } from "../../_registry/ProcessingRecipes";
+import type { AutoProcessingStorage } from "../../engine/AutoProcessingStorage";
 import { getEntityTypeFromVoxel } from "../../engine/VoxelDefs";
 import type { UIState } from "../../view/UIState";
 import { CursorStack } from "../components/CursorStack";

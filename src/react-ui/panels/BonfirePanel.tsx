@@ -1,8 +1,8 @@
 import { useCallback } from "react";
 import type { IInventoryWriter, ItemStack, IVoxelWriter, SlotRef } from "../../_boundary/interfaces";
 import { getItemDisplayName } from "../../_registry/ItemRegistry";
-import type { BonfireSlotKind, BonfireStorage } from "../../engine/BonfireStorage";
 import { BONFIRE_MATERIAL_DEF, findAllRecipesForInput } from "../../_registry/ProcessingRecipes";
+import type { BonfireSlotKind, BonfireStorage } from "../../engine/BonfireStorage";
 import type { UIState } from "../../view/UIState";
 import { CursorStack } from "../components/CursorStack";
 import { InventoryGrid } from "../components/InventoryGrid";
@@ -175,11 +175,7 @@ export function BonfirePanel({ open, inventory, bonfireStorage, voxelMap, uiStat
                         {showRecipeSelector && (
                             <div className="sg-processing-recipe-selector">
                                 <label htmlFor="sg-bonfire-recipe-select">加工先:</label>
-                                <select
-                                    id="sg-bonfire-recipe-select"
-                                    value={selectedRecipeIndex}
-                                    onChange={(e) => onSelectRecipe(Number(e.target.value))}
-                                >
+                                <select id="sg-bonfire-recipe-select" value={selectedRecipeIndex} onChange={(e) => onSelectRecipe(Number(e.target.value))}>
                                     {materialRecipes.map((r, i) => (
                                         <option key={i} value={i}>
                                             {getItemDisplayName(r.outputs[0].itemId)} ×{r.outputs[0].count}
@@ -224,12 +220,6 @@ export function BonfirePanel({ open, inventory, bonfireStorage, voxelMap, uiStat
 registerPanel({
     mode: "bonfire",
     component: ({ open, engine }) => (
-        <BonfirePanel
-            open={open}
-            inventory={engine.inventory}
-            bonfireStorage={engine.bonfireStorage}
-            voxelMap={engine.voxelMap}
-            uiState={engine.uiState}
-        />
+        <BonfirePanel open={open} inventory={engine.inventory} bonfireStorage={engine.bonfireStorage} voxelMap={engine.voxelMap} uiState={engine.uiState} />
     ),
 });

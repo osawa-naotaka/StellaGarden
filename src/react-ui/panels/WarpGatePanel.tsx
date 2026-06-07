@@ -1,5 +1,6 @@
 import { useCallback } from "react";
 import type { IInventoryWriter, IReputationSystemReader, ItemStack, SlotRef } from "../../_boundary/interfaces";
+import { getStorageSet, getStorageSlot, type StorageSet, setStorageSlot } from "../../_registry/StorageRegistry";
 import { SEED_REQUEST_DEFS, SEED_STACK_COUNT, type SeedRequestSystem } from "../../engine/SeedRequestSystem";
 import type { UIState } from "../../view/UIState";
 import { CursorStack } from "../components/CursorStack";
@@ -10,7 +11,6 @@ import { TierList } from "../components/TierList";
 import { useFrameTick } from "../hooks/useFrameTick";
 import { usePickup } from "../hooks/usePickup";
 import { registerPanel } from "../PanelRegistry";
-import { getStorageSet, getStorageSlot, setStorageSlot, type StorageSet } from "../../_registry/StorageRegistry";
 
 const EARTH_INV_ROWS = 4;
 const COLS = 8;
@@ -23,7 +23,7 @@ type WarpGateSlotRef = { area: WarpGateSlotArea; index: number };
 export interface WarpGatePanelProps {
     open: boolean;
     inventory: IInventoryWriter;
-    warpGateStorage:  StorageSet | null;
+    warpGateStorage: StorageSet | null;
     reputationSystem: IReputationSystemReader;
     seedRequestSystem: SeedRequestSystem;
     uiState: UIState;
@@ -133,7 +133,7 @@ export function WarpGatePanel({ open, inventory, warpGateStorage, reputationSyst
                     <InventoryGrid
                         rows={EARTH_INV_ROWS}
                         cols={COLS}
-                        getStack={(i) => uiState.targetPos ? getStorageSlot("warp_gate", uiState.targetPos, "main", i) : null }
+                        getStack={(i) => (uiState.targetPos ? getStorageSlot("warp_gate", uiState.targetPos, "main", i) : null)}
                         onLeftClick={(i, e) => handleLeftClick({ area: "warp_gate", index: i }, e.nativeEvent)}
                         onRightClick={(i) => handleRightClick({ area: "warp_gate", index: i })}
                     />

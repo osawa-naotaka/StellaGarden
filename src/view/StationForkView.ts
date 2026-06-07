@@ -20,10 +20,14 @@ interface TransferAnimation {
 /** restSide 文字列から方向ベクトルを返す。 */
 function sideToVec(restSide: "up" | "down" | "left" | "right"): Pos2D {
     switch (restSide) {
-        case "up":    return { x: 0,  z: -1 };
-        case "down":  return { x: 0,  z:  1 };
-        case "left":  return { x: -1, z:  0 };
-        case "right": return { x: 1,  z:  0 };
+        case "up":
+            return { x: 0, z: -1 };
+        case "down":
+            return { x: 0, z: 1 };
+        case "left":
+            return { x: -1, z: 0 };
+        case "right":
+            return { x: 1, z: 0 };
     }
 }
 
@@ -39,8 +43,8 @@ function itemIdToColor(itemId: string): number {
     }
     // 上位ビットが暗くなりすぎないよう輝度を 0x404040 でフロアする
     const r = Math.max(0x40, (hash >> 16) & 0xff);
-    const g = Math.max(0x40, (hash >> 8)  & 0xff);
-    const b = Math.max(0x40, (hash)        & 0xff);
+    const g = Math.max(0x40, (hash >> 8) & 0xff);
+    const b = Math.max(0x40, hash & 0xff);
     return (r << 16) | (g << 8) | b;
 }
 

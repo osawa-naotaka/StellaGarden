@@ -9,13 +9,30 @@
  *  - 右クリック (onOpenFacilityUI) → open_distiller_ui を発行（DistillerPanel 起動）
  *  - 左クリック (onInteract) + axe → 撤去（中身は一緒にインベントリへ回収）
  */
+
+import type { ItemStack, IVoxelWriter, Pos2D } from "../../_boundary/interfaces";
 import { ENTITY_TYPES, getEnabledFromVoxel, setEnabledInVoxel } from "../../engine/VoxelDefs";
 import { type EntitySpriteInfo, type InteractionContext, registerEntity } from "../EntityRegistry";
 import { placeFacility } from "../facilityUtil";
 import { getItemDef, registerItem } from "../ItemRegistry";
-import { createStorage, getStorage, getStorageSlot, posFromStorageKey, registerStorage, removeFacilityAndReturnItemsToInventory, setStorageSlot, storageNumberValueOf } from "../StorageRegistry";
-import { DISTILLER_FUEL_ITEMS, DISTILLER_MATERIAL_DEF, DISTILLER_FUEL_PER_CYCLE, isAcceptableInputItem, type ProcessingRecipe, findAllRecipesForInput } from "../ProcessingRecipes";
-import type { ItemStack, IVoxelWriter, Pos2D } from "../../_boundary/interfaces";
+import {
+    DISTILLER_FUEL_ITEMS,
+    DISTILLER_FUEL_PER_CYCLE,
+    DISTILLER_MATERIAL_DEF,
+    findAllRecipesForInput,
+    isAcceptableInputItem,
+    type ProcessingRecipe,
+} from "../ProcessingRecipes";
+import {
+    createStorage,
+    getStorage,
+    getStorageSlot,
+    posFromStorageKey,
+    registerStorage,
+    removeFacilityAndReturnItemsToInventory,
+    setStorageSlot,
+    storageNumberValueOf,
+} from "../StorageRegistry";
 
 const ENTITY_SIZE = { w: 2, h: 2 };
 
@@ -59,34 +76,44 @@ registerItem({
     },
 });
 
-registerStorage("distiller", {
-    fuel: [null],
-    material: [null],
-    output: [null],
-    recipe: [storageNumberValueOf(0)],
-}, (voxelMap) => {
-      for (const [key, slots] of Object.entries(getStorage("distiller").value)) {
-          const pos = posFromStorageKey(key);
+registerStorage(
+    "distiller",
+    {
+        fuel: [null],
+        material: [null],
+        output: [null],
+        recipe: [storageNumberValueOf(0)],
+    },
+    (voxelMap) => {
+        for (const [key, slots] of Object.entries(getStorage("distiller").value)) {
+            const pos = posFromStorageKey(key);
 
-          const recipe = slots.material[0] ? matchMaterialRecipe(slots.material[0].itemId, slots.recipe[0]?.count ?? 0) : null;
-          const hasEnoughFuel = slots.fuel[0] !== null && slots.fuel[0].count >= DISTILLER_FUEL_PER_CYCLE;
-          const hasEnoughMaterial = slots.material[0] !== null && recipe != null && slots.material[0].count >= recipe.inputCountPerCycle;
+            const recipe = slots.material[0] ? matchMaterialRecipe(slots.material[0].itemId, slots.recipe[0]?.count ?? 0) : null;
+            const hasEnoughFuel = slots.fuel[0] !== null && slots.fuel[0].count >= DISTILLER_FUEL_PER_CYCLE;
+            const hasEnoughMaterial = slots.material[0] !== null && recipe != null && slots.material[0].count >= recipe.inputCountPerCycle;
 
-          if (slots.fuel[0] !== null && hasEnoughFuel && slots.material[0] !== null && hasEnoughMaterial && recipe != null && canStackInto(slots.output[0], recipe.outputs[0])) {
-              slots.fuel[0].count -= DISTILLER_FUEL_PER_CYCLE;
-              slots.material[0].count -= recipe.inputCountPerCycle;
-              slots.output[0] = addToSlot(slots.output[0], recipe.outputs[0]);
-              if (slots.fuel[0].count <= 0) slots.fuel[0] = null;
-              if (slots.material[0].count <= 0) slots.material[0] = null;
-              setStorageSlot("distiller", pos, "fuel", 0, slots.fuel[0]);
-              setStorageSlot("distiller", pos, "material", 0, slots.material[0]);
-              setStorageSlot("distiller", pos, "output", 0, slots.output[0]);
-          }
+            if (
+                slots.fuel[0] !== null &&
+                hasEnoughFuel &&
+                slots.material[0] !== null &&
+                hasEnoughMaterial &&
+                recipe != null &&
+                canStackInto(slots.output[0], recipe.outputs[0])
+            ) {
+                slots.fuel[0].count -= DISTILLER_FUEL_PER_CYCLE;
+                slots.material[0].count -= recipe.inputCountPerCycle;
+                slots.output[0] = addToSlot(slots.output[0], recipe.outputs[0]);
+                if (slots.fuel[0].count <= 0) slots.fuel[0] = null;
+                if (slots.material[0].count <= 0) slots.material[0] = null;
+                setStorageSlot("distiller", pos, "fuel", 0, slots.fuel[0]);
+                setStorageSlot("distiller", pos, "material", 0, slots.material[0]);
+                setStorageSlot("distiller", pos, "output", 0, slots.output[0]);
+            }
 
-          updateVoxelEnabled(pos, voxelMap);
-      }
-});
-
+            updateVoxelEnabled(pos, voxelMap);
+        }
+    },
+);
 
 export function distillerCanAcceptFuel(itemId: string): boolean {
     return DISTILLER_FUEL_ITEMS.includes(itemId as never);
