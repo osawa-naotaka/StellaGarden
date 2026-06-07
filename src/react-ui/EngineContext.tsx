@@ -13,7 +13,6 @@ import type { BonfireStorage } from "../engine/BonfireStorage";
 import type { CartStorage } from "../engine/CartStorage";
 import type { ChatHistory } from "../engine/ChatHistory";
 import type { FermentationStorage } from "../engine/FermentationStorage";
-import type { ManualProcessingStorage } from "../engine/ManualProcessingStorage";
 import type { MissionSystem } from "../engine/MissionSystem";
 import type { SeedRequestSystem } from "../engine/SeedRequestSystem";
 import type { UIState } from "../view/UIState";
@@ -31,7 +30,6 @@ export interface EngineRefs {
     bonfireStorage: BonfireStorage;
     fermentationStorage: FermentationStorage;
     cartStorage: CartStorage;
-    manualProcessingStorage: ManualProcessingStorage;
     autoProcessingStorage: AutoProcessingStorage;
     craftSystem: ICraftSystem;
     voxelMap: IVoxelWriter;

@@ -116,15 +116,6 @@ const ProcessingSlotsSchema = v.object({
     selectedRecipeIndex: v.number(),
 });
 
-export const ManualProcessingStorageSaveDataSchema = v.object({
-    facilities: v.array(
-        v.object({
-            key: v.string(),
-            slots: ProcessingSlotsSchema,
-        }),
-    ),
-});
-
 export const DailyProcessingStorageSaveDataSchema = v.object({
     facilities: v.array(
         v.object({
@@ -216,7 +207,6 @@ export const SaveDataSchema = v.object({
     storage: StoragesSchema,
     bonfireStorage: BonfireStorageSaveDataSchema,
     fermentationStorage: FermentationStorageSaveDataSchema,
-    manualProcessingStorage: ManualProcessingStorageSaveDataSchema,
     autoProcessingStorage: AutoProcessingStorageSaveDataSchema,
     cartStorage: CartStorageSaveDataSchema,
     reputation: ReputationSaveDataSchema,
@@ -241,7 +231,6 @@ export type InventorySaveData = v.InferOutput<typeof InventorySaveDataSchema>;
 export type GameTimeSaveData = v.InferOutput<typeof GameTimeSaveDataSchema>;
 export type BonfireStorageSaveData = v.InferOutput<typeof BonfireStorageSaveDataSchema>;
 export type FermentationStorageSaveData = v.InferOutput<typeof FermentationStorageSaveDataSchema>;
-export type ManualProcessingStorageSaveData = v.InferOutput<typeof ManualProcessingStorageSaveDataSchema>;
 export type DailyProcessingStorageSaveData = v.InferOutput<typeof DailyProcessingStorageSaveDataSchema>;
 export type AutoProcessingStorageSaveData = v.InferOutput<typeof AutoProcessingStorageSaveDataSchema>;
 export type CartStorageSaveData = v.InferOutput<typeof CartStorageSaveDataSchema>;

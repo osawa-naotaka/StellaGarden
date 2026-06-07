@@ -3,13 +3,11 @@ import { setAutoProcessingStorage } from "../../_registry/entities/AutoProcessin
 import { setBonfireStorage } from "../../_registry/entities/Bonfire";
 import { setCartStorage } from "../../_registry/entities/Cart";
 import { setFermentationStorage } from "../../_registry/entities/FermentationVat";
-import { setManualProcessingStorage } from "../../_registry/entities/ManualProcessing";
 import { loadStorages } from "../../_registry/StorageRegistry";
 import { AutoProcessingStorage } from "../../engine/AutoProcessingStorage";
 import { BonfireStorage } from "../../engine/BonfireStorage";
 import { CartStorage } from "../../engine/CartStorage";
 import { FermentationStorage } from "../../engine/FermentationStorage";
-import { ManualProcessingStorage } from "../../engine/ManualProcessingStorage";
 import { setStationStorages } from "../../engine/StationSystem";
 import { generateTerrain } from "../../engine/TerrainGenerator";
 import type { SaveData } from "../../lib/SaveSystem";
@@ -37,7 +35,6 @@ export function restoreOrGenerateVoxelMap(saveData: SaveData | null, worldSize: 
 export interface Storages {
     bonfireStorage: BonfireStorage;
     fermentationStorage: FermentationStorage;
-    manualProcessingStorage: ManualProcessingStorage;
     autoProcessingStorage: AutoProcessingStorage;
     cartStorage: CartStorage;
 }
@@ -59,10 +56,6 @@ export function bootstrapStorages(saveData: SaveData | null): Storages {
     if (saveData) fermentationStorage.loadSaveData(saveData.fermentationStorage.vats);
     setFermentationStorage(fermentationStorage);
 
-    const manualProcessingStorage = new ManualProcessingStorage();
-    if (saveData) manualProcessingStorage.loadSaveData(saveData.manualProcessingStorage.facilities);
-    setManualProcessingStorage(manualProcessingStorage);
-
     const autoProcessingStorage = new AutoProcessingStorage();
     if (saveData) autoProcessingStorage.loadSaveData(saveData.autoProcessingStorage.facilities);
     setAutoProcessingStorage(autoProcessingStorage);
@@ -77,7 +70,6 @@ export function bootstrapStorages(saveData: SaveData | null): Storages {
     return {
         bonfireStorage,
         fermentationStorage,
-        manualProcessingStorage,
         autoProcessingStorage,
         cartStorage,
     };

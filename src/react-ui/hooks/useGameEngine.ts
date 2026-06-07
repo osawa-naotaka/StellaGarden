@@ -127,7 +127,7 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
             const placementOverlay = new PlacementOverlay(voxelMap, playerState.inventory, uiState, eventBroker, playerState);
             worldContainer.addChild(placementOverlay.top);
 
-            const { bonfireStorage, fermentationStorage, manualProcessingStorage, autoProcessingStorage, cartStorage } = bootstrapStorages(saveData);
+            const { bonfireStorage, fermentationStorage, autoProcessingStorage, cartStorage } = bootstrapStorages(saveData);
 
             const reputationSystem = new ReputationSystem({
                 points: saveData?.reputation.points ?? 0,
@@ -210,7 +210,6 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
                 seedRequestSystem,
                 bonfireStorage,
                 fermentationStorage,
-                manualProcessingStorage,
                 autoProcessingStorage,
                 cartStorage,
                 craftSystem,
@@ -245,7 +244,6 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
                         gameTime,
                         bonfireStorage,
                         fermentationStorage,
-                        manualProcessingStorage,
                         autoProcessingStorage,
                         cartStorage,
                         reputationSystem,

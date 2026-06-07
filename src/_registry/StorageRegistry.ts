@@ -105,6 +105,12 @@ export function setStorageSlot(storageId: StorageId, pos: Pos2D, kind: StorageKi
     storage.value[key(pos)] = newStorageSet;
 }
 
+export function canAcceptItem(storageId: StorageId, kind: StorageKind, stack: ItemStack | null): boolean {
+    const canAccept = canAccepts.get(storageId);
+    if (!canAccept) return true;
+    return canAccept(kind, 0, stack);
+}
+
 export function addToStorage(storageId: StorageId, pos: Pos2D, kind: StorageKind, itemStack: ItemStack | null): number {
     if (itemStack === null) return 0;
     const canAccept = canAccepts.get(storageId);

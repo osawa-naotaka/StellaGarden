@@ -29,7 +29,7 @@ export interface DailyProcessingPanelProps {
     uiState: UIState;
 }
 
-function getItemIdFromPos(pos: Pos2D | null, voxelMap: IVoxelWriter): ItemId {
+export function getItemIdFromPos(pos: Pos2D | null, voxelMap: IVoxelWriter): ItemId {
     if (pos === null) return "none" as const;
     const surface = voxelMap.getSurfacePosition(pos);
     const entityType = getEntityTypeFromVoxel(voxelMap.get(surface));

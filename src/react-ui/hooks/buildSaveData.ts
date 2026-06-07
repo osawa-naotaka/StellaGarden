@@ -5,7 +5,6 @@ import type { CartStorage } from "../../engine/CartStorage";
 import type { ChatHistory } from "../../engine/ChatHistory";
 import type { FermentationStorage } from "../../engine/FermentationStorage";
 import type { GameTime } from "../../engine/GameTime";
-import type { ManualProcessingStorage } from "../../engine/ManualProcessingStorage";
 import type { MissionSystem } from "../../engine/MissionSystem";
 import type { PlayerState } from "../../engine/PlayerState";
 import type { ReputationSystem } from "../../engine/ReputationSystem";
@@ -21,7 +20,6 @@ export interface SaveSnapshotDeps {
     gameTime: GameTime;
     bonfireStorage: BonfireStorage;
     fermentationStorage: FermentationStorage;
-    manualProcessingStorage: ManualProcessingStorage;
     autoProcessingStorage: AutoProcessingStorage;
     cartStorage: CartStorage;
     reputationSystem: ReputationSystem;
@@ -40,7 +38,6 @@ export function buildSaveData(deps: SaveSnapshotDeps): Omit<SaveData, "version" 
         gameTime,
         bonfireStorage,
         fermentationStorage,
-        manualProcessingStorage,
         autoProcessingStorage,
         cartStorage,
         reputationSystem,
@@ -79,9 +76,6 @@ export function buildSaveData(deps: SaveSnapshotDeps): Omit<SaveData, "version" 
         },
         fermentationStorage: {
             vats: fermentationStorage.toSaveData(),
-        },
-        manualProcessingStorage: {
-            facilities: manualProcessingStorage.toSaveData(),
         },
         autoProcessingStorage: {
             facilities: autoProcessingStorage.toSaveData(),

@@ -7,7 +7,6 @@ export type {
     DailyProcessingStorageSaveData,
     GameTimeSaveData,
     InventorySaveData,
-    ManualProcessingStorageSaveData,
     MissionSaveData,
     PlayerStateSaveData,
     ReputationSaveData,
