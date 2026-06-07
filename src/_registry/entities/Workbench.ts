@@ -1,15 +1,8 @@
 import { ENTITY_TYPES } from "../../engine/VoxelDefs";
-import type { WorkbenchStorage } from "../../engine/WorkbenchStorage";
 import { type EntitySpriteInfo, type InteractionContext, registerEntity } from "../EntityRegistry";
 import { findFacilityAnchor, placeFacility, removeFacilityAtPos } from "../facilityUtil";
 import { registerItem } from "../ItemRegistry";
-
-let workbenchStorage: WorkbenchStorage | null = null;
-
-/** App.tsx から WorkbenchStorage を注入する。 */
-export function setWorkbenchStorage(storage: WorkbenchStorage): void {
-    workbenchStorage = storage;
-}
+import { collectAllStacks, createStorage, registerStorage, removeStorage } from "../StorageRegistry";
 
 function resolveWorkbenchAnchor(ctx: InteractionContext): { x: number; z: number } {
     const anchor = findFacilityAnchor(ctx.voxelMap, ctx.surfacePos.x, ctx.surfacePos.z);
@@ -30,10 +23,10 @@ registerEntity({
     onInteract(ctx: InteractionContext): boolean {
         if (ctx.tool === "axe") {
             const anchorPos = resolveWorkbenchAnchor(ctx);
-            const extraItems = workbenchStorage?.collectAllStacks(anchorPos) ?? [];
+            const extraItems = collectAllStacks("workbench", anchorPos) ?? [];
             const removed = removeFacilityAtPos(ctx.voxelMap, ctx.inventory, anchorPos.x, anchorPos.z, ENTITY_TYPES.workbench, extraItems);
             if (removed) {
-                workbenchStorage?.remove(anchorPos);
+                removeStorage("workbench", anchorPos);
             }
             return removed;
         }
@@ -60,7 +53,9 @@ registerItem({
         fieldSpriteName: "ss_sprite_004.png",
         onPlace(voxelMap, pos) {
             placeFacility(voxelMap, pos, ENTITY_TYPES.workbench, { w: 2, h: 1 });
-            workbenchStorage?.create(pos);
+            createStorage("workbench", pos);
         },
     },
 });
+
+registerStorage("workbench", { tool: [null] });

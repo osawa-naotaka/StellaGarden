@@ -118,21 +118,6 @@ export const FermentationStorageSaveDataSchema = v.object({
     ),
 });
 
-export const WorkbenchStorageSaveDataSchema = v.object({
-    workbenches: v.array(
-        v.object({
-            key: v.string(),
-            slots: v.object({
-                tool: NullableItemStackSchema,
-            }),
-        }),
-    ),
-});
-
-export const WarpGateStorageSaveDataSchema = v.object({
-    slots: v.array(NullableItemStackSchema),
-});
-
 // 手動処理 / 日次処理は入力1 + 出力2のスロット構造を共有する。
 // 手動処理は同じ入力に複数レシピが登録される施設（金床: 刃 / 扱き歯）があるため、
 // 選択中の recipe index を `selectedRecipeIndex` として保持する。日次処理側にこの分岐は無いが、
@@ -245,7 +230,6 @@ export const SaveDataSchema = v.object({
     distillerStorage: DistillerStorageSaveDataSchema,
     saltPanStorage: SaltPanStorageSaveDataSchema,
     fermentationStorage: FermentationStorageSaveDataSchema,
-    workbenchStorage: WorkbenchStorageSaveDataSchema,
     manualProcessingStorage: ManualProcessingStorageSaveDataSchema,
     dailyProcessingStorage: DailyProcessingStorageSaveDataSchema,
     autoProcessingStorage: AutoProcessingStorageSaveDataSchema,
@@ -274,7 +258,6 @@ export type BonfireStorageSaveData = v.InferOutput<typeof BonfireStorageSaveData
 export type DistillerStorageSaveData = v.InferOutput<typeof DistillerStorageSaveDataSchema>;
 export type SaltPanStorageSaveData = v.InferOutput<typeof SaltPanStorageSaveDataSchema>;
 export type FermentationStorageSaveData = v.InferOutput<typeof FermentationStorageSaveDataSchema>;
-export type WorkbenchStorageSaveData = v.InferOutput<typeof WorkbenchStorageSaveDataSchema>;
 export type ManualProcessingStorageSaveData = v.InferOutput<typeof ManualProcessingStorageSaveDataSchema>;
 export type DailyProcessingStorageSaveData = v.InferOutput<typeof DailyProcessingStorageSaveDataSchema>;
 export type AutoProcessingStorageSaveData = v.InferOutput<typeof AutoProcessingStorageSaveDataSchema>;

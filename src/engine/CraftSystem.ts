@@ -1,16 +1,14 @@
 import type { CraftStation, ICraftSystem, IInventoryWriter, ItemStack, RecipeDef } from "../_boundary/interfaces";
+import { getStorageSlot, setStorageSlot } from "../_registry/StorageRegistry";
 import type { UIState } from "../view/UIState";
 import { RECIPES } from "./RecipeDefs";
-import type { WorkbenchStorage } from "./WorkbenchStorage";
 
 export class CraftSystem implements ICraftSystem {
     private readonly inventory: IInventoryWriter;
-    private readonly workbenchStorage: WorkbenchStorage;
     private readonly uiState: UIState;
 
-    constructor(inventory: IInventoryWriter, workbenchStorage: WorkbenchStorage, uiState: UIState) {
+    constructor(inventory: IInventoryWriter, uiState: UIState) {
         this.inventory = inventory;
-        this.workbenchStorage = workbenchStorage;
         this.uiState = uiState;
     }
 
@@ -25,13 +23,13 @@ export class CraftSystem implements ICraftSystem {
     getToolSlot(): ItemStack | null {
         const pos = this.uiState.targetPos;
         if (!pos) return null;
-        return this.workbenchStorage.getTool(pos);
+        return getStorageSlot("workbench", pos, "tool", 0);
     }
 
     setToolSlot(stack: ItemStack | null): void {
         const pos = this.uiState.targetPos;
         if (!pos) return;
-        this.workbenchStorage.setTool(pos, stack);
+        setStorageSlot("workbench", pos, "tool", 0, stack)
     }
 
     canCraft(recipe: RecipeDef): boolean {

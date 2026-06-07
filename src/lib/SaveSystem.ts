@@ -13,7 +13,6 @@ export type {
     ReputationSaveData,
     SaveData,
     VoxelMapSaveData,
-    WorkbenchStorageSaveData,
 } from "./SaveSchema";
 
 // ─── セーブスロット型 ──────────────────────────────────────────────────────────

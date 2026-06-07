@@ -12,7 +12,6 @@ import type { PlayerState } from "../../engine/PlayerState";
 import type { ReputationSystem } from "../../engine/ReputationSystem";
 import type { SaltPanStorage } from "../../engine/SaltPanStorage";
 import type { SeedRequestSystem } from "../../engine/SeedRequestSystem";
-import type { WorkbenchStorage } from "../../engine/WorkbenchStorage";
 import type { SaveData } from "../../lib/SaveSystem";
 import type { VoxelMap } from "../../lib/VoxelMap";
 import { getStorages } from "../../_registry/StorageRegistry";
@@ -27,7 +26,6 @@ export interface SaveSnapshotDeps {
     distillerStorage: DistillerStorage;
     saltPanStorage: SaltPanStorage;
     fermentationStorage: FermentationStorage;
-    workbenchStorage: WorkbenchStorage;
     manualProcessingStorage: ManualProcessingStorage;
     dailyProcessingStorage: DailyProcessingStorage;
     autoProcessingStorage: AutoProcessingStorage;
@@ -50,7 +48,6 @@ export function buildSaveData(deps: SaveSnapshotDeps): Omit<SaveData, "version" 
         distillerStorage,
         saltPanStorage,
         fermentationStorage,
-        workbenchStorage,
         manualProcessingStorage,
         dailyProcessingStorage,
         autoProcessingStorage,
@@ -97,9 +94,6 @@ export function buildSaveData(deps: SaveSnapshotDeps): Omit<SaveData, "version" 
         },
         fermentationStorage: {
             vats: fermentationStorage.toSaveData(),
-        },
-        workbenchStorage: {
-            workbenches: workbenchStorage.toSaveData(),
         },
         manualProcessingStorage: {
             facilities: manualProcessingStorage.toSaveData(),

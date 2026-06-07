@@ -132,7 +132,6 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
                 distillerStorage,
                 saltPanStorage,
                 fermentationStorage,
-                workbenchStorage,
                 manualProcessingStorage,
                 dailyProcessingStorage,
                 autoProcessingStorage,
@@ -153,7 +152,7 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
             const chatHistory = new ChatHistory(saveData?.chatHistory);
             disposers.push(chatHistory.subscribeEvents(eventBroker));
 
-            const craftSystem = new CraftSystem(playerState.inventory, workbenchStorage, uiState);
+            const craftSystem = new CraftSystem(playerState.inventory, uiState);
 
             await loadSprite();
             if (!pixiApp) return;
@@ -185,7 +184,6 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
                 distillerStorage,
                 saltPanStorage,
                 fermentationStorage,
-                workbenchStorage,
                 dailyProcessingStorage,
                 autoProcessingStorage,
             ];
@@ -208,7 +206,7 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
                           }
                       }
                     }
-                    reputationSystem.processShipment(shippedItems);                    
+                    reputationSystem.processShipment(shippedItems);
 
                     // 種リクエスト（詰み救済）: 保留中の種を1スタック配達し、評価値に大幅減点を課す。
                     seedRequestSystem.fulfill(playerState.inventory, reputationSystem);
@@ -268,7 +266,6 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
                         distillerStorage,
                         saltPanStorage,
                         fermentationStorage,
-                        workbenchStorage,
                         manualProcessingStorage,
                         dailyProcessingStorage,
                         autoProcessingStorage,

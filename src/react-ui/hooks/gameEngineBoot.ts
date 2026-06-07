@@ -8,7 +8,6 @@ import { setFermentationStorage } from "../../_registry/entities/FermentationVat
 import { setManualProcessingStorage } from "../../_registry/entities/ManualProcessing";
 import { setSaltPanStorage } from "../../_registry/entities/Saltpan";
 import { setSoakingBasketStorage } from "../../_registry/entities/SoakingBasket";
-import { setWorkbenchStorage } from "../../_registry/entities/Workbench";
 import { AutoProcessingStorage } from "../../engine/AutoProcessingStorage";
 import { BonfireStorage } from "../../engine/BonfireStorage";
 import { CartStorage } from "../../engine/CartStorage";
@@ -19,7 +18,6 @@ import { ManualProcessingStorage } from "../../engine/ManualProcessingStorage";
 import { SaltPanStorage } from "../../engine/SaltPanStorage";
 import { setStationStorages } from "../../engine/StationSystem";
 import { generateTerrain } from "../../engine/TerrainGenerator";
-import { WorkbenchStorage } from "../../engine/WorkbenchStorage";
 import type { SaveData } from "../../lib/SaveSystem";
 import type { Size2D } from "../../lib/VoxelMap";
 import { VoxelMap } from "../../lib/VoxelMap";
@@ -48,7 +46,6 @@ export interface Storages {
     distillerStorage: DistillerStorage;
     saltPanStorage: SaltPanStorage;
     fermentationStorage: FermentationStorage;
-    workbenchStorage: WorkbenchStorage;
     manualProcessingStorage: ManualProcessingStorage;
     dailyProcessingStorage: DailyProcessingStorage;
     autoProcessingStorage: AutoProcessingStorage;
@@ -63,7 +60,7 @@ export function bootstrapStorages(saveData: SaveData | null): Storages {
     if (saveData) {
         loadStorages(saveData.storage);
     }
-    
+
     const bonfireStorage = new BonfireStorage();
     if (saveData) bonfireStorage.loadSaveData(saveData.bonfireStorage.bonfires);
     setBonfireStorage(bonfireStorage);
@@ -79,10 +76,6 @@ export function bootstrapStorages(saveData: SaveData | null): Storages {
     const fermentationStorage = new FermentationStorage();
     if (saveData) fermentationStorage.loadSaveData(saveData.fermentationStorage.vats);
     setFermentationStorage(fermentationStorage);
-
-    const workbenchStorage = new WorkbenchStorage();
-    if (saveData) workbenchStorage.loadSaveData(saveData.workbenchStorage.workbenches);
-    setWorkbenchStorage(workbenchStorage);
 
     const manualProcessingStorage = new ManualProcessingStorage();
     if (saveData) manualProcessingStorage.loadSaveData(saveData.manualProcessingStorage.facilities);
@@ -109,7 +102,6 @@ export function bootstrapStorages(saveData: SaveData | null): Storages {
         distillerStorage,
         saltPanStorage,
         fermentationStorage,
-        workbenchStorage,
         manualProcessingStorage,
         dailyProcessingStorage,
         autoProcessingStorage,
