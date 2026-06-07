@@ -2,7 +2,7 @@ import { useCallback } from "react";
 import type { IInventoryWriter, ItemStack, IVoxelWriter, SlotRef } from "../../_boundary/interfaces";
 import { getItemDisplayName } from "../../_registry/ItemRegistry";
 import type { FermentationStorage } from "../../engine/FermentationStorage";
-import { FERMENTATION_RECIPES } from "../../engine/ProcessingRecipes";
+import { FERMENTATION_RECIPES } from "../../_registry/ProcessingRecipes";
 import type { UIState } from "../../view/UIState";
 import { CursorStack } from "../components/CursorStack";
 import { InventoryGrid } from "../components/InventoryGrid";

@@ -1,7 +1,7 @@
 import type { ItemId, ItemStack, IVoxelWriter, Pos2D } from "../_boundary/interfaces";
 import { getItemDef } from "../_registry/ItemRegistry";
 import { KeyedSlotStorage } from "./KeyedSlotStorage";
-import { FERMENTATION_MAX_INGREDIENTS, FERMENTATION_RECIPES, type FermentationRecipe } from "./ProcessingRecipes";
+import { FERMENTATION_MAX_INGREDIENTS, FERMENTATION_RECIPES, type FermentationRecipe } from "../_registry/ProcessingRecipes";
 import { getDaysElapsedFromVoxel, setDaysElapsedInVoxel, setEnabledInVoxel } from "./VoxelDefs";
 
 /**

@@ -1,7 +1,7 @@
 import type { ItemId, ItemStack, IVoxelWriter, Pos2D } from "../_boundary/interfaces";
 import { getItemDef } from "../_registry/ItemRegistry";
 import { KeyedSlotStorage } from "./KeyedSlotStorage";
-import { DAILY_PROCESSING_DEFS, findRecipeForInput, getDailyProcessingDef, hasEnoughInput, isAcceptableInputItem } from "./ProcessingRecipes";
+import { DAILY_PROCESSING_DEFS, findRecipeForInput, getDailyProcessingDef, hasEnoughInput, isAcceptableInputItem } from "../_registry/ProcessingRecipes";
 import { ENTITY_TYPES, getDaysElapsedFromVoxel, getEntityTypeFromVoxel, setDaysElapsedInVoxel, setEnabledInVoxel } from "./VoxelDefs";
 
 /** カテゴリ3（日次処理）の状態。 */

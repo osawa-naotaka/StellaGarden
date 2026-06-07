@@ -227,7 +227,6 @@ export const SaveDataSchema = v.object({
     gameTime: GameTimeSaveDataSchema,
     storage: StoragesSchema,
     bonfireStorage: BonfireStorageSaveDataSchema,
-    distillerStorage: DistillerStorageSaveDataSchema,
     saltPanStorage: SaltPanStorageSaveDataSchema,
     fermentationStorage: FermentationStorageSaveDataSchema,
     manualProcessingStorage: ManualProcessingStorageSaveDataSchema,
@@ -255,7 +254,6 @@ export type PlayerStateSaveData = v.InferOutput<typeof PlayerStateSaveDataSchema
 export type InventorySaveData = v.InferOutput<typeof InventorySaveDataSchema>;
 export type GameTimeSaveData = v.InferOutput<typeof GameTimeSaveDataSchema>;
 export type BonfireStorageSaveData = v.InferOutput<typeof BonfireStorageSaveDataSchema>;
-export type DistillerStorageSaveData = v.InferOutput<typeof DistillerStorageSaveDataSchema>;
 export type SaltPanStorageSaveData = v.InferOutput<typeof SaltPanStorageSaveDataSchema>;
 export type FermentationStorageSaveData = v.InferOutput<typeof FermentationStorageSaveDataSchema>;
 export type ManualProcessingStorageSaveData = v.InferOutput<typeof ManualProcessingStorageSaveDataSchema>;

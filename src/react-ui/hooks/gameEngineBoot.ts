@@ -3,7 +3,6 @@ import { setAutoProcessingStorage } from "../../_registry/entities/AutoProcessin
 import { setBonfireStorage } from "../../_registry/entities/Bonfire";
 import { setCartStorage } from "../../_registry/entities/Cart";
 import { setDailyProcessingStorage } from "../../_registry/entities/DailyProcessing";
-import { setDistillerStorage } from "../../_registry/entities/Distiller";
 import { setFermentationStorage } from "../../_registry/entities/FermentationVat";
 import { setManualProcessingStorage } from "../../_registry/entities/ManualProcessing";
 import { setSaltPanStorage } from "../../_registry/entities/Saltpan";
@@ -11,7 +10,6 @@ import { setSoakingBasketStorage } from "../../_registry/entities/SoakingBasket"
 import { AutoProcessingStorage } from "../../engine/AutoProcessingStorage";
 import { BonfireStorage } from "../../engine/BonfireStorage";
 import { CartStorage } from "../../engine/CartStorage";
-import { DistillerStorage } from "../../engine/DistillerStorage";
 import { FermentationStorage } from "../../engine/FermentationStorage";
 import { DailyProcessingStorage } from "../../engine/DailyProcessingStorage";
 import { ManualProcessingStorage } from "../../engine/ManualProcessingStorage";
@@ -43,7 +41,6 @@ export function restoreOrGenerateVoxelMap(saveData: SaveData | null, worldSize: 
 
 export interface Storages {
     bonfireStorage: BonfireStorage;
-    distillerStorage: DistillerStorage;
     saltPanStorage: SaltPanStorage;
     fermentationStorage: FermentationStorage;
     manualProcessingStorage: ManualProcessingStorage;
@@ -64,10 +61,6 @@ export function bootstrapStorages(saveData: SaveData | null): Storages {
     const bonfireStorage = new BonfireStorage();
     if (saveData) bonfireStorage.loadSaveData(saveData.bonfireStorage.bonfires);
     setBonfireStorage(bonfireStorage);
-
-    const distillerStorage = new DistillerStorage();
-    if (saveData) distillerStorage.loadSaveData(saveData.distillerStorage.distillers);
-    setDistillerStorage(distillerStorage);
 
     const saltPanStorage = new SaltPanStorage();
     if (saveData) saltPanStorage.loadSaveData(saveData.saltPanStorage.saltpans);
@@ -99,7 +92,6 @@ export function bootstrapStorages(saveData: SaveData | null): Storages {
 
     return {
         bonfireStorage,
-        distillerStorage,
         saltPanStorage,
         fermentationStorage,
         manualProcessingStorage,

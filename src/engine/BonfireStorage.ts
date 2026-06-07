@@ -7,7 +7,7 @@ import {
     findAllRecipesForInput,
     isAcceptableInputItem,
     type ProcessingRecipe,
-} from "./ProcessingRecipes";
+} from "../_registry/ProcessingRecipes";
 import { setEnabledInVoxel, setRotatedInVoxel } from "./VoxelDefs";
 
 /**

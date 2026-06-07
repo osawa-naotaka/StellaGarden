@@ -75,6 +75,11 @@ export function getStorageSlot(storageId: StorageId, pos: Pos2D, kind: StorageKi
     return storage[index];
 }
 
+export function getStorageNumberValue(storageId: StorageId, pos: Pos2D, kind: StorageKind): number | null {
+    const itemStack = getStorageSlot(storageId, pos, kind, 0);
+    return itemStack ? itemStack.count : null;
+}
+
 export function setStorageSlot(storageId: StorageId, pos: Pos2D, kind: StorageKind, index: number, itemStack: ItemStack | null): void {
     const storage = get(storageId);
     const storageSet = storage.value[key(pos)];
@@ -86,6 +91,20 @@ export function setStorageSlot(storageId: StorageId, pos: Pos2D, kind: StorageKi
     newStorageSet[kind][index] = itemStack;
     storage.value[key(pos)] = newStorageSet;
 }
+
+export function setStorageNumberValue(storageId: StorageId, pos: Pos2D, kind: StorageKind, value: number): void {
+    const itemStack = storageNumberValueOf(value);
+    setStorageSlot(storageId, pos, kind, 0, itemStack)
+}
+
+export function storageNumberValueOf(value: number): ItemStack {
+    const itemStack: ItemStack = {
+        itemId: "none",
+        count: value,
+    };
+    return itemStack;
+}
+
 
 export function removeStorage(storageId: StorageId, pos: Pos2D): void {
     const storage = get(storageId);

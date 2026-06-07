@@ -2,7 +2,7 @@ import { useCallback } from "react";
 import type { IInventoryWriter, ItemStack, IVoxelWriter, SlotRef } from "../../_boundary/interfaces";
 import { getItemDisplayName } from "../../_registry/ItemRegistry";
 import type { BonfireSlotKind, BonfireStorage } from "../../engine/BonfireStorage";
-import { BONFIRE_MATERIAL_DEF, findAllRecipesForInput } from "../../engine/ProcessingRecipes";
+import { BONFIRE_MATERIAL_DEF, findAllRecipesForInput } from "../../_registry/ProcessingRecipes";
 import type { UIState } from "../../view/UIState";
 import { CursorStack } from "../components/CursorStack";
 import { InventoryGrid } from "../components/InventoryGrid";

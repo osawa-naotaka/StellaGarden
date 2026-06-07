@@ -13,7 +13,6 @@ import type { BonfireStorage } from "../engine/BonfireStorage";
 import type { CartStorage } from "../engine/CartStorage";
 import type { ChatHistory } from "../engine/ChatHistory";
 import type { DailyProcessingStorage } from "../engine/DailyProcessingStorage";
-import type { DistillerStorage } from "../engine/DistillerStorage";
 import type { FermentationStorage } from "../engine/FermentationStorage";
 import type { ManualProcessingStorage } from "../engine/ManualProcessingStorage";
 import type { MissionSystem } from "../engine/MissionSystem";
@@ -32,7 +31,6 @@ export interface EngineRefs {
     reputationSystem: IReputationSystemReader;
     seedRequestSystem: SeedRequestSystem;
     bonfireStorage: BonfireStorage;
-    distillerStorage: DistillerStorage;
     saltPanStorage: SaltPanStorage;
     fermentationStorage: FermentationStorage;
     cartStorage: CartStorage;

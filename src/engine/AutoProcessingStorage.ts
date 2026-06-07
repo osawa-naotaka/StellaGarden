@@ -2,7 +2,7 @@ import type { ItemStack, IVoxelWriter, Pos2D } from "../_boundary/interfaces";
 import { findFacilityAnchor } from "../_registry/facilityUtil";
 import { getItemDef } from "../_registry/ItemRegistry";
 import { KeyedSlotStorage } from "./KeyedSlotStorage";
-import { findRecipeForInput, getAutoProcessingDef, isAcceptableInputItem } from "./ProcessingRecipes";
+import { findRecipeForInput, getAutoProcessingDef, isAcceptableInputItem } from "../_registry/ProcessingRecipes";
 import { getEnabledFromVoxel, getEntityTypeFromVoxel } from "./VoxelDefs";
 
 /** 1施設のスロット状態。inputs が入力 8 スロット、outputs が出力 16 スロット。 */

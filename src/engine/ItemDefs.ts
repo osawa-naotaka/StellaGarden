@@ -2,6 +2,7 @@ import * as v from "valibot";
 
 /** インベントリに配置できるアイテムの ID 一覧。valibot picklist にも使う。 */
 export const ITEM_IDS = [
+    "none",
     "hand",
     "watering_can",
     "pickaxe",

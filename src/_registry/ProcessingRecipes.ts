@@ -1,5 +1,5 @@
 import type { ItemId } from "../_boundary/interfaces";
-import { ENTITY_TYPES } from "./VoxelDefs";
+import { ENTITY_TYPES } from "../engine/VoxelDefs";
 
 /**
  * 処理レシピ。1サイクルで「inputItemId × inputCountPerCycle」を消費し、outputs を生成する。

@@ -5,7 +5,7 @@ import { getStorageSlot, setStorageSlot } from "../_registry/StorageRegistry";
 import type { AutoProcessingStorage } from "./AutoProcessingStorage";
 import type { BonfireStorage } from "./BonfireStorage";
 import type { DailyProcessingStorage } from "./DailyProcessingStorage";
-import { AUTO_PROCESSING_DEFS, DAILY_PROCESSING_DEFS } from "./ProcessingRecipes";
+import { AUTO_PROCESSING_DEFS, DAILY_PROCESSING_DEFS } from "../_registry/ProcessingRecipes";
 import { ENTITY_TYPES, getEntityTypeFromVoxel, getVariantFromVoxel } from "./VoxelDefs";
 
 // ---------------------------------------------------------------------------
@@ -257,7 +257,7 @@ function loadChestToCart(
 ): boolean {
     let moved = false;
     for (let j = 0; j < 64; j++) {
-        const slot = getStorageSlot("chest", anchorPos, "main", j);        
+        const slot = getStorageSlot("chest", anchorPos, "main", j);
         if (slot === null) continue;
         const added = addItemToCart(cart, slot.itemId, slot.count);
         if (added > 0) {

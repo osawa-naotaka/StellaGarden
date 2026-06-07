@@ -3,7 +3,6 @@ import type { CartStorage } from "../../engine/CartStorage";
 import type { ChatHistory } from "../../engine/ChatHistory";
 import type { BonfireStorage } from "../../engine/BonfireStorage";
 import type { DailyProcessingStorage } from "../../engine/DailyProcessingStorage";
-import type { DistillerStorage } from "../../engine/DistillerStorage";
 import type { FermentationStorage } from "../../engine/FermentationStorage";
 import type { GameTime } from "../../engine/GameTime";
 import type { ManualProcessingStorage } from "../../engine/ManualProcessingStorage";
@@ -23,7 +22,6 @@ export interface SaveSnapshotDeps {
     playerState: PlayerState;
     gameTime: GameTime;
     bonfireStorage: BonfireStorage;
-    distillerStorage: DistillerStorage;
     saltPanStorage: SaltPanStorage;
     fermentationStorage: FermentationStorage;
     manualProcessingStorage: ManualProcessingStorage;
@@ -45,7 +43,6 @@ export function buildSaveData(deps: SaveSnapshotDeps): Omit<SaveData, "version" 
         playerState,
         gameTime,
         bonfireStorage,
-        distillerStorage,
         saltPanStorage,
         fermentationStorage,
         manualProcessingStorage,
@@ -85,9 +82,6 @@ export function buildSaveData(deps: SaveSnapshotDeps): Omit<SaveData, "version" 
         storage: getStorages(),
         bonfireStorage: {
             bonfires: bonfireStorage.toSaveData(),
-        },
-        distillerStorage: {
-            distillers: distillerStorage.toSaveData(),
         },
         saltPanStorage: {
             saltpans: saltPanStorage.toSaveData(),

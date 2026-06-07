@@ -2,7 +2,7 @@ import { useCallback, useMemo } from "react";
 import type { IInventoryWriter, ItemStack, IVoxelWriter, SlotRef } from "../../_boundary/interfaces";
 import { getItemDefByEntityType } from "../../_registry/ItemRegistry";
 import type { DailyProcessingStorage } from "../../engine/DailyProcessingStorage";
-import { findRecipeForInput, getDailyProcessingDef } from "../../engine/ProcessingRecipes";
+import { findRecipeForInput, getDailyProcessingDef } from "../../_registry/ProcessingRecipes";
 import { getEntityTypeFromVoxel } from "../../engine/VoxelDefs";
 import type { UIState } from "../../view/UIState";
 import { CursorStack } from "../components/CursorStack";
