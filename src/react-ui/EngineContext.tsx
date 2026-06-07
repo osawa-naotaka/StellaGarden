@@ -12,7 +12,6 @@ import type { AutoProcessingStorage } from "../engine/AutoProcessingStorage";
 import type { BonfireStorage } from "../engine/BonfireStorage";
 import type { CartStorage } from "../engine/CartStorage";
 import type { ChatHistory } from "../engine/ChatHistory";
-import type { DailyProcessingStorage } from "../engine/DailyProcessingStorage";
 import type { FermentationStorage } from "../engine/FermentationStorage";
 import type { ManualProcessingStorage } from "../engine/ManualProcessingStorage";
 import type { MissionSystem } from "../engine/MissionSystem";
@@ -33,7 +32,6 @@ export interface EngineRefs {
     fermentationStorage: FermentationStorage;
     cartStorage: CartStorage;
     manualProcessingStorage: ManualProcessingStorage;
-    dailyProcessingStorage: DailyProcessingStorage;
     autoProcessingStorage: AutoProcessingStorage;
     craftSystem: ICraftSystem;
     voxelMap: IVoxelWriter;

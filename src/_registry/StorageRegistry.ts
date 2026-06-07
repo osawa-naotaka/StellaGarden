@@ -1,6 +1,7 @@
 import * as v from "valibot";
-import type { ItemStack, IVoxelWriter, Pos2D } from "../_boundary/interfaces";
+import type { ItemId, ItemStack, IVoxelWriter, Pos2D } from "../_boundary/interfaces";
 import { ItemIdSchema } from "../engine/ItemDefs";
+import { getItemDef } from "./ItemRegistry";
 
 export const StorageIdSchema = ItemIdSchema;
 export const StorageKindSchema = v.string();
@@ -32,16 +33,21 @@ export type Storages = v.InferOutput<typeof StoragesSchema>;
 
 type OnDailyTick = (voxelMap: IVoxelWriter) => void;
 
+type CanAccept = (kind: string, index: number, itemStack: ItemStack | null) => boolean;
+
 let storages: Storages = {};
 const onDailyTicks: Array<OnDailyTick> = [];
+
+const canAccepts = new Map<ItemId, CanAccept>();
 
 function key(pos: Pos2D): string {
     return `${pos.x},${pos.z}`;
 }
 
-export function registerStorage(storageId: StorageId, initialValue: StorageSet, onDailyTick?: OnDailyTick): void {
+export function registerStorage(storageId: StorageId, initialValue: StorageSet, onDailyTick?: OnDailyTick, canAccept?: CanAccept): void {
     storages[storageId] = { value: {}, initialValue };
     if (onDailyTick) onDailyTicks.push(onDailyTick);
+    if (canAccept) canAccepts.set(storageId, canAccept);
 }
 
 export function onDailyTickStorage(voxelMap: IVoxelWriter): void {
@@ -90,6 +96,44 @@ export function setStorageSlot(storageId: StorageId, pos: Pos2D, kind: StorageKi
     };
     newStorageSet[kind][index] = itemStack;
     storage.value[key(pos)] = newStorageSet;
+}
+
+export function addToStorage(storageId: StorageId, pos: Pos2D, kind: StorageKind, itemStack: ItemStack | null): number {
+    if (itemStack === null) return 0;
+    const canAccept = canAccepts.get(storageId);
+
+    const maxStack = getItemDef(itemStack.itemId)?.maxStack ?? 1;
+    
+    const storage = get(storageId);
+    const storageSet = storage.value[key(pos)];
+    if (storageSet === undefined) throw new Error(`Storage not found at ${pos.x},${pos.z}`);
+    if (!storageSet[kind]) throw new Error(`Storage kind ${kind} not found`);
+
+    const slots = [];
+    let acc = 0;
+
+    for (let i = 0; i < storageSet[kind].length; i++) {
+        if (canAccept && !canAccept(kind, i, itemStack)) continue;
+        const slot = storageSet[kind][i];
+        if (slot === null) {
+            if (acc !== itemStack.count) {
+                slots[i] = itemStack;
+                acc += itemStack.count;
+            }
+            continue; 
+        }
+        if (slot.itemId === itemStack.itemId) {
+            slots[i] = {
+                itemId: slot.itemId,
+                count: Math.min(slot.count + (itemStack.count - acc), maxStack),
+            };
+            acc += slots[i]?.count ?? 0 - slot.count;
+        } else {
+            slots[i] = slot;
+        }
+    }
+
+    return acc;
 }
 
 export function setStorageNumberValue(storageId: StorageId, pos: Pos2D, kind: StorageKind, value: number): void {

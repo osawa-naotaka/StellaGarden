@@ -1,4 +1,4 @@
-import type { IVoxelReader, IVoxelWriter, Pos2D } from "../_boundary/interfaces";
+import type { ItemId, IVoxelReader, IVoxelWriter, Pos2D } from "../_boundary/interfaces";
 import type { InteractionContext } from "./EntityRegistry";
 
 /** 配置可能アイテムのバリアント番号。0..7 を想定する。 */
@@ -31,7 +31,7 @@ export interface PlacementInfo {
  * スプライト名・スタック上限・ワールド使用・配置情報を1つにまとめる。
  */
 export interface ItemDef {
-    readonly itemId: string;
+    readonly itemId: ItemId;
 
     /** ツールチップ等に表示する日本語名。省略時は itemId をそのまま使う。 */
     readonly displayName?: string;

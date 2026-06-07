@@ -131,7 +131,6 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
                 bonfireStorage,
                 fermentationStorage,
                 manualProcessingStorage,
-                dailyProcessingStorage,
                 autoProcessingStorage,
                 cartStorage,
             } = bootstrapStorages(saveData);
@@ -180,7 +179,6 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
             const dailyTickStorages = [
                 bonfireStorage,
                 fermentationStorage,
-                dailyProcessingStorage,
                 autoProcessingStorage,
             ];
 
@@ -223,7 +221,6 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
                 bonfireStorage,
                 fermentationStorage,
                 manualProcessingStorage,
-                dailyProcessingStorage,
                 autoProcessingStorage,
                 cartStorage,
                 craftSystem,
@@ -259,7 +256,6 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
                         bonfireStorage,
                         fermentationStorage,
                         manualProcessingStorage,
-                        dailyProcessingStorage,
                         autoProcessingStorage,
                         cartStorage,
                         reputationSystem,

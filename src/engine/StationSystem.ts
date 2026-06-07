@@ -1,10 +1,9 @@
 import type { ICartWriter, IEventBroker, IVoxelWriter, Pos2D } from "../_boundary/interfaces";
 import { findFacilityAnchor } from "../_registry/facilityUtil";
-import { getItemDef } from "../_registry/ItemRegistry";
-import { getStorageSlot, setStorageSlot } from "../_registry/StorageRegistry";
+import { getItemDef, getItemDefByEntityType } from "../_registry/ItemRegistry";
+import { addToStorage, getStorageSlot, setStorageSlot } from "../_registry/StorageRegistry";
 import type { AutoProcessingStorage } from "./AutoProcessingStorage";
 import type { BonfireStorage } from "./BonfireStorage";
-import type { DailyProcessingStorage } from "./DailyProcessingStorage";
 import { AUTO_PROCESSING_DEFS, DAILY_PROCESSING_DEFS } from "../_registry/ProcessingRecipes";
 import { ENTITY_TYPES, getEntityTypeFromVoxel, getVariantFromVoxel } from "./VoxelDefs";
 
@@ -53,7 +52,6 @@ function isParallel(a: Vec2, b: Vec2): boolean {
 // ---------------------------------------------------------------------------
 
 let bonfireStorageRef: BonfireStorage | null = null;
-let dailyStorageRef: DailyProcessingStorage | null = null;
 let autoStorageRef: AutoProcessingStorage | null = null;
 
 /**
@@ -62,11 +60,9 @@ let autoStorageRef: AutoProcessingStorage | null = null;
  */
 export function setStationStorages(
     bonfire: BonfireStorage,
-    daily: DailyProcessingStorage,
     auto: AutoProcessingStorage,
 ): void {
     bonfireStorageRef = bonfire;
-    dailyStorageRef = daily;
     autoStorageRef = auto;
 }
 
@@ -200,7 +196,6 @@ function unloadCartToAuto(
 function unloadCartToDaily(
     cart: ICartWriter,
     anchorPos: Pos2D,
-    dailyStorage: DailyProcessingStorage,
     voxelMap: IVoxelWriter,
 ): boolean {
     let moved = false;
@@ -209,7 +204,10 @@ function unloadCartToDaily(
     for (let i = 0; i < cart.inventorySlots.length; i++) {
         const slot = cart.inventorySlots[i];
         if (slot === null) continue;
-        const movedCount = dailyStorage.addInput(anchorPos, slot.itemId, slot.count, voxelMap);
+        const entityType = getEntityTypeFromVoxel(voxelMap.getSurface({ x: anchorPos.x, y: 0, z: anchorPos.z }));
+        const itemDef = getItemDefByEntityType(entityType);
+        if (itemDef === undefined) throw new Error(`No itemId for entity type ${entityType}`);
+        const movedCount = addToStorage(itemDef.itemId, anchorPos, "input", slot);
         if (movedCount <= 0) continue;
         const remaining = slot.count - movedCount;
         cart.setInventorySlot(i, remaining > 0 ? { itemId: slot.itemId, count: remaining } : null);
@@ -314,18 +312,19 @@ function loadBonfireToCart(
 function loadDailyToCart(
     cart: ICartWriter,
     anchorPos: Pos2D,
-    dailyStorage: DailyProcessingStorage,
     voxelMap: IVoxelWriter,
 ): boolean {
     let moved = false;
+    const entityType = getEntityTypeFromVoxel(voxelMap.getSurface({ x: anchorPos.x, y: 0, z: anchorPos.z }));
+    const itemId = getItemDefByEntityType(entityType)?.itemId ?? "none";
     for (const idx of [0, 1] as const) {
-        const slot = dailyStorage.getOutput(anchorPos, idx);
+        const slot = getStorageSlot(itemId, anchorPos, "output", idx);
         if (slot === null) continue;
         const added = addItemToCart(cart, slot.itemId, slot.count);
         if (added > 0) {
             const remaining = slot.count - added;
             // setOutput(index=0) は enabled ビットも更新するため必ず setOutput 経由で呼ぶ
-            dailyStorage.setOutput(anchorPos, idx, remaining > 0 ? { itemId: slot.itemId, count: remaining } : null, voxelMap);
+            setStorageSlot(itemId, anchorPos, "output", idx, remaining > 0 ? { itemId: slot.itemId, count: remaining } : null);
             moved = true;
         }
     }
@@ -346,7 +345,7 @@ export function executeStationTransfersOnCartEnter(
     cart: ICartWriter,
     eventBroker: IEventBroker,
 ): void {
-    if (!bonfireStorageRef || !dailyStorageRef || !autoStorageRef) return;
+    if (!bonfireStorageRef  || !autoStorageRef) return;
 
     const T: Pos2D = {
         x: Math.floor(cart.posInWorld.x),
@@ -436,16 +435,16 @@ export function executeStationTransfersOnCartEnter(
             }
         } else if (DAILY_PROCESSING_DEFS[facilityEntityType] !== undefined) {
             if (isLoader) {
-                moved = loadDailyToCart(cart, anchorPos, dailyStorageRef, voxelMap);
+                moved = loadDailyToCart(cart, anchorPos, voxelMap);
                 if (moved) {
                     for (const slot of cart.inventorySlots) {
                         if (slot !== null) { representativeItemId = slot.itemId; break; }
                     }
                 }
             } else {
-                moved = unloadCartToDaily(cart, anchorPos, dailyStorageRef, voxelMap);
+                moved = unloadCartToDaily(cart, anchorPos, voxelMap);
                 if (moved) {
-                    const inputSlot = dailyStorageRef.getInput(anchorPos);
+                    const inputSlot = getStorageSlot(getItemDefByEntityType(facilityEntityType)?.itemId ?? "none", anchorPos, "input", 0);
                     if (inputSlot !== null) representativeItemId = inputSlot.itemId;
                 }
             }

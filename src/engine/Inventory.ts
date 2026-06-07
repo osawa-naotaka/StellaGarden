@@ -46,7 +46,7 @@ const DEFAULT_INVENTORY_ITEMS: readonly (DefaultItem | null)[] = [
     { itemId: "auto_screw_press", count: 1 },
     { itemId: "distiller", count: 1 },
     { itemId: "trunk", count: 64 },
-    { itemId: "wheat_moromi", count: 64 },
+    { itemId: "steamed_wheat", count: 64 },
     { itemId: "station", count: 64 },
     { itemId: "chest", count: 64 },
     { itemId: "stem", count: 64 },

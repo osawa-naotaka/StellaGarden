@@ -10,19 +10,13 @@
  * 状態遷移は DailyProcessingStorage が voxel の entityType と growthStage を
  * 自動的に書き換えることで実現する。
  */
-import type { ItemId } from "../../_boundary/interfaces";
-import type { DailyProcessingStorage } from "../../engine/DailyProcessingStorage";
-import { ENTITY_TYPES, getDaysElapsedFromVoxel, getEnabledFromVoxel } from "../../engine/VoxelDefs";
+import type { ItemId, IVoxelWriter, Pos2D } from "../../_boundary/interfaces";
+import { ENTITY_TYPES, getDaysElapsedFromVoxel, getEnabledFromVoxel, getEntityTypeFromVoxel, setDaysElapsedInVoxel, setEnabledInVoxel } from "../../engine/VoxelDefs";
 import { type EntitySpriteInfo, type InteractionContext, registerEntity } from "../EntityRegistry";
 import { findFacilityAnchor, placeFacility, removeFacility } from "../facilityUtil";
-import { registerItem } from "../ItemRegistry";
-
-let dailyProcessingStorage: DailyProcessingStorage | null = null;
-
-/** App / hooks 層から DailyProcessingStorage を注入する。 */
-export function setDailyProcessingStorage(storage: DailyProcessingStorage): void {
-    dailyProcessingStorage = storage;
-}
+import { getItemDef, registerItem } from "../ItemRegistry";
+import { DAILY_PROCESSING_DEFS, findRecipeForInput, getDailyProcessingDef, isAcceptableInputItem } from "../ProcessingRecipes";
+import { collectAllStacks, createStorage, getStorage, posFromStorageKey, registerStorage, removeStorage, setStorageSlot } from "../StorageRegistry";
 
 interface DailyProcessingEntityOptions {
     /** empty 状態 = ベース entityType。 */
@@ -61,9 +55,9 @@ export function registerDailyProcessingEntity(opts: DailyProcessingEntityOptions
             const anchor = findFacilityAnchor(ctx.voxelMap, ctx.surfacePos.x, ctx.surfacePos.z);
             if (anchor.entityType !== baseEntityType) throw new Error("anchor entity type mismatch");
             const anchorPos = { x: anchor.anchorX, z: anchor.anchorZ };
-            const extraItems = dailyProcessingStorage?.collectAllStacks(anchorPos) ?? [];
+            const extraItems = collectAllStacks(itemId, anchorPos) ?? [];
             const removed = removeFacility(ctx.voxelMap, ctx.inventory, anchor.anchorX, anchor.anchorZ, anchor.entityType, 0, extraItems);
-            if (removed) dailyProcessingStorage?.remove(anchorPos);
+            if (removed) removeStorage(itemId, anchorPos);
             return removed;
         },
 
@@ -71,7 +65,6 @@ export function registerDailyProcessingEntity(opts: DailyProcessingEntityOptions
         onOpenFacilityUI(ctx: InteractionContext): boolean {
             const anchor = findFacilityAnchor(ctx.voxelMap, ctx.surfacePos.x, ctx.surfacePos.z);
             const anchorPos = { x: anchor.anchorX, z: anchor.anchorZ };
-            dailyProcessingStorage?.create(anchorPos);
             ctx.eventBroker.publish("open_processing_daily_ui", { pos: anchorPos });
             return true;
         },
@@ -88,10 +81,99 @@ export function registerDailyProcessingEntity(opts: DailyProcessingEntityOptions
             fieldSpriteName: sprites(0n),
             onPlace(voxelMap, pos) {
                 placeFacility(voxelMap, pos, baseEntityType, entitySize);
-                dailyProcessingStorage?.create(pos);
+                createStorage(itemId, pos);
             },
         },
     });
+
+    registerStorage(itemId, { input: [null], output: [null, null] },
+        (voxelMap) => {
+          for (const [key, slots] of Object.entries(getStorage(itemId).value)) {
+              const pos = posFromStorageKey(key);
+              const surface = voxelMap.getSurfacePosition({ x: pos.x, y: 0, z: pos.z });
+              const voxel = voxelMap.get(surface);
+              const entityType = getEntityTypeFromVoxel(voxel);
+              // 日次処理対象外の entityType（旧セーブに残った焚き火など）は安全にスキップする。
+              const def = DAILY_PROCESSING_DEFS[entityType];
+              if (!def) continue;
+              if (!slots.input[0]) continue;
+  
+              const recipe = findRecipeForInput(def, slots.input[0].itemId);
+              if (slots.input[0].count < recipe.inputCountPerCycle) continue;
+  
+              const daysElapsed = getDaysElapsedFromVoxel(voxel);
+              const nextDays = daysElapsed + 1;
+  
+              if (nextDays < def.daysRequired + 1) {
+                  // 進行中（loading → progressing への状態遷移は updateVoxelEntityType で）
+                  voxelMap.set(setDaysElapsedInVoxel(voxel, nextDays), surface);
+                  continue;
+              }
+  
+              // 完了タイミング: 出力スロットの収まり判定（アトミック）
+              let canApply = true;
+              for (let i = 0; i < recipe.outputs.length; i++) {
+                  const out = recipe.outputs[i];
+                  const slot = slots.output[i];
+                  if (slot === null) continue;
+                  if (slot.itemId !== out.itemId) {
+                      canApply = false;
+                      break;
+                  }
+                  const max = getItemDef(out.itemId)?.maxStack ?? 64;
+                  if (slot.count + out.count > max) {
+                      canApply = false;
+                      break;
+                  }
+              }
+              if (!canApply) {
+                  // 出力満杯 → 進行を保留（daysElapsed を上限のまま据え置く）
+                  voxelMap.set(setDaysElapsedInVoxel(voxel, def.daysRequired - 1), surface);
+                  continue;
+              }
+  
+              // 入力消費 + 出力加算
+              slots.input[0].count -= recipe.inputCountPerCycle;
+              // 完了フラグは enabled ビットに記録する（variant ビットは向き専用に解放）。
+              const newEnabledVoxel = setEnabledInVoxel(voxel, true);
+              if (slots.input[0].count < recipe.inputCountPerCycle) {
+                  voxelMap.set(setDaysElapsedInVoxel(newEnabledVoxel, 0), surface);
+              } else {
+                  voxelMap.set(setDaysElapsedInVoxel(newEnabledVoxel, 1), surface);
+              }
+              if (slots.input[0].count <= 0) slots.input[0] = null;
+              setStorageSlot(itemId, pos, "input", 0, slots.input[0]);
+              for (let i = 0; i < recipe.outputs.length; i++) {
+                  const out = recipe.outputs[i];
+                  const slot = slots.output[i];
+                  if (slot === null) {
+                      slots.output[i] = { itemId: out.itemId, count: out.count };
+                  } else {
+                      slot.count += out.count;
+                  }
+                  setStorageSlot(itemId, pos, "output", i, slots.output[0]);
+              }
+          }            
+        }
+    );
+}
+
+function getBaseEntityTypeAt(pos: Pos2D, voxelMap: IVoxelWriter): number {
+    const surface = voxelMap.getSurfacePosition({ x: pos.x, y: 0, z: pos.z });
+    return getEntityTypeFromVoxel(voxelMap.get(surface));
+}
+
+export function dailyProcessingCanAcceptInput(pos: Pos2D, itemId: string, voxelMap: IVoxelWriter): boolean {
+    const baseEntityType = getBaseEntityTypeAt(pos, voxelMap);
+    if (baseEntityType === ENTITY_TYPES.none) return false;
+    const def = getDailyProcessingDef(baseEntityType);
+    if (!def) return false;
+    return isAcceptableInputItem(def, itemId as never);
+}
+
+export function getDaysElapsed(pos: Pos2D, voxelMap: IVoxelWriter): number {
+    const surface = voxelMap.getSurfacePosition({ x: pos.x, y: 0, z: pos.z });
+    return getDaysElapsedFromVoxel(voxelMap.get(surface));
 }
 
 // ── 移行済みエンティティの登録 ──

@@ -2,15 +2,12 @@ import type { IEventBroker } from "../../_boundary/interfaces";
 import { setAutoProcessingStorage } from "../../_registry/entities/AutoProcessing";
 import { setBonfireStorage } from "../../_registry/entities/Bonfire";
 import { setCartStorage } from "../../_registry/entities/Cart";
-import { setDailyProcessingStorage } from "../../_registry/entities/DailyProcessing";
 import { setFermentationStorage } from "../../_registry/entities/FermentationVat";
 import { setManualProcessingStorage } from "../../_registry/entities/ManualProcessing";
-import { setSoakingBasketStorage } from "../../_registry/entities/SoakingBasket";
 import { AutoProcessingStorage } from "../../engine/AutoProcessingStorage";
 import { BonfireStorage } from "../../engine/BonfireStorage";
 import { CartStorage } from "../../engine/CartStorage";
 import { FermentationStorage } from "../../engine/FermentationStorage";
-import { DailyProcessingStorage } from "../../engine/DailyProcessingStorage";
 import { ManualProcessingStorage } from "../../engine/ManualProcessingStorage";
 import { setStationStorages } from "../../engine/StationSystem";
 import { generateTerrain } from "../../engine/TerrainGenerator";
@@ -41,7 +38,6 @@ export interface Storages {
     bonfireStorage: BonfireStorage;
     fermentationStorage: FermentationStorage;
     manualProcessingStorage: ManualProcessingStorage;
-    dailyProcessingStorage: DailyProcessingStorage;
     autoProcessingStorage: AutoProcessingStorage;
     cartStorage: CartStorage;
 }
@@ -67,17 +63,13 @@ export function bootstrapStorages(saveData: SaveData | null): Storages {
     if (saveData) manualProcessingStorage.loadSaveData(saveData.manualProcessingStorage.facilities);
     setManualProcessingStorage(manualProcessingStorage);
 
-    const dailyProcessingStorage = new DailyProcessingStorage();
-    if (saveData) dailyProcessingStorage.loadSaveData(saveData.dailyProcessingStorage.facilities);
-    setDailyProcessingStorage(dailyProcessingStorage);
-    setSoakingBasketStorage(dailyProcessingStorage); // 浸漬槽は独立エンティティだが storage を共有
 
     const autoProcessingStorage = new AutoProcessingStorage();
     if (saveData) autoProcessingStorage.loadSaveData(saveData.autoProcessingStorage.facilities);
     setAutoProcessingStorage(autoProcessingStorage);
 
     // ステーション（フォーク搬送）は chest / daily / auto の3ストレージにアクセスする
-    setStationStorages(bonfireStorage, dailyProcessingStorage, autoProcessingStorage);
+    setStationStorages(bonfireStorage, autoProcessingStorage);
 
     const cartStorage = new CartStorage();
     if (saveData) cartStorage.loadSaveData(saveData.cartStorage);
@@ -87,7 +79,6 @@ export function bootstrapStorages(saveData: SaveData | null): Storages {
         bonfireStorage,
         fermentationStorage,
         manualProcessingStorage,
-        dailyProcessingStorage,
         autoProcessingStorage,
         cartStorage,
     };

@@ -217,7 +217,6 @@ export const SaveDataSchema = v.object({
     bonfireStorage: BonfireStorageSaveDataSchema,
     fermentationStorage: FermentationStorageSaveDataSchema,
     manualProcessingStorage: ManualProcessingStorageSaveDataSchema,
-    dailyProcessingStorage: DailyProcessingStorageSaveDataSchema,
     autoProcessingStorage: AutoProcessingStorageSaveDataSchema,
     cartStorage: CartStorageSaveDataSchema,
     reputation: ReputationSaveDataSchema,

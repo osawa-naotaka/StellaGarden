@@ -2,7 +2,6 @@ import type { AutoProcessingStorage } from "../../engine/AutoProcessingStorage";
 import type { CartStorage } from "../../engine/CartStorage";
 import type { ChatHistory } from "../../engine/ChatHistory";
 import type { BonfireStorage } from "../../engine/BonfireStorage";
-import type { DailyProcessingStorage } from "../../engine/DailyProcessingStorage";
 import type { FermentationStorage } from "../../engine/FermentationStorage";
 import type { GameTime } from "../../engine/GameTime";
 import type { ManualProcessingStorage } from "../../engine/ManualProcessingStorage";
@@ -23,7 +22,6 @@ export interface SaveSnapshotDeps {
     bonfireStorage: BonfireStorage;
     fermentationStorage: FermentationStorage;
     manualProcessingStorage: ManualProcessingStorage;
-    dailyProcessingStorage: DailyProcessingStorage;
     autoProcessingStorage: AutoProcessingStorage;
     cartStorage: CartStorage;
     reputationSystem: ReputationSystem;
@@ -43,7 +41,6 @@ export function buildSaveData(deps: SaveSnapshotDeps): Omit<SaveData, "version" 
         bonfireStorage,
         fermentationStorage,
         manualProcessingStorage,
-        dailyProcessingStorage,
         autoProcessingStorage,
         cartStorage,
         reputationSystem,
@@ -85,9 +82,6 @@ export function buildSaveData(deps: SaveSnapshotDeps): Omit<SaveData, "version" 
         },
         manualProcessingStorage: {
             facilities: manualProcessingStorage.toSaveData(),
-        },
-        dailyProcessingStorage: {
-            facilities: dailyProcessingStorage.toSaveData(),
         },
         autoProcessingStorage: {
             facilities: autoProcessingStorage.toSaveData(),
