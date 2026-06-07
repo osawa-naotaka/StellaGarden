@@ -61,7 +61,7 @@ registerItem({
     maxStack: 64,
     onItemUse(ctx) {
         // 水タイルを無視して地面の高さを取得し、地面の1つ上に dirt を配置する
-        const groundPos = ctx.voxelMap.getGroundSurfacePosition(ctx.surfacePos);
+        const groundPos = ctx.voxelMap.getGroundSurfacePosition(ctx.interactPos);
         const groundVoxel = ctx.voxelMap.get(groundPos);
         const groundTerrainType = getTerrainTypeFromVoxel(groundVoxel);
         const surfaceTerrainType = getTerrainTypeFromVoxel(ctx.voxel);
@@ -73,7 +73,7 @@ registerItem({
                 groundTerrainType === TERRAIN_TYPES.soil ||
                 groundTerrainType === TERRAIN_TYPES.wetSoil) &&
             groundPos.y + 1 < ctx.voxelMap.height &&
-            (isWaterSurface || isSafeToAdd3x3(ctx.voxelMap, ctx.surfacePos.x, ctx.surfacePos.z)) &&
+            (isWaterSurface || isSafeToAdd3x3(ctx.voxelMap, ctx.interactPos.x, ctx.interactPos.z)) &&
             ctx.inventory.consumeSelectedItem(1)
         ) {
             ctx.voxelMap.set(initializeVoxel(TERRAIN_TYPES.dirt), {
@@ -86,8 +86,8 @@ registerItem({
                 y: groundPos.y + 1,
                 z: groundPos.z,
             });
-            revertNearbyInvalidTerrain(ctx.voxelMap, ctx.surfacePos.x, ctx.surfacePos.z);
-            removeDisconnectedWater(ctx.voxelMap, ctx.surfacePos.x, ctx.surfacePos.z);
+            revertNearbyInvalidTerrain(ctx.voxelMap, ctx.interactPos.x, ctx.interactPos.z);
+            removeDisconnectedWater(ctx.voxelMap, ctx.interactPos.x, ctx.interactPos.z);
             recomputeAllFullowCanalWaterFlow(ctx.voxelMap);
             return true;
         }

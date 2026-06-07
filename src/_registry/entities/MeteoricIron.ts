@@ -21,7 +21,7 @@ registerEntity({
     onInteract(ctx: InteractionContext): boolean {
         if (ctx.tool !== "pickaxe") return false;
 
-        const anchor = findFacilityAnchor(ctx.voxelMap, ctx.surfacePos.x, ctx.surfacePos.z);
+        const anchor = findFacilityAnchor(ctx.voxelMap, ctx.interactPos.x, ctx.interactPos.z);
         if (anchor.entityType !== ENTITY_TYPES.meteoric_iron) throw new Error("anchor entity type mismatch");
 
         if (!ctx.inventory.addItems([{ itemId: "meteoric_iron", count: 8 }])) return false;

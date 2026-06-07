@@ -12,7 +12,7 @@
 import type { FermentationStorage } from "../../engine/FermentationStorage";
 import { ENTITY_TYPES } from "../../engine/VoxelDefs";
 import { type EntitySpriteInfo, type InteractionContext, registerEntity } from "../EntityRegistry";
-import { findFacilityAnchor, placeFacility, removeFacility } from "../facilityUtil";
+import { placeFacility, removeFacilityByContext } from "../facilityUtil";
 import { registerItem } from "../ItemRegistry";
 
 const ENTITY_SIZE = { w: 1, h: 1 };
@@ -38,20 +38,15 @@ registerEntity({
 
     onInteract(ctx: InteractionContext): boolean {
         if (ctx.tool !== "axe") return false;
-        const anchor = findFacilityAnchor(ctx.voxelMap, ctx.surfacePos.x, ctx.surfacePos.z);
-        if (anchor.entityType !== ENTITY_TYPES.fermentation_vat) throw new Error("anchor entity type mismatch");
-        const anchorPos = { x: anchor.anchorX, z: anchor.anchorZ };
-        const extraItems = fermentationStorage?.collectAllStacks(anchorPos) ?? [];
-        const removed = removeFacility(ctx.voxelMap, ctx.inventory, anchor.anchorX, anchor.anchorZ, anchor.entityType, 0, extraItems);
-        if (removed) fermentationStorage?.remove(anchorPos);
+        const extraItems = fermentationStorage?.collectAllStacks(ctx.anchorPos) ?? [];
+        const removed = removeFacilityByContext(ctx, extraItems);
+        if (removed) fermentationStorage?.remove(ctx.anchorPos);
         return removed;
     },
 
     onOpenFacilityUI(ctx: InteractionContext): boolean {
-        const anchor = findFacilityAnchor(ctx.voxelMap, ctx.surfacePos.x, ctx.surfacePos.z);
-        const anchorPos = { x: anchor.anchorX, z: anchor.anchorZ };
-        fermentationStorage?.create(anchorPos);
-        ctx.eventBroker.publish("open_fermentation_ui", { pos: anchorPos });
+        fermentationStorage?.create(ctx.anchorPos);
+        ctx.eventBroker.publish("open_fermentation_ui", { pos: ctx.anchorPos });
         return true;
     },
 });

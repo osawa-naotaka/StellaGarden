@@ -11,7 +11,7 @@ import type { IVoxelReader, Pos2D } from "../../_boundary/interfaces";
 import { recomputeAllShaftPowerFlow } from "../../engine/ShaftPowerFlow";
 import { ENTITY_TYPES, getEntityTypeFromVoxel, getTerrainTypeFromVoxel, getVariantFromVoxel, setVariantInVoxel, TERRAIN_TYPES } from "../../engine/VoxelDefs";
 import { type EntitySpriteInfo, type InteractionContext, registerEntity } from "../EntityRegistry";
-import { placeFacility, removeFacilityAtPos } from "../facilityUtil";
+import { placeFacility, removeFacilityByContext } from "../facilityUtil";
 import { type PlacementVariant, registerItem } from "../ItemRegistry";
 
 const ENTITY_H_W = 3;
@@ -96,7 +96,7 @@ registerEntity({
 
     onInteract(ctx: InteractionContext): boolean {
         if (ctx.tool !== "axe") return false;
-        const removed = removeFacilityAtPos(ctx.voxelMap, ctx.inventory, ctx.surfacePos.x, ctx.surfacePos.z, ENTITY_TYPES.waterwheel);
+        const removed = removeFacilityByContext(ctx);
         if (removed) {
             recomputeAllShaftPowerFlow(ctx.voxelMap);
         }

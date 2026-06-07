@@ -1,13 +1,8 @@
 import { ENTITY_TYPES } from "../../engine/VoxelDefs";
 import { type EntitySpriteInfo, type InteractionContext, registerEntity } from "../EntityRegistry";
-import { findFacilityAnchor, placeFacility, removeFacilityAtPos } from "../facilityUtil";
+import { placeFacility } from "../facilityUtil";
 import { registerItem } from "../ItemRegistry";
-import { collectAllStacks, createStorage, registerStorage, removeStorage } from "../StorageRegistry";
-
-function resolveWorkbenchAnchor(ctx: InteractionContext): { x: number; z: number } {
-    const anchor = findFacilityAnchor(ctx.voxelMap, ctx.surfacePos.x, ctx.surfacePos.z);
-    return { x: anchor.anchorX, z: anchor.anchorZ };
-}
+import { createStorage, registerStorage, removeFacilityAndReturnItemsToInventory, removeStorage } from "../StorageRegistry";
 
 registerEntity({
     entityType: ENTITY_TYPES.workbench,
@@ -22,11 +17,9 @@ registerEntity({
 
     onInteract(ctx: InteractionContext): boolean {
         if (ctx.tool === "axe") {
-            const anchorPos = resolveWorkbenchAnchor(ctx);
-            const extraItems = collectAllStacks("workbench", anchorPos) ?? [];
-            const removed = removeFacilityAtPos(ctx.voxelMap, ctx.inventory, anchorPos.x, anchorPos.z, ENTITY_TYPES.workbench, extraItems);
+            const removed = removeFacilityAndReturnItemsToInventory("workbench", ctx);
             if (removed) {
-                removeStorage("workbench", anchorPos);
+                removeStorage("workbench", ctx.anchorPos);
             }
             return removed;
         }
@@ -34,10 +27,9 @@ registerEntity({
     },
 
     onOpenFacilityUI(ctx: InteractionContext): boolean {
-        const anchorPos = resolveWorkbenchAnchor(ctx);
         ctx.eventBroker.publish("open_craft_ui", {
-            pos: { x: ctx.surfacePos.x, z: ctx.surfacePos.z },
-            workbenchPos: anchorPos,
+            pos: ctx.interactPos,
+            workbenchPos: ctx.anchorPos,
         });
         return true;
     },

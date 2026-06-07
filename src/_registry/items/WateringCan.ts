@@ -8,8 +8,8 @@ registerItem({
     maxStack: 1,
     onItemUse(ctx) {
         if (getTerrainTypeFromVoxel(ctx.voxel) !== TERRAIN_TYPES.soil) return false;
-        ctx.voxelMap.set(setTerrainTypeInVoxel(ctx.voxel, TERRAIN_TYPES.wetSoil), ctx.surfacePos);
-        ctx.eventBroker.publish("crop_watered", { pos: { x: ctx.surfacePos.x, z: ctx.surfacePos.z } });
+        ctx.voxelMap.set(setTerrainTypeInVoxel(ctx.voxel, TERRAIN_TYPES.wetSoil), ctx.interactPos);
+        ctx.eventBroker.publish("crop_watered", { pos: { x: ctx.interactPos.x, z: ctx.interactPos.z } });
         return true;
     },
 });

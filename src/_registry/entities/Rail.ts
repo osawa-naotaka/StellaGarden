@@ -3,7 +3,7 @@ import { getRailSpriteName } from "../../engine/RailShape";
 import { recomputeAllRailTractionFlow } from "../../engine/RailTractionFlow";
 import { ENTITY_TYPES, setVariantInVoxel } from "../../engine/VoxelDefs";
 import { type EntitySpriteInfo, type InteractionContext, registerEntity } from "../EntityRegistry";
-import { placeFacility, removeFacilityAtPos } from "../facilityUtil";
+import { placeFacility, removeFacilityByContext } from "../facilityUtil";
 import { type PlacementVariant, registerItem } from "../ItemRegistry";
 
 function getRailPreviewSpriteName(variant: PlacementVariant): string {
@@ -31,9 +31,9 @@ registerEntity({
     onInteract(ctx: InteractionContext): boolean {
         if (ctx.tool !== "axe") return false;
 
-        const result = removeFacilityAtPos(ctx.voxelMap, ctx.inventory, ctx.surfacePos.x, ctx.surfacePos.z, ENTITY_TYPES.rail);
+        const result = removeFacilityByContext(ctx);
         if (result) {
-            refreshRailConnectionsAround(ctx.voxelMap, ctx.surfacePos);
+            refreshRailConnectionsAround(ctx.voxelMap, ctx.interactPos);
             recomputeAllRailTractionFlow(ctx.voxelMap);
         }
 

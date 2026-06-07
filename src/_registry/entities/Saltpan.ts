@@ -12,9 +12,9 @@
 import type { IVoxelReader, IVoxelWriter, Pos2D } from "../../_boundary/interfaces";
 import { ENTITY_TYPES, getDaysElapsedFromVoxel, getEnabledFromVoxel, getEntityTypeFromVoxel, getTerrainTypeFromVoxel, setDaysElapsedInVoxel, setEnabledInVoxel, TERRAIN_TYPES } from "../../engine/VoxelDefs";
 import { type EntitySpriteInfo, type InteractionContext, registerEntity } from "../EntityRegistry";
-import { findFacilityAnchor, placeFacility, removeFacility } from "../facilityUtil";
+import { placeFacility } from "../facilityUtil";
 import { getItemDef, type PlacementVariant, registerItem } from "../ItemRegistry";
-import { collectAllStacks, createStorage, getStorage, getStorageSlot, posFromStorageKey, registerStorage, removeStorage, setStorageSlot } from "../StorageRegistry";
+import { createStorage, getStorage, getStorageSlot, posFromStorageKey, registerStorage, removeFacilityAndReturnItemsToInventory, removeStorage, setStorageSlot } from "../StorageRegistry";
 
 const ENTITY_SIZE = { w: 2, h: 2 };
 
@@ -78,19 +78,14 @@ registerEntity({
 
     onInteract(ctx: InteractionContext): boolean {
         if (ctx.tool !== "axe") return false;
-        const anchor = findFacilityAnchor(ctx.voxelMap, ctx.surfacePos.x, ctx.surfacePos.z);
-        if (anchor.entityType !== ENTITY_TYPES.saltpan) throw new Error("anchor entity type mismatch");
-        const anchorPos = { x: anchor.anchorX, z: anchor.anchorZ };
-        const extraItems = collectAllStacks("saltpan", anchorPos) ?? [];
-        const removed = removeFacility(ctx.voxelMap, ctx.inventory, anchor.anchorX, anchor.anchorZ, anchor.entityType, 0, extraItems);
-        if (removed) removeStorage("saltpan", anchorPos);
+
+        const removed = removeFacilityAndReturnItemsToInventory("saltpan", ctx)        
+        if (removed) removeStorage("saltpan", ctx.anchorPos);
         return removed;
     },
 
     onOpenFacilityUI(ctx: InteractionContext): boolean {
-        const anchor = findFacilityAnchor(ctx.voxelMap, ctx.surfacePos.x, ctx.surfacePos.z);
-        const anchorPos = { x: anchor.anchorX, z: anchor.anchorZ };
-        ctx.eventBroker.publish("open_saltpan_ui", { pos: anchorPos });
+        ctx.eventBroker.publish("open_saltpan_ui", { pos: ctx.anchorPos });
         return true;
     },
 });

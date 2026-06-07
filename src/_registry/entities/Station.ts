@@ -1,7 +1,7 @@
 import { PIXEL_PER_TILE } from "../../_boundary/constants";
 import { ENTITY_TYPES, getVariantFromVoxel, setVariantInVoxel } from "../../engine/VoxelDefs";
 import { type EntitySpriteInfo, type InteractionContext, registerEntity } from "../EntityRegistry";
-import { placeFacility, removeFacilityAtPos } from "../facilityUtil";
+import { placeFacility, removeFacilityByContext } from "../facilityUtil";
 import { type PlacementVariant, registerItem } from "../ItemRegistry";
 
 const STATION_SIZE = { w: 1, h: 1 } as const;
@@ -41,7 +41,7 @@ registerEntity({
     onInteract(ctx: InteractionContext): boolean {
         // axe で撤去（ステーションはステートレスなので回収する中身はない）
         if (ctx.tool !== "axe") return false;
-        return removeFacilityAtPos(ctx.voxelMap, ctx.inventory, ctx.surfacePos.x, ctx.surfacePos.z, ENTITY_TYPES.station);
+        return removeFacilityByContext(ctx);
     },
 });
 

@@ -2,9 +2,9 @@ import type { ItemStack, IVoxelWriter } from "../../_boundary/interfaces";
 import { ENTITY_TYPES, setEntityTypeInVoxel } from "../../engine/VoxelDefs";
 import type { Pos2D } from "../../lib/VoxelMap";
 import { type EntitySpriteInfo, type InteractionContext, registerEntity } from "../EntityRegistry";
-import { findFacilityAnchor, placeFacility, removeFacilityAtPos } from "../facilityUtil";
+import { placeFacility } from "../facilityUtil";
 import { registerItem, registerItemAlias } from "../ItemRegistry";
-import { collectAllStacks, createStorage, getStorage, getStorageSet, posFromStorageKey, registerStorage, removeStorage, setStorageSlot } from "../StorageRegistry";
+import { createStorage, getStorage, getStorageSet, posFromStorageKey, registerStorage, removeFacilityAndReturnItemsToInventory, setStorageSlot } from "../StorageRegistry";
 
 // ── 燃焼中アニメーション用スプライトテーブル ──
 
@@ -14,12 +14,6 @@ const ANIM_FRAME_MS = 300;
 export type ForgeSlotKind = "ingredient" | "fuel" | "output";
 
 // ── 炉（消火中）──
-
-/** ctx.surfacePos（クリックタイル）から 2x2 施設のアンカー座標を解決する。 */
-function resolveAnchorPos(ctx: InteractionContext): { x: number; z: number } {
-    const anchor = findFacilityAnchor(ctx.voxelMap, ctx.surfacePos.x, ctx.surfacePos.z);
-    return { x: anchor.anchorX, z: anchor.anchorZ };
-}
 
 registerEntity({
     entityType: ENTITY_TYPES.forge,
@@ -34,16 +28,11 @@ registerEntity({
 
     onInteract(ctx: InteractionContext): boolean {
         if (ctx.tool !== "pickaxe") return false;
-        const pos = resolveAnchorPos(ctx);
-        const extraItems = collectAllStacks("forge", pos) ?? [];
-        if (!removeFacilityAtPos(ctx.voxelMap, ctx.inventory, pos.x, pos.z, ENTITY_TYPES.forge, extraItems)) return false;
-        removeStorage("forge", pos);
-        return true;
+        return removeFacilityAndReturnItemsToInventory("forge", ctx);
     },
 
     onOpenFacilityUI(ctx: InteractionContext): boolean {
-        const pos = resolveAnchorPos(ctx);
-        ctx.eventBroker.publish("open_forge_ui", { pos });
+        ctx.eventBroker.publish("open_forge_ui", { pos: ctx.anchorPos });
         return true;
     },
 });
@@ -64,16 +53,11 @@ registerEntity({
 
     onInteract(ctx: InteractionContext): boolean {
         if (ctx.tool !== "pickaxe") return false;
-        const pos = resolveAnchorPos(ctx);
-        const extraItems = collectAllStacks("forge", pos);
-        if (!removeFacilityAtPos(ctx.voxelMap, ctx.inventory, pos.x, pos.z, ENTITY_TYPES.forge_burning, extraItems)) return false;
-        removeStorage("forge", pos);
-        return true;
+        return removeFacilityAndReturnItemsToInventory("forge", ctx);
     },
 
     onOpenFacilityUI(ctx: InteractionContext): boolean {
-        const pos = resolveAnchorPos(ctx);
-        ctx.eventBroker.publish("open_forge_ui", { pos });
+        ctx.eventBroker.publish("open_forge_ui", { pos: ctx.anchorPos });
         return true;
     },
 });

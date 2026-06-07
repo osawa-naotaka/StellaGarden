@@ -11,9 +11,9 @@
  */
 import { ENTITY_TYPES, getEnabledFromVoxel, setEnabledInVoxel } from "../../engine/VoxelDefs";
 import { type EntitySpriteInfo, type InteractionContext, registerEntity } from "../EntityRegistry";
-import { findFacilityAnchor, placeFacility, removeFacility } from "../facilityUtil";
+import { placeFacility } from "../facilityUtil";
 import { getItemDef, registerItem } from "../ItemRegistry";
-import { collectAllStacks, createStorage, getStorage, getStorageSlot, posFromStorageKey, registerStorage, removeStorage, setStorageSlot, storageNumberValueOf } from "../StorageRegistry";
+import { createStorage, getStorage, getStorageSlot, posFromStorageKey, registerStorage, removeFacilityAndReturnItemsToInventory, setStorageSlot, storageNumberValueOf } from "../StorageRegistry";
 import { DISTILLER_FUEL_ITEMS, DISTILLER_MATERIAL_DEF, DISTILLER_FUEL_PER_CYCLE, isAcceptableInputItem, type ProcessingRecipe, findAllRecipesForInput } from "../ProcessingRecipes";
 import type { ItemStack, IVoxelWriter, Pos2D } from "../../_boundary/interfaces";
 
@@ -35,19 +35,11 @@ registerEntity({
 
     onInteract(ctx: InteractionContext): boolean {
         if (ctx.tool !== "axe") return false;
-        const anchor = findFacilityAnchor(ctx.voxelMap, ctx.surfacePos.x, ctx.surfacePos.z);
-        if (anchor.entityType !== ENTITY_TYPES.distiller) throw new Error("anchor entity type mismatch");
-        const anchorPos = { x: anchor.anchorX, z: anchor.anchorZ };
-        const extraItems = collectAllStacks("distiller", anchorPos);
-        const removed = removeFacility(ctx.voxelMap, ctx.inventory, anchor.anchorX, anchor.anchorZ, anchor.entityType, 0, extraItems);
-        if (removed) removeStorage("distiller", anchorPos);
-        return removed;
+        return removeFacilityAndReturnItemsToInventory("distiller", ctx);
     },
 
     onOpenFacilityUI(ctx: InteractionContext): boolean {
-        const anchor = findFacilityAnchor(ctx.voxelMap, ctx.surfacePos.x, ctx.surfacePos.z);
-        const anchorPos = { x: anchor.anchorX, z: anchor.anchorZ };
-        ctx.eventBroker.publish("open_distiller_ui", { pos: anchorPos });
+        ctx.eventBroker.publish("open_distiller_ui", { pos: ctx.anchorPos });
         return true;
     },
 });

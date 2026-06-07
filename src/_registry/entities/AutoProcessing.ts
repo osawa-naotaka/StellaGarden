@@ -16,7 +16,7 @@ import { defaultPowerConnectionPositions, registerPowerSink } from "../../engine
 import { recomputeAllShaftPowerFlow } from "../../engine/ShaftPowerFlow";
 import { ENTITY_TYPES, getEnabledFromVoxel, getVariantFromVoxel } from "../../engine/VoxelDefs";
 import { type EntitySpriteInfo, type InteractionContext, registerEntity } from "../EntityRegistry";
-import { findFacilityAnchor, placeFacility, removeFacility } from "../facilityUtil";
+import { findFacilityAnchor, placeFacility, removeFacilityByContext } from "../facilityUtil";
 import { registerItem } from "../ItemRegistry";
 
 let autoProcessingStorage: AutoProcessingStorage | null = null;
@@ -61,13 +61,10 @@ export function registerAutoProcessingEntity(opts: AutoProcessingEntityOptions):
         // 左クリック: axe による撤去（中身は一緒にインベントリへ回収）
         onInteract(ctx: InteractionContext): boolean {
             if (ctx.tool !== "axe") return false;
-            const anchor = findFacilityAnchor(ctx.voxelMap, ctx.surfacePos.x, ctx.surfacePos.z);
-            if (anchor.entityType !== entityType) throw new Error("anchor entity type mismatch");
-            const anchorPos = { x: anchor.anchorX, z: anchor.anchorZ };
-            const extraItems = autoProcessingStorage?.collectAllStacks(anchorPos) ?? [];
-            const removed = removeFacility(ctx.voxelMap, ctx.inventory, anchor.anchorX, anchor.anchorZ, anchor.entityType, 0, extraItems);
+            const extraItems = autoProcessingStorage?.collectAllStacks(ctx.anchorPos) ?? [];
+            const removed = removeFacilityByContext(ctx, extraItems);
             if (removed) {
-                autoProcessingStorage?.remove(anchorPos);
+                autoProcessingStorage?.remove(ctx.anchorPos);
                 recomputeAllShaftPowerFlow(ctx.voxelMap);
             }
             return removed;
@@ -75,7 +72,7 @@ export function registerAutoProcessingEntity(opts: AutoProcessingEntityOptions):
 
         // 右クリック: 自動処理 UI を開く
         onOpenFacilityUI(ctx: InteractionContext): boolean {
-            const anchor = findFacilityAnchor(ctx.voxelMap, ctx.surfacePos.x, ctx.surfacePos.z);
+            const anchor = findFacilityAnchor(ctx.voxelMap, ctx.interactPos.x, ctx.interactPos.z);
             if (anchor.entityType !== entityType) throw new Error("anchor entity type mismatch");
             const anchorPos = { x: anchor.anchorX, z: anchor.anchorZ };
             // 念のためストレージを保証（既存施設のロード後など）

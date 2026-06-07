@@ -3,7 +3,7 @@ import { recomputeAllShaftPowerFlow } from "../../engine/ShaftPowerFlow";
 import { getShaftSpriteName } from "../../engine/ShaftShape";
 import { ENTITY_TYPES, setVariantInVoxel } from "../../engine/VoxelDefs";
 import { type EntitySpriteInfo, type InteractionContext, registerEntity } from "../EntityRegistry";
-import { placeFacility, removeFacilityAtPos } from "../facilityUtil";
+import { placeFacility, removeFacilityByContext } from "../facilityUtil";
 import { type PlacementVariant, registerItem } from "../ItemRegistry";
 
 function getShaftPreviewSpriteName(variant: PlacementVariant): string {
@@ -31,9 +31,9 @@ registerEntity({
     onInteract(ctx: InteractionContext): boolean {
         if (ctx.tool !== "axe") return false;
 
-        const removed = removeFacilityAtPos(ctx.voxelMap, ctx.inventory, ctx.surfacePos.x, ctx.surfacePos.z, ENTITY_TYPES.shaft);
+        const removed = removeFacilityByContext(ctx);
         if (removed) {
-            refreshShaftConnectionsAround(ctx.voxelMap, { x: ctx.surfacePos.x, z: ctx.surfacePos.z });
+            refreshShaftConnectionsAround(ctx.voxelMap, ctx.interactPos);
             recomputeAllShaftPowerFlow(ctx.voxelMap);
         }
         return removed;

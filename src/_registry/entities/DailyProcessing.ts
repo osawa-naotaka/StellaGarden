@@ -13,10 +13,10 @@
 import type { ItemId, IVoxelWriter, Pos2D } from "../../_boundary/interfaces";
 import { ENTITY_TYPES, getDaysElapsedFromVoxel, getEnabledFromVoxel, getEntityTypeFromVoxel, setDaysElapsedInVoxel, setEnabledInVoxel } from "../../engine/VoxelDefs";
 import { type EntitySpriteInfo, type InteractionContext, registerEntity } from "../EntityRegistry";
-import { findFacilityAnchor, placeFacility, removeFacility } from "../facilityUtil";
+import { placeFacility } from "../facilityUtil";
 import { getItemDef, registerItem } from "../ItemRegistry";
 import { DAILY_PROCESSING_DEFS, findRecipeForInput, getDailyProcessingDef, isAcceptableInputItem } from "../ProcessingRecipes";
-import { collectAllStacks, createStorage, getStorage, posFromStorageKey, registerStorage, removeStorage, setStorageSlot } from "../StorageRegistry";
+import { createStorage, getStorage, posFromStorageKey, registerStorage, removeFacilityAndReturnItemsToInventory, setStorageSlot } from "../StorageRegistry";
 
 interface DailyProcessingEntityOptions {
     /** empty 状態 = ベース entityType。 */
@@ -52,20 +52,12 @@ export function registerDailyProcessingEntity(opts: DailyProcessingEntityOptions
         // 左クリック: axe 撤去（処理進行中でも可。中身は一緒にインベントリへ回収）
         onInteract(ctx: InteractionContext): boolean {
             if (ctx.tool !== "axe") return false;
-            const anchor = findFacilityAnchor(ctx.voxelMap, ctx.surfacePos.x, ctx.surfacePos.z);
-            if (anchor.entityType !== baseEntityType) throw new Error("anchor entity type mismatch");
-            const anchorPos = { x: anchor.anchorX, z: anchor.anchorZ };
-            const extraItems = collectAllStacks(itemId, anchorPos) ?? [];
-            const removed = removeFacility(ctx.voxelMap, ctx.inventory, anchor.anchorX, anchor.anchorZ, anchor.entityType, 0, extraItems);
-            if (removed) removeStorage(itemId, anchorPos);
-            return removed;
+            return removeFacilityAndReturnItemsToInventory(itemId, ctx);
         },
 
         // 右クリック: 処理 UI を開く（全状態で可）
         onOpenFacilityUI(ctx: InteractionContext): boolean {
-            const anchor = findFacilityAnchor(ctx.voxelMap, ctx.surfacePos.x, ctx.surfacePos.z);
-            const anchorPos = { x: anchor.anchorX, z: anchor.anchorZ };
-            ctx.eventBroker.publish("open_processing_daily_ui", { pos: anchorPos });
+            ctx.eventBroker.publish("open_processing_daily_ui", { pos: ctx.anchorPos });
             return true;
         },
     });

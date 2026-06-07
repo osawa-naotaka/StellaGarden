@@ -127,10 +127,10 @@ export function registerCrop(
             let afterVoxel: bigint = initializeVoxel(getTerrainTypeFromVoxel(voxel));
             afterVoxel = setLastCropInVoxel(afterVoxel, entityType);
             afterVoxel = setFatigueInVoxel(afterVoxel, fatigue);
-            ctx.voxelMap.set(afterVoxel, ctx.surfacePos);
+            ctx.voxelMap.set(afterVoxel, ctx.interactPos);
 
             ctx.eventBroker.publish("crop_harvested", {
-                pos: { x: ctx.surfacePos.x, z: ctx.surfacePos.z },
+                pos: ctx.interactPos,
                 itemId,
                 count: harvestCount,
             });
@@ -167,10 +167,10 @@ export function registerCrop(
             newVoxel = setFatigueInVoxel(newVoxel, fatigue);
             newVoxel = setLastCropInVoxel(newVoxel, entityType);
             newVoxel = setFertilizerTypeInVoxel(newVoxel, getFertilizerTypeFromVoxel(voxel));
-            ctx.voxelMap.set(newVoxel, ctx.surfacePos);
+            ctx.voxelMap.set(newVoxel, ctx.interactPos);
 
             ctx.eventBroker.publish("crop_planted", {
-                pos: { x: ctx.surfacePos.x, z: ctx.surfacePos.z },
+                pos: ctx.interactPos,
                 cropType: itemId,
             });
             return true;

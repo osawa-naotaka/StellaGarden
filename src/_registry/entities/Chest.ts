@@ -1,6 +1,6 @@
 import { ENTITY_TYPES } from "../../engine/VoxelDefs";
 import { type EntitySpriteInfo, type InteractionContext, registerEntity } from "../EntityRegistry";
-import { findFacilityAnchor, placeFacility, removeFacilityAtPos } from "../facilityUtil";
+import { placeFacility, removeFacilityByContext } from "../facilityUtil";
 import { registerItem } from "../ItemRegistry";
 import { collectAllStacks, createStorage, registerStorage, removeStorage } from "../StorageRegistry";
 
@@ -17,17 +17,14 @@ registerEntity({
 
     onInteract(ctx: InteractionContext): boolean {
         if (ctx.tool !== "axe") return false;
-        const pos = { x: ctx.surfacePos.x, z: ctx.surfacePos.z };
-        const extraItems = collectAllStacks("chest", pos);
-        const removed = removeFacilityAtPos(ctx.voxelMap, ctx.inventory, pos.x, pos.z, ENTITY_TYPES.chest, extraItems);
-        if (removed) removeStorage("chest", pos);
+        const extraItems = collectAllStacks("chest", ctx.anchorPos);
+        const removed = removeFacilityByContext(ctx, extraItems);
+        if (removed) removeStorage("chest", ctx.anchorPos);
         return removed;
     },
 
     onOpenFacilityUI(ctx: InteractionContext): boolean {
-        const anchor = findFacilityAnchor(ctx.voxelMap, ctx.surfacePos.x, ctx.surfacePos.z);
-        
-        ctx.eventBroker.publish("open_chest_ui", { pos: { x: anchor.anchorX, z: anchor.anchorZ } });
+        ctx.eventBroker.publish("open_chest_ui", { pos: ctx.anchorPos });
         return true;
     },
 });

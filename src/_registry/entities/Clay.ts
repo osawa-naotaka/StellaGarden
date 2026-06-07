@@ -16,7 +16,7 @@ registerEntity({
     onInteract(ctx: InteractionContext): boolean {
         if (ctx.tool !== "shovel") return false;
         if (!ctx.inventory.addItems([{ itemId: "clay", count: 1 }])) return false;
-        ctx.voxelMap.set(clearEntityTypeInVoxel(ctx.voxel), ctx.surfacePos);
+        ctx.voxelMap.set(clearEntityTypeInVoxel(ctx.voxel), ctx.interactPos);
         return true;
     },
 });

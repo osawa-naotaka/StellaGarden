@@ -22,8 +22,9 @@ import {
     TERRAIN_TYPES,
 } from "../../engine/VoxelDefs";
 import { type EntitySpriteInfo, type InteractionContext, registerEntity } from "../EntityRegistry";
-import { findFacilityAnchor, placeFacility, removeFacility } from "../facilityUtil";
+import { placeFacility } from "../facilityUtil";
 import { type PlacementVariant, registerItem } from "../ItemRegistry";
+import { removeFacilityAndReturnItemsToInventory } from "../StorageRegistry";
 
 let dailyProcessingStorage: DailyProcessingStorage | null = null;
 
@@ -109,28 +110,13 @@ registerEntity({
 
     onInteract(ctx: InteractionContext): boolean {
         if (ctx.tool !== "axe") return false;
-        const anchor = findFacilityAnchor(ctx.voxelMap, ctx.surfacePos.x, ctx.surfacePos.z);
-        if (anchor.entityType !== ENTITY_TYPES.soaking_basket) throw new Error("anchor entity type mismatch");
-        const anchorPos = { x: anchor.anchorX, z: anchor.anchorZ };
-        const extraItems = dailyProcessingStorage?.collectAllStacks(anchorPos) ?? [];
-        const removed = removeFacility(
-            ctx.voxelMap,
-            ctx.inventory,
-            anchor.anchorX,
-            anchor.anchorZ,
-            anchor.entityType,
-            anchor.variant,
-            extraItems,
-        );
-        if (removed) dailyProcessingStorage?.remove(anchorPos);
+        const removed = removeFacilityAndReturnItemsToInventory("soaking_basket", ctx);        
+        if (removed) dailyProcessingStorage?.remove(ctx.anchorPos);
         return removed;
     },
 
     onOpenFacilityUI(ctx: InteractionContext): boolean {
-        const anchor = findFacilityAnchor(ctx.voxelMap, ctx.surfacePos.x, ctx.surfacePos.z);
-        const anchorPos = { x: anchor.anchorX, z: anchor.anchorZ };
-        dailyProcessingStorage?.create(anchorPos);
-        ctx.eventBroker.publish("open_processing_daily_ui", { pos: anchorPos });
+        ctx.eventBroker.publish("open_processing_daily_ui", { pos: ctx.anchorPos });
         return true;
     },
 });

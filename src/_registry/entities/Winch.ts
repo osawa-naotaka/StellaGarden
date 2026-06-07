@@ -2,7 +2,7 @@ import { defaultPowerConnectionPositions, registerPowerSink } from "../../engine
 import { recomputeAllShaftPowerFlow } from "../../engine/ShaftPowerFlow";
 import { ENTITY_TYPES } from "../../engine/VoxelDefs";
 import { type EntitySpriteInfo, type InteractionContext, registerEntity } from "../EntityRegistry";
-import { placeFacility, removeFacilityAtPos } from "../facilityUtil";
+import { placeFacility, removeFacilityByContext } from "../facilityUtil";
 import { registerItem } from "../ItemRegistry";
 
 const WINCH_SIZE = { w: 1, h: 2 } as const;
@@ -27,7 +27,7 @@ registerEntity({
     onInteract(ctx: InteractionContext): boolean {
         // axe で撤去
         if (ctx.tool === "axe") {
-            const removed = removeFacilityAtPos(ctx.voxelMap, ctx.inventory, ctx.surfacePos.x, ctx.surfacePos.z, ENTITY_TYPES.winch);
+            const removed = removeFacilityByContext(ctx);
             if (removed) recomputeAllShaftPowerFlow(ctx.voxelMap);
             return removed;
         }

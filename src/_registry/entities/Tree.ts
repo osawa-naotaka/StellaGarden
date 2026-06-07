@@ -76,8 +76,8 @@ registerEntity({
                 ])
             )
                 return false;
-            ctx.voxelMap.set(ctx.voxel & 0x000000ffn, ctx.surfacePos);
-            ctx.eventBroker.publish("tree_felled", { pos: { x: ctx.surfacePos.x, z: ctx.surfacePos.z } });
+            ctx.voxelMap.set(setEntityTypeInVoxel(ctx.voxel, ENTITY_TYPES.none), ctx.interactPos);
+            ctx.eventBroker.publish("tree_felled", { pos: ctx.interactPos });
             return true;
         }
 
@@ -94,7 +94,7 @@ registerEntity({
             )
                 return false;
             // stage を 3 にリセットして再カウント開始
-            ctx.voxelMap.set(setDaysElapsedInVoxel(ctx.voxel, 11), ctx.surfacePos);
+            ctx.voxelMap.set(setDaysElapsedInVoxel(ctx.voxel, 11), ctx.interactPos);
             return true;
         }
 
@@ -115,9 +115,9 @@ registerItem({
         }
         if (!ctx.inventory.consumeSelectedItem(1)) return false;
 
-        ctx.voxelMap.set(setEntityTypeInVoxel(voxel, ENTITY_TYPES.tree), ctx.surfacePos);
+        ctx.voxelMap.set(setEntityTypeInVoxel(voxel, ENTITY_TYPES.tree), ctx.interactPos);
         ctx.eventBroker.publish("crop_planted", {
-            pos: { x: ctx.surfacePos.x, z: ctx.surfacePos.z },
+            pos: { x: ctx.interactPos.x, z: ctx.interactPos.z },
             cropType: "nuts",
         });
         return true;

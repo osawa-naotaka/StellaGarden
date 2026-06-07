@@ -11,7 +11,7 @@ import type { ItemId } from "../../_boundary/interfaces";
 import type { ManualProcessingStorage } from "../../engine/ManualProcessingStorage";
 import { ENTITY_TYPES } from "../../engine/VoxelDefs";
 import { type EntitySpriteInfo, type InteractionContext, registerEntity } from "../EntityRegistry";
-import { findFacilityAnchor, placeFacility, removeFacility } from "../facilityUtil";
+import { placeFacility, removeFacilityByContext } from "../facilityUtil";
 import { registerItem } from "../ItemRegistry";
 
 let manualProcessingStorage: ManualProcessingStorage | null = null;
@@ -48,23 +48,15 @@ export function registerManualProcessingEntity(opts: ManualProcessingEntityOptio
         // 左クリック: axe による撤去（中身は一緒にインベントリへ回収）
         onInteract(ctx: InteractionContext): boolean {
             if (ctx.tool !== "axe") return false;
-            const anchor = findFacilityAnchor(ctx.voxelMap, ctx.surfacePos.x, ctx.surfacePos.z);
-            if (anchor.entityType !== entityType) throw new Error("anchor entity type mismatch");
-            const anchorPos = { x: anchor.anchorX, z: anchor.anchorZ };
-            const extraItems = manualProcessingStorage?.collectAllStacks(anchorPos) ?? [];
-            const removed = removeFacility(ctx.voxelMap, ctx.inventory, anchor.anchorX, anchor.anchorZ, anchor.entityType, 0, extraItems);
-            if (removed) manualProcessingStorage?.remove(anchorPos);
+            const extraItems = manualProcessingStorage?.collectAllStacks(ctx.anchorPos) ?? [];
+            const removed = removeFacilityByContext(ctx, extraItems);
+            if (removed) manualProcessingStorage?.remove(ctx.anchorPos);
             return removed;
         },
 
         // 右クリック: 処理 UI を開く
         onOpenFacilityUI(ctx: InteractionContext): boolean {
-            const anchor = findFacilityAnchor(ctx.voxelMap, ctx.surfacePos.x, ctx.surfacePos.z);
-            if (anchor.entityType !== entityType) throw new Error("anchor entity type mismatch");
-            const anchorPos = { x: anchor.anchorX, z: anchor.anchorZ };
-            // 念のためストレージを保証（既存施設のロード後など）
-            manualProcessingStorage?.create(anchorPos);
-            ctx.eventBroker.publish("open_processing_manual_ui", { pos: anchorPos });
+            ctx.eventBroker.publish("open_processing_manual_ui", { pos: ctx.anchorPos });
             return true;
         },
     });

@@ -1,4 +1,4 @@
-import type { IEventBroker, IInventoryWriter, ItemId, IVoxelWriter, Pos3D } from "../_boundary/interfaces";
+import type { IEventBroker, IInventoryWriter, ItemId, IVoxelWriter, Pos2D, Pos3D } from "../_boundary/interfaces";
 import type { PlacementVariant } from "./ItemRegistry";
 
 /** エンティティスプライト情報: [spriteName, offset-x, offset-y] */
@@ -9,10 +9,10 @@ export interface InteractionContext {
     readonly voxelMap: IVoxelWriter;
     readonly inventory: IInventoryWriter;
     readonly eventBroker: IEventBroker;
-    readonly surfacePos: Pos3D;
+    readonly interactPos: Pos3D;
+    readonly anchorPos: Pos2D;
     readonly voxel: bigint;
     readonly tool: ItemId | null;
-    readonly entityType: number | null;
 }
 
 /** onDailyTick に渡されるコンテキスト */

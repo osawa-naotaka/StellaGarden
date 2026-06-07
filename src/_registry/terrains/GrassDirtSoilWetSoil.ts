@@ -68,16 +68,16 @@ function revertNearbyInvalidTerrain(voxelMap: IVoxelWriter, cx: number, cz: numb
 }
 
 function onGrassDirtInteract(ctx: import("../EntityRegistry").InteractionContext): boolean {
-    const { voxelMap, inventory, surfacePos, voxel, tool } = ctx;
+    const { voxelMap, inventory, interactPos, voxel, tool } = ctx;
 
     if (tool === "shovel") {
-        if (getEntityTypeFromVoxel(voxel) !== ENTITY_TYPES.none || !isSafeToRemove3x3(voxelMap, surfacePos.x, surfacePos.z)) {
+        if (getEntityTypeFromVoxel(voxel) !== ENTITY_TYPES.none || !isSafeToRemove3x3(voxelMap, interactPos.x, interactPos.z)) {
             return false;
         }
         if (inventory.addItems([{ itemId: "dirt", count: 1 }])) {
-            voxelMap.remove(surfacePos);
-            revertNearbyInvalidTerrain(voxelMap, surfacePos.x, surfacePos.z);
-            floodFillWater(voxelMap, surfacePos.x, surfacePos.z);
+            voxelMap.remove(interactPos);
+            revertNearbyInvalidTerrain(voxelMap, interactPos.x, interactPos.z);
+            floodFillWater(voxelMap, interactPos.x, interactPos.z);
             recomputeAllFullowCanalWaterFlow(voxelMap);
             return true;
         }
@@ -85,10 +85,10 @@ function onGrassDirtInteract(ctx: import("../EntityRegistry").InteractionContext
     }
 
     if (tool === "hoes") {
-        if (isFlat3x3(voxelMap, surfacePos.x, surfacePos.z, surfacePos.y)) {
+        if (isFlat3x3(voxelMap, interactPos.x, interactPos.z, interactPos.y)) {
             const entityType = getEntityTypeFromVoxel(voxel);
             if (entityType === ENTITY_TYPES.none || isCrop(entityType)) {
-                voxelMap.set(initializeVoxel(TERRAIN_TYPES.soil), surfacePos);
+                voxelMap.set(initializeVoxel(TERRAIN_TYPES.soil), interactPos);
                 return true;
             }
         }
@@ -115,22 +115,22 @@ function onSoilInteract(ctx: import("../EntityRegistry").InteractionContext): bo
 
         // 作物エンティティを削除（虚空へ消滅、アイテム追加なし）
         if (isCrop(entityType)) {
-            ctx.voxelMap.set(setEntityTypeInVoxel(ctx.voxel, ENTITY_TYPES.none), ctx.surfacePos);
+            ctx.voxelMap.set(setEntityTypeInVoxel(ctx.voxel, ENTITY_TYPES.none), ctx.interactPos);
             return true;
         }
         return false;
     } else if (ctx.tool === "shovel") {
-        const { voxelMap, surfacePos, inventory } = ctx;
-        const voxel = voxelMap.get(surfacePos);
+        const { voxelMap, interactPos, inventory } = ctx;
+        const voxel = voxelMap.get(interactPos);
 
-        if (getEntityTypeFromVoxel(voxel) !== ENTITY_TYPES.none || !isSafeToRemove3x3(voxelMap, surfacePos.x, surfacePos.z)) {
+        if (getEntityTypeFromVoxel(voxel) !== ENTITY_TYPES.none || !isSafeToRemove3x3(voxelMap, interactPos.x, interactPos.z)) {
             return false;
         }
-        if (surfacePos.y > voxelMap.horizonHeight && inventory.addItems([{ itemId: "dirt", count: 1 }])) {
-            console.log(surfacePos);
-            voxelMap.remove(surfacePos);
-            revertNearbyInvalidTerrain(voxelMap, surfacePos.x, surfacePos.z);
-            floodFillWater(voxelMap, surfacePos.x, surfacePos.z);
+        if (interactPos.y > voxelMap.horizonHeight && inventory.addItems([{ itemId: "dirt", count: 1 }])) {
+            console.log(interactPos);
+            voxelMap.remove(interactPos);
+            revertNearbyInvalidTerrain(voxelMap, interactPos.x, interactPos.z);
+            floodFillWater(voxelMap, interactPos.x, interactPos.z);
             recomputeAllFullowCanalWaterFlow(voxelMap);
             return true;
         }

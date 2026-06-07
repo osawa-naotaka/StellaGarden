@@ -43,32 +43,39 @@ export function createInteractionHandler(
             return;
         }
 
-        const surfacePos = voxelMap.getSurfacePosition(packet.pos);
-        const voxel = voxelMap.get(surfacePos);
+        const interactPos = voxelMap.getSurfacePosition(packet.pos);
+        const voxel = voxelMap.get(interactPos);
         const terrainType = getTerrainTypeFromVoxel(voxel);
 
         let entityType = getEntityTypeFromVoxel(voxel);
-
-        if (entityType === ENTITY_TYPES.facility_part) {
-            const anchor = findFacilityAnchor(voxelMap, packet.pos.x, packet.pos.z);
-            entityType = anchor.entityType;
-        }
-        const ctx: InteractionContext = { voxelMap, inventory, eventBroker, surfacePos, voxel, tool, entityType };
+        let anchorPos = { x: interactPos.x, z: interactPos.z };
 
         // パス1: EntityRegistry — エンティティベース
         if (entityType !== ENTITY_TYPES.none) {
+            let anchorVoxel = voxel;
+            if (entityType === ENTITY_TYPES.facility_part) {
+                const anchor = findFacilityAnchor(voxelMap, packet.pos.x, packet.pos.z);
+                anchorVoxel = voxelMap.getSurface({ x: anchor.anchorX, z: anchor.anchorZ });
+                entityType = anchor.entityType;
+                anchorPos = { x: anchor.anchorX, z: anchor.anchorZ };
+            }
+            const ctx: InteractionContext = { voxelMap, inventory, eventBroker, interactPos, anchorPos, voxel: anchorVoxel, tool };
+
             const entityDef = getEntityDef(entityType);
             if (entityDef.onInteract?.(ctx)) return;
         }
 
         // パス2: ItemRegistry — アイテムベース
         if (tool) {
+            const ctx: InteractionContext = { voxelMap, inventory, eventBroker, interactPos, anchorPos, voxel, tool };
+            
             const itemDef = getItemDef(tool);
             if (itemDef?.onItemUse?.(ctx)) return;
         }
 
         // パス3: TerrainRegistry — 地形ベース
         const terrainDef = getTerrainDef(terrainType);
+        const ctx: InteractionContext = { voxelMap, inventory, eventBroker, interactPos, anchorPos, voxel, tool };
         if (terrainDef?.onInteract?.(ctx)) return;
     });
 
@@ -89,14 +96,14 @@ export function createInteractionHandler(
             return;
         }
 
-        const surfacePos = voxelMap.getSurfacePosition(packet.pos);
-        const voxel = voxelMap.get(surfacePos);
+        const interactPos = voxelMap.getSurfacePosition(packet.pos);
+        const voxel = voxelMap.get(interactPos);
         const terrainType = getTerrainTypeFromVoxel(voxel);
 
         if (terrainType === TERRAIN_TYPES.waterSource) return;
 
-        const { entityType } = findFacilityAnchor(voxelMap, packet.pos.x, packet.pos.z);
-        const ctx: InteractionContext = { voxelMap, inventory, eventBroker, surfacePos, voxel, tool: inventory.selectedTool, entityType };
+        const { entityType, anchorX, anchorZ } = findFacilityAnchor(voxelMap, packet.pos.x, packet.pos.z);
+        const ctx: InteractionContext = { voxelMap, inventory, eventBroker, interactPos, voxel, tool: inventory.selectedTool, anchorPos: { x: anchorX, z: anchorZ } };
 
         const entityDef = getEntityDef(entityType);
         entityDef.onOpenFacilityUI?.(ctx);

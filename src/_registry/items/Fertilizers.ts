@@ -15,7 +15,7 @@ function registerFertilizer(itemId: ItemId, displayName: string, fertType: numbe
                 getFertilizerTypeFromVoxel(ctx.voxel) === 0 &&
                 ctx.inventory.consumeSelectedItem(1)
             ) {
-                ctx.voxelMap.set(setFertilizerTypeInVoxel(ctx.voxel, fertType), ctx.surfacePos);
+                ctx.voxelMap.set(setFertilizerTypeInVoxel(ctx.voxel, fertType), ctx.interactPos);
                 return true;
             }
             return false;

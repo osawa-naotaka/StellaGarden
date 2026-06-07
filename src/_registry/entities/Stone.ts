@@ -15,7 +15,7 @@ registerEntity({
 
     onInteract(ctx: InteractionContext): boolean {
         if (ctx.tool !== "pickaxe") return false;
-        ctx.voxelMap.set(initializeVoxel(TERRAIN_TYPES.dirt), ctx.surfacePos);
+        ctx.voxelMap.set(initializeVoxel(TERRAIN_TYPES.dirt), ctx.interactPos);
         if (!ctx.inventory.addItems([{ itemId: "stone", count: 1 }])) return false;
         return true;
     },

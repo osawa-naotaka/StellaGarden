@@ -2,6 +2,9 @@ import * as v from "valibot";
 import type { ItemId, ItemStack, IVoxelWriter, Pos2D } from "../_boundary/interfaces";
 import { ItemIdSchema } from "../engine/ItemDefs";
 import { getItemDef } from "./ItemRegistry";
+import { getEntityTypeFromVoxel, getVariantFromVoxel } from "../engine/VoxelDefs";
+import { removeFacility } from "./facilityUtil";
+import type { InteractionContext } from "./EntityRegistry";
 
 export const StorageIdSchema = ItemIdSchema;
 export const StorageKindSchema = v.string();
@@ -153,6 +156,15 @@ export function storageNumberValueOf(value: number): ItemStack {
 export function removeStorage(storageId: StorageId, pos: Pos2D): void {
     const storage = get(storageId);
     delete storage.value[key(pos)];
+}
+
+export function removeFacilityAndReturnItemsToInventory(storageId: StorageId, ctx: InteractionContext): boolean {
+    const extraItems = storageId === "none" ? [] : (collectAllStacks(storageId, ctx.anchorPos) ?? []);    
+    const entityType = getEntityTypeFromVoxel(ctx.voxel);
+    const variant = getVariantFromVoxel(ctx.voxel);
+    const removed = removeFacility(ctx.voxelMap, ctx.inventory, ctx.anchorPos, entityType, variant, extraItems);
+    if (removed && storageId !== "none") removeStorage(storageId, ctx.anchorPos);
+    return removed;
 }
 
 export function collectAllStacks(storageId: StorageId, pos: Pos2D, kind?: StorageKind): ItemStack[] {

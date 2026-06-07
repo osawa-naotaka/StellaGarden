@@ -10,7 +10,7 @@ import {
     setDisplacementZInVoxel,
     setEntityTypeInVoxel,
 } from "../engine/VoxelDefs";
-import { getEntityDef } from "./EntityRegistry";
+import { getEntityDef, type InteractionContext } from "./EntityRegistry";
 import { getItemDefByEntityType, type PlacementVariant } from "./ItemRegistry";
 
 /**
@@ -39,8 +39,7 @@ function getEntitySize(entityType: number, variant: PlacementVariant): { w: numb
 export function removeFacility(
     voxelMap: IVoxelWriter,
     inventory: IInventoryWriter,
-    anchorX: number,
-    anchorZ: number,
+    anchorPos: Pos2D,
     entityType: number,
     variant: PlacementVariant,
     extraItems: ReadonlyArray<ItemStack> = [],
@@ -57,9 +56,36 @@ export function removeFacility(
     const { w, h } = getEntitySize(def.placement.entityType, variant);
     for (let dz = 0; dz < h; dz++) {
         for (let dx = 0; dx < w; dx++) {
-            const pos = voxelMap.getSurfacePosition({ x: anchorX + dx, z: anchorZ + dz });
+            const pos = voxelMap.getSurfacePosition({ x: anchorPos.x + dx, z: anchorPos.z + dz });
             const v = voxelMap.get(pos);
             voxelMap.set(setEntityTypeInVoxel(v, ENTITY_TYPES.none), pos);
+        }
+    }
+    return true;
+}
+
+
+export function removeFacilityByContext(
+    ctx: InteractionContext,
+    extraItems: ReadonlyArray<ItemStack> = [],
+): boolean {
+    const entityType = getEntityTypeFromVoxel(ctx.voxel);
+    const def = getItemDefByEntityType(entityType);
+    if (!def) return false;
+    if (!def.placement) return false;
+    const itemsToReturn: { itemId: ItemId; count: number }[] = [{ itemId: def.itemId as ItemId, count: 1 }];
+    for (const stack of extraItems) {
+        itemsToReturn.push({ itemId: stack.itemId, count: stack.count });
+    }
+    if (!ctx.inventory.addItems(itemsToReturn)) return false;
+
+    const variant = getVariantFromVoxel(ctx.voxel);
+    const { w, h } = getEntitySize(def.placement.entityType, variant);
+    for (let dz = 0; dz < h; dz++) {
+        for (let dx = 0; dx < w; dx++) {
+            const pos = ctx.voxelMap.getSurfacePosition({ x: ctx.anchorPos.x + dx, z: ctx.anchorPos.z + dz });
+            const v = ctx.voxelMap.get(pos);
+            ctx.voxelMap.set(setEntityTypeInVoxel(v, ENTITY_TYPES.none), pos);
         }
     }
     return true;
@@ -76,7 +102,7 @@ export function removeFacilityAtPos(
 ): boolean {
     const anchor = findFacilityAnchor(voxelMap, x, z);
     if (!anchor || anchor.entityType !== expectedEntityType) return false;
-    return removeFacility(voxelMap, inventory, anchor.anchorX, anchor.anchorZ, anchor.entityType, anchor.variant, extraItems);
+    return removeFacility(voxelMap, inventory, { x: anchor.anchorX, z: anchor.anchorZ }, anchor.entityType, anchor.variant, extraItems);
 }
 
 /** 施設をフィールドに配置する（アンカー + facility_part の voxel 書き込み）。 */
