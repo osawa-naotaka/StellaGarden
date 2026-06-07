@@ -92,18 +92,6 @@ export const DistillerStorageSaveDataSchema = v.object({
     ),
 });
 
-// 塩田（受動生成。出力1のみ）。
-export const SaltPanStorageSaveDataSchema = v.object({
-    saltpans: v.array(
-        v.object({
-            key: v.string(),
-            slots: v.object({
-                output: NullableItemStackSchema,
-            }),
-        }),
-    ),
-});
-
 // 発酵桶（多入力＋出力1＋品目選択）。
 export const FermentationStorageSaveDataSchema = v.object({
     vats: v.array(
@@ -227,7 +215,6 @@ export const SaveDataSchema = v.object({
     gameTime: GameTimeSaveDataSchema,
     storage: StoragesSchema,
     bonfireStorage: BonfireStorageSaveDataSchema,
-    saltPanStorage: SaltPanStorageSaveDataSchema,
     fermentationStorage: FermentationStorageSaveDataSchema,
     manualProcessingStorage: ManualProcessingStorageSaveDataSchema,
     dailyProcessingStorage: DailyProcessingStorageSaveDataSchema,
@@ -254,7 +241,6 @@ export type PlayerStateSaveData = v.InferOutput<typeof PlayerStateSaveDataSchema
 export type InventorySaveData = v.InferOutput<typeof InventorySaveDataSchema>;
 export type GameTimeSaveData = v.InferOutput<typeof GameTimeSaveDataSchema>;
 export type BonfireStorageSaveData = v.InferOutput<typeof BonfireStorageSaveDataSchema>;
-export type SaltPanStorageSaveData = v.InferOutput<typeof SaltPanStorageSaveDataSchema>;
 export type FermentationStorageSaveData = v.InferOutput<typeof FermentationStorageSaveDataSchema>;
 export type ManualProcessingStorageSaveData = v.InferOutput<typeof ManualProcessingStorageSaveDataSchema>;
 export type DailyProcessingStorageSaveData = v.InferOutput<typeof DailyProcessingStorageSaveDataSchema>;

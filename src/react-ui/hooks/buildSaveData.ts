@@ -9,7 +9,6 @@ import type { ManualProcessingStorage } from "../../engine/ManualProcessingStora
 import type { MissionSystem } from "../../engine/MissionSystem";
 import type { PlayerState } from "../../engine/PlayerState";
 import type { ReputationSystem } from "../../engine/ReputationSystem";
-import type { SaltPanStorage } from "../../engine/SaltPanStorage";
 import type { SeedRequestSystem } from "../../engine/SeedRequestSystem";
 import type { SaveData } from "../../lib/SaveSystem";
 import type { VoxelMap } from "../../lib/VoxelMap";
@@ -22,7 +21,6 @@ export interface SaveSnapshotDeps {
     playerState: PlayerState;
     gameTime: GameTime;
     bonfireStorage: BonfireStorage;
-    saltPanStorage: SaltPanStorage;
     fermentationStorage: FermentationStorage;
     manualProcessingStorage: ManualProcessingStorage;
     dailyProcessingStorage: DailyProcessingStorage;
@@ -43,7 +41,6 @@ export function buildSaveData(deps: SaveSnapshotDeps): Omit<SaveData, "version" 
         playerState,
         gameTime,
         bonfireStorage,
-        saltPanStorage,
         fermentationStorage,
         manualProcessingStorage,
         dailyProcessingStorage,
@@ -82,9 +79,6 @@ export function buildSaveData(deps: SaveSnapshotDeps): Omit<SaveData, "version" 
         storage: getStorages(),
         bonfireStorage: {
             bonfires: bonfireStorage.toSaveData(),
-        },
-        saltPanStorage: {
-            saltpans: saltPanStorage.toSaveData(),
         },
         fermentationStorage: {
             vats: fermentationStorage.toSaveData(),

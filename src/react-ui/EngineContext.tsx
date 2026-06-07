@@ -16,7 +16,6 @@ import type { DailyProcessingStorage } from "../engine/DailyProcessingStorage";
 import type { FermentationStorage } from "../engine/FermentationStorage";
 import type { ManualProcessingStorage } from "../engine/ManualProcessingStorage";
 import type { MissionSystem } from "../engine/MissionSystem";
-import type { SaltPanStorage } from "../engine/SaltPanStorage";
 import type { SeedRequestSystem } from "../engine/SeedRequestSystem";
 import type { UIState } from "../view/UIState";
 
@@ -31,7 +30,6 @@ export interface EngineRefs {
     reputationSystem: IReputationSystemReader;
     seedRequestSystem: SeedRequestSystem;
     bonfireStorage: BonfireStorage;
-    saltPanStorage: SaltPanStorage;
     fermentationStorage: FermentationStorage;
     cartStorage: CartStorage;
     manualProcessingStorage: ManualProcessingStorage;

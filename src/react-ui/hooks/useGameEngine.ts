@@ -129,7 +129,6 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
 
             const {
                 bonfireStorage,
-                saltPanStorage,
                 fermentationStorage,
                 manualProcessingStorage,
                 dailyProcessingStorage,
@@ -180,7 +179,6 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
             // 日次処理対象のストレージ群（KeyedSlotStorage 派生）。新規ストレージ追加時はここに足すだけで day_changed に乗る。
             const dailyTickStorages = [
                 bonfireStorage,
-                saltPanStorage,
                 fermentationStorage,
                 dailyProcessingStorage,
                 autoProcessingStorage,
@@ -223,7 +221,6 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
                 reputationSystem,
                 seedRequestSystem,
                 bonfireStorage,
-                saltPanStorage,
                 fermentationStorage,
                 manualProcessingStorage,
                 dailyProcessingStorage,
@@ -260,7 +257,6 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
                         playerState,
                         gameTime,
                         bonfireStorage,
-                        saltPanStorage,
                         fermentationStorage,
                         manualProcessingStorage,
                         dailyProcessingStorage,
