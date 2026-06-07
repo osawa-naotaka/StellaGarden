@@ -2,7 +2,7 @@ import { ENTITY_TYPES } from "../../engine/VoxelDefs";
 import { type EntitySpriteInfo, type InteractionContext, registerEntity } from "../EntityRegistry";
 import { placeFacility } from "../facilityUtil";
 import { registerItem } from "../ItemRegistry";
-import { createStorage, registerStorage, removeFacilityAndReturnItemsToInventory, removeStorage } from "../StorageRegistry";
+import { createStorage, registerStorage, removeFacilityAndReturnItemsToInventory } from "../StorageRegistry";
 
 registerEntity({
     entityType: ENTITY_TYPES.workbench,
@@ -17,20 +17,13 @@ registerEntity({
 
     onInteract(ctx: InteractionContext): boolean {
         if (ctx.tool === "axe") {
-            const removed = removeFacilityAndReturnItemsToInventory("workbench", ctx);
-            if (removed) {
-                removeStorage("workbench", ctx.anchorPos);
-            }
-            return removed;
+            return removeFacilityAndReturnItemsToInventory("workbench", ctx);
         }
         return false;
     },
 
     onOpenFacilityUI(ctx: InteractionContext): boolean {
-        ctx.eventBroker.publish("open_craft_ui", {
-            pos: ctx.interactPos,
-            workbenchPos: ctx.anchorPos,
-        });
+        ctx.eventBroker.publish("open_craft_ui", { pos: ctx.anchorPos });
         return true;
     },
 });

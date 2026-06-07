@@ -2,7 +2,7 @@ import { ENTITY_TYPES } from "../../engine/VoxelDefs";
 import { type EntitySpriteInfo, type InteractionContext, registerEntity } from "../EntityRegistry";
 import { placeFacility } from "../facilityUtil";
 import { registerItem } from "../ItemRegistry";
-import { createStorage, registerStorage, removeFacilityAndReturnItemsToInventory, removeStorage } from "../StorageRegistry";
+import { createStorage, registerStorage, removeFacilityAndReturnItemsToInventory } from "../StorageRegistry";
 
 const WARP_SPRITES: EntitySpriteInfo[][] = [[["ss_sprite_105_1.png", 0, 0]], [["ss_sprite_105_2.png", 0, 0]], [["ss_sprite_105_3.png", 0, 0]]];
 const ANIM_FRAME_MS = 100;
@@ -22,11 +22,7 @@ registerEntity({
     onInteract(ctx: InteractionContext): boolean {
         // axe で撤去
         if (ctx.tool === "axe") {
-            const result = removeFacilityAndReturnItemsToInventory("warp_gate", ctx);
-            if (result) {
-                removeStorage("warp_gate", ctx.anchorPos);
-            }
-            return result;
+            return removeFacilityAndReturnItemsToInventory("warp_gate", ctx);
         }
         return false;
     },

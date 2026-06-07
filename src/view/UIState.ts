@@ -60,11 +60,11 @@ export class UIState {
             }
         });
 
-        const d2 = broker.subscribe("open_craft_ui", ({ workbenchPos }) => {
+        const d2 = broker.subscribe("open_craft_ui", ({ pos }) => {
             if (this.mode === "placement") return;
             this.mode = "inventory-craft";
             this.craftStation = "workbench";
-            this.targetPos = workbenchPos;
+            this.targetPos = pos;
         });
 
         const d3 = broker.subscribe("open_chest_ui", ({ pos }) => {

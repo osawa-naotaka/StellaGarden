@@ -30,7 +30,6 @@ import {
     posFromStorageKey,
     registerStorage,
     removeFacilityAndReturnItemsToInventory,
-    removeStorage,
     setStorageSlot,
 } from "../StorageRegistry";
 
@@ -97,9 +96,8 @@ registerEntity({
     onInteract(ctx: InteractionContext): boolean {
         if (ctx.tool !== "axe") return false;
 
-        const removed = removeFacilityAndReturnItemsToInventory("saltpan", ctx);
-        if (removed) removeStorage("saltpan", ctx.anchorPos);
-        return removed;
+        return removeFacilityAndReturnItemsToInventory("saltpan", ctx);
+
     },
 
     onOpenFacilityUI(ctx: InteractionContext): boolean {
