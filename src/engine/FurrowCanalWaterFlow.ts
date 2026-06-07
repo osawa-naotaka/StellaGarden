@@ -50,7 +50,7 @@ function keyOf(voxelMap: IVoxelWriter, x: number, z: number): number {
 
 function getSurfaceVoxelAt(voxelMap: IVoxelWriter, x: number, z: number): bigint | null {
     if (!isInBounds(voxelMap, x, z)) return null;
-    const surfacePos = voxelMap.getSurfacePosition({ x, y: 0, z });
+    const surfacePos = voxelMap.getSurfacePosition({ x, z });
     return voxelMap.get(surfacePos);
 }
 
@@ -136,11 +136,7 @@ export function recomputeAllFullowCanalWaterFlow(voxelMap: IVoxelWriter, maxDist
     }
 
     for (const pos of allPipes) {
-        const surfacePos = voxelMap.getSurfacePosition({
-            x: pos.x,
-            y: 0,
-            z: pos.z,
-        });
+        const surfacePos = voxelMap.getSurfacePosition(pos);
         const voxel = voxelMap.get(surfacePos);
         const filled = visited.has(keyOf(voxelMap, pos.x, pos.z));
         voxelMap.set(setEnabledInVoxel(voxel, filled), surfacePos);

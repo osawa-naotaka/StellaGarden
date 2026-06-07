@@ -116,7 +116,7 @@ export class DebugText {
             return null;
         }
 
-        const pos = this.voxelMap.getSurfacePosition({ x: px, y: 0, z: pz });
+        const pos = this.voxelMap.getSurfacePosition({ x: px, z: pz });
         const voxel = this.voxelMap.get(pos);
 
         const terrain = getTerrainTypeFromVoxel(voxel);

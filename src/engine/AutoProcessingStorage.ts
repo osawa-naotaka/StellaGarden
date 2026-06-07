@@ -21,7 +21,7 @@ export interface AutoProcessingSlots {
 // 関連: src/engine/ShaftPowerFlow.ts, src/engine/PowerSinkRegistry.ts
 
 function isPoweredFromAnchor(voxelMap: IVoxelWriter, anchorPos: Pos2D): boolean {
-    const surface = voxelMap.getSurfacePosition({ x: anchorPos.x, y: 0, z: anchorPos.z });
+    const surface = voxelMap.getSurfacePosition(anchorPos);
     return getEnabledFromVoxel(voxelMap.get(surface));
 }
 
@@ -183,7 +183,7 @@ export class AutoProcessingStorage extends KeyedSlotStorage<AutoProcessingSlots>
     // ── private ヘルパー ──
 
     private getEntityTypeAt(pos: Pos2D, voxelMap: IVoxelWriter): number {
-        const surface = voxelMap.getSurfacePosition({ x: pos.x, y: 0, z: pos.z });
+        const surface = voxelMap.getSurfacePosition(pos);
         return getEntityTypeFromVoxel(voxelMap.get(surface));
     }
 

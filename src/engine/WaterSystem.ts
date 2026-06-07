@@ -37,7 +37,7 @@ export function floodFillWater(voxelMap: IVoxelWriter, startX: number, startZ: n
     while (p1Idx < p1Queue.length) {
         const [x, z, dist] = p1Queue[p1Idx++];
 
-        const groundY = voxelMap.getGroundSurfacePosition({ x, y: 0, z }).y;
+        const groundY = voxelMap.getGroundSurfacePosition({ x, z }).y;
         if (groundY >= horizonH) continue;
 
         const terrain = getTerrainTypeFromVoxel(voxelMap.get({ x, y: groundY + 1, z }));
@@ -55,7 +55,7 @@ export function floodFillWater(voxelMap: IVoxelWriter, startX: number, startZ: n
             const k = key(nx, nz);
             if (p1Visited.has(k)) continue;
 
-            const nGroundY = voxelMap.getGroundSurfacePosition({ x: nx, y: 0, z: nz }).y;
+            const nGroundY = voxelMap.getGroundSurfacePosition({ x: nx, z: nz }).y;
             if (nGroundY < horizonH) {
                 p1Visited.add(k);
                 p1Queue.push([nx, nz, dist + 1]);
@@ -83,7 +83,7 @@ export function floodFillWater(voxelMap: IVoxelWriter, startX: number, startZ: n
     while (p2Idx < p2Queue.length) {
         const [x, z, dist] = p2Queue[p2Idx++];
 
-        const groundY = voxelMap.getGroundSurfacePosition({ x, y: 0, z }).y;
+        const groundY = voxelMap.getGroundSurfacePosition({ x, z }).y;
         if (groundY >= horizonH) continue;
 
         // 距離 1〜maxDist のタイルに water を配置（dist===0 の waterSource タイルは上書きしない）
@@ -106,7 +106,7 @@ export function floodFillWater(voxelMap: IVoxelWriter, startX: number, startZ: n
             const k = key(nx, nz);
             if (p2Visited.has(k)) continue;
 
-            const nGroundY = voxelMap.getGroundSurfacePosition({ x: nx, y: 0, z: nz }).y;
+            const nGroundY = voxelMap.getGroundSurfacePosition({ x: nx, z: nz }).y;
             if (nGroundY < horizonH) {
                 p2Visited.add(k);
                 p2Queue.push([nx, nz, dist + 1]);
@@ -136,7 +136,7 @@ export function removeDisconnectedWater(voxelMap: IVoxelWriter, cx: number, cz: 
         if (globalVisited.has(key(sx, sz))) continue;
 
         // この隣接タイルが flowedWater を持つか確認
-        const groundY = voxelMap.getGroundSurfacePosition({ x: sx, y: 0, z: sz }).y;
+        const groundY = voxelMap.getGroundSurfacePosition({ x: sx, z: sz }).y;
         if (groundY >= horizonH) continue;
         const surfaceTerrain = getTerrainTypeFromVoxel(voxelMap.get({ x: sx, y: groundY + 1, z: sz }));
         if (surfaceTerrain !== TERRAIN_TYPES.water) continue;
@@ -157,7 +157,7 @@ export function removeDisconnectedWater(voxelMap: IVoxelWriter, cx: number, cz: 
                 const k = key(nx, nz);
                 if (componentVisited.has(k)) continue;
 
-                const nGroundY = voxelMap.getGroundSurfacePosition({ x: nx, y: 0, z: nz }).y;
+                const nGroundY = voxelMap.getGroundSurfacePosition({ x: nx, z: nz }).y;
                 if (nGroundY >= horizonH) continue;
 
                 const nTerrain = getTerrainTypeFromVoxel(voxelMap.get({ x: nx, y: nGroundY + 1, z: nz }));
@@ -181,7 +181,7 @@ export function removeDisconnectedWater(voxelMap: IVoxelWriter, cx: number, cz: 
                 const k = key(nx, nz);
                 if (sourcesVisited.has(k)) continue;
 
-                const nGroundY = voxelMap.getGroundSurfacePosition({ x: nx, y: 0, z: nz }).y;
+                const nGroundY = voxelMap.getGroundSurfacePosition({ x: nx, z: nz }).y;
                 if (nGroundY >= horizonH) continue;
 
                 const nTerrain = getTerrainTypeFromVoxel(voxelMap.get({ x: nx, y: nGroundY + 1, z: nz }));
@@ -218,7 +218,7 @@ export function removeDisconnectedWater(voxelMap: IVoxelWriter, cx: number, cz: 
                 const k = key(nx, nz);
                 if (distMap.has(k)) continue;
 
-                const nGroundY = voxelMap.getGroundSurfacePosition({ x: nx, y: 0, z: nz }).y;
+                const nGroundY = voxelMap.getGroundSurfacePosition({ x: nx, z: nz }).y;
                 if (nGroundY >= horizonH) continue;
 
                 const nTerrain = getTerrainTypeFromVoxel(voxelMap.get({ x: nx, y: nGroundY + 1, z: nz }));
@@ -235,7 +235,7 @@ export function removeDisconnectedWater(voxelMap: IVoxelWriter, cx: number, cz: 
             const k = key(wx, wz);
             const d = distMap.get(k);
             if (d === undefined || d > maxDist) {
-                const gy = voxelMap.getGroundSurfacePosition({ x: wx, y: 0, z: wz }).y;
+                const gy = voxelMap.getGroundSurfacePosition({ x: wx, z: wz }).y;
                 for (let y = gy + 1; y <= horizonH; y++) {
                     voxelMap.remove({ x: wx, y, z: wz });
                 }

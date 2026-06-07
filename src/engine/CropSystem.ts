@@ -74,7 +74,7 @@ export function applyCropDailyTick(ctx: DailyTickContext, cropDef: CropDef): voi
 export function processDailyTick(voxelMap: IVoxelWriter): void {
     for (let x = 0; x < voxelMap.width; x++) {
         for (let z = 0; z < voxelMap.depth; z++) {
-            const pos = voxelMap.getSurfacePosition({ x, y: 0, z });
+            const pos = voxelMap.getSurfacePosition({ x, z });
             const voxel = voxelMap.get(pos);
             const entityType = getEntityTypeFromVoxel(voxel);
             const isWet = getTerrainTypeFromVoxel(voxel) === TERRAIN_TYPES.wetSoil;

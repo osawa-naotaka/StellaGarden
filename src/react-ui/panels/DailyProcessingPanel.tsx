@@ -31,7 +31,7 @@ export interface DailyProcessingPanelProps {
 
 function getItemIdFromPos(pos: Pos2D | null, voxelMap: IVoxelWriter): ItemId {
     if (pos === null) return "none" as const;
-    const surface = voxelMap.getSurfacePosition({ x: pos.x, y: 0, z: pos.z });
+    const surface = voxelMap.getSurfacePosition(pos);
     const entityType = getEntityTypeFromVoxel(voxelMap.get(surface));
     const itemDef = entityType !== null ? getItemDefByEntityType(entityType) : null;
     return itemDef?.itemId ?? "none" as const;
@@ -44,7 +44,7 @@ export function DailyProcessingPanel({ open, inventory, dailyProcessingStorage, 
     // pos からエンティティタイプとレシピ定義を引く（ベース entityType を使う）
     const baseEntityType = useMemo(() => {
         if (!pos) return null;
-        const surface = voxelMap.getSurfacePosition({ x: pos.x, y: 0, z: pos.z });
+        const surface = voxelMap.getSurfacePosition(pos);
         return getEntityTypeFromVoxel(voxelMap.get(surface));
     }, [pos, voxelMap]);
 

@@ -48,7 +48,7 @@ function isInBounds(voxelMap: IVoxelWriter, x: number, z: number): boolean {
 export function applyFullowCanalIrrigation(voxelMap: IVoxelWriter, range: number = FURROW_CANAL_IRRIGATION_RANGE): void {
     for (let x = 0; x < voxelMap.width; x++) {
         for (let z = 0; z < voxelMap.depth; z++) {
-            const pipeSurfacePos = voxelMap.getSurfacePosition({ x, y: 0, z });
+            const pipeSurfacePos = voxelMap.getSurfacePosition({ x, z });
             const pipeVoxel = voxelMap.get(pipeSurfacePos);
 
             if (getEntityTypeFromVoxel(pipeVoxel) !== ENTITY_TYPES.furrow_canal) continue;
@@ -64,11 +64,7 @@ export function applyFullowCanalIrrigation(voxelMap: IVoxelWriter, range: number
                     const nz = z + dir.dz * step;
                     if (!isInBounds(voxelMap, nx, nz)) break;
 
-                    const targetSurfacePos = voxelMap.getSurfacePosition({
-                        x: nx,
-                        y: 0,
-                        z: nz,
-                    });
+                    const targetSurfacePos = voxelMap.getSurfacePosition({ x: nx, z: nz });
                     const targetVoxel = voxelMap.get(targetSurfacePos);
                     const terrainType = getTerrainTypeFromVoxel(targetVoxel);
 

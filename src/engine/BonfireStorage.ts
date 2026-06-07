@@ -206,7 +206,7 @@ export class BonfireStorage extends KeyedSlotStorage<BonfireSlots> {
      * enabled ビット = 点火状態（燃料が1日分以上）、rotated ビット = 草木灰の有無。
      */
     private updateVoxelSpriteState(pos: Pos2D, voxelMap: IVoxelWriter): void {
-        const surface = voxelMap.getSurfacePosition({ x: pos.x, y: 0, z: pos.z });
+        const surface = voxelMap.getSurfacePosition(pos);
         const voxel = voxelMap.get(surface);
         const updated = setRotatedInVoxel(setEnabledInVoxel(voxel, this.isBurning(pos)), this.hasAsh(pos));
         voxelMap.set(updated, surface);

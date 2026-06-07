@@ -57,7 +57,7 @@ export function removeFacility(
     const { w, h } = getEntitySize(def.placement.entityType, variant);
     for (let dz = 0; dz < h; dz++) {
         for (let dx = 0; dx < w; dx++) {
-            const pos = voxelMap.getSurfacePosition({ x: anchorX + dx, y: 0, z: anchorZ + dz });
+            const pos = voxelMap.getSurfacePosition({ x: anchorX + dx, z: anchorZ + dz });
             const v = voxelMap.get(pos);
             voxelMap.set(setEntityTypeInVoxel(v, ENTITY_TYPES.none), pos);
         }
@@ -83,7 +83,7 @@ export function removeFacilityAtPos(
 export function placeFacility(voxelMap: IVoxelWriter, pos: Pos2D, entityType: number, entitySize: { w: number; h: number }): void {
     for (let dz = 0; dz < entitySize.h; dz++) {
         for (let dx = 0; dx < entitySize.w; dx++) {
-            const surfacePos = voxelMap.getSurfacePosition({ x: pos.x + dx, y: 0, z: pos.z + dz });
+            const surfacePos = voxelMap.getSurfacePosition({ x: pos.x + dx, z: pos.z + dz });
             const voxel = voxelMap.get(surfacePos);
             if (dx === 0 && dz === 0) {
                 const anchorVoxel = placeEntity(voxel, entityType);
@@ -108,7 +108,7 @@ export function findFacilityAnchor(
     x: number,
     z: number,
 ): { anchorX: number; anchorZ: number; entityType: number; variant: PlacementVariant; size: { w: number; h: number } } {
-    const surfacePos = voxelMap.getSurfacePosition({ x, y: 0, z });
+    const surfacePos = voxelMap.getSurfacePosition({ x, z });
     const voxel = voxelMap.get(surfacePos);
     const entityType = getEntityTypeFromVoxel(voxel);
     const variant = getVariantFromVoxel(voxel);
@@ -125,7 +125,7 @@ export function findFacilityAnchor(
     // voxel内のdisplacementを取得してアンカーを見つける
     const anchorX = x - getDisplacementXFromVoxel(voxel);
     const anchorZ = z - getDisplacementZFromVoxel(voxel);
-    const nSurfacePos = voxelMap.getSurfacePosition({ x: anchorX, y: 0, z: anchorZ });
+    const nSurfacePos = voxelMap.getSurfacePosition({ x: anchorX, z: anchorZ });
     const nVoxel = voxelMap.get(nSurfacePos);
     const nEntityType = getEntityTypeFromVoxel(nVoxel);
     const nVariant = getVariantFromVoxel(nVoxel);

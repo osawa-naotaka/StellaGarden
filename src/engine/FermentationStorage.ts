@@ -92,7 +92,7 @@ export class FermentationStorage extends KeyedSlotStorage<FermentationSlots> {
         if (!slots) return;
         slots.inputs.fill(null);
         slots.output = null;
-        const surface = voxelMap.getSurfacePosition({ x: pos.x, y: 0, z: pos.z });
+        const surface = voxelMap.getSurfacePosition(pos);
         voxelMap.set(setEnabledInVoxel(setDaysElapsedInVoxel(voxelMap.get(surface), 0), false), surface);
     }
 
@@ -131,7 +131,7 @@ export class FermentationStorage extends KeyedSlotStorage<FermentationSlots> {
     }
 
     getDaysElapsed(pos: Pos2D, voxelMap: IVoxelWriter): number {
-        const surface = voxelMap.getSurfacePosition({ x: pos.x, y: 0, z: pos.z });
+        const surface = voxelMap.getSurfacePosition(pos);
         return getDaysElapsedFromVoxel(voxelMap.get(surface));
     }
 
@@ -142,7 +142,7 @@ export class FermentationStorage extends KeyedSlotStorage<FermentationSlots> {
             if (!recipe) continue;
             if (!this.isReady(pos)) continue;
 
-            const surface = voxelMap.getSurfacePosition({ x: pos.x, y: 0, z: pos.z });
+            const surface = voxelMap.getSurfacePosition(pos);
             const voxel = voxelMap.get(surface);
             const days = getDaysElapsedFromVoxel(voxel);
             const nextDays = days + 1;
@@ -181,7 +181,7 @@ export class FermentationStorage extends KeyedSlotStorage<FermentationSlots> {
      * hardReset 時は 0 に戻してから判定する（レシピ変更時）。
      */
     private recompute(pos: Pos2D, voxelMap: IVoxelWriter, hardReset: boolean): void {
-        const surface = voxelMap.getSurfacePosition({ x: pos.x, y: 0, z: pos.z });
+        const surface = voxelMap.getSurfacePosition(pos);
         const voxel = voxelMap.get(surface);
         const days = hardReset ? 0 : getDaysElapsedFromVoxel(voxel);
         const ready = this.isReady(pos);
@@ -194,7 +194,7 @@ export class FermentationStorage extends KeyedSlotStorage<FermentationSlots> {
 
     /** output の有無を voxel の enabled ビットに反映する（スプライト切替に使う）。 */
     private updateVoxelEnabled(pos: Pos2D, voxelMap: IVoxelWriter): void {
-        const surface = voxelMap.getSurfacePosition({ x: pos.x, y: 0, z: pos.z });
+        const surface = voxelMap.getSurfacePosition(pos);
         const voxel = voxelMap.get(surface);
         voxelMap.set(setEnabledInVoxel(voxel, this.getOutput(pos) !== null), surface);
     }

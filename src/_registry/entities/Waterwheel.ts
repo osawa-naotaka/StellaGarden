@@ -31,7 +31,7 @@ function waterwheelFrame(variant: number): string {
 
 /** waterSource タイルが空エンティティかどうか。 */
 function isFreeWaterAt(map: IVoxelReader, x: number, z: number): boolean {
-    const voxel = map.getSurface({ x, y: 0, z });
+    const voxel = map.getSurface({ x, z });
     const terrainType = getTerrainTypeFromVoxel(voxel);
     if (!(terrainType === TERRAIN_TYPES.waterSource || terrainType === TERRAIN_TYPES.water)) return false;
     if (getEntityTypeFromVoxel(voxel) !== ENTITY_TYPES.none) return false;
@@ -46,7 +46,7 @@ function canPlaceWaterwheel(map: IVoxelReader, pos: Pos2D, variant: PlacementVar
     if (variant === 0) {
         // 全3タイルが horizonHeight にあること（waterSource も horizonHeight）
         for (let dz = 0; dz < ENTITY_V_H; dz++) {
-            const surfacePos = map.getSurfacePosition({ x: x, y: 0, z: z + dz });
+            const surfacePos = map.getSurfacePosition({ x: x, z: z + dz });
             if (surfacePos.y !== map.horizonHeight) return false;
         }
         // 縦方向: 列 x が waterSource
@@ -59,7 +59,7 @@ function canPlaceWaterwheel(map: IVoxelReader, pos: Pos2D, variant: PlacementVar
     // 横方向：全9タイルが horizonHeight にあること（waterSource も horizonHeight）
     for (let dz = 0; dz < ENTITY_H_H; dz++) {
         for (let dx = 0; dx < ENTITY_H_W; dx++) {
-            const surfacePos = map.getSurfacePosition({ x: x + dx, y: 0, z: z + dz });
+            const surfacePos = map.getSurfacePosition({ x: x + dx, z: z + dz });
             if (surfacePos.y !== map.horizonHeight) return false;
         }
     }
@@ -125,7 +125,7 @@ registerItem({
             } else {
                 placeFacility(voxelMap, pos, ENTITY_TYPES.waterwheel, { w: ENTITY_V_W, h: ENTITY_V_H });
             }
-            const surfacePos = voxelMap.getSurfacePosition({ x: pos.x, y: 0, z: pos.z });
+            const surfacePos = voxelMap.getSurfacePosition(pos);
             const voxel = voxelMap.get(surfacePos);
             voxelMap.set(setVariantInVoxel(voxel, variant), surfacePos);
             recomputeAllShaftPowerFlow(voxelMap);

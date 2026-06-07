@@ -174,7 +174,7 @@ function scatterOnTile(
     tilePos: Pos2D,
     eventBroker: IEventBroker,
 ): void {
-    const surfacePos: Pos3D = voxelMap.getSurfacePosition({ x: tilePos.x, y: 0, z: tilePos.z });
+    const surfacePos: Pos3D = voxelMap.getSurfacePosition(tilePos);
     const voxel = voxelMap.get(surfacePos);
     const terrainType = getTerrainTypeFromVoxel(voxel);
 
@@ -251,7 +251,7 @@ function harvestOnTile(
     tilePos: Pos2D,
     eventBroker: IEventBroker,
 ): void {
-    const surfacePos: Pos3D = voxelMap.getSurfacePosition({ x: tilePos.x, y: 0, z: tilePos.z });
+    const surfacePos: Pos3D = voxelMap.getSurfacePosition(tilePos);
     const voxel = voxelMap.get(surfacePos);
     const entityType = getEntityTypeFromVoxel(voxel);
 

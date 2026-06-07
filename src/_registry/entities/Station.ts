@@ -59,7 +59,7 @@ registerItem({
         },
         onPlace(voxelMap, pos, variant: PlacementVariant) {
             placeFacility(voxelMap, pos, ENTITY_TYPES.station, STATION_SIZE);
-            const surfacePos = voxelMap.getSurfacePosition({ x: pos.x, y: 0, z: pos.z });
+            const surfacePos = voxelMap.getSurfacePosition(pos);
             const voxel = voxelMap.get(surfacePos);
             voxelMap.set(setVariantInVoxel(voxel, variant), surfacePos);
         },

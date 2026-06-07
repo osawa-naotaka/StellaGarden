@@ -37,7 +37,7 @@ registerItem({
         fieldSpriteName: "cart_h",
         canPlace(voxelMap, pos, _variant) {
             // rail エンティティの上のみ配置可
-            const surfacePos = voxelMap.getSurfacePosition({ x: pos.x, y: 0, z: pos.z });
+            const surfacePos = voxelMap.getSurfacePosition(pos);
             const voxel = voxelMap.get(surfacePos);
             if (getEntityTypeFromVoxel(voxel) !== ENTITY_TYPES.rail) return false;
             // 既に台車がいるタイルには配置不可（1タイル1台車）

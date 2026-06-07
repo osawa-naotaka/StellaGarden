@@ -35,7 +35,7 @@ export function ManualProcessingPanel({ open, inventory, manualProcessingStorage
     // pos からエンティティタイプとレシピ定義を引く
     const entityType = useMemo(() => {
         if (!pos) return null;
-        const surface = voxelMap.getSurfacePosition({ x: pos.x, y: 0, z: pos.z });
+        const surface = voxelMap.getSurfacePosition(pos);
         return getEntityTypeFromVoxel(voxelMap.get(surface));
     }, [pos, voxelMap]);
 

@@ -81,14 +81,14 @@ export class VoxelMap implements IVoxelWriter {
         this.broker?.publish("terrain_changed", { pos, voxel: 0n });
     }
 
-    getSurface(pos: Pos3D): bigint {
+    getSurface(pos: Pos2D): bigint {
         const surfacePos = this.getSurfacePosition(pos);
         return this.get(surfacePos);
     }
 
-    getSurfacePosition(pos: Pos3D): Pos3D {
+    getSurfacePosition(pos: Pos2D): Pos3D {
         if (pos.x < 0 || pos.x >= this.width || pos.z < 0 || pos.z >= this.depth) {
-            throw new Error(`Position out of bounds: (${pos.x}, ${pos.y}, ${pos.z})`);
+            throw new Error(`Position out of bounds: (${pos.x}, ${pos.z})`);
         }
 
         // xとzのみを使用し、yは無視して上から探索
@@ -103,9 +103,9 @@ export class VoxelMap implements IVoxelWriter {
         throw new Error(`No surface found at (${pos.x}, ${pos.z})`);
     }
 
-    getGroundSurfacePosition(pos: Pos3D): Pos3D {
+    getGroundSurfacePosition(pos: Pos2D): Pos3D {
         if (pos.x < 0 || pos.x >= this.width || pos.z < 0 || pos.z >= this.depth) {
-            throw new Error(`Position out of bounds: (${pos.x}, ${pos.y}, ${pos.z})`);
+            throw new Error(`Position out of bounds: (${pos.x}, ${pos.z})`);
         }
 
         // 水タイル（terrain type 1 = water、6 = waterSource）をスキップして上から探索

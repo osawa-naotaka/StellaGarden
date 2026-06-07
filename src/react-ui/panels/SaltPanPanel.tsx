@@ -92,7 +92,7 @@ export function SaltPanPanel({ open, inventory, saltPanStorage, voxelMap, uiStat
     }, [uiState]);
 
     const output = pos ? getStorageSlot("saltpan", pos, "output", 0) : null;
-    const daysElapsed = pos ? getDaysElapsedFromVoxel(voxelMap.get(voxelMap.getSurfacePosition({ x: pos.x, y: 0, z: pos.z }))) : 0;
+    const daysElapsed = pos ? getDaysElapsedFromVoxel(voxelMap.get(voxelMap.getSurfacePosition(pos))) : 0;
     const progressPct = Math.min(100, Math.round((daysElapsed / SALT_DAYS_PER_CYCLE) * 100));
 
     return (

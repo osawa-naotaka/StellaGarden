@@ -52,11 +52,7 @@ registerItem({
                 w: 1,
                 h: 1,
             });
-            const surfacePos = voxelMap.getSurfacePosition({
-                x: pos.x,
-                y: 0,
-                z: pos.z,
-            });
+            const surfacePos = voxelMap.getSurfacePosition(pos);
             const voxel = voxelMap.get(surfacePos);
             voxelMap.set(setVariantInVoxel(voxel, variant), surfacePos);
             refreshFurrowCanalConnectionsAround(voxelMap, pos);

@@ -29,7 +29,7 @@ registerEntity({
         // 2x2 の全タイルのエンティティビットをクリアする
         for (let dz = 0; dz < anchor.size.h; dz++) {
             for (let dx = 0; dx < anchor.size.w; dx++) {
-                const pos = ctx.voxelMap.getSurfacePosition({ x: anchor.anchorX + dx, y: 0, z: anchor.anchorZ + dz });
+                const pos = ctx.voxelMap.getSurfacePosition({ x: anchor.anchorX + dx, z: anchor.anchorZ + dz });
                 const v = ctx.voxelMap.get(pos);
                 ctx.voxelMap.set(setEntityTypeInVoxel(v, ENTITY_TYPES.none), pos);
             }

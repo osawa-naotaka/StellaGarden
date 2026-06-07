@@ -127,7 +127,7 @@ export class PlayerState implements IPlayerStateWriter {
         // マップ範囲外はブロック
         if (tileX < 0 || tileX >= this.worldSize.w || tileZ < 0 || tileZ >= this.worldSize.h) return true;
 
-        const surfacePos = this.voxelMap.getSurfacePosition({ x: tileX, y: 0, z: tileZ });
+        const surfacePos = this.voxelMap.getSurfacePosition({ x: tileX, z: tileZ });
         const voxel = this.voxelMap.get(surfacePos);
         const terrainType = getTerrainTypeFromVoxel(voxel);
         const entityType = getEntityTypeFromVoxel(voxel);

@@ -61,7 +61,7 @@ export class DailyProcessingStorage extends KeyedSlotStorage<DailyProcessingSlot
 
     /** 進行日数を返す（voxel の growthStage を読む）。 */
     getDaysElapsed(pos: Pos2D, voxelMap: IVoxelWriter): number {
-        const surface = voxelMap.getSurfacePosition({ x: pos.x, y: 0, z: pos.z });
+        const surface = voxelMap.getSurfacePosition(pos);
         return getDaysElapsedFromVoxel(voxelMap.get(surface));
     }
 
@@ -150,7 +150,7 @@ export class DailyProcessingStorage extends KeyedSlotStorage<DailyProcessingSlot
         if (index === 0) {
             // output[0] の有無を voxel の enabled bit に反映する（sprites が完了状態を判定するために使う）。
             // variant ビットは向き（縦/横）専用としているため使わない。
-            const surface = voxelMap.getSurfacePosition({ x: pos.x, y: 0, z: pos.z });
+            const surface = voxelMap.getSurfacePosition(pos);
             const voxel = voxelMap.get(surface);
             voxelMap.set(setEnabledInVoxel(voxel, stack !== null), surface);
         }
@@ -172,7 +172,7 @@ export class DailyProcessingStorage extends KeyedSlotStorage<DailyProcessingSlot
     override onDailyTick(voxelMap: IVoxelWriter): void {
         for (const [key, slots] of this.entries()) {
             const pos = this.posFromKey(key);
-            const surface = voxelMap.getSurfacePosition({ x: pos.x, y: 0, z: pos.z });
+            const surface = voxelMap.getSurfacePosition(pos);
             const voxel = voxelMap.get(surface);
             const entityType = getEntityTypeFromVoxel(voxel);
             // 日次処理対象外の entityType（旧セーブに残った焚き火など）は安全にスキップする。
@@ -238,13 +238,13 @@ export class DailyProcessingStorage extends KeyedSlotStorage<DailyProcessingSlot
 
     /** 指定座標の施設の「ベース entityType（== empty 状態の entityType）」を返す。施設外なら ENTITY_TYPES.none。 */
     private getBaseEntityTypeAt(pos: Pos2D, voxelMap: IVoxelWriter): number {
-        const surface = voxelMap.getSurfacePosition({ x: pos.x, y: 0, z: pos.z });
+        const surface = voxelMap.getSurfacePosition(pos);
         return getEntityTypeFromVoxel(voxelMap.get(surface));
     }
 
     /** 進行日数（voxel の growthStage）を 0/1 にリセットする。 */
     private resetDaysElapsed(pos: Pos2D, voxelMap: IVoxelWriter, resetTo: number): void {
-        const surface = voxelMap.getSurfacePosition({ x: pos.x, y: 0, z: pos.z });
+        const surface = voxelMap.getSurfacePosition(pos);
         const voxel = voxelMap.get(surface);
         voxelMap.set(setDaysElapsedInVoxel(voxel, resetTo), surface);
     }

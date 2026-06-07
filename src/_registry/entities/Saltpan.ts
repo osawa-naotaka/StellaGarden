@@ -36,12 +36,12 @@ function canPlaceSaltpan(map: IVoxelReader, pos: Pos2D): boolean {
     const { w, h } = ENTITY_SIZE;
     if (x < 0 || x + w > map.width || z < 0 || z + h > map.depth) return false;
 
-    const baseY = map.getSurfacePosition({ x, y: 0, z }).y;
+    const baseY = map.getSurfacePosition({ x, z }).y;
     for (let dz = 0; dz < h; dz++) {
         for (let dx = 0; dx < w; dx++) {
-            const surfacePos = map.getSurfacePosition({ x: x + dx, y: 0, z: z + dz });
+            const surfacePos = map.getSurfacePosition(pos);
             if (surfacePos.y !== baseY) return false;
-            const voxel = map.getSurface({ x: x + dx, y: 0, z: z + dz });
+            const voxel = map.getSurface({ x: x + dx, z: z + dz });
             if (!PLACEABLE_TERRAINS.has(getTerrainTypeFromVoxel(voxel))) return false;
             if (getEntityTypeFromVoxel(voxel) !== ENTITY_TYPES.none) return false;
         }
@@ -56,7 +56,7 @@ function canPlaceSaltpan(map: IVoxelReader, pos: Pos2D): boolean {
                 const nz = tz + ndz;
                 if (nx < 0 || nx >= map.width || nz < 0 || nz >= map.depth) continue;
                 if (nx >= x && nx < x + w && nz >= z && nz < z + h) continue; // 配置範囲内は除外
-                const v = map.getSurface({ x: nx, y: 0, z: nz });
+                const v = map.getSurface({ x: nx,  z: nz });
                 if (isWaterTerrain(getTerrainTypeFromVoxel(v))) return true;
             }
         }
@@ -122,7 +122,7 @@ registerStorage("saltpan", { output: [null] },
   (voxelMap: IVoxelWriter) => {
       for (const [key, slots] of Object.entries(getStorage("saltpan").value)) {
           const pos = posFromStorageKey(key);
-          const surface = voxelMap.getSurfacePosition({ x: pos.x, y: 0, z: pos.z });
+          const surface = voxelMap.getSurfacePosition(pos);
           const voxel = voxelMap.get(surface);
           const days = getDaysElapsedFromVoxel(voxel) + 1;
 
@@ -151,7 +151,7 @@ registerStorage("saltpan", { output: [null] },
 );
 
 function updateVoxelEnabled(pos: Pos2D, voxelMap: IVoxelWriter): void {
-    const surface = voxelMap.getSurfacePosition({ x: pos.x, y: 0, z: pos.z });
+    const surface = voxelMap.getSurfacePosition(pos);
     const voxel = voxelMap.get(surface);
     voxelMap.set(setEnabledInVoxel(voxel, getStorageSlot("saltpan", pos, "output", 0) !== null), surface);
 }

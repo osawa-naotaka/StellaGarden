@@ -90,7 +90,7 @@ export function registerDailyProcessingEntity(opts: DailyProcessingEntityOptions
         (voxelMap) => {
           for (const [key, slots] of Object.entries(getStorage(itemId).value)) {
               const pos = posFromStorageKey(key);
-              const surface = voxelMap.getSurfacePosition({ x: pos.x, y: 0, z: pos.z });
+              const surface = voxelMap.getSurfacePosition(pos);
               const voxel = voxelMap.get(surface);
               const entityType = getEntityTypeFromVoxel(voxel);
               // 日次処理対象外の entityType（旧セーブに残った焚き火など）は安全にスキップする。
@@ -159,7 +159,7 @@ export function registerDailyProcessingEntity(opts: DailyProcessingEntityOptions
 }
 
 function getBaseEntityTypeAt(pos: Pos2D, voxelMap: IVoxelWriter): number {
-    const surface = voxelMap.getSurfacePosition({ x: pos.x, y: 0, z: pos.z });
+    const surface = voxelMap.getSurfacePosition(pos);
     return getEntityTypeFromVoxel(voxelMap.get(surface));
 }
 
@@ -172,7 +172,7 @@ export function dailyProcessingCanAcceptInput(pos: Pos2D, itemId: string, voxelM
 }
 
 export function getDaysElapsed(pos: Pos2D, voxelMap: IVoxelWriter): number {
-    const surface = voxelMap.getSurfacePosition({ x: pos.x, y: 0, z: pos.z });
+    const surface = voxelMap.getSurfacePosition(pos);
     return getDaysElapsedFromVoxel(voxelMap.get(surface));
 }
 

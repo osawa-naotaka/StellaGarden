@@ -124,7 +124,7 @@ function addToSlot(slot: ItemStack | null, out: { itemId: string; count: number 
 }
 
 function updateVoxelEnabled(pos: Pos2D, voxelMap: IVoxelWriter): void {
-    const surface = voxelMap.getSurfacePosition({ x: pos.x, y: 0, z: pos.z });
+    const surface = voxelMap.getSurfacePosition(pos);
     const voxel = voxelMap.get(surface);
     voxelMap.set(setEnabledInVoxel(voxel, isBurning(pos)), surface);
 }

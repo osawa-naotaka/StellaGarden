@@ -26,7 +26,7 @@ function isFlat3x3(voxelMap: IVoxelWriter, centerX: number, centerZ: number, cen
             const nx = centerX + dx;
             const nz = centerZ + dz;
             if (nx < 0 || nx >= voxelMap.width || nz < 0 || nz >= voxelMap.depth) return false;
-            if (voxelMap.getGroundSurfacePosition({ x: nx, y: 0, z: nz }).y !== centerY) return false;
+            if (voxelMap.getGroundSurfacePosition({ x: nx, z: nz }).y !== centerY) return false;
         }
     }
     return true;
@@ -34,11 +34,7 @@ function isFlat3x3(voxelMap: IVoxelWriter, centerX: number, centerZ: number, cen
 
 /** 中心を削った後（y - 1）でも、3x3 範囲の各セルとの高さ差が 1 以下に収まるか返す。 */
 function isSafeToRemove3x3(voxelMap: IVoxelWriter, centerX: number, centerZ: number): boolean {
-    const centerY = voxelMap.getGroundSurfacePosition({
-        x: centerX,
-        y: 0,
-        z: centerZ,
-    }).y;
+    const centerY = voxelMap.getGroundSurfacePosition({ x: centerX, z: centerZ }).y;
     const newCenterY = centerY - 1;
     for (let dz = -1; dz <= 1; dz++) {
         for (let dx = -1; dx <= 1; dx++) {
@@ -46,11 +42,7 @@ function isSafeToRemove3x3(voxelMap: IVoxelWriter, centerX: number, centerZ: num
             const nx = centerX + dx;
             const nz = centerZ + dz;
             if (nx < 0 || nx >= voxelMap.width || nz < 0 || nz >= voxelMap.depth) return false;
-            const y = voxelMap.getGroundSurfacePosition({
-                x: nx,
-                y: 0,
-                z: nz,
-            }).y;
+            const y = voxelMap.getGroundSurfacePosition({ x: nx, z: nz }).y;
             if (Math.abs(newCenterY - y) > 1) return false;
         }
     }
@@ -64,11 +56,7 @@ function revertNearbyInvalidTerrain(voxelMap: IVoxelWriter, cx: number, cz: numb
             const nx = cx + dx;
             const nz = cz + dz;
             if (nx < 0 || nx >= voxelMap.width || nz < 0 || nz >= voxelMap.depth) continue;
-            const pos = voxelMap.getGroundSurfacePosition({
-                x: nx,
-                y: 0,
-                z: nz,
-            });
+            const pos = voxelMap.getGroundSurfacePosition({ x: nx, z: nz });
             const voxel = voxelMap.get(pos);
             const terrain = getTerrainTypeFromVoxel(voxel);
             if (isFlat3x3(voxelMap, nx, nz, pos.y)) continue;

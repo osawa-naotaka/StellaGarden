@@ -161,7 +161,7 @@ export class CartStorage implements ICartStorageWriter {
             let tz = Math.floor(cart.posInWorld.z);
 
             for (let hop = 0; hop < MAX_HOPS && remaining > 0; hop++) {
-                const surfacePos = voxelMap.getSurfacePosition({ x: tx, y: 0, z: tz });
+                const surfacePos = voxelMap.getSurfacePosition({ x: tx, z: tz });
                 const voxel = voxelMap.get(surfacePos);
 
                 if (getEntityTypeFromVoxel(voxel) !== ENTITY_TYPES.rail) break;
@@ -177,7 +177,7 @@ export class CartStorage implements ICartStorageWriter {
                 // 次タイルが進入可能（rail）かどうかをチェック
                 // 不可なら線分終点をタイル中央に切り替えてカートをタイル中央で停止させる
                 const next = neighborTile(tx, tz, exitBit);
-                const nextSurfacePos = voxelMap.getSurfacePosition({ x: next.tx, y: 0, z: next.tz });
+                const nextSurfacePos = voxelMap.getSurfacePosition({ x: next.tx, z: next.tz });
                 const nextVoxel = voxelMap.get(nextSurfacePos);
                 const nextIsRail = getEntityTypeFromVoxel(nextVoxel) === ENTITY_TYPES.rail;
 

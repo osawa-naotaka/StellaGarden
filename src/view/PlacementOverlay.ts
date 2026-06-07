@@ -135,7 +135,7 @@ export class PlacementOverlay {
             return this.placementInfo.canPlace(map, { x, z }, this.uiState.placementVariant);
         }
 
-        const baseY = map.getSurfacePosition({ x, y: 0, z }).y;
+        const baseY = map.getSurfacePosition({ x, z }).y;
 
         for (let dz = 0; dz < h; dz++) {
             for (let dx = 0; dx < w; dx++) {

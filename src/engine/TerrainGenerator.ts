@@ -465,7 +465,7 @@ function placeEntities(seed: string, map: VoxelMap): void {
 
             if (!shouldPlaceTree && !shouldPlaceStone) continue;
 
-            const pos = map.getSurfacePosition({ x, y: 0, z });
+            const pos = map.getSurfacePosition({ x, z });
             const terrain = map.get(pos);
             const terrainType = getTerrainTypeFromVoxel(terrain);
             // 既存エンティティ（隕鉄・facility_part 等）があるタイルは上書きしない
@@ -500,7 +500,7 @@ function placeMeteoricIron(seed: string, map: VoxelMap): void {
 
             for (let dz = 0; dz < 2; dz++) {
                 for (let dx = 0; dx < 2; dx++) {
-                    const pos = map.getSurfacePosition({ x: x + dx, y: 0, z: z + dz });
+                    const pos = map.getSurfacePosition({ x: x + dx, z: z + dz });
                     let v = map.get(pos);
                     const entity = dx === 0 && dz === 0 ? ENTITY_TYPES.meteoric_iron : ENTITY_TYPES.facility_part;
                     v = placeEntity(v, entity);
@@ -519,7 +519,7 @@ function canPlaceMeteoricIron(map: VoxelMap, x: number, z: number): boolean {
     let anchorY = -1;
     for (let dz = 0; dz < 2; dz++) {
         for (let dx = 0; dx < 2; dx++) {
-            const pos = map.getSurfacePosition({ x: x + dx, y: 0, z: z + dz });
+            const pos = map.getSurfacePosition({ x: x + dx, z: z + dz });
             const v = map.get(pos);
             if (getTerrainTypeFromVoxel(v) !== TERRAIN_TYPES.grass) return false;
             if (getEntityTypeFromVoxel(v) !== ENTITY_TYPES.none) return false;

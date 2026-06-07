@@ -37,7 +37,7 @@ export function AutoProcessingPanel({ open, inventory, autoProcessingStorage, vo
 
     const entityType = useMemo(() => {
         if (!pos) return null;
-        const surface = voxelMap.getSurfacePosition({ x: pos.x, y: 0, z: pos.z });
+        const surface = voxelMap.getSurfacePosition(pos);
         return getEntityTypeFromVoxel(voxelMap.get(surface));
     }, [pos, voxelMap]);
 

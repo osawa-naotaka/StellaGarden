@@ -51,10 +51,10 @@ export interface IVoxelReader {
     readonly depth: number;
     readonly horizonHeight: number;
     get(pos: Pos3D): bigint;
-    getSurface(pos: Pos3D): bigint;
-    getSurfacePosition(pos: Pos3D): Pos3D;
+    getSurface(pos: Pos2D): bigint;
+    getSurfacePosition(pos: Pos2D): Pos3D;
     /** 水タイルを無視して、最上層の地面（dirt/grass/soil 等）の位置を返す。 */
-    getGroundSurfacePosition(pos: Pos3D): Pos3D;
+    getGroundSurfacePosition(pos: Pos2D): Pos3D;
 }
 
 /**

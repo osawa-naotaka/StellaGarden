@@ -78,7 +78,7 @@ function findNearestWalkableTile(voxelMap: IVoxelReader, startX: number, startZ:
                 visited.add(key);
                 next.push({ x: nx, z: nz });
 
-                const surface = voxelMap.getSurfacePosition({ x: nx, y: 0, z: nz });
+                const surface = voxelMap.getSurfacePosition({ x: nx, z: nz });
                 const voxel = voxelMap.get(surface);
                 if (isWalkableTerrain(getTerrainTypeFromVoxel(voxel))) {
                     return { x: nx, z: nz };

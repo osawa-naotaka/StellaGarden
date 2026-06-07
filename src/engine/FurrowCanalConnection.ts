@@ -35,7 +35,7 @@ function isInBounds(voxelMap: IVoxelWriter, x: number, z: number): boolean {
 /** 指定座標の surface voxel を取得する。範囲外なら null。 */
 function getSurfaceVoxelAt(voxelMap: IVoxelWriter, x: number, z: number): bigint | null {
     if (!isInBounds(voxelMap, x, z)) return null;
-    const surfacePos = voxelMap.getSurfacePosition({ x, y: 0, z });
+    const surfacePos = voxelMap.getSurfacePosition({ x, z });
     return voxelMap.get(surfacePos);
 }
 
@@ -71,7 +71,7 @@ export function computeFurrowCanalConnectionMask(voxelMap: IVoxelWriter, pos: Po
 export function refreshFurrowCanalConnectionAt(voxelMap: IVoxelWriter, pos: Pos2D): void {
     if (!isInBounds(voxelMap, pos.x, pos.z)) return;
 
-    const surfacePos = voxelMap.getSurfacePosition({ x: pos.x, y: 0, z: pos.z });
+    const surfacePos = voxelMap.getSurfacePosition(pos);
     const voxel = voxelMap.get(surfacePos);
     if (!isFurrowCanalVoxel(voxel)) return;
 

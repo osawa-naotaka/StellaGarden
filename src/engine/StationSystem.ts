@@ -204,7 +204,7 @@ function unloadCartToDaily(
     for (let i = 0; i < cart.inventorySlots.length; i++) {
         const slot = cart.inventorySlots[i];
         if (slot === null) continue;
-        const entityType = getEntityTypeFromVoxel(voxelMap.getSurface({ x: anchorPos.x, y: 0, z: anchorPos.z }));
+        const entityType = getEntityTypeFromVoxel(voxelMap.getSurface(anchorPos));
         const itemDef = getItemDefByEntityType(entityType);
         if (itemDef === undefined) throw new Error(`No itemId for entity type ${entityType}`);
         const movedCount = addToStorage(itemDef.itemId, anchorPos, "input", slot);
@@ -315,7 +315,7 @@ function loadDailyToCart(
     voxelMap: IVoxelWriter,
 ): boolean {
     let moved = false;
-    const entityType = getEntityTypeFromVoxel(voxelMap.getSurface({ x: anchorPos.x, y: 0, z: anchorPos.z }));
+    const entityType = getEntityTypeFromVoxel(voxelMap.getSurface(anchorPos));
     const itemId = getItemDefByEntityType(entityType)?.itemId ?? "none";
     for (const idx of [0, 1] as const) {
         const slot = getStorageSlot(itemId, anchorPos, "output", idx);
@@ -363,7 +363,7 @@ export function executeStationTransfersOnCartEnter(
     for (const { vec: d } of directions) {
         // S = T + d: ステーション候補タイル
         const S: Pos2D = { x: T.x + d.dx, z: T.z + d.dz };
-        const sSurface = voxelMap.getSurfacePosition({ x: S.x, y: 0, z: S.z });
+        const sSurface = voxelMap.getSurfacePosition(S);
         const sVoxel = voxelMap.get(sSurface);
         if (getEntityTypeFromVoxel(sVoxel) !== ENTITY_TYPES.station) continue;
 

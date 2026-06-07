@@ -45,7 +45,7 @@ export function recomputeAllRailTractionFlow(voxelMap: IVoxelWriter): void {
     const allRails: Pos3D[] = [];
     for (let z = 0; z < voxelMap.depth; z++) {
         for (let x = 0; x < voxelMap.width; x++) {
-            const pos = voxelMap.getSurfacePosition({ x, y: 0, z });
+            const pos = voxelMap.getSurfacePosition({ x, z });
             const voxel = voxelMap.get(pos);
             const entityType = getEntityTypeFromVoxel(voxel);
             if (entityType === ENTITY_TYPES.winch) {
@@ -59,7 +59,7 @@ export function recomputeAllRailTractionFlow(voxelMap: IVoxelWriter): void {
                 const anchor = findFacilityAnchor(voxelMap, x, z);
                 if (anchor.entityType === ENTITY_TYPES.winch) {
                     visited.add(keyOf(voxelMap, x, z));
-                    const anchorSurface = voxelMap.getSurfacePosition({ x: anchor.anchorX, y: 0, z: anchor.anchorZ });
+                    const anchorSurface = voxelMap.getSurfacePosition({ x: anchor.anchorX, z: anchor.anchorZ });
                     const anchorVoxel = voxelMap.get(anchorSurface);
                     if (getEnabledFromVoxel(anchorVoxel)) {
                         allWinches.push(pos);
@@ -119,7 +119,7 @@ function findTractionDistinations(voxelMap: IVoxelWriter, x: number, z: number):
         const nz = z + dir.dz;
         if (!isInBounds(voxelMap, nx, nz)) continue;
 
-        const pos = voxelMap.getSurfacePosition({ x: nx, y: 0, z: nz });
+        const pos = voxelMap.getSurfacePosition({ x: nx, z: nz });
         const voxel = voxelMap.get(pos);
         const entityType = getEntityTypeFromVoxel(voxel);
         if (entityType === ENTITY_TYPES.rail) {
@@ -133,7 +133,7 @@ function findTractionDistinations(voxelMap: IVoxelWriter, x: number, z: number):
 }
 
 function setTractionDirectionAndEnable(voxelMap: IVoxelWriter, x: number, z: number, dir: number): void {
-    const pos = voxelMap.getSurfacePosition({ x, y: 0, z });
+    const pos = voxelMap.getSurfacePosition({ x, z });
     const voxel = voxelMap.get(pos);
     const mask = getConnectionsFromVoxel(voxel);
 

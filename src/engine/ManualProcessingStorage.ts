@@ -51,7 +51,7 @@ export class ManualProcessingStorage extends KeyedSlotStorage<ManualProcessingSl
 
     /** 指定座標の施設のエンティティタイプを voxelMap から取り出す。アンカー以外を渡された場合は ENTITY_TYPES.none を返す。 */
     private getEntityTypeAt(pos: Pos2D, voxelMap: IVoxelWriter): number {
-        const surface = voxelMap.getSurfacePosition({ x: pos.x, y: 0, z: pos.z });
+        const surface = voxelMap.getSurfacePosition(pos);
         return getEntityTypeFromVoxel(voxelMap.get(surface));
     }
 

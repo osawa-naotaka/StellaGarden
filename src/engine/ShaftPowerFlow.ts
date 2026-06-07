@@ -32,7 +32,7 @@ function keyOf(voxelMap: IVoxelWriter, x: number, z: number): number {
 
 function getSurfaceVoxelAt(voxelMap: IVoxelWriter, x: number, z: number): bigint | null {
     if (!isInBounds(voxelMap, x, z)) return null;
-    const surfacePos = voxelMap.getSurfacePosition({ x, y: 0, z });
+    const surfacePos = voxelMap.getSurfacePosition({ x, z });
     return voxelMap.get(surfacePos);
 }
 
@@ -119,7 +119,7 @@ export function recomputeAllShaftPowerFlow(voxelMap: IVoxelWriter): void {
         const current = queue[index++];
         const currentKey = keyOf(voxelMap, current.x, current.z);
         const currentReversed = reversedMap.get(currentKey) ?? false;
-        const currentVoxel = voxelMap.getSurface({ x: current.x, y: 0, z: current.z });
+        const currentVoxel = voxelMap.getSurface(current);
         const currentMask = getConnectionsFromVoxel(currentVoxel);
 
         for (const dir of CARDINAL_DIRS) {
@@ -131,7 +131,7 @@ export function recomputeAllShaftPowerFlow(voxelMap: IVoxelWriter): void {
             if (visited.has(key)) continue;
             if (!canPowerFlowBetween(voxelMap, current.x, current.z, dir.dx, dir.dz, dir.bit, dir.oppositeBit)) continue;
 
-            const nextVoxel = voxelMap.getSurface({ x: nx, y: 0, z: nz });
+            const nextVoxel = voxelMap.getSurface({ x: nx, z: nz });
             const nextMask = getConnectionsFromVoxel(nextVoxel);
             let nextReversed = false;
             if (isShaftStraightMask(currentMask)) {
@@ -182,7 +182,7 @@ export function recomputeAllShaftPowerFlow(voxelMap: IVoxelWriter): void {
 
     for (const pos of allShafts) {
         const key = keyOf(voxelMap, pos.x, pos.z);
-        const surfacePos = voxelMap.getSurfacePosition({ x: pos.x, y: 0, z: pos.z });
+        const surfacePos = voxelMap.getSurfacePosition(pos);
         const voxel = voxelMap.get(surfacePos);
         const powered = visited.has(key);
         const reversed = powered && (reversedMap.get(key) ?? false);
@@ -200,7 +200,7 @@ export function recomputeAllShaftPowerFlow(voxelMap: IVoxelWriter): void {
     if (sinks.size > 0) {
         for (let z = 0; z < voxelMap.depth; z++) {
             for (let x = 0; x < voxelMap.width; x++) {
-                const surfacePos = voxelMap.getSurfacePosition({ x, y: 0, z });
+                const surfacePos = voxelMap.getSurfacePosition({ x, z });
                 const voxel = voxelMap.get(surfacePos);
                 const entityType = getEntityTypeFromVoxel(voxel);
                 const sink = sinks.get(entityType);

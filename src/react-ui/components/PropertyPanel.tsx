@@ -31,7 +31,7 @@ function buildTileLines(voxelMap: IVoxelReader, playerState: IPlayerStateReader)
     const pz = Math.floor(playerState.pointerPosInWorld.z);
     if (px < 0 || px >= voxelMap.width || pz < 0 || pz >= voxelMap.depth) return null;
 
-    const v = voxelMap.get(voxelMap.getSurfacePosition({ x: px, y: 0, z: pz }));
+    const v = voxelMap.get(voxelMap.getSurfacePosition({ x: px, z: pz }));
 
     const lines: string[] = [];
 
@@ -40,7 +40,7 @@ function buildTileLines(voxelMap: IVoxelReader, playerState: IPlayerStateReader)
     if (getEntityTypeFromVoxel(v) !== ENTITY_TYPES.none) {
         const anchor = findFacilityAnchor(voxelMap, px, pz);
         const entity = anchor.entityType;
-        const voxel = voxelMap.get(voxelMap.getSurfacePosition({ x: anchor.anchorX, y: 0, z: anchor.anchorZ }));
+        const voxel = voxelMap.get(voxelMap.getSurfacePosition({ x: anchor.anchorX, z: anchor.anchorZ }));
 
         const dayCounter = getDaysElapsedFromVoxel(voxel);
         const fertType = getFertilizerTypeFromVoxel(voxel);

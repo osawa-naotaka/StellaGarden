@@ -143,7 +143,7 @@ registerStorage("forge", {
 );
 
 function updateVoxelEntityType(pos: Pos2D, voxelMap: IVoxelWriter): void {
-    const surface = voxelMap.getSurfacePosition({ x: pos.x, y: 0, z: pos.z });
+    const surface = voxelMap.getSurfacePosition(pos);
     const voxel = voxelMap.get(surface);
     const newEntityType = isForgeBurning(pos) ? ENTITY_TYPES.forge_burning : ENTITY_TYPES.forge;
     voxelMap.set(setEntityTypeInVoxel(voxel, newEntityType), surface);

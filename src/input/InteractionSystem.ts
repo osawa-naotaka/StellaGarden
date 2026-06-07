@@ -43,7 +43,7 @@ export function createInteractionHandler(
             return;
         }
 
-        const surfacePos = voxelMap.getSurfacePosition({ x: packet.pos.x, y: 0, z: packet.pos.z });
+        const surfacePos = voxelMap.getSurfacePosition(packet.pos);
         const voxel = voxelMap.get(surfacePos);
         const terrainType = getTerrainTypeFromVoxel(voxel);
 
@@ -89,7 +89,7 @@ export function createInteractionHandler(
             return;
         }
 
-        const surfacePos = voxelMap.getSurfacePosition({ x: packet.pos.x, y: 0, z: packet.pos.z });
+        const surfacePos = voxelMap.getSurfacePosition(packet.pos);
         const voxel = voxelMap.get(surfacePos);
         const terrainType = getTerrainTypeFromVoxel(voxel);
 
