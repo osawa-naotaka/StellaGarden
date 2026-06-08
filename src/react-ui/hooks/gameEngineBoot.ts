@@ -1,10 +1,8 @@
 import type { IEventBroker } from "../../_boundary/interfaces";
-import { setAutoProcessingStorage } from "../../_registry/entities/AutoProcessing";
 import { setBonfireStorage } from "../../_registry/entities/Bonfire";
 import { setCartStorage } from "../../_registry/entities/Cart";
 import { setFermentationStorage } from "../../_registry/entities/FermentationVat";
 import { loadStorages } from "../../_registry/StorageRegistry";
-import { AutoProcessingStorage } from "../../engine/AutoProcessingStorage";
 import { BonfireStorage } from "../../engine/BonfireStorage";
 import { CartStorage } from "../../engine/CartStorage";
 import { FermentationStorage } from "../../engine/FermentationStorage";
@@ -35,7 +33,6 @@ export function restoreOrGenerateVoxelMap(saveData: SaveData | null, worldSize: 
 export interface Storages {
     bonfireStorage: BonfireStorage;
     fermentationStorage: FermentationStorage;
-    autoProcessingStorage: AutoProcessingStorage;
     cartStorage: CartStorage;
 }
 
@@ -56,12 +53,8 @@ export function bootstrapStorages(saveData: SaveData | null): Storages {
     if (saveData) fermentationStorage.loadSaveData(saveData.fermentationStorage.vats);
     setFermentationStorage(fermentationStorage);
 
-    const autoProcessingStorage = new AutoProcessingStorage();
-    if (saveData) autoProcessingStorage.loadSaveData(saveData.autoProcessingStorage.facilities);
-    setAutoProcessingStorage(autoProcessingStorage);
-
     // ステーション（フォーク搬送）は chest / daily / auto の3ストレージにアクセスする
-    setStationStorages(bonfireStorage, autoProcessingStorage);
+    setStationStorages(bonfireStorage);
 
     const cartStorage = new CartStorage();
     if (saveData) cartStorage.loadSaveData(saveData.cartStorage);
@@ -70,7 +63,6 @@ export function bootstrapStorages(saveData: SaveData | null): Storages {
     return {
         bonfireStorage,
         fermentationStorage,
-        autoProcessingStorage,
         cartStorage,
     };
 }

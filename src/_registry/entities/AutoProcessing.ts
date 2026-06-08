@@ -10,21 +10,18 @@
  * 動力: day_changed 時に AutoProcessingStorage.onDailyTick が、隣接する
  *       動力伝達済みシャフトの有無を判定してから一括処理する。
  */
-import type { ItemId } from "../../_boundary/interfaces";
-import type { AutoProcessingStorage } from "../../engine/AutoProcessingStorage";
+import type { ItemId, ItemStack, Pos2D } from "../../_boundary/interfaces";
 import { defaultPowerConnectionPositions, registerPowerSink } from "../../engine/PowerSinkRegistry";
 import { recomputeAllShaftPowerFlow } from "../../engine/ShaftPowerFlow";
-import { ENTITY_TYPES, getEnabledFromVoxel, getVariantFromVoxel } from "../../engine/VoxelDefs";
+import { ENTITY_TYPES, getEnabledFromVoxel, getEntityTypeFromVoxel, getVariantFromVoxel } from "../../engine/VoxelDefs";
 import { type EntitySpriteInfo, type InteractionContext, registerEntity } from "../EntityRegistry";
-import { findFacilityAnchor, placeFacility, removeFacilityByContext } from "../facilityUtil";
-import { registerItem } from "../ItemRegistry";
+import { placeFacility } from "../facilityUtil";
+import { getItemDef, registerItem } from "../ItemRegistry";
+import { findRecipeForInput, getAutoProcessingDef, isAcceptableInputItem } from "../ProcessingRecipes";
+import { createStorage, getStorage, posFromStorageKey, registerStorage, removeFacilityAndReturnItemsToInventory, setStorageSlot, type StorageId } from "../StorageRegistry";
 
-let autoProcessingStorage: AutoProcessingStorage | null = null;
-
-/** App / hooks 層から AutoProcessingStorage を注入する。 */
-export function setAutoProcessingStorage(storage: AutoProcessingStorage): void {
-    autoProcessingStorage = storage;
-}
+const DEFAULT_INPUT_SLOTS = 8;
+const DEFAULT_OUTPUT_SLOTS = 16;
 
 interface AutoProcessingEntityOptions {
     entityType: number;
@@ -61,10 +58,8 @@ export function registerAutoProcessingEntity(opts: AutoProcessingEntityOptions):
         // 左クリック: axe による撤去（中身は一緒にインベントリへ回収）
         onInteract(ctx: InteractionContext): boolean {
             if (ctx.tool !== "axe") return false;
-            const extraItems = autoProcessingStorage?.collectAllStacks(ctx.anchorPos) ?? [];
-            const removed = removeFacilityByContext(ctx, extraItems);
+            const removed = removeFacilityAndReturnItemsToInventory(itemId, ctx);
             if (removed) {
-                autoProcessingStorage?.remove(ctx.anchorPos);
                 recomputeAllShaftPowerFlow(ctx.voxelMap);
             }
             return removed;
@@ -72,12 +67,7 @@ export function registerAutoProcessingEntity(opts: AutoProcessingEntityOptions):
 
         // 右クリック: 自動処理 UI を開く
         onOpenFacilityUI(ctx: InteractionContext): boolean {
-            const anchor = findFacilityAnchor(ctx.voxelMap, ctx.interactPos.x, ctx.interactPos.z);
-            if (anchor.entityType !== entityType) throw new Error("anchor entity type mismatch");
-            const anchorPos = { x: anchor.anchorX, z: anchor.anchorZ };
-            // 念のためストレージを保証（既存施設のロード後など）
-            autoProcessingStorage?.create(anchorPos);
-            ctx.eventBroker.publish("open_processing_auto_ui", { pos: anchorPos });
+            ctx.eventBroker.publish("open_processing_auto_ui", { pos: ctx.anchorPos });
             return true;
         },
     });
@@ -92,12 +82,141 @@ export function registerAutoProcessingEntity(opts: AutoProcessingEntityOptions):
             getFieldSpriteName: (variant: number) => getFieldSpriteName(false, variant),
             onPlace(voxelMap, pos) {
                 placeFacility(voxelMap, pos, entityType, entitySize);
-                autoProcessingStorage?.create(pos);
+                createStorage(itemId, pos);
                 recomputeAllShaftPowerFlow(voxelMap);
             },
         },
     });
+
+    registerStorage(itemId, {
+        input: Array(DEFAULT_INPUT_SLOTS).fill(null),
+        output: Array(DEFAULT_OUTPUT_SLOTS).fill(null),
+    }, (voxelMap) => {
+        for (const [key, slots] of Object.entries(getStorage(itemId).value)) {
+            const pos = posFromStorageKey(key);
+            const voxel = voxelMap.getSurface(pos);
+            const entityType = getEntityTypeFromVoxel(voxel);
+
+            // 自動処理定義を取得
+            const def = getAutoProcessingDef(entityType);
+            if (!def) continue;
+
+            // 動力 OFF なら完全停止（アンカーボクセルの enabled を参照）
+            if (!autoProcessingIsPowered(voxel)) continue;
+
+            // 入力スロットを順に走査して処理
+            for (let inputIdx = 0; inputIdx < slots.input.length; inputIdx++) {
+                const inputStack = slots.input[inputIdx];
+                if (!inputStack) continue;
+
+                const inputItemId = inputStack.itemId;
+                if (!isAcceptableInputItem(def, inputItemId as never)) continue;
+
+                const recipe = findRecipeForInput(def, inputItemId as never);
+                if (inputStack.count < recipe.inputCountPerCycle) continue;
+
+                // 回せる最大サイクル数
+                const maxCycles = Math.floor(inputStack.count / recipe.inputCountPerCycle);
+
+                // 出力プールに実際に入る cycles 数を計算（出力スタック上限を尊重）
+                const cycles = calcFeasibleCycles(slots.output, recipe.outputs, maxCycles);
+                if (cycles <= 0) continue;
+
+                // 入力消費
+                inputStack.count -= cycles * recipe.inputCountPerCycle;
+                if (inputStack.count <= 0) {
+                    setStorageSlot(itemId, pos, "input", inputIdx, null);
+                } else {
+                    setStorageSlot(itemId, pos, "input", inputIdx, inputStack);
+                }
+
+                // 出力プールへ加算
+                for (const out of recipe.outputs) {
+                    addToOutputPool(itemId, pos, slots.output, out.itemId, cycles * out.count);
+                }
+            }
+        }
+    })
 }
+
+
+export function autoProcessingCanAcceptInput(itemId: string, entityType: number): boolean {
+    const def = getAutoProcessingDef(entityType);
+    if (!def) return false;
+    return isAcceptableInputItem(def, itemId as never);
+}
+
+// ── 動力状態（UI 向け公開） ──
+
+/** この施設に動力が伝達されているかどうか（アンカーボクセルの enabled を参照）。 */
+export function autoProcessingIsPowered(voxel: bigint): boolean {
+    return getEnabledFromVoxel(voxel);
+}
+
+/**
+ * 出力プールへの加算可能な最大サイクル数を計算する。
+ * 各出力 itemId に対して同 itemId スタックを統合し、スタック上限を超えないサイクル数を返す。
+ */
+function calcFeasibleCycles(
+    outputs: (ItemStack | null)[],
+    recipeOutputs: ReadonlyArray<{ readonly itemId: string; readonly count: number }>,
+    maxCycles: number,
+): number {
+    let cycles = maxCycles;
+    for (const out of recipeOutputs) {
+        const max = getItemDef(out.itemId)?.maxStack ?? 64;
+        // 現在の出力プールで同 itemId のスロットの合計空き容量を求める
+        let totalCapacity = 0;
+        let hasMatchingSlot = false;
+        for (const slot of outputs) {
+            if (slot === null) {
+                totalCapacity += max;
+            } else if (slot.itemId === out.itemId) {
+                totalCapacity += max - slot.count;
+                hasMatchingSlot = true;
+            }
+        }
+        // 同 itemId スロットがなく空きスロットもない場合は 0
+        if (!hasMatchingSlot && totalCapacity === 0) return 0;
+        // このアウトプット種別で許容できるサイクル数
+        if (out.count > 0) {
+            const feasible = Math.floor(totalCapacity / out.count);
+            cycles = Math.min(cycles, feasible);
+        }
+    }
+    return Math.max(0, cycles);
+}
+
+/**
+ * 出力プールに itemId × count を加算する。
+ * 同 itemId の既存スタックに優先してスタックし、満杯なら空きスロットを使う。
+ */
+function addToOutputPool(storageId: StorageId, pos: Pos2D, outputs: (ItemStack | null)[], itemId: string, count: number): void {
+    let remaining = count;
+    const max = getItemDef(itemId)?.maxStack ?? 64;
+
+    // まず既存の同 itemId スタックに積む
+    for (let i = 0; i < outputs.length && remaining > 0; i++) {
+        const slot = outputs[i];
+        if (slot === null || slot.itemId !== itemId) continue;
+        const space = max - slot.count;
+        const add = Math.min(space, remaining);
+        slot.count += add;
+        setStorageSlot(storageId, pos, "output", i, slot);
+        remaining -= add;
+    }
+
+    // 残りを空きスロットに新規追加
+    for (let i = 0; i < outputs.length && remaining > 0; i++) {
+        if (outputs[i] !== null) continue;
+        const add = Math.min(max, remaining);
+        outputs[i] = { itemId: itemId as never, count: add };
+        setStorageSlot(storageId, pos, "output", i, outputs[i]);
+        remaining -= add;
+    }
+    // remaining > 0 の場合は出力満杯（calcFeasibleCycles で 0 になっているはずなので到達しないはず）
+}
+
 
 // ── エンティティ登録 ──
 //

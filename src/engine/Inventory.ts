@@ -52,6 +52,7 @@ const DEFAULT_INVENTORY_ITEMS: readonly (DefaultItem | null)[] = [
     { itemId: "stem", count: 64 },
     { itemId: "bonfire", count: 8 },
     { itemId: "threshing_machine", count: 1 },
+    { itemId: "auto_thresher", count: 1 },
     { itemId: "pods", count: 64 },
 
     // { itemId: "compost_bin", count: 64 },

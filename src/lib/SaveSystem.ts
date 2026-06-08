@@ -3,7 +3,6 @@ import { safeParse } from "valibot";
 import { SaveDataSchema, SlotHeaderSchema } from "./SaveSchema";
 
 export type {
-    AutoProcessingStorageSaveData,
     DailyProcessingStorageSaveData,
     GameTimeSaveData,
     InventorySaveData,

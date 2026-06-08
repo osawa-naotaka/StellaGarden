@@ -125,22 +125,6 @@ export const DailyProcessingStorageSaveDataSchema = v.object({
     ),
 });
 
-// 自動処理施設（auto_thresher 等）は入力 8 / 出力 16 のプール構造。
-// スロット数を将来変更しやすいよう、配列は固定長 tuple ではなく可変長にしている。
-const AutoProcessingSlotsSchema = v.object({
-    inputs: v.array(NullableItemStackSchema),
-    outputs: v.array(NullableItemStackSchema),
-});
-
-export const AutoProcessingStorageSaveDataSchema = v.object({
-    facilities: v.array(
-        v.object({
-            key: v.string(),
-            slots: AutoProcessingSlotsSchema,
-        }),
-    ),
-});
-
 export const CartStorageSaveDataSchema = v.object({
     nextId: v.number(),
     carts: v.array(
@@ -207,7 +191,6 @@ export const SaveDataSchema = v.object({
     storage: StoragesSchema,
     bonfireStorage: BonfireStorageSaveDataSchema,
     fermentationStorage: FermentationStorageSaveDataSchema,
-    autoProcessingStorage: AutoProcessingStorageSaveDataSchema,
     cartStorage: CartStorageSaveDataSchema,
     reputation: ReputationSaveDataSchema,
     mission: MissionSaveDataSchema,
@@ -232,7 +215,6 @@ export type GameTimeSaveData = v.InferOutput<typeof GameTimeSaveDataSchema>;
 export type BonfireStorageSaveData = v.InferOutput<typeof BonfireStorageSaveDataSchema>;
 export type FermentationStorageSaveData = v.InferOutput<typeof FermentationStorageSaveDataSchema>;
 export type DailyProcessingStorageSaveData = v.InferOutput<typeof DailyProcessingStorageSaveDataSchema>;
-export type AutoProcessingStorageSaveData = v.InferOutput<typeof AutoProcessingStorageSaveDataSchema>;
 export type CartStorageSaveData = v.InferOutput<typeof CartStorageSaveDataSchema>;
 export type ReputationSaveData = v.InferOutput<typeof ReputationSaveDataSchema>;
 export type SeedRequestSaveData = v.InferOutput<typeof SeedRequestSaveDataSchema>;

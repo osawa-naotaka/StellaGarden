@@ -1,9 +1,9 @@
 import type { ICartWriter, IEventBroker, IVoxelWriter, Pos2D } from "../_boundary/interfaces";
+import { autoProcessingCanAcceptInput } from "../_registry/entities/AutoProcessing";
 import { findFacilityAnchor } from "../_registry/facilityUtil";
 import { getItemDef, getItemDefByEntityType } from "../_registry/ItemRegistry";
 import { AUTO_PROCESSING_DEFS, DAILY_PROCESSING_DEFS } from "../_registry/ProcessingRecipes";
-import { addToStorage, getStorageSlot, setStorageSlot } from "../_registry/StorageRegistry";
-import type { AutoProcessingStorage } from "./AutoProcessingStorage";
+import { addToStorage, getStorageSet, getStorageSlot, setStorageSlot } from "../_registry/StorageRegistry";
 import type { BonfireStorage } from "./BonfireStorage";
 import { ENTITY_TYPES, getEntityTypeFromVoxel, getVariantFromVoxel } from "./VoxelDefs";
 
@@ -56,15 +56,13 @@ function isParallel(a: Vec2, b: Vec2): boolean {
 // ---------------------------------------------------------------------------
 
 let bonfireStorageRef: BonfireStorage | null = null;
-let autoStorageRef: AutoProcessingStorage | null = null;
 
 /**
  * App.tsx から各ストレージを注入する。
  * Chest.ts の setChestStorage と同じパターン。
  */
-export function setStationStorages(bonfire: BonfireStorage, auto: AutoProcessingStorage): void {
+export function setStationStorages(bonfire: BonfireStorage): void {
     bonfireStorageRef = bonfire;
-    autoStorageRef = auto;
 }
 
 // ---------------------------------------------------------------------------
@@ -145,34 +143,38 @@ function unloadCartToChest(cart: ICartWriter, anchorPos: Pos2D): boolean {
     return moved;
 }
 
-function unloadCartToAuto(cart: ICartWriter, anchorPos: Pos2D, autoStorage: AutoProcessingStorage, voxelMap: IVoxelWriter): boolean {
+function unloadCartToAuto(cart: ICartWriter, anchorPos: Pos2D, voxelMap: IVoxelWriter): boolean {
     let moved = false;
+    const entityType = getEntityTypeFromVoxel(voxelMap.getSurface(anchorPos));
+    const storageId = getItemDefByEntityType(entityType)?.itemId ?? "none";
+
     for (let i = 0; i < cart.inventorySlots.length; i++) {
         const slot = cart.inventorySlots[i];
         if (slot === null) continue;
-        if (!autoStorage.canAcceptInput(anchorPos, slot.itemId, voxelMap)) continue;
+        if (!autoProcessingCanAcceptInput(slot.itemId, entityType)) continue;
 
-        const inputs = autoStorage.getInputs(anchorPos);
+        // const inputs = autoStorage.getInputs(anchorPos);
         const itemId = slot.itemId;
         const maxStack = getItemDef(itemId)?.maxStack ?? 64;
         let remaining = slot.count;
+        const inputLength = getStorageSet(storageId, anchorPos)?.input.length ?? 0;
 
         // 既存スタックに積む
-        for (let j = 0; j < inputs.length && remaining > 0; j++) {
-            const inputSlot = inputs[j];
+        for (let j = 0; j < inputLength && remaining > 0; j++) {
+            const inputSlot = getStorageSlot(storageId, anchorPos, "input", j);
             if (inputSlot === null || inputSlot.itemId !== itemId) continue;
             if (inputSlot.count >= maxStack) continue;
             const space = maxStack - inputSlot.count;
             const add = Math.min(space, remaining);
-            autoStorage.setInput(anchorPos, j, { itemId: inputSlot.itemId, count: inputSlot.count + add }, voxelMap);
+            setStorageSlot(storageId, anchorPos, "input", j, { itemId: inputSlot.itemId, count: inputSlot.count + add });
             remaining -= add;
             moved = true;
         }
         // 空きスロットに新規
-        for (let j = 0; j < inputs.length && remaining > 0; j++) {
-            if (inputs[j] !== null) continue;
+        for (let j = 0; j < inputLength && remaining > 0; j++) {
+            if (getStorageSlot(storageId, anchorPos, "input", j) !== null) continue;
             const add = Math.min(maxStack, remaining);
-            autoStorage.setInput(anchorPos, j, { itemId: itemId as never, count: add }, voxelMap);
+            setStorageSlot(storageId, anchorPos, "input", j, { itemId: itemId as never, count: add });
             remaining -= add;
             moved = true;
         }
@@ -248,16 +250,19 @@ function loadChestToCart(cart: ICartWriter, anchorPos: Pos2D): boolean {
     return moved;
 }
 
-function loadAutoToCart(cart: ICartWriter, anchorPos: Pos2D, autoStorage: AutoProcessingStorage, voxelMap: IVoxelWriter): boolean {
+function loadAutoToCart(cart: ICartWriter, anchorPos: Pos2D, voxelMap: IVoxelWriter): boolean {
+    const entityType = getEntityTypeFromVoxel(voxelMap.getSurface(anchorPos));
+    const storageId = getItemDefByEntityType(entityType)?.itemId ?? "none";
+
     let moved = false;
-    const outputs = autoStorage.getOutputs(anchorPos);
-    for (let j = 0; j < outputs.length; j++) {
-        const slot = outputs[j];
+    const outputLength = getStorageSet(storageId, anchorPos)?.output.length ?? 0;
+    for (let j = 0; j < outputLength; j++) {
+        const slot = getStorageSlot(storageId, anchorPos, "output", j);
         if (slot === null) continue;
         const added = addItemToCart(cart, slot.itemId, slot.count);
         if (added > 0) {
             const remaining = slot.count - added;
-            autoStorage.setOutput(anchorPos, j, remaining > 0 ? { itemId: slot.itemId, count: remaining } : null, voxelMap);
+            setStorageSlot(storageId, anchorPos, "output", j, remaining > 0 ? { itemId: slot.itemId, count: remaining } : null);
             moved = true;
         }
     }
@@ -308,7 +313,7 @@ function loadDailyToCart(cart: ICartWriter, anchorPos: Pos2D, voxelMap: IVoxelWr
  * 実際に1個でも移動した場合のみ station_fired を発行する。
  */
 export function executeStationTransfersOnCartEnter(voxelMap: IVoxelWriter, cart: ICartWriter, eventBroker: IEventBroker): void {
-    if (!bonfireStorageRef || !autoStorageRef) return;
+    if (!bonfireStorageRef) return;
 
     const T: Pos2D = {
         x: Math.floor(cart.posInWorld.x),
@@ -387,7 +392,7 @@ export function executeStationTransfersOnCartEnter(voxelMap: IVoxelWriter, cart:
             }
         } else if (AUTO_PROCESSING_DEFS[facilityEntityType] !== undefined) {
             if (isLoader) {
-                moved = loadAutoToCart(cart, anchorPos, autoStorageRef, voxelMap);
+                moved = loadAutoToCart(cart, anchorPos, voxelMap);
                 if (moved) {
                     for (const slot of cart.inventorySlots) {
                         if (slot !== null) {
@@ -397,10 +402,12 @@ export function executeStationTransfersOnCartEnter(voxelMap: IVoxelWriter, cart:
                     }
                 }
             } else {
-                moved = unloadCartToAuto(cart, anchorPos, autoStorageRef, voxelMap);
+                moved = unloadCartToAuto(cart, anchorPos, voxelMap);
+                const entityType = getEntityTypeFromVoxel(voxelMap.getSurface(anchorPos));
+                const storageId = getItemDefByEntityType(entityType)?.itemId ?? "none";
                 if (moved) {
                     for (let j = 0; j < 8; j++) {
-                        const slot = autoStorageRef.getInput(anchorPos, j);
+                        const slot = getStorageSlot(storageId, anchorPos, "input", j);
                         if (slot !== null) {
                             representativeItemId = slot.itemId;
                             break;

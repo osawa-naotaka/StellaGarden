@@ -8,7 +8,6 @@ import type {
     IReputationSystemReader,
     IVoxelWriter,
 } from "../_boundary/interfaces";
-import type { AutoProcessingStorage } from "../engine/AutoProcessingStorage";
 import type { BonfireStorage } from "../engine/BonfireStorage";
 import type { CartStorage } from "../engine/CartStorage";
 import type { ChatHistory } from "../engine/ChatHistory";
@@ -30,7 +29,6 @@ export interface EngineRefs {
     bonfireStorage: BonfireStorage;
     fermentationStorage: FermentationStorage;
     cartStorage: CartStorage;
-    autoProcessingStorage: AutoProcessingStorage;
     craftSystem: ICraftSystem;
     voxelMap: IVoxelWriter;
     uiState: UIState;

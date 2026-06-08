@@ -127,7 +127,7 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
             const placementOverlay = new PlacementOverlay(voxelMap, playerState.inventory, uiState, eventBroker, playerState);
             worldContainer.addChild(placementOverlay.top);
 
-            const { bonfireStorage, fermentationStorage, autoProcessingStorage, cartStorage } = bootstrapStorages(saveData);
+            const { bonfireStorage, fermentationStorage, cartStorage } = bootstrapStorages(saveData);
 
             const reputationSystem = new ReputationSystem({
                 points: saveData?.reputation.points ?? 0,
@@ -170,7 +170,7 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
             const gameTime = new GameTime(saveData?.gameTime.elapsedMs);
 
             // 日次処理対象のストレージ群（KeyedSlotStorage 派生）。新規ストレージ追加時はここに足すだけで day_changed に乗る。
-            const dailyTickStorages = [bonfireStorage, fermentationStorage, autoProcessingStorage];
+            const dailyTickStorages = [bonfireStorage, fermentationStorage];
 
             disposers.push(
                 eventBroker.subscribe("day_changed", () => {
@@ -210,7 +210,6 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
                 seedRequestSystem,
                 bonfireStorage,
                 fermentationStorage,
-                autoProcessingStorage,
                 cartStorage,
                 craftSystem,
                 voxelMap,
@@ -244,7 +243,6 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
                         gameTime,
                         bonfireStorage,
                         fermentationStorage,
-                        autoProcessingStorage,
                         cartStorage,
                         reputationSystem,
                         seedRequestSystem,
