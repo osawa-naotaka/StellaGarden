@@ -9,7 +9,8 @@
  *  - 右クリック (onOpenFacilityUI) → open_bonfire_ui を発行（BonfirePanel 起動）
  *  - 左クリック (onInteract) + axe → 撤去（中身は一緒にインベントリへ回収）
  */
-import type { BonfireStorage } from "../../engine/BonfireStorage";
+import { BonfireStorage } from "../../engine/BonfireStorage";
+import { registerStorageFactory } from "../../engine/StorageVault";
 import { ENTITY_TYPES, getEnabledFromVoxel, getRotatedFromVoxel } from "../../engine/VoxelDefs";
 import { type EntitySpriteInfo, type InteractionContext, registerEntity } from "../EntityRegistry";
 import { placeFacility, removeFacilityByContext } from "../facilityUtil";
@@ -19,13 +20,6 @@ const ANIM_FRAME_MS = 300;
 const BONFIRE_LIT_FRAMES = ["ss_sprite_074_1.png", "ss_sprite_074_2.png", "ss_sprite_074_3.png"];
 function bonfireLitFrame(): string {
     return BONFIRE_LIT_FRAMES[Math.floor(Date.now() / ANIM_FRAME_MS) % BONFIRE_LIT_FRAMES.length];
-}
-
-let bonfireStorage: BonfireStorage | null = null;
-
-/** App / hooks 層から BonfireStorage を注入する。 */
-export function setBonfireStorage(storage: BonfireStorage): void {
-    bonfireStorage = storage;
 }
 
 registerEntity({
@@ -49,14 +43,15 @@ registerEntity({
 
     onInteract(ctx: InteractionContext): boolean {
         if (ctx.tool !== "axe") return false;
-        const extraItems = bonfireStorage?.collectAllStacks(ctx.anchorPos) ?? [];
+        const bonfire = ctx.storageVault.get<BonfireStorage>("bonfire");
+        const extraItems = bonfire.collectAllStacks(ctx.anchorPos);
         const removed = removeFacilityByContext(ctx, extraItems);
-        if (removed) bonfireStorage?.remove(ctx.anchorPos);
+        if (removed) bonfire.remove(ctx.anchorPos);
         return removed;
     },
 
     onOpenFacilityUI(ctx: InteractionContext): boolean {
-        bonfireStorage?.create(ctx.anchorPos);
+        ctx.storageVault.get<BonfireStorage>("bonfire").create(ctx.anchorPos);
         ctx.eventBroker.publish("open_bonfire_ui", { pos: ctx.anchorPos });
         return true;
     },
@@ -70,9 +65,11 @@ registerItem({
     placement: {
         entityType: ENTITY_TYPES.bonfire,
         fieldSpriteName: "ss_sprite_076.png",
-        onPlace(voxelMap, pos) {
+        onPlace(voxelMap, pos, _variant, storageVault) {
             placeFacility(voxelMap, pos, ENTITY_TYPES.bonfire, { w: 1, h: 1 });
-            bonfireStorage?.create(pos);
+            storageVault.get<BonfireStorage>("bonfire").create(pos);
         },
     },
 });
+
+registerStorageFactory("bonfire", () => new BonfireStorage());

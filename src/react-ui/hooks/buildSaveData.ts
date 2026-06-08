@@ -1,4 +1,3 @@
-import type { BonfireStorage } from "../../engine/BonfireStorage";
 import type { CartStorage } from "../../engine/CartStorage";
 import type { ChatHistory } from "../../engine/ChatHistory";
 import type { FermentationStorage } from "../../engine/FermentationStorage";
@@ -18,7 +17,6 @@ export interface SaveSnapshotDeps {
     playerState: PlayerState;
     gameTime: GameTime;
     storageVault: StorageVault;
-    bonfireStorage: BonfireStorage;
     fermentationStorage: FermentationStorage;
     cartStorage: CartStorage;
     reputationSystem: ReputationSystem;
@@ -36,7 +34,6 @@ export function buildSaveData(deps: SaveSnapshotDeps): Omit<SaveData, "version" 
         playerState,
         gameTime,
         storageVault,
-        bonfireStorage,
         fermentationStorage,
         cartStorage,
         reputationSystem,
@@ -70,9 +67,6 @@ export function buildSaveData(deps: SaveSnapshotDeps): Omit<SaveData, "version" 
             elapsedMs: gameTime.getElapsedMs(),
         },
         storageVault: storageVault.toSaveData(),
-        bonfireStorage: {
-            bonfires: bonfireStorage.toSaveData(),
-        },
         fermentationStorage: {
             vats: fermentationStorage.toSaveData(),
         },

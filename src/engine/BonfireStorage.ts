@@ -2,6 +2,7 @@ import type { ItemStack, IVoxelWriter, Pos2D } from "../_boundary/interfaces";
 import { getItemDef } from "../_registry/ItemRegistry";
 import { BONFIRE_FUEL_DEF, BONFIRE_MATERIAL_DEF, findAllRecipesForInput, isAcceptableInputItem, type ProcessingRecipe } from "../_registry/ProcessingRecipes";
 import { KeyedSlotStorage } from "./KeyedSlotStorage";
+import type { NamedSlots } from "./SlotStorage";
 import { setEnabledInVoxel, setRotatedInVoxel } from "./VoxelDefs";
 
 /**
@@ -13,14 +14,8 @@ import { setEnabledInVoxel, setRotatedInVoxel } from "./VoxelDefs";
  */
 export type BonfireSlotKind = "fuel" | "material" | "outputAsh" | "outputSteamed";
 
-export interface BonfireSlots {
-    fuel: ItemStack | null;
-    material: ItemStack | null;
-    outputAsh: ItemStack | null;
-    outputSteamed: ItemStack | null;
-    /** material スロットの複数レシピ（蒸麦 / 炒り麦）の選択 index。 */
-    selectedRecipeIndex: number;
-}
+/** アイテムスロットの kind（recipe は metadata 用なので含めない）。 */
+const ITEM_KINDS: readonly BonfireSlotKind[] = ["fuel", "material", "outputAsh", "outputSteamed"];
 
 function canStackInto(slot: ItemStack | null, out: { itemId: string; count: number }): boolean {
     if (slot === null) return true;
@@ -36,62 +31,61 @@ function addToSlot(slot: ItemStack | null, out: { itemId: string; count: number 
 
 /**
  * 焚き火のスロット状態を座標ベースで管理するストレージ。
- * 炉（ForgeStorage）と同じく、day_changed のたびに在庫を消費して出力を加算する。
- * 「燃料 → 草木灰」と「素材 → 蒸し系」を1日ごとに同時処理する。
+ * StorageVault に載せるため slots は NamedSlots（Record<kind, slot[]>）形を採る。
+ * 4つのアイテムスロット（fuel/material/outputAsh/outputSteamed）はいずれも1スロット配列、
+ * 素材レシピ選択 index はスカラーを `recipe` スロットに `{ itemId: "none", count: index }` で encode する。
+ * day_changed のたびに「燃料 → 草木灰」「素材 → 蒸し系」を同時処理する。
  */
-export class BonfireStorage extends KeyedSlotStorage<BonfireSlots> {
-    protected createDefaultSlots(): BonfireSlots {
-        return { fuel: null, material: null, outputAsh: null, outputSteamed: null, selectedRecipeIndex: 0 };
+export class BonfireStorage extends KeyedSlotStorage<NamedSlots> {
+    protected createDefaultSlots(): NamedSlots {
+        return { fuel: [null], material: [null], outputAsh: [null], outputSteamed: [null], recipe: [null] };
     }
 
-    protected isSlotsEmpty(slots: BonfireSlots): boolean {
-        return slots.fuel === null && slots.material === null && slots.outputAsh === null && slots.outputSteamed === null;
+    protected isSlotsEmpty(slots: NamedSlots): boolean {
+        // recipe は metadata なので空判定から除外する。
+        return ITEM_KINDS.every((kind) => (slots[kind]?.[0] ?? null) === null);
     }
 
-    protected cloneSlots(slots: BonfireSlots): BonfireSlots {
-        return {
-            fuel: slots.fuel ? { ...slots.fuel } : null,
-            material: slots.material ? { ...slots.material } : null,
-            outputAsh: slots.outputAsh ? { ...slots.outputAsh } : null,
-            outputSteamed: slots.outputSteamed ? { ...slots.outputSteamed } : null,
-            selectedRecipeIndex: slots.selectedRecipeIndex,
-        };
+    protected cloneSlots(slots: NamedSlots): NamedSlots {
+        const result: NamedSlots = {};
+        for (const [kind, arr] of Object.entries(slots)) result[kind] = arr.map((s) => (s ? { ...s } : null));
+        return result;
     }
 
-    protected toItemStacks(slots: BonfireSlots): ItemStack[] {
+    protected toItemStacks(slots: NamedSlots): ItemStack[] {
+        // recipe（metadata）は回収対象に含めない。
         const result: ItemStack[] = [];
-        if (slots.fuel) result.push({ ...slots.fuel });
-        if (slots.material) result.push({ ...slots.material });
-        if (slots.outputAsh) result.push({ ...slots.outputAsh });
-        if (slots.outputSteamed) result.push({ ...slots.outputSteamed });
+        for (const kind of ITEM_KINDS) {
+            const s = slots[kind]?.[0];
+            if (s) result.push({ ...s });
+        }
         return result;
     }
 
     /** 1日の燃焼に必要な量（燃料レシピの inputCountPerCycle）以上の燃料があれば燃焼中（点火状態）。 */
     isBurning(pos: Pos2D): boolean {
-        const slots = this.getRaw(pos);
-        if (!slots || slots.fuel === null) return false;
-        const recipe = this.matchFuelRecipe(slots.fuel.itemId);
-        return recipe !== null && slots.fuel.count >= recipe.inputCountPerCycle;
+        const fuel = this.getRaw(pos)?.fuel[0] ?? null;
+        if (fuel === null) return false;
+        const recipe = this.matchFuelRecipe(fuel.itemId);
+        return recipe !== null && fuel.count >= recipe.inputCountPerCycle;
     }
 
     /** 取り出し可能な草木灰があるか（消火時のスプライト出し分けに使う）。 */
     hasAsh(pos: Pos2D): boolean {
-        return this.getRaw(pos)?.outputAsh != null;
+        return (this.getRaw(pos)?.outputAsh[0] ?? null) != null;
     }
 
     getSlot(pos: Pos2D, kind: BonfireSlotKind): ItemStack | null {
-        const slots = this.getRaw(pos);
-        return slots ? (slots[kind] ?? null) : null;
+        return this.getRaw(pos)?.[kind]?.[0] ?? null;
     }
 
     getSelectedRecipeIndex(pos: Pos2D): number {
-        return this.getRaw(pos)?.selectedRecipeIndex ?? 0;
+        return this.getRaw(pos)?.recipe?.[0]?.count ?? 0;
     }
 
     setSelectedRecipeIndex(pos: Pos2D, index: number): void {
         const slots = this.getRaw(pos);
-        if (slots) slots.selectedRecipeIndex = index;
+        if (slots) slots.recipe[0] = { itemId: "none", count: index };
     }
 
     /** fuel スロットがこの itemId を受け入れ可能か（既存と同一 or 燃料レシピに存在）。 */
@@ -118,7 +112,7 @@ export class BonfireStorage extends KeyedSlotStorage<BonfireSlots> {
             if (kind === "material" && !this.canAcceptMaterial(stack.itemId)) return;
         }
 
-        slots[kind] = stack;
+        slots[kind][0] = stack;
         this.updateVoxelSpriteState(pos, voxelMap);
     }
 
@@ -134,7 +128,7 @@ export class BonfireStorage extends KeyedSlotStorage<BonfireSlots> {
         if (kind === "fuel" && !this.canAcceptFuel(itemId)) return 0;
         if (kind === "material" && !this.canAcceptMaterial(itemId)) return 0;
 
-        const existing = slots[kind];
+        const existing = slots[kind][0];
         if (existing !== null && existing.itemId !== itemId) return 0;
 
         const maxStack = getItemDef(itemId)?.maxStack ?? 64;
@@ -143,37 +137,40 @@ export class BonfireStorage extends KeyedSlotStorage<BonfireSlots> {
         if (space <= 0) return 0;
 
         const moved = Math.min(space, count);
-        slots[kind] = { itemId: itemId as ItemStack["itemId"], count: existingCount + moved };
+        slots[kind][0] = { itemId: itemId as ItemStack["itemId"], count: existingCount + moved };
         this.updateVoxelSpriteState(pos, voxelMap);
         return moved;
     }
 
     override onDailyTick(voxelMap: IVoxelWriter): void {
-        for (const [key, slots] of this.entries()) {
-            const pos = this.posFromKey(key);
-            const fuelRecipe = slots.fuel != null ? this.matchFuelRecipe(slots.fuel.itemId) : null;
-            // 1日の燃焼に必要な量に満たない（または燃料ゼロ）なら消火＝何も処理しない。
-            const lit = slots.fuel != null && fuelRecipe != null && slots.fuel.count >= fuelRecipe.inputCountPerCycle;
+        for (const pos of this.getPositions()) {
+            const slots = this.getRaw(pos);
+            if (!slots) continue;
 
-            if (lit && fuelRecipe != null) {
+            const fuel = slots.fuel[0];
+            const fuelRecipe = fuel != null ? this.matchFuelRecipe(fuel.itemId) : null;
+            // 1日の燃焼に必要な量に満たない（または燃料ゼロ）なら消火＝何も処理しない。
+            const lit = fuel != null && fuelRecipe != null && fuel.count >= fuelRecipe.inputCountPerCycle;
+
+            if (lit && fuelRecipe != null && fuel != null) {
                 // 燃料 → 草木灰（燃焼副産物）
-                const fuel = slots.fuel as ItemStack;
                 const ashOut = fuelRecipe.outputs[0];
-                if (canStackInto(slots.outputAsh, ashOut)) {
+                if (canStackInto(slots.outputAsh[0], ashOut)) {
                     fuel.count -= fuelRecipe.inputCountPerCycle;
-                    slots.outputAsh = addToSlot(slots.outputAsh, ashOut);
-                    if (fuel.count <= 0) slots.fuel = null;
+                    slots.outputAsh[0] = addToSlot(slots.outputAsh[0], ashOut);
+                    if (fuel.count <= 0) slots.fuel[0] = null;
                 }
 
                 // 素材 → 蒸し系（火に掛けて加工）
-                if (slots.material != null) {
-                    const recipe = this.matchMaterialRecipe(slots.material.itemId, slots.selectedRecipeIndex);
-                    if (recipe && slots.material.count >= recipe.inputCountPerCycle) {
+                const material = slots.material[0];
+                if (material != null) {
+                    const recipe = this.matchMaterialRecipe(material.itemId, this.getSelectedRecipeIndex(pos));
+                    if (recipe && material.count >= recipe.inputCountPerCycle) {
                         const steamOut = recipe.outputs[0];
-                        if (canStackInto(slots.outputSteamed, steamOut)) {
-                            slots.material.count -= recipe.inputCountPerCycle;
-                            slots.outputSteamed = addToSlot(slots.outputSteamed, steamOut);
-                            if (slots.material.count <= 0) slots.material = null;
+                        if (canStackInto(slots.outputSteamed[0], steamOut)) {
+                            material.count -= recipe.inputCountPerCycle;
+                            slots.outputSteamed[0] = addToSlot(slots.outputSteamed[0], steamOut);
+                            if (material.count <= 0) slots.material[0] = null;
                         }
                     }
                 }

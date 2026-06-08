@@ -1,8 +1,6 @@
 import type { IEventBroker } from "../../_boundary/interfaces";
-import { setBonfireStorage } from "../../_registry/entities/Bonfire";
 import { setCartStorage } from "../../_registry/entities/Cart";
 import { setFermentationStorage } from "../../_registry/entities/FermentationVat";
-import { BonfireStorage } from "../../engine/BonfireStorage";
 import { CartStorage } from "../../engine/CartStorage";
 import { FermentationStorage } from "../../engine/FermentationStorage";
 import type { SlotStorage } from "../../engine/SlotStorage";
@@ -32,7 +30,6 @@ export function restoreOrGenerateVoxelMap(saveData: SaveData | null, worldSize: 
 }
 
 export interface Storages {
-    bonfireStorage: BonfireStorage;
     fermentationStorage: FermentationStorage;
     cartStorage: CartStorage;
     storageVault: StorageVault;
@@ -49,23 +46,18 @@ export function bootstrapStorages(saveData: SaveData | null): Storages {
         storageVault.loadSaveData(saveData.storageVault);
     }
 
-    const bonfireStorage = new BonfireStorage();
-    if (saveData) bonfireStorage.loadSaveData(saveData.bonfireStorage.bonfires);
-    setBonfireStorage(bonfireStorage);
-
     const fermentationStorage = new FermentationStorage();
     if (saveData) fermentationStorage.loadSaveData(saveData.fermentationStorage.vats);
     setFermentationStorage(fermentationStorage);
 
-    // ステーション（フォーク搬送）は chest / daily / auto のストレージにアクセスする
-    setStationStorages(bonfireStorage, storageVault.get<SlotStorage>("chest"), storageVault);
+    // ステーション（フォーク搬送）は chest / bonfire / daily / auto のストレージにアクセスする
+    setStationStorages(storageVault.get<SlotStorage>("chest"), storageVault);
 
     const cartStorage = new CartStorage();
     if (saveData) cartStorage.loadSaveData(saveData.cartStorage);
     setCartStorage(cartStorage);
 
     return {
-        bonfireStorage,
         fermentationStorage,
         cartStorage,
         storageVault,

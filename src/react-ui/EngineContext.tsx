@@ -8,7 +8,6 @@ import type {
     IReputationSystemReader,
     IVoxelWriter,
 } from "../_boundary/interfaces";
-import type { BonfireStorage } from "../engine/BonfireStorage";
 import type { CartStorage } from "../engine/CartStorage";
 import type { ChatHistory } from "../engine/ChatHistory";
 import type { FermentationStorage } from "../engine/FermentationStorage";
@@ -28,7 +27,6 @@ export interface EngineRefs {
     reputationSystem: IReputationSystemReader;
     seedRequestSystem: SeedRequestSystem;
     storageVault: StorageVault;
-    bonfireStorage: BonfireStorage;
     fermentationStorage: FermentationStorage;
     cartStorage: CartStorage;
     craftSystem: ICraftSystem;

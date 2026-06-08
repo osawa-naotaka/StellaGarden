@@ -61,22 +61,6 @@ export const ForgeStorageSaveDataSchema = v.object({
     ),
 });
 
-// 焚き火（炉型に拡張）。燃料・素材・出力2スロット＋素材レシピ選択。
-export const BonfireStorageSaveDataSchema = v.object({
-    bonfires: v.array(
-        v.object({
-            key: v.string(),
-            slots: v.object({
-                fuel: NullableItemStackSchema,
-                material: NullableItemStackSchema,
-                outputAsh: NullableItemStackSchema,
-                outputSteamed: NullableItemStackSchema,
-                selectedRecipeIndex: v.number(),
-            }),
-        }),
-    ),
-});
-
 // 蒸留器（燃料＋素材＋出力1）。
 export const DistillerStorageSaveDataSchema = v.object({
     distillers: v.array(
@@ -189,7 +173,6 @@ export const SaveDataSchema = v.object({
     inventory: InventorySaveDataSchema,
     gameTime: GameTimeSaveDataSchema,
     storageVault: StorageVaultSaveDataSchema,
-    bonfireStorage: BonfireStorageSaveDataSchema,
     fermentationStorage: FermentationStorageSaveDataSchema,
     cartStorage: CartStorageSaveDataSchema,
     reputation: ReputationSaveDataSchema,
@@ -212,7 +195,6 @@ export type VoxelMapSaveData = v.InferOutput<typeof VoxelMapSaveDataSchema>;
 export type PlayerStateSaveData = v.InferOutput<typeof PlayerStateSaveDataSchema>;
 export type InventorySaveData = v.InferOutput<typeof InventorySaveDataSchema>;
 export type GameTimeSaveData = v.InferOutput<typeof GameTimeSaveDataSchema>;
-export type BonfireStorageSaveData = v.InferOutput<typeof BonfireStorageSaveDataSchema>;
 export type FermentationStorageSaveData = v.InferOutput<typeof FermentationStorageSaveDataSchema>;
 export type DailyProcessingStorageSaveData = v.InferOutput<typeof DailyProcessingStorageSaveDataSchema>;
 export type CartStorageSaveData = v.InferOutput<typeof CartStorageSaveDataSchema>;

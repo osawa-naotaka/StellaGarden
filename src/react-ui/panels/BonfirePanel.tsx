@@ -220,6 +220,12 @@ export function BonfirePanel({ open, inventory, bonfireStorage, voxelMap, uiStat
 registerPanel({
     mode: "bonfire",
     component: ({ open, engine }) => (
-        <BonfirePanel open={open} inventory={engine.inventory} bonfireStorage={engine.bonfireStorage} voxelMap={engine.voxelMap} uiState={engine.uiState} />
+        <BonfirePanel
+            open={open}
+            inventory={engine.inventory}
+            bonfireStorage={engine.storageVault.get<BonfireStorage>("bonfire")}
+            voxelMap={engine.voxelMap}
+            uiState={engine.uiState}
+        />
     ),
 });

@@ -57,16 +57,14 @@ function isParallel(a: Vec2, b: Vec2): boolean {
 // ストレージ注入
 // ---------------------------------------------------------------------------
 
-let bonfireStorageRef: BonfireStorage | null = null;
 let chestStorageRef: SlotStorage | null = null;
 let storageVaultRef: StorageVault | null = null;
 
 /**
  * App.tsx から各ストレージを注入する。
- * chest / daily / auto などの座標ベース収納は storageVault から取得する。
+ * chest / bonfire / daily / auto などの座標ベース収納は storageVault から取得する。
  */
-export function setStationStorages(bonfire: BonfireStorage, chest: SlotStorage, storageVault: StorageVault): void {
-    bonfireStorageRef = bonfire;
+export function setStationStorages(chest: SlotStorage, storageVault: StorageVault): void {
     chestStorageRef = chest;
     storageVaultRef = storageVault;
 }
@@ -341,7 +339,7 @@ function loadDailyToCart(cart: ICartWriter, anchorPos: Pos2D, voxelMap: IVoxelWr
  * 実際に1個でも移動した場合のみ station_fired を発行する。
  */
 export function executeStationTransfersOnCartEnter(voxelMap: IVoxelWriter, cart: ICartWriter, eventBroker: IEventBroker): void {
-    if (!bonfireStorageRef) return;
+    if (!storageVaultRef) return;
 
     const T: Pos2D = {
         x: Math.floor(cart.posInWorld.x),
@@ -464,8 +462,9 @@ export function executeStationTransfersOnCartEnter(voxelMap: IVoxelWriter, cart:
                 }
             }
         } else if (facilityEntityType === ENTITY_TYPES.bonfire) {
+            const bonfire = storageVaultRef.get<BonfireStorage>("bonfire");
             if (isLoader) {
-                moved = loadBonfireToCart(cart, anchorPos, bonfireStorageRef, voxelMap);
+                moved = loadBonfireToCart(cart, anchorPos, bonfire, voxelMap);
                 if (moved) {
                     for (const slot of cart.inventorySlots) {
                         if (slot !== null) {
@@ -475,10 +474,10 @@ export function executeStationTransfersOnCartEnter(voxelMap: IVoxelWriter, cart:
                     }
                 }
             } else {
-                moved = unloadCartToBonfire(cart, anchorPos, bonfireStorageRef, voxelMap);
+                moved = unloadCartToBonfire(cart, anchorPos, bonfire, voxelMap);
                 if (moved) {
-                    const fuelSlot = bonfireStorageRef.getSlot(anchorPos, "fuel");
-                    const materialSlot = bonfireStorageRef.getSlot(anchorPos, "material");
+                    const fuelSlot = bonfire.getSlot(anchorPos, "fuel");
+                    const materialSlot = bonfire.getSlot(anchorPos, "material");
                     representativeItemId = fuelSlot?.itemId ?? materialSlot?.itemId ?? null;
                 }
             }
