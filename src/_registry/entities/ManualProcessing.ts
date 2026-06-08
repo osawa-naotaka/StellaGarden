@@ -7,22 +7,86 @@
  *  - 右クリック (onOpenFacilityUI) → open_processing_manual_ui を発行（UI起動）
  *  - 左クリック (onInteract) + axe → 撤去（ストレージが空のときのみ）
  */
-import type { ItemId, Pos2D } from "../../_boundary/interfaces";
+import type { ItemId, ItemStack, Pos2D } from "../../_boundary/interfaces";
+import { SlotStorage } from "../../engine/SlotStorage";
+import { registerStorageFactory } from "../../engine/StorageVault";
 import { ENTITY_TYPES } from "../../engine/VoxelDefs";
 import { type EntitySpriteInfo, type InteractionContext, registerEntity } from "../EntityRegistry";
-import { placeFacility } from "../facilityUtil";
+import { placeFacility, removeFacilityByContext } from "../facilityUtil";
 import { getItemDef, registerItem } from "../ItemRegistry";
-import { findRecipeForInput, getManualProcessingDef, isAcceptableInputItem, type ManualProcessingDef, type ProcessingRecipe } from "../ProcessingRecipes";
-import {
-    createStorage,
-    getStorageNumberValue,
-    getStorageSlot,
-    registerStorage,
-    removeFacilityAndReturnItemsToInventory,
-    type StorageId,
-    setStorageSlot,
-    storageNumberValueOf,
-} from "../StorageRegistry";
+import { findRecipeForInput, getManualProcessingDef, isAcceptableInputItem, type ProcessingRecipe } from "../ProcessingRecipes";
+
+/**
+ * カテゴリ2（手動処理）施設のストレージ。input 1 + output 2 + recipe(数値) を持つ。
+ * 処理はUIの「処理」ボタンで tryProcessOnce を回す（日次処理なし）。
+ * 受理アイテム判定・処理可否は entityType に紐づくレシピ定義から導出する。
+ */
+export class ManualProcessingStorage extends SlotStorage {
+    private readonly entityType: number;
+
+    constructor(entityType: number) {
+        super({ input: 1, output: 2, recipe: 1 });
+        this.entityType = entityType;
+    }
+
+    /** input スロットがこの itemId を受理可能か。 */
+    canAccept(stack: ItemStack | null): boolean {
+        const def = getManualProcessingDef(this.entityType);
+        if (!def) return false;
+        return isAcceptableInputItem(def, stack?.itemId ?? "none");
+    }
+
+    /** 選択中レシピ index（recipe スロットの count に保持。未設定は 0）。 */
+    getRecipeIndex(pos: Pos2D): number {
+        return this.getSlot(pos, "recipe", 0)?.count ?? 0;
+    }
+
+    setRecipeIndex(pos: Pos2D, index: number): void {
+        this.setSlot(pos, "recipe", 0, { itemId: "none", count: index });
+    }
+
+    /** いま1サイクル処理可能か（入力充足・出力に空きあり）。 */
+    canProcess(pos: Pos2D): boolean {
+        return this.findApplicableRecipe(pos) !== null;
+    }
+
+    /** 1サイクル処理する。実行できたら true。 */
+    tryProcessOnce(pos: Pos2D): boolean {
+        const recipe = this.findApplicableRecipe(pos);
+        if (!recipe) return false;
+
+        const input = this.getSlot(pos, "input", 0);
+        if (!input) return false;
+        const newInputCount = input.count - recipe.inputCountPerCycle;
+        this.setSlot(pos, "input", 0, newInputCount > 0 ? { itemId: input.itemId, count: newInputCount } : null);
+
+        for (let i = 0; i < recipe.outputs.length; i++) {
+            const out = recipe.outputs[i];
+            const slot = this.getSlot(pos, "output", i);
+            this.setSlot(pos, "output", i, slot === null ? { itemId: out.itemId, count: out.count } : { itemId: out.itemId, count: out.count + slot.count });
+        }
+        return true;
+    }
+
+    private findApplicableRecipe(pos: Pos2D): ProcessingRecipe | null {
+        const def = getManualProcessingDef(this.entityType);
+        if (!def) return null;
+        const input = this.getSlot(pos, "input", 0);
+        if (!input) return null;
+        const recipe = findRecipeForInput(def, input.itemId, this.getRecipeIndex(pos));
+        if (!recipe) return null;
+        if (input.count < recipe.inputCountPerCycle) return null;
+        for (let i = 0; i < recipe.outputs.length; i++) {
+            const out = recipe.outputs[i];
+            const slot = this.getSlot(pos, "output", i);
+            if (slot === null) continue;
+            if (slot.itemId !== out.itemId) return null;
+            const max = getItemDef(out.itemId)?.maxStack ?? 64;
+            if (slot.count + out.count > max) return null;
+        }
+        return recipe;
+    }
+}
 
 interface ManualProcessingEntityOptions {
     entityType: number;
@@ -51,7 +115,11 @@ export function registerManualProcessingEntity(opts: ManualProcessingEntityOptio
         // 左クリック: axe による撤去（中身は一緒にインベントリへ回収）
         onInteract(ctx: InteractionContext): boolean {
             if (ctx.tool !== "axe") return false;
-            return removeFacilityAndReturnItemsToInventory(itemId, ctx);
+            const storage = ctx.storageVault.get<SlotStorage>(itemId);
+            const extraItems = storage.collectAllStacks(ctx.anchorPos);
+            const removed = removeFacilityByContext(ctx, extraItems);
+            if (removed) storage.remove(ctx.anchorPos);
+            return removed;
         },
 
         // 右クリック: 処理 UI を開く
@@ -69,27 +137,14 @@ export function registerManualProcessingEntity(opts: ManualProcessingEntityOptio
         placement: {
             entityType,
             fieldSpriteName,
-            onPlace(voxelMap, pos) {
+            onPlace(voxelMap, pos, _variant, storageVault) {
                 placeFacility(voxelMap, pos, entityType, entitySize);
-                createStorage(itemId, pos);
+                storageVault.get<SlotStorage>(itemId).create(pos);
             },
         },
     });
 
-    registerStorage(
-        itemId,
-        {
-            input: [null],
-            output: [null, null],
-            recipe: [storageNumberValueOf(0)],
-        },
-        undefined,
-        (_kind, _index, stack) => {
-            const def = getManualProcessingDef(entityType);
-            if (!def) return false;
-            return isAcceptableInputItem(def, stack?.itemId ?? "none");
-        },
-    );
+    registerStorageFactory(itemId, () => new ManualProcessingStorage(entityType));
 }
 
 // ── 移行済みエンティティの登録 ──
@@ -149,53 +204,3 @@ registerManualProcessingEntity({
     inventorySpriteName: "ss_sprite_079.png",
     entitySize: { w: 1, h: 1 },
 });
-
-export function manualProcessingCanProcess(entityType: number, storageId: StorageId, pos: Pos2D): boolean {
-    if (entityType === ENTITY_TYPES.none) return false;
-    const def = getManualProcessingDef(entityType);
-    if (!def) return false;
-    return findApplicableRecipe(def, storageId, pos) !== null;
-}
-
-function findApplicableRecipe(def: ManualProcessingDef, storageId: StorageId, pos: Pos2D): ProcessingRecipe | null {
-    const input = getStorageSlot(storageId, pos, "input", 0);
-    if (!input) return null;
-    const recipeIndex = getStorageNumberValue(storageId, pos, "recipe");
-    if (recipeIndex === null) return null;
-    const recipe = findRecipeForInput(def, input.itemId, recipeIndex);
-    if (!recipe) return null;
-    if (input.count < recipe.inputCountPerCycle) return null;
-    for (let i = 0; i < recipe.outputs.length; i++) {
-        const out = recipe.outputs[i];
-        const slot = getStorageSlot(storageId, pos, "output", i);
-        if (slot === null) continue;
-        if (slot.itemId !== out.itemId) return null;
-        const max = getItemDef(out.itemId)?.maxStack ?? 64;
-        if (slot.count + out.count > max) return null;
-    }
-    return recipe;
-}
-
-export function manualProcessingTryProcessOnce(def: ManualProcessingDef, storageId: StorageId, pos: Pos2D): boolean {
-    const recipe = findApplicableRecipe(def, storageId, pos);
-    if (!recipe) return false;
-
-    // 入力消費
-    const input = getStorageSlot(storageId, pos, "input", 0);
-    if (!input) return false;
-    input.count -= recipe.inputCountPerCycle;
-    setStorageSlot(storageId, pos, "input", 0, input.count < 0 ? null : input);
-
-    // 出力加算
-    for (let i = 0; i < recipe.outputs.length; i++) {
-        const out = recipe.outputs[i];
-        const slot = getStorageSlot(storageId, pos, "output", i);
-        if (slot === null) {
-            setStorageSlot(storageId, pos, "output", i, { itemId: out.itemId, count: out.count });
-        } else {
-            setStorageSlot(storageId, pos, "output", i, { itemId: out.itemId, count: out.count + slot.count });
-        }
-    }
-
-    return true;
-}

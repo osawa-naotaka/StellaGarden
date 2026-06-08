@@ -1,17 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import type { IInventoryWriter, ItemStack, IVoxelWriter, SlotRef } from "../../_boundary/interfaces";
-import { manualProcessingCanProcess, manualProcessingTryProcessOnce } from "../../_registry/entities/ManualProcessing";
+import type { ManualProcessingStorage } from "../../_registry/entities/ManualProcessing";
 import { getItemDefByEntityType, getItemDisplayName } from "../../_registry/ItemRegistry";
 import { findAllRecipesForInput, getManualProcessingDef } from "../../_registry/ProcessingRecipes";
-import {
-    canAcceptItem,
-    getStorageNumberValue,
-    getStorageSet,
-    getStorageSlot,
-    type StorageSet,
-    setStorageNumberValue,
-    setStorageSlot,
-} from "../../_registry/StorageRegistry";
+import type { StorageVault } from "../../engine/StorageVault";
 import { getEntityTypeFromVoxel } from "../../engine/VoxelDefs";
 import type { UIState } from "../../view/UIState";
 import { CursorStack } from "../components/CursorStack";
@@ -21,7 +13,6 @@ import { Slot } from "../components/Slot";
 import { useFrameTick } from "../hooks/useFrameTick";
 import { usePickup } from "../hooks/usePickup";
 import { registerPanel } from "../PanelRegistry";
-import { getItemIdFromPos } from "./DailyProcessingPanel";
 
 const COLS = 8;
 const INV_ROWS = 8;
@@ -33,12 +24,12 @@ type ManualProcessingRef = { area: ManualProcessingArea; index: number };
 export interface ManualProcessingPanelProps {
     open: boolean;
     inventory: IInventoryWriter;
-    manualProcessingStorage: StorageSet | null;
+    storageVault: StorageVault;
     voxelMap: IVoxelWriter;
     uiState: UIState;
 }
 
-export function ManualProcessingPanel({ open, inventory, manualProcessingStorage, voxelMap, uiState }: ManualProcessingPanelProps) {
+export function ManualProcessingPanel({ open, inventory, storageVault, voxelMap, uiState }: ManualProcessingPanelProps) {
     useFrameTick(open);
     const pos = open ? uiState.targetPos : null;
 
@@ -53,31 +44,33 @@ export function ManualProcessingPanel({ open, inventory, manualProcessingStorage
     const itemDef = entityType !== null ? getItemDefByEntityType(entityType) : null;
     const itemId = itemDef?.itemId ?? ("none" as const);
     const title = itemDef?.displayName ?? "Processing";
+    // 手動処理施設のときのみストレージを解決する（def 非nullなら itemId は vault に登録済み）。
+    const manual = def && itemId !== "none" ? storageVault.get<ManualProcessingStorage>(itemId) : null;
 
     const getSlot = useCallback(
         (ref: ManualProcessingRef): ItemStack | null => {
             if (!pos) return null;
-            if (ref.area === "processing_input") return getStorageSlot(itemId, pos, "input", 0);
-            if (ref.area === "processing_output") return getStorageSlot(itemId, pos, "output", ref.index);
+            if (ref.area === "processing_input") return manual?.getSlot(pos, "input", 0) ?? null;
+            if (ref.area === "processing_output") return manual?.getSlot(pos, "output", ref.index) ?? null;
             return inventory.getSlot(ref as SlotRef);
         },
-        [inventory, manualProcessingStorage, pos, itemId],
+        [inventory, manual, pos],
     );
 
     const setSlot = useCallback(
         (ref: ManualProcessingRef, stack: ItemStack | null) => {
             if (!pos) return;
             if (ref.area === "processing_input") {
-                setStorageSlot(itemId, pos, "input", 0, stack);
+                manual?.setSlot(pos, "input", 0, stack);
                 return;
             }
             if (ref.area === "processing_output") {
-                setStorageSlot(itemId, pos, "output", ref.index, stack);
+                manual?.setSlot(pos, "output", ref.index, stack);
                 return;
             }
             inventory.setSlot(ref as SlotRef, stack);
         },
-        [inventory, manualProcessingStorage, pos, itemId],
+        [inventory, manual, pos],
     );
 
     const canPlaceTo = useCallback(
@@ -85,11 +78,11 @@ export function ManualProcessingPanel({ open, inventory, manualProcessingStorage
             if (!pos) return false;
             if (ref.area === "processing_output") return false;
             if (ref.area === "processing_input") {
-                return canAcceptItem(itemId, "input", stack);
+                return manual?.canAccept(stack) ?? false;
             }
             return true;
         },
-        [manualProcessingStorage, voxelMap, pos, itemId],
+        [manual, pos],
     );
 
     const getQuickTransferTargets = useCallback(
@@ -151,14 +144,14 @@ export function ManualProcessingPanel({ open, inventory, manualProcessingStorage
     }, []);
 
     const startProcessing = useCallback(() => {
-        if (!pos || !def) return;
+        if (!pos || !def || !manual) return;
         stopProcessing();
         // いま処理不可（入力空・必要数不足・出力満杯 等）なら、進捗バーも動かさず何もしない。
-        if (!manualProcessingCanProcess(entityType ?? 0, itemId, pos)) return;
+        if (!manual.canProcess(pos)) return;
         // 即時実行はしない。intervalMS 経過後に初めて1サイクル目を試みる。
         holdStartRef.current = Date.now();
         intervalRef.current = setInterval(() => {
-            const ok = manualProcessingTryProcessOnce(def, itemId, pos);
+            const ok = manual.tryProcessOnce(pos);
             if (!ok) {
                 // 入力切れ・出力満杯 → 停止（進捗もリセット）
                 stopProcessing();
@@ -167,13 +160,13 @@ export function ManualProcessingPanel({ open, inventory, manualProcessingStorage
             // 次サイクルへ。進捗バーを 0 から再カウント。
             // ただし、消費後の状態でもう次サイクルが回せるかをチェックして、
             // 不可なら次の intervalMS を待たずにすぐ停止する。
-            if (!manualProcessingCanProcess(entityType ?? 0, itemId, pos)) {
+            if (!manual.canProcess(pos)) {
                 stopProcessing();
                 return;
             }
             holdStartRef.current = Date.now();
         }, def.intervalMS);
-    }, [pos, itemId, def, manualProcessingStorage, voxelMap, stopProcessing]);
+    }, [pos, def, manual, stopProcessing]);
 
     // パネルクローズ・unmount で必ずインターバルを止める
     useEffect(() => {
@@ -203,18 +196,18 @@ export function ManualProcessingPanel({ open, inventory, manualProcessingStorage
         );
     }
 
-    const input = pos ? getStorageSlot(itemId, pos, "input", 0) : null;
-    const output0 = pos ? getStorageSlot(itemId, pos, "output", 0) : null;
-    const output1 = pos ? getStorageSlot(itemId, pos, "output", 1) : null;
+    const input = pos ? (manual?.getSlot(pos, "input", 0) ?? null) : null;
+    const output0 = pos ? (manual?.getSlot(pos, "output", 0) ?? null) : null;
+    const output1 = pos ? (manual?.getSlot(pos, "output", 1) ?? null) : null;
 
     // 同一入力に複数レシピが登録されているとき（例: 金床の刃 / 扱き歯）にドロップダウンを表示する。
     // input が空のときや、入力 itemId にマッチするレシピが1件以下のときはドロップダウンを出さない。
     const matchingRecipes = input ? findAllRecipesForInput(def, input.itemId) : [];
     const showRecipeSelector = matchingRecipes.length > 1;
-    const selectedRecipeIndex = pos ? (getStorageNumberValue(itemId, pos, "recipe") ?? 0) : 0;
+    const selectedRecipeIndex = pos ? (manual?.getRecipeIndex(pos) ?? 0) : 0;
     const onSelectRecipe = (index: number) => {
         if (!pos) return;
-        setStorageNumberValue(itemId, pos, "recipe", index);
+        manual?.setRecipeIndex(pos, index);
     };
 
     return (
@@ -305,7 +298,7 @@ registerPanel({
         <ManualProcessingPanel
             open={open}
             inventory={engine.inventory}
-            manualProcessingStorage={getStorageSet(getItemIdFromPos(engine.uiState.targetPos, engine.voxelMap), engine.uiState.targetPos) ?? null}
+            storageVault={engine.storageVault}
             voxelMap={engine.voxelMap}
             uiState={engine.uiState}
         />
