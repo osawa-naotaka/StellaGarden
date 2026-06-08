@@ -179,6 +179,7 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
                     processDailyTick(voxelMap);
                     regenerateClay(voxelMap);
                     for (const s of dailyTickStorages) s.onDailyTick(voxelMap);
+                    storageVault.onDailyTick(voxelMap);
                     onDailyTickStorage(voxelMap);
 
                     // WarpGate: 全ゲートの中身を出荷集計→reputation→clear する。

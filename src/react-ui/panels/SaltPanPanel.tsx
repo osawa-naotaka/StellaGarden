@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import type { IInventoryWriter, ItemStack, IVoxelWriter, SlotRef } from "../../_boundary/interfaces";
 import { SALT_DAYS_PER_CYCLE } from "../../_registry/entities/Saltpan";
-import { getStorageSet, getStorageSlot, type StorageSet, setStorageSlot } from "../../_registry/StorageRegistry";
+import type { SlotStorage } from "../../engine/SlotStorage";
 import { getDaysElapsedFromVoxel } from "../../engine/VoxelDefs";
 import type { UIState } from "../../view/UIState";
 import { CursorStack } from "../components/CursorStack";
@@ -22,34 +22,34 @@ type SaltPanSlotRef = { area: SaltPanSlotArea; index: number };
 export interface SaltPanPanelProps {
     open: boolean;
     inventory: IInventoryWriter;
-    saltPanStorage: StorageSet | null;
+    saltPan: SlotStorage;
     voxelMap: IVoxelWriter;
     uiState: UIState;
 }
 
-export function SaltPanPanel({ open, inventory, saltPanStorage, voxelMap, uiState }: SaltPanPanelProps) {
+export function SaltPanPanel({ open, inventory, saltPan, voxelMap, uiState }: SaltPanPanelProps) {
     useFrameTick(open);
     const pos = open ? uiState.targetPos : null;
 
     const getSlot = useCallback(
         (ref: SaltPanSlotRef): ItemStack | null => {
             if (!pos) return null;
-            if (ref.area === "saltpan_output") return getStorageSlot("saltpan", pos, "output", 0);
+            if (ref.area === "saltpan_output") return saltPan.getSlot(pos, "output", 0);
             return inventory.getSlot(ref as SlotRef);
         },
-        [inventory, saltPanStorage, pos],
+        [inventory, saltPan, pos],
     );
 
     const setSlot = useCallback(
         (ref: SaltPanSlotRef, stack: ItemStack | null) => {
             if (!pos) return;
             if (ref.area === "saltpan_output") {
-                setStorageSlot("saltpan", pos, "output", 0, stack);
+                saltPan.setSlot(pos, "output", 0, stack);
                 return;
             }
             inventory.setSlot(ref as SlotRef, stack);
         },
-        [inventory, saltPanStorage, voxelMap, pos],
+        [inventory, saltPan, pos],
     );
 
     const canPlaceTo = useCallback((ref: SaltPanSlotRef): boolean => {
@@ -91,7 +91,7 @@ export function SaltPanPanel({ open, inventory, saltPanStorage, voxelMap, uiStat
         uiState.targetPos = null;
     }, [uiState]);
 
-    const output = pos ? getStorageSlot("saltpan", pos, "output", 0) : null;
+    const output = pos ? saltPan.getSlot(pos, "output", 0) : null;
     const daysElapsed = pos ? getDaysElapsedFromVoxel(voxelMap.get(voxelMap.getSurfacePosition(pos))) : 0;
     const progressPct = Math.min(100, Math.round((daysElapsed / SALT_DAYS_PER_CYCLE) * 100));
 
@@ -151,7 +151,7 @@ registerPanel({
         <SaltPanPanel
             open={open}
             inventory={engine.inventory}
-            saltPanStorage={getStorageSet("saltpan", engine.uiState.targetPos) ?? null}
+            saltPan={engine.storageVault.get<SlotStorage>("saltpan")}
             voxelMap={engine.voxelMap}
             uiState={engine.uiState}
         />

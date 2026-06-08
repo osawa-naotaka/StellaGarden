@@ -10,6 +10,8 @@
  *  - 左クリック (onInteract) + axe → 撤去（貯まった塩は一緒にインベントリへ回収）
  */
 import type { IVoxelReader, IVoxelWriter, Pos2D } from "../../_boundary/interfaces";
+import { SlotStorage } from "../../engine/SlotStorage";
+import { registerStorageFactory } from "../../engine/StorageVault";
 import {
     ENTITY_TYPES,
     getDaysElapsedFromVoxel,
@@ -21,17 +23,8 @@ import {
     TERRAIN_TYPES,
 } from "../../engine/VoxelDefs";
 import { type EntitySpriteInfo, type InteractionContext, registerEntity } from "../EntityRegistry";
-import { placeFacility } from "../facilityUtil";
+import { placeFacility, removeFacilityByContext } from "../facilityUtil";
 import { getItemDef, type PlacementVariant, registerItem } from "../ItemRegistry";
-import {
-    createStorage,
-    getStorage,
-    getStorageSlot,
-    posFromStorageKey,
-    registerStorage,
-    removeFacilityAndReturnItemsToInventory,
-    setStorageSlot,
-} from "../StorageRegistry";
 
 const ENTITY_SIZE = { w: 2, h: 2 };
 
@@ -95,8 +88,11 @@ registerEntity({
 
     onInteract(ctx: InteractionContext): boolean {
         if (ctx.tool !== "axe") return false;
-
-        return removeFacilityAndReturnItemsToInventory("saltpan", ctx);
+        const saltpan = ctx.storageVault.get<SlotStorage>("saltpan");
+        const extraItems = saltpan.collectAllStacks(ctx.anchorPos);
+        const removed = removeFacilityByContext(ctx, extraItems);
+        if (removed) saltpan.remove(ctx.anchorPos);
+        return removed;
     },
 
     onOpenFacilityUI(ctx: InteractionContext): boolean {
@@ -116,9 +112,9 @@ registerItem({
         canPlace(voxelMap, pos, _variant: PlacementVariant) {
             return canPlaceSaltpan(voxelMap, pos);
         },
-        onPlace(voxelMap, pos) {
+        onPlace(voxelMap, pos, _variant, storageVault) {
             placeFacility(voxelMap, pos, ENTITY_TYPES.saltpan, ENTITY_SIZE);
-            createStorage("saltpan", pos);
+            storageVault.get<SlotStorage>("saltpan").create(pos);
         },
     },
 });
@@ -128,38 +124,50 @@ export const SALT_DAYS_PER_CYCLE = 2;
 /** 1サイクルで貯まる塩の個数（仮）。 */
 export const SALT_PER_CYCLE = 4;
 
-registerStorage("saltpan", { output: [null] }, (voxelMap: IVoxelWriter) => {
-    for (const [key, slots] of Object.entries(getStorage("saltpan").value)) {
-        const pos = posFromStorageKey(key);
+/**
+ * 塩田のストレージ。output スロット1個に塩を受動生成する。
+ * 経過日数は voxel の daysElapsed に保持し、SALT_DAYS_PER_CYCLE 日ごとに塩を加算する。
+ */
+class SaltpanStorage extends SlotStorage {
+    constructor() {
+        super({ output: 1 });
+    }
+
+    override onDailyTick(voxelMap: IVoxelWriter): void {
+        for (const pos of this.getPositions()) {
+            const surface = voxelMap.getSurfacePosition(pos);
+            const voxel = voxelMap.get(surface);
+            const days = getDaysElapsedFromVoxel(voxel) + 1;
+
+            if (days < SALT_DAYS_PER_CYCLE) {
+                voxelMap.set(setDaysElapsedInVoxel(voxel, days), surface);
+                this.updateVoxelEnabled(pos, voxelMap);
+                continue;
+            }
+
+            // サイクル到達: 塩を加算できるなら加算して進行をリセット、満杯なら保留。
+            const max = getItemDef("salt")?.maxStack ?? 64;
+            const out = this.getSlot(pos, "output", 0);
+            const current = out?.itemId === "salt" ? out.count : out === null ? 0 : -1;
+            const canAdd = current >= 0 && current + SALT_PER_CYCLE <= max;
+
+            if (canAdd) {
+                this.setSlot(pos, "output", 0, { itemId: "salt", count: current + SALT_PER_CYCLE });
+                voxelMap.set(setDaysElapsedInVoxel(voxel, 0), surface);
+            } else {
+                // 出力満杯（または想定外 itemId）→ 進行を据え置いて翌日また判定する。
+                voxelMap.set(setDaysElapsedInVoxel(voxel, SALT_DAYS_PER_CYCLE), surface);
+            }
+            this.updateVoxelEnabled(pos, voxelMap);
+        }
+    }
+
+    /** output の有無を voxel の enabled ビットに反映する（スプライト切替に使う）。 */
+    private updateVoxelEnabled(pos: Pos2D, voxelMap: IVoxelWriter): void {
         const surface = voxelMap.getSurfacePosition(pos);
         const voxel = voxelMap.get(surface);
-        const days = getDaysElapsedFromVoxel(voxel) + 1;
-
-        if (days < SALT_DAYS_PER_CYCLE) {
-            voxelMap.set(setDaysElapsedInVoxel(voxel, days), surface);
-            updateVoxelEnabled(pos, voxelMap);
-            continue;
-        }
-
-        // サイクル到達: 塩を加算できるなら加算して進行をリセット、満杯なら保留。
-        const max = getItemDef("salt")?.maxStack ?? 64;
-        const current = slots.output[0]?.itemId === "salt" ? slots.output[0].count : slots.output[0] === null ? 0 : -1;
-        const canAdd = current >= 0 && current + SALT_PER_CYCLE <= max;
-
-        if (canAdd) {
-            slots.output[0] = { itemId: "salt", count: current + SALT_PER_CYCLE };
-            setStorageSlot("saltpan", posFromStorageKey(key), "output", 0, slots.output[0]);
-            voxelMap.set(setDaysElapsedInVoxel(voxel, 0), surface);
-        } else {
-            // 出力満杯（または想定外 itemId）→ 進行を据え置いて翌日また判定する。
-            voxelMap.set(setDaysElapsedInVoxel(voxel, SALT_DAYS_PER_CYCLE), surface);
-        }
-        updateVoxelEnabled(pos, voxelMap);
+        voxelMap.set(setEnabledInVoxel(voxel, this.getSlot(pos, "output", 0) !== null), surface);
     }
-});
-
-function updateVoxelEnabled(pos: Pos2D, voxelMap: IVoxelWriter): void {
-    const surface = voxelMap.getSurfacePosition(pos);
-    const voxel = voxelMap.get(surface);
-    voxelMap.set(setEnabledInVoxel(voxel, getStorageSlot("saltpan", pos, "output", 0) !== null), surface);
 }
+
+registerStorageFactory("saltpan", () => new SaltpanStorage());

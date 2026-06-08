@@ -1,10 +1,9 @@
 import { useCallback } from "react";
-import type { IInventoryWriter, ItemStack, IVoxelWriter, SlotRef } from "../../_boundary/interfaces";
-import type { DistillerSlotKind } from "../../_registry/entities/Distiller";
+import type { IInventoryWriter, ItemStack, SlotRef } from "../../_boundary/interfaces";
+import type { DistillerSlotKind, DistillerStorage } from "../../_registry/entities/Distiller";
 import { distillerCanAcceptFuel, distillerCanAcceptMaterial } from "../../_registry/entities/Distiller";
 import { getItemDisplayName } from "../../_registry/ItemRegistry";
 import { DISTILLER_MATERIAL_DEF, findAllRecipesForInput } from "../../_registry/ProcessingRecipes";
-import { getStorageNumberValue, getStorageSet, getStorageSlot, type StorageSet, setStorageNumberValue, setStorageSlot } from "../../_registry/StorageRegistry";
 import type { UIState } from "../../view/UIState";
 import { CursorStack } from "../components/CursorStack";
 import { InventoryGrid } from "../components/InventoryGrid";
@@ -37,45 +36,41 @@ function areaToKind(area: DistillerSlotArea): DistillerSlotKind | null {
 export interface DistillerPanelProps {
     open: boolean;
     inventory: IInventoryWriter;
-    distillerStorage: StorageSet | undefined;
-    voxelMap: IVoxelWriter;
+    distiller: DistillerStorage;
     uiState: UIState;
 }
 
-export function DistillerPanel({ open, inventory, distillerStorage, voxelMap, uiState }: DistillerPanelProps) {
+export function DistillerPanel({ open, inventory, distiller, uiState }: DistillerPanelProps) {
     useFrameTick(open);
     const targetPos = uiState.targetPos;
 
     const getSlot = useCallback(
         (ref: DistillerSlotRef): ItemStack | null => {
             const kind = areaToKind(ref.area);
-            if (kind) return targetPos ? getStorageSlot("distiller", targetPos, kind, 0) : null;
+            if (kind) return targetPos ? distiller.getSlot(targetPos, kind, 0) : null;
             return inventory.getSlot(ref as SlotRef);
         },
-        [inventory, distillerStorage, targetPos],
+        [inventory, distiller, targetPos],
     );
 
     const setSlot = useCallback(
         (ref: DistillerSlotRef, stack: ItemStack | null) => {
             const kind = areaToKind(ref.area);
             if (kind) {
-                if (targetPos) setStorageSlot("distiller", targetPos, kind, 0, stack);
+                if (targetPos) distiller.setSlot(targetPos, kind, 0, stack);
                 return;
             }
             inventory.setSlot(ref as SlotRef, stack);
         },
-        [inventory, distillerStorage, voxelMap, targetPos],
+        [inventory, distiller, targetPos],
     );
 
-    const canPlaceTo = useCallback(
-        (ref: DistillerSlotRef, stack: ItemStack): boolean => {
-            if (ref.area === "distiller_fuel") return distillerCanAcceptFuel(stack.itemId);
-            if (ref.area === "distiller_material") return distillerCanAcceptMaterial(stack.itemId);
-            if (ref.area === "distiller_output") return false;
-            return true;
-        },
-        [distillerStorage],
-    );
+    const canPlaceTo = useCallback((ref: DistillerSlotRef, stack: ItemStack): boolean => {
+        if (ref.area === "distiller_fuel") return distillerCanAcceptFuel(stack.itemId);
+        if (ref.area === "distiller_material") return distillerCanAcceptMaterial(stack.itemId);
+        if (ref.area === "distiller_output") return false;
+        return true;
+    }, []);
 
     const getQuickTransferTargets = useCallback((ref: DistillerSlotRef): DistillerSlotRef[] | undefined => {
         const invTotal = INV_ROWS * COLS;
@@ -119,16 +114,15 @@ export function DistillerPanel({ open, inventory, distillerStorage, voxelMap, ui
         uiState.targetPos = null;
     }, [uiState]);
 
-    const fuel = targetPos ? getStorageSlot("distiller", targetPos, "fuel", 0) : null;
-    const material = targetPos ? getStorageSlot("distiller", targetPos, "material", 0) : null;
-    const output = targetPos ? getStorageSlot("distiller", targetPos, "output", 0) : null;
-    //    const isBurning = targetPos ? distillerStorage.isBurning(targetPos) : false;
+    const fuel = targetPos ? distiller.getSlot(targetPos, "fuel", 0) : null;
+    const material = targetPos ? distiller.getSlot(targetPos, "material", 0) : null;
+    const output = targetPos ? distiller.getSlot(targetPos, "output", 0) : null;
 
     const materialRecipes = material ? findAllRecipesForInput(DISTILLER_MATERIAL_DEF, material.itemId) : [];
     const showRecipeSelector = materialRecipes.length > 1;
-    const selectedRecipeIndex = targetPos ? (getStorageNumberValue("distiller", targetPos, "recipe") ?? 0) : 0;
+    const selectedRecipeIndex = targetPos ? distiller.getRecipeIndex(targetPos) : 0;
     const onSelectRecipe = (index: number) => {
-        if (targetPos) setStorageNumberValue("distiller", targetPos, "recipe", index);
+        if (targetPos) distiller.setRecipeIndex(targetPos, index);
     };
 
     return (
@@ -208,12 +202,6 @@ export function DistillerPanel({ open, inventory, distillerStorage, voxelMap, ui
 registerPanel({
     mode: "distiller",
     component: ({ open, engine }) => (
-        <DistillerPanel
-            open={open}
-            inventory={engine.inventory}
-            distillerStorage={getStorageSet("distiller", engine.uiState.targetPos)}
-            voxelMap={engine.voxelMap}
-            uiState={engine.uiState}
-        />
+        <DistillerPanel open={open} inventory={engine.inventory} distiller={engine.storageVault.get<DistillerStorage>("distiller")} uiState={engine.uiState} />
     ),
 });
