@@ -1,4 +1,3 @@
-import { getStorages } from "../../_registry/StorageRegistry";
 import type { BonfireStorage } from "../../engine/BonfireStorage";
 import type { CartStorage } from "../../engine/CartStorage";
 import type { ChatHistory } from "../../engine/ChatHistory";
@@ -71,7 +70,6 @@ export function buildSaveData(deps: SaveSnapshotDeps): Omit<SaveData, "version" 
             elapsedMs: gameTime.getElapsedMs(),
         },
         storageVault: storageVault.toSaveData(),
-        storage: getStorages(),
         bonfireStorage: {
             bonfires: bonfireStorage.toSaveData(),
         },

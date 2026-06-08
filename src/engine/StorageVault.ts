@@ -1,8 +1,10 @@
 import * as v from "valibot";
-import type { IVoxelWriter } from "../_boundary/interfaces";
-import type { StorageId } from "../_registry/StorageRegistry";
+import type { ItemId, IVoxelWriter } from "../_boundary/interfaces";
 import { ItemIdSchema } from "./ItemDefs";
 import type { KeyedSlotStorage } from "./KeyedSlotStorage";
+
+/** ストレージ識別子。エンティティの itemId と同一（例: "chest", "forge"）。 */
+export type StorageId = ItemId;
 
 // ---------------------------------------------------------------------------
 // セーブスキーマ

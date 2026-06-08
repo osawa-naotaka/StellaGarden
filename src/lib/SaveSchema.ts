@@ -1,5 +1,4 @@
 import * as v from "valibot";
-import { StoragesSchema } from "../_registry/StorageRegistry";
 import { ITEM_IDS } from "../engine/ItemDefs";
 import { StorageVaultSaveDataSchema } from "../engine/StorageVault";
 
@@ -190,7 +189,6 @@ export const SaveDataSchema = v.object({
     inventory: InventorySaveDataSchema,
     gameTime: GameTimeSaveDataSchema,
     storageVault: StorageVaultSaveDataSchema,
-    storage: StoragesSchema,
     bonfireStorage: BonfireStorageSaveDataSchema,
     fermentationStorage: FermentationStorageSaveDataSchema,
     cartStorage: CartStorageSaveDataSchema,

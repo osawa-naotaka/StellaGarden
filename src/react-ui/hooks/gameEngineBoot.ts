@@ -2,7 +2,6 @@ import type { IEventBroker } from "../../_boundary/interfaces";
 import { setBonfireStorage } from "../../_registry/entities/Bonfire";
 import { setCartStorage } from "../../_registry/entities/Cart";
 import { setFermentationStorage } from "../../_registry/entities/FermentationVat";
-import { loadStorages } from "../../_registry/StorageRegistry";
 import { BonfireStorage } from "../../engine/BonfireStorage";
 import { CartStorage } from "../../engine/CartStorage";
 import { FermentationStorage } from "../../engine/FermentationStorage";
@@ -44,10 +43,6 @@ export interface Storages {
  * Chest / Forge / Workbench / WarpGate の同型な初期化処理を一括化。
  */
 export function bootstrapStorages(saveData: SaveData | null): Storages {
-    if (saveData) {
-        loadStorages(saveData.storage);
-    }
-
     const storageVault = new StorageVault();
     storageVault.init(getStorageFactories());
     if (saveData) {
