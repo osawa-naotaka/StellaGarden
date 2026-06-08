@@ -1,9 +1,9 @@
 import { useCallback, useMemo } from "react";
 import type { IInventoryWriter, ItemId, ItemStack, IVoxelWriter, Pos2D, SlotRef } from "../../_boundary/interfaces";
-import { dailyProcessingCanAcceptInput, getDaysElapsed } from "../../_registry/entities/DailyProcessing";
+import { type DailyProcessingStorage, dailyProcessingCanAcceptInput, getDaysElapsed } from "../../_registry/entities/DailyProcessing";
 import { getItemDefByEntityType } from "../../_registry/ItemRegistry";
 import { findRecipeForInput, getDailyProcessingDef } from "../../_registry/ProcessingRecipes";
-import { getStorageSet, getStorageSlot, type StorageSet, setStorageSlot } from "../../_registry/StorageRegistry";
+import type { StorageVault } from "../../engine/StorageVault";
 import { getEntityTypeFromVoxel } from "../../engine/VoxelDefs";
 import type { UIState } from "../../view/UIState";
 import { CursorStack } from "../components/CursorStack";
@@ -24,7 +24,7 @@ type DailyProcessingRef = { area: DailyProcessingArea; index: number };
 export interface DailyProcessingPanelProps {
     open: boolean;
     inventory: IInventoryWriter;
-    dailyProcessingStorage: StorageSet | null;
+    storageVault: StorageVault;
     voxelMap: IVoxelWriter;
     uiState: UIState;
 }
@@ -37,7 +37,7 @@ export function getItemIdFromPos(pos: Pos2D | null, voxelMap: IVoxelWriter): Ite
     return itemDef?.itemId ?? ("none" as const);
 }
 
-export function DailyProcessingPanel({ open, inventory, dailyProcessingStorage, voxelMap, uiState }: DailyProcessingPanelProps) {
+export function DailyProcessingPanel({ open, inventory, storageVault, voxelMap, uiState }: DailyProcessingPanelProps) {
     useFrameTick(open);
     const pos = open ? uiState.targetPos : null;
 
@@ -52,31 +52,33 @@ export function DailyProcessingPanel({ open, inventory, dailyProcessingStorage, 
     const itemDef = baseEntityType !== null ? getItemDefByEntityType(baseEntityType) : null;
     const itemId = itemDef?.itemId ?? ("none" as const);
     const title = itemDef?.displayName ?? "Processing";
+    // 日次処理施設のときのみストレージを解決する（def 非nullなら itemId は vault に登録済み）。
+    const daily = def && itemId !== "none" ? storageVault.get<DailyProcessingStorage>(itemId) : null;
 
     const getSlot = useCallback(
         (ref: DailyProcessingRef): ItemStack | null => {
             if (!pos) return null;
-            if (ref.area === "processing_input") return getStorageSlot(itemId, pos, "input", 0);
-            if (ref.area === "processing_output") return getStorageSlot(itemId, pos, "output", ref.index);
+            if (ref.area === "processing_input") return daily?.getSlot(pos, "input", 0) ?? null;
+            if (ref.area === "processing_output") return daily?.getSlot(pos, "output", ref.index) ?? null;
             return inventory.getSlot(ref as SlotRef);
         },
-        [inventory, dailyProcessingStorage, pos, itemId],
+        [inventory, daily, pos],
     );
 
     const setSlot = useCallback(
         (ref: DailyProcessingRef, stack: ItemStack | null) => {
             if (!pos) return;
             if (ref.area === "processing_input") {
-                setStorageSlot(itemId, pos, "input", 0, stack);
+                daily?.setSlot(pos, "input", 0, stack);
                 return;
             }
             if (ref.area === "processing_output") {
-                setStorageSlot(itemId, pos, "output", ref.index, stack);
+                daily?.setSlot(pos, "output", ref.index, stack);
                 return;
             }
             inventory.setSlot(ref as SlotRef, stack);
         },
-        [inventory, dailyProcessingStorage, voxelMap, pos, itemId],
+        [inventory, daily, pos],
     );
 
     const canPlaceTo = useCallback(
@@ -88,7 +90,7 @@ export function DailyProcessingPanel({ open, inventory, dailyProcessingStorage, 
             }
             return true;
         },
-        [dailyProcessingStorage, voxelMap, pos, itemId],
+        [voxelMap, pos],
     );
 
     const getQuickTransferTargets = useCallback(
@@ -145,13 +147,14 @@ export function DailyProcessingPanel({ open, inventory, dailyProcessingStorage, 
         );
     }
 
-    const input = getStorageSlot(itemId, pos, "input", 0);
-    const output0 = getStorageSlot(itemId, pos, "output", 0);
-    const output1 = getStorageSlot(itemId, pos, "output", 1);
+    const input = daily?.getSlot(pos, "input", 0) ?? null;
+    const output0 = daily?.getSlot(pos, "output", 0) ?? null;
+    const output1 = daily?.getSlot(pos, "output", 1) ?? null;
     const daysElapsed = getDaysElapsed(pos, voxelMap);
 
-    // 進捗の表示: 入力が必要数に達していて、レシピが見つかる場合のみカウントを表示
-    const recipe = input ? findRecipeForInput(def, input.itemId) : null;
+    // 進捗の表示: 入力が必要数に達していて、レシピが見つかる場合のみカウントを表示。
+    // 受理不可アイテム（誤って入った出力物など）では findRecipeForInput が throw するため事前に弾く。
+    const recipe = input && dailyProcessingCanAcceptInput(pos, input.itemId, voxelMap) ? findRecipeForInput(def, input.itemId) : null;
     const isProgressing = recipe !== null && input !== null && input.count >= recipe.inputCountPerCycle;
     const progressPct = isProgressing ? Math.min(100, Math.round(((daysElapsed - 1) / def.daysRequired) * 100)) : 0;
     const progressLabel = isProgressing ? `${daysElapsed - 1} / ${def.daysRequired} 日` : `必要量を投入してください`;
@@ -221,12 +224,6 @@ export function DailyProcessingPanel({ open, inventory, dailyProcessingStorage, 
 registerPanel({
     mode: "processing-daily",
     component: ({ open, engine }) => (
-        <DailyProcessingPanel
-            open={open}
-            inventory={engine.inventory}
-            dailyProcessingStorage={getStorageSet(getItemIdFromPos(engine.uiState.targetPos, engine.voxelMap), engine.uiState.targetPos) ?? null}
-            voxelMap={engine.voxelMap}
-            uiState={engine.uiState}
-        />
+        <DailyProcessingPanel open={open} inventory={engine.inventory} storageVault={engine.storageVault} voxelMap={engine.voxelMap} uiState={engine.uiState} />
     ),
 });

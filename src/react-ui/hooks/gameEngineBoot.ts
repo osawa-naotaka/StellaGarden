@@ -63,7 +63,7 @@ export function bootstrapStorages(saveData: SaveData | null): Storages {
     setFermentationStorage(fermentationStorage);
 
     // ステーション（フォーク搬送）は chest / daily / auto のストレージにアクセスする
-    setStationStorages(bonfireStorage, storageVault.get<SlotStorage>("chest"));
+    setStationStorages(bonfireStorage, storageVault.get<SlotStorage>("chest"), storageVault);
 
     const cartStorage = new CartStorage();
     if (saveData) cartStorage.loadSaveData(saveData.cartStorage);

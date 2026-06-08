@@ -1,11 +1,12 @@
 import type { ICartWriter, IEventBroker, IVoxelWriter, Pos2D } from "../_boundary/interfaces";
 import { autoProcessingCanAcceptInput } from "../_registry/entities/AutoProcessing";
+import { dailyProcessingCanAcceptInput } from "../_registry/entities/DailyProcessing";
 import { findFacilityAnchor } from "../_registry/facilityUtil";
 import { getItemDef, getItemDefByEntityType } from "../_registry/ItemRegistry";
 import { AUTO_PROCESSING_DEFS, DAILY_PROCESSING_DEFS } from "../_registry/ProcessingRecipes";
-import { addToStorage, getStorageSet, getStorageSlot, setStorageSlot } from "../_registry/StorageRegistry";
 import type { BonfireStorage } from "./BonfireStorage";
 import type { SlotStorage } from "./SlotStorage";
+import type { StorageVault } from "./StorageVault";
 import { ENTITY_TYPES, getEntityTypeFromVoxel, getVariantFromVoxel } from "./VoxelDefs";
 
 // ---------------------------------------------------------------------------
@@ -58,14 +59,16 @@ function isParallel(a: Vec2, b: Vec2): boolean {
 
 let bonfireStorageRef: BonfireStorage | null = null;
 let chestStorageRef: SlotStorage | null = null;
+let storageVaultRef: StorageVault | null = null;
 
 /**
  * App.tsx から各ストレージを注入する。
- * chest は StorageVault 上の SlotStorage インスタンスを受け取る。
+ * chest / daily / auto などの座標ベース収納は storageVault から取得する。
  */
-export function setStationStorages(bonfire: BonfireStorage, chest: SlotStorage): void {
+export function setStationStorages(bonfire: BonfireStorage, chest: SlotStorage, storageVault: StorageVault): void {
     bonfireStorageRef = bonfire;
     chestStorageRef = chest;
+    storageVaultRef = storageVault;
 }
 
 // ---------------------------------------------------------------------------
@@ -149,37 +152,39 @@ function unloadCartToChest(cart: ICartWriter, anchorPos: Pos2D): boolean {
 }
 
 function unloadCartToAuto(cart: ICartWriter, anchorPos: Pos2D, voxelMap: IVoxelWriter): boolean {
-    let moved = false;
+    if (!storageVaultRef) return false;
     const entityType = getEntityTypeFromVoxel(voxelMap.getSurface(anchorPos));
     const storageId = getItemDefByEntityType(entityType)?.itemId ?? "none";
+    if (storageId === "none") return false;
+    const auto = storageVaultRef.get<SlotStorage>(storageId);
+    const inputLength = auto.getSlots(anchorPos)?.input.length ?? 0;
 
+    let moved = false;
     for (let i = 0; i < cart.inventorySlots.length; i++) {
         const slot = cart.inventorySlots[i];
         if (slot === null) continue;
         if (!autoProcessingCanAcceptInput(slot.itemId, entityType)) continue;
 
-        // const inputs = autoStorage.getInputs(anchorPos);
         const itemId = slot.itemId;
         const maxStack = getItemDef(itemId)?.maxStack ?? 64;
         let remaining = slot.count;
-        const inputLength = getStorageSet(storageId, anchorPos)?.input.length ?? 0;
 
         // 既存スタックに積む
         for (let j = 0; j < inputLength && remaining > 0; j++) {
-            const inputSlot = getStorageSlot(storageId, anchorPos, "input", j);
+            const inputSlot = auto.getSlot(anchorPos, "input", j);
             if (inputSlot === null || inputSlot.itemId !== itemId) continue;
             if (inputSlot.count >= maxStack) continue;
             const space = maxStack - inputSlot.count;
             const add = Math.min(space, remaining);
-            setStorageSlot(storageId, anchorPos, "input", j, { itemId: inputSlot.itemId, count: inputSlot.count + add });
+            auto.setSlot(anchorPos, "input", j, { itemId: inputSlot.itemId, count: inputSlot.count + add });
             remaining -= add;
             moved = true;
         }
         // 空きスロットに新規
         for (let j = 0; j < inputLength && remaining > 0; j++) {
-            if (getStorageSlot(storageId, anchorPos, "input", j) !== null) continue;
+            if (auto.getSlot(anchorPos, "input", j) !== null) continue;
             const add = Math.min(maxStack, remaining);
-            setStorageSlot(storageId, anchorPos, "input", j, { itemId: itemId as never, count: add });
+            auto.setSlot(anchorPos, "input", j, { itemId, count: add });
             remaining -= add;
             moved = true;
         }
@@ -194,18 +199,28 @@ function unloadCartToAuto(cart: ICartWriter, anchorPos: Pos2D, voxelMap: IVoxelW
 }
 
 function unloadCartToDaily(cart: ICartWriter, anchorPos: Pos2D, voxelMap: IVoxelWriter): boolean {
+    if (!storageVaultRef) return false;
+    const entityType = getEntityTypeFromVoxel(voxelMap.getSurface(anchorPos));
+    const itemDef = getItemDefByEntityType(entityType);
+    if (itemDef === undefined) throw new Error(`No itemId for entity type ${entityType}`);
+    const daily = storageVaultRef.get<SlotStorage>(itemDef.itemId);
+
+    // 日次処理は入力1スロット。同 itemId にマージしつつ最大スタックまで積む。
     let moved = false;
-    // 各カートスロットを addInput に渡すだけ。addInput が容量・単一 itemId 制約・進行度を内包する。
-    // 入力が満杯 or itemId 不一致になった以降のスロットは addInput が 0 を返すため自然にスキップされる。
     for (let i = 0; i < cart.inventorySlots.length; i++) {
         const slot = cart.inventorySlots[i];
         if (slot === null) continue;
-        const entityType = getEntityTypeFromVoxel(voxelMap.getSurface(anchorPos));
-        const itemDef = getItemDefByEntityType(entityType);
-        if (itemDef === undefined) throw new Error(`No itemId for entity type ${entityType}`);
-        const movedCount = addToStorage(itemDef.itemId, anchorPos, "input", slot);
-        if (movedCount <= 0) continue;
-        const remaining = slot.count - movedCount;
+        // 受理不可アイテム（その施設のレシピ入力でないもの）はカートから移さない。
+        if (!dailyProcessingCanAcceptInput(anchorPos, slot.itemId, voxelMap)) continue;
+        const input = daily.getSlot(anchorPos, "input", 0);
+        if (input !== null && input.itemId !== slot.itemId) continue;
+        const maxStack = getItemDef(slot.itemId)?.maxStack ?? 64;
+        const existing = input?.count ?? 0;
+        const space = maxStack - existing;
+        if (space <= 0) continue;
+        const add = Math.min(space, slot.count);
+        daily.setSlot(anchorPos, "input", 0, { itemId: slot.itemId, count: existing + add });
+        const remaining = slot.count - add;
         cart.setInventorySlot(i, remaining > 0 ? { itemId: slot.itemId, count: remaining } : null);
         moved = true;
     }
@@ -258,18 +273,21 @@ function loadChestToCart(cart: ICartWriter, anchorPos: Pos2D): boolean {
 }
 
 function loadAutoToCart(cart: ICartWriter, anchorPos: Pos2D, voxelMap: IVoxelWriter): boolean {
+    if (!storageVaultRef) return false;
     const entityType = getEntityTypeFromVoxel(voxelMap.getSurface(anchorPos));
     const storageId = getItemDefByEntityType(entityType)?.itemId ?? "none";
+    if (storageId === "none") return false;
+    const auto = storageVaultRef.get<SlotStorage>(storageId);
 
     let moved = false;
-    const outputLength = getStorageSet(storageId, anchorPos)?.output.length ?? 0;
+    const outputLength = auto.getSlots(anchorPos)?.output.length ?? 0;
     for (let j = 0; j < outputLength; j++) {
-        const slot = getStorageSlot(storageId, anchorPos, "output", j);
+        const slot = auto.getSlot(anchorPos, "output", j);
         if (slot === null) continue;
         const added = addItemToCart(cart, slot.itemId, slot.count);
         if (added > 0) {
             const remaining = slot.count - added;
-            setStorageSlot(storageId, anchorPos, "output", j, remaining > 0 ? { itemId: slot.itemId, count: remaining } : null);
+            auto.setSlot(anchorPos, "output", j, remaining > 0 ? { itemId: slot.itemId, count: remaining } : null);
             moved = true;
         }
     }
@@ -293,17 +311,20 @@ function loadBonfireToCart(cart: ICartWriter, anchorPos: Pos2D, bonfireStorage: 
 }
 
 function loadDailyToCart(cart: ICartWriter, anchorPos: Pos2D, voxelMap: IVoxelWriter): boolean {
-    let moved = false;
+    if (!storageVaultRef) return false;
     const entityType = getEntityTypeFromVoxel(voxelMap.getSurface(anchorPos));
     const itemId = getItemDefByEntityType(entityType)?.itemId ?? "none";
+    if (itemId === "none") return false;
+    const daily = storageVaultRef.get<SlotStorage>(itemId);
+
+    let moved = false;
     for (const idx of [0, 1] as const) {
-        const slot = getStorageSlot(itemId, anchorPos, "output", idx);
+        const slot = daily.getSlot(anchorPos, "output", idx);
         if (slot === null) continue;
         const added = addItemToCart(cart, slot.itemId, slot.count);
         if (added > 0) {
             const remaining = slot.count - added;
-            // setOutput(index=0) は enabled ビットも更新するため必ず setOutput 経由で呼ぶ
-            setStorageSlot(itemId, anchorPos, "output", idx, remaining > 0 ? { itemId: slot.itemId, count: remaining } : null);
+            daily.setSlot(anchorPos, "output", idx, remaining > 0 ? { itemId: slot.itemId, count: remaining } : null);
             moved = true;
         }
     }
@@ -412,9 +433,10 @@ export function executeStationTransfersOnCartEnter(voxelMap: IVoxelWriter, cart:
                 moved = unloadCartToAuto(cart, anchorPos, voxelMap);
                 const entityType = getEntityTypeFromVoxel(voxelMap.getSurface(anchorPos));
                 const storageId = getItemDefByEntityType(entityType)?.itemId ?? "none";
-                if (moved) {
+                if (moved && storageId !== "none") {
+                    const auto = storageVaultRef?.get<SlotStorage>(storageId);
                     for (let j = 0; j < 8; j++) {
-                        const slot = getStorageSlot(storageId, anchorPos, "input", j);
+                        const slot = auto?.getSlot(anchorPos, "input", j) ?? null;
                         if (slot !== null) {
                             representativeItemId = slot.itemId;
                             break;
@@ -436,7 +458,8 @@ export function executeStationTransfersOnCartEnter(voxelMap: IVoxelWriter, cart:
             } else {
                 moved = unloadCartToDaily(cart, anchorPos, voxelMap);
                 if (moved) {
-                    const inputSlot = getStorageSlot(getItemDefByEntityType(facilityEntityType)?.itemId ?? "none", anchorPos, "input", 0);
+                    const dailyItemId = getItemDefByEntityType(facilityEntityType)?.itemId ?? "none";
+                    const inputSlot = dailyItemId !== "none" ? (storageVaultRef?.get<SlotStorage>(dailyItemId).getSlot(anchorPos, "input", 0) ?? null) : null;
                     if (inputSlot !== null) representativeItemId = inputSlot.itemId;
                 }
             }

@@ -1,9 +1,9 @@
 import { useCallback, useMemo } from "react";
 import type { IInventoryWriter, ItemStack, IVoxelWriter, SlotRef } from "../../_boundary/interfaces";
-import { autoProcessingCanAcceptInput, autoProcessingIsPowered } from "../../_registry/entities/AutoProcessing";
+import { type AutoProcessingStorage, autoProcessingCanAcceptInput, autoProcessingIsPowered } from "../../_registry/entities/AutoProcessing";
 import { getItemDefByEntityType } from "../../_registry/ItemRegistry";
 import { getAutoProcessingDef } from "../../_registry/ProcessingRecipes";
-import { getStorageSet, getStorageSlot, type StorageSet, setStorageSlot } from "../../_registry/StorageRegistry";
+import type { StorageVault } from "../../engine/StorageVault";
 import { getEntityTypeFromVoxel } from "../../engine/VoxelDefs";
 import type { UIState } from "../../view/UIState";
 import { CursorStack } from "../components/CursorStack";
@@ -12,7 +12,6 @@ import { SidePanel } from "../components/SidePanel";
 import { useFrameTick } from "../hooks/useFrameTick";
 import { usePickup } from "../hooks/usePickup";
 import { registerPanel } from "../PanelRegistry";
-import { getItemIdFromPos } from "./DailyProcessingPanel";
 
 const COLS = 8;
 const INV_ROWS = 8;
@@ -28,12 +27,12 @@ type AutoProcessingRef = { area: AutoProcessingArea; index: number };
 export interface AutoProcessingPanelProps {
     open: boolean;
     inventory: IInventoryWriter;
-    autoProcessingStorage: StorageSet | null;
+    storageVault: StorageVault;
     voxelMap: IVoxelWriter;
     uiState: UIState;
 }
 
-export function AutoProcessingPanel({ open, inventory, autoProcessingStorage, voxelMap, uiState }: AutoProcessingPanelProps) {
+export function AutoProcessingPanel({ open, inventory, storageVault, voxelMap, uiState }: AutoProcessingPanelProps) {
     useFrameTick(open);
     const pos = open ? uiState.targetPos : null;
 
@@ -52,31 +51,33 @@ export function AutoProcessingPanel({ open, inventory, autoProcessingStorage, vo
     const itemDef = entityType !== null ? getItemDefByEntityType(entityType) : null;
     const itemId = itemDef?.itemId ?? "none";
     const title = itemDef?.displayName ?? "Auto Processing";
+    // 自動処理施設のときのみストレージを解決する（def 非nullなら itemId は vault に登録済み）。
+    const auto = def && itemId !== "none" ? storageVault.get<AutoProcessingStorage>(itemId) : null;
 
     const getSlot = useCallback(
         (ref: AutoProcessingRef): ItemStack | null => {
             if (!pos) return null;
-            if (ref.area === "processing_input") return getStorageSlot(itemId, pos, "input", ref.index);
-            if (ref.area === "processing_output") return getStorageSlot(itemId, pos, "output", ref.index);
+            if (ref.area === "processing_input") return auto?.getSlot(pos, "input", ref.index) ?? null;
+            if (ref.area === "processing_output") return auto?.getSlot(pos, "output", ref.index) ?? null;
             return inventory.getSlot(ref as SlotRef);
         },
-        [inventory, autoProcessingStorage, itemId, pos],
+        [inventory, auto, pos],
     );
 
     const setSlot = useCallback(
         (ref: AutoProcessingRef, stack: ItemStack | null) => {
             if (!pos) return;
             if (ref.area === "processing_input") {
-                setStorageSlot(itemId, pos, "input", ref.index, stack);
+                auto?.setSlot(pos, "input", ref.index, stack);
                 return;
             }
             if (ref.area === "processing_output") {
-                setStorageSlot(itemId, pos, "output", ref.index, stack);
+                auto?.setSlot(pos, "output", ref.index, stack);
                 return;
             }
             inventory.setSlot(ref as SlotRef, stack);
         },
-        [inventory, autoProcessingStorage, voxelMap, pos, itemId],
+        [inventory, auto, pos],
     );
 
     const canPlaceTo = useCallback(
@@ -88,7 +89,7 @@ export function AutoProcessingPanel({ open, inventory, autoProcessingStorage, vo
             }
             return true;
         },
-        [autoProcessingStorage, voxelMap, pos, entityType],
+        [pos, entityType],
     );
 
     const getQuickTransferTargets = useCallback(
@@ -166,7 +167,7 @@ export function AutoProcessingPanel({ open, inventory, autoProcessingStorage, vo
                     <InventoryGrid
                         rows={INPUT_ROWS}
                         cols={INPUT_COLS}
-                        getStack={(i) => (i < inputCount ? getStorageSlot(itemId, pos, "input", i) : null)}
+                        getStack={(i) => (i < inputCount ? (auto?.getSlot(pos, "input", i) ?? null) : null)}
                         onLeftClick={(i, e) => handleLeftClick({ area: "processing_input", index: i }, e.nativeEvent)}
                         onRightClick={(i) => handleRightClick({ area: "processing_input", index: i })}
                     />
@@ -177,7 +178,7 @@ export function AutoProcessingPanel({ open, inventory, autoProcessingStorage, vo
                     <InventoryGrid
                         rows={OUTPUT_ROWS}
                         cols={OUTPUT_COLS}
-                        getStack={(i) => (i < outputCount ? getStorageSlot(itemId, pos, "output", i) : null)}
+                        getStack={(i) => (i < outputCount ? (auto?.getSlot(pos, "output", i) ?? null) : null)}
                         onLeftClick={(i, e) => handleLeftClick({ area: "processing_output", index: i }, e.nativeEvent)}
                         onRightClick={(i) => handleRightClick({ area: "processing_output", index: i })}
                     />
@@ -224,12 +225,6 @@ export function AutoProcessingPanel({ open, inventory, autoProcessingStorage, vo
 registerPanel({
     mode: "processing-auto",
     component: ({ open, engine }) => (
-        <AutoProcessingPanel
-            open={open}
-            inventory={engine.inventory}
-            autoProcessingStorage={getStorageSet(getItemIdFromPos(engine.uiState.targetPos, engine.voxelMap), engine.uiState.targetPos) ?? null}
-            voxelMap={engine.voxelMap}
-            uiState={engine.uiState}
-        />
+        <AutoProcessingPanel open={open} inventory={engine.inventory} storageVault={engine.storageVault} voxelMap={engine.voxelMap} uiState={engine.uiState} />
     ),
 });

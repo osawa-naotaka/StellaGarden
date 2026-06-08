@@ -11,6 +11,8 @@
  * - 縦置き専用スプライトは未用意のため、現状は横置きの ss_sprite_072 / ss_sprite_056 / ss_sprite_073 を流用する
  */
 import type { IVoxelReader, Pos2D } from "../../_boundary/interfaces";
+import type { SlotStorage } from "../../engine/SlotStorage";
+import { registerStorageFactory } from "../../engine/StorageVault";
 import {
     ENTITY_TYPES,
     getDaysElapsedFromVoxel,
@@ -21,9 +23,10 @@ import {
     TERRAIN_TYPES,
 } from "../../engine/VoxelDefs";
 import { type EntitySpriteInfo, type InteractionContext, registerEntity } from "../EntityRegistry";
-import { placeFacility } from "../facilityUtil";
+import { placeFacility, removeFacilityByContext } from "../facilityUtil";
 import { type PlacementVariant, registerItem } from "../ItemRegistry";
-import { createStorage, removeFacilityAndReturnItemsToInventory } from "../StorageRegistry";
+import { DAILY_PROCESSING_DEFS } from "../ProcessingRecipes";
+import { DailyProcessingStorage } from "./DailyProcessing";
 
 const PLACEABLE_TERRAINS: ReadonlySet<number> = new Set([TERRAIN_TYPES.grass, TERRAIN_TYPES.dirt, TERRAIN_TYPES.soil]);
 const NEIGHBORS_4: ReadonlyArray<readonly [number, number]> = [
@@ -102,7 +105,11 @@ registerEntity({
 
     onInteract(ctx: InteractionContext): boolean {
         if (ctx.tool !== "axe") return false;
-        return removeFacilityAndReturnItemsToInventory("soaking_basket", ctx);
+        const storage = ctx.storageVault.get<SlotStorage>("soaking_basket");
+        const extraItems = storage.collectAllStacks(ctx.anchorPos);
+        const removed = removeFacilityByContext(ctx, extraItems);
+        if (removed) storage.remove(ctx.anchorPos);
+        return removed;
     },
 
     onOpenFacilityUI(ctx: InteractionContext): boolean {
@@ -127,13 +134,16 @@ registerItem({
         canPlace(voxelMap, pos, variant) {
             return canPlaceSoakingBasket(voxelMap, pos, variant);
         },
-        onPlace(voxelMap, pos, variant) {
+        onPlace(voxelMap, pos, variant, storageVault) {
             const size = getSizeForVariant(variant);
             placeFacility(voxelMap, pos, ENTITY_TYPES.soaking_basket, size);
             const surfacePos = voxelMap.getSurfacePosition(pos);
             const voxel = voxelMap.get(surfacePos);
             voxelMap.set(setVariantInVoxel(voxel, variant), surfacePos);
-            createStorage("soaking_basket", pos);
+            storageVault.get<SlotStorage>("soaking_basket").create(pos);
         },
     },
 });
+
+const SOAKING_OUTPUT_SLOTS = DAILY_PROCESSING_DEFS[ENTITY_TYPES.soaking_basket]?.outputSlotCount ?? 1;
+registerStorageFactory("soaking_basket", () => new DailyProcessingStorage(SOAKING_OUTPUT_SLOTS));

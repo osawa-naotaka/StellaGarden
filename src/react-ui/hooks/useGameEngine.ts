@@ -4,7 +4,6 @@ import { PIXEL_PER_TILE, TILE_PER_CHUNK } from "../../_boundary/constants";
 import type { GameEventMap } from "../../_boundary/events";
 import type { ItemId } from "../../_boundary/interfaces";
 import { WARP_GATE_SLOT_COUNT } from "../../_registry/entities/WarpGate";
-import { onDailyTickStorage } from "../../_registry/StorageRegistry";
 import { ChatHistory } from "../../engine/ChatHistory";
 import { regenerateClay } from "../../engine/ClaySystem";
 import { CraftSystem } from "../../engine/CraftSystem";
@@ -180,7 +179,6 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
                     regenerateClay(voxelMap);
                     for (const s of dailyTickStorages) s.onDailyTick(voxelMap);
                     storageVault.onDailyTick(voxelMap);
-                    onDailyTickStorage(voxelMap);
 
                     // WarpGate: 全ゲートの中身を出荷集計→reputation→clear する。
                     const warpGate = storageVault.get<SlotStorage>("warp_gate");
