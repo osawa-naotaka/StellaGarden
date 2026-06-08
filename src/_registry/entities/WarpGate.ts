@@ -1,8 +1,9 @@
+import { SlotStorage } from "../../engine/SlotStorage";
+import { registerStorageFactory } from "../../engine/StorageVault";
 import { ENTITY_TYPES } from "../../engine/VoxelDefs";
 import { type EntitySpriteInfo, type InteractionContext, registerEntity } from "../EntityRegistry";
-import { placeFacility } from "../facilityUtil";
+import { placeFacility, removeFacilityByContext } from "../facilityUtil";
 import { registerItem } from "../ItemRegistry";
-import { createStorage, registerStorage, removeFacilityAndReturnItemsToInventory } from "../StorageRegistry";
 
 const WARP_SPRITES: EntitySpriteInfo[][] = [[["ss_sprite_105_1.png", 0, 0]], [["ss_sprite_105_2.png", 0, 0]], [["ss_sprite_105_3.png", 0, 0]]];
 const ANIM_FRAME_MS = 100;
@@ -21,10 +22,12 @@ registerEntity({
 
     onInteract(ctx: InteractionContext): boolean {
         // axe で撤去
-        if (ctx.tool === "axe") {
-            return removeFacilityAndReturnItemsToInventory("warp_gate", ctx);
-        }
-        return false;
+        if (ctx.tool !== "axe") return false;
+        const warpGate = ctx.storageVault.get<SlotStorage>("warp_gate");
+        const extraItems = warpGate.collectAllStacks(ctx.anchorPos);
+        const removed = removeFacilityByContext(ctx, extraItems);
+        if (removed) warpGate.remove(ctx.anchorPos);
+        return removed;
     },
 
     onOpenFacilityUI(ctx: InteractionContext): boolean {
@@ -43,13 +46,13 @@ registerItem({
     placement: {
         entityType: ENTITY_TYPES.warp_gate,
         fieldSpriteName: "ss_sprite_105_1.png",
-        onPlace(voxelMap, pos) {
+        onPlace(voxelMap, pos, _variant, storageVault) {
             placeFacility(voxelMap, pos, ENTITY_TYPES.warp_gate, { w: 2, h: 3 });
-            createStorage("warp_gate", pos);
+            storageVault.get<SlotStorage>("warp_gate").create(pos);
         },
     },
 });
 
 export const WARP_GATE_SLOT_COUNT = 32;
 
-registerStorage("warp_gate", { main: new Array(WARP_GATE_SLOT_COUNT).fill(null) });
+registerStorageFactory("warp_gate", () => new SlotStorage({ main: WARP_GATE_SLOT_COUNT }));

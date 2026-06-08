@@ -1,7 +1,9 @@
 import { useCallback, useMemo } from "react";
 import type { IInventoryWriter, ItemStack, IVoxelWriter, SlotRef } from "../../_boundary/interfaces";
+import { autoProcessingCanAcceptInput, autoProcessingIsPowered } from "../../_registry/entities/AutoProcessing";
 import { getItemDefByEntityType } from "../../_registry/ItemRegistry";
 import { getAutoProcessingDef } from "../../_registry/ProcessingRecipes";
+import { getStorageSet, getStorageSlot, type StorageSet, setStorageSlot } from "../../_registry/StorageRegistry";
 import { getEntityTypeFromVoxel } from "../../engine/VoxelDefs";
 import type { UIState } from "../../view/UIState";
 import { CursorStack } from "../components/CursorStack";
@@ -10,9 +12,7 @@ import { SidePanel } from "../components/SidePanel";
 import { useFrameTick } from "../hooks/useFrameTick";
 import { usePickup } from "../hooks/usePickup";
 import { registerPanel } from "../PanelRegistry";
-import { getStorageSet, getStorageSlot, setStorageSlot, type StorageSet } from "../../_registry/StorageRegistry";
 import { getItemIdFromPos } from "./DailyProcessingPanel";
-import { autoProcessingCanAcceptInput, autoProcessingIsPowered } from "../../_registry/entities/AutoProcessing";
 
 const COLS = 8;
 const INV_ROWS = 8;
@@ -38,8 +38,8 @@ export function AutoProcessingPanel({ open, inventory, autoProcessingStorage, vo
     const pos = open ? uiState.targetPos : null;
 
     const voxel = useMemo(() => {
-      if (!pos) return null;
-      return voxelMap.getSurface(pos);
+        if (!pos) return null;
+        return voxelMap.getSurface(pos);
     }, [pos, voxelMap]);
 
     const entityType = useMemo(() => {

@@ -1,8 +1,9 @@
+import { SlotStorage } from "../../engine/SlotStorage";
+import { registerStorageFactory } from "../../engine/StorageVault";
 import { ENTITY_TYPES } from "../../engine/VoxelDefs";
 import { type EntitySpriteInfo, type InteractionContext, registerEntity } from "../EntityRegistry";
-import { placeFacility } from "../facilityUtil";
+import { placeFacility, removeFacilityByContext } from "../facilityUtil";
 import { registerItem } from "../ItemRegistry";
-import { createStorage, registerStorage, removeFacilityAndReturnItemsToInventory } from "../StorageRegistry";
 
 registerEntity({
     entityType: ENTITY_TYPES.workbench,
@@ -16,10 +17,12 @@ registerEntity({
     },
 
     onInteract(ctx: InteractionContext): boolean {
-        if (ctx.tool === "axe") {
-            return removeFacilityAndReturnItemsToInventory("workbench", ctx);
-        }
-        return false;
+        if (ctx.tool !== "axe") return false;
+        const workbench = ctx.storageVault.get<SlotStorage>("workbench");
+        const extraItems = workbench.collectAllStacks(ctx.anchorPos);
+        const removed = removeFacilityByContext(ctx, extraItems);
+        if (removed) workbench.remove(ctx.anchorPos);
+        return removed;
     },
 
     onOpenFacilityUI(ctx: InteractionContext): boolean {
@@ -36,11 +39,11 @@ registerItem({
     placement: {
         entityType: ENTITY_TYPES.workbench,
         fieldSpriteName: "ss_sprite_004.png",
-        onPlace(voxelMap, pos) {
+        onPlace(voxelMap, pos, _variant, storageVault) {
             placeFacility(voxelMap, pos, ENTITY_TYPES.workbench, { w: 2, h: 1 });
-            createStorage("workbench", pos);
+            storageVault.get<SlotStorage>("workbench").create(pos);
         },
     },
 });
 
-registerStorage("workbench", { tool: [null] });
+registerStorageFactory("workbench", () => new SlotStorage({ tool: 1 }));

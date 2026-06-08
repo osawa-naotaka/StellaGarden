@@ -1,15 +1,17 @@
 import type { CraftStation, ICraftSystem, IInventoryWriter, ItemStack, RecipeDef } from "../_boundary/interfaces";
-import { getStorageSlot, setStorageSlot } from "../_registry/StorageRegistry";
 import type { UIState } from "../view/UIState";
 import { RECIPES } from "./RecipeDefs";
+import type { SlotStorage } from "./SlotStorage";
 
 export class CraftSystem implements ICraftSystem {
     private readonly inventory: IInventoryWriter;
     private readonly uiState: UIState;
+    private readonly workbench: SlotStorage;
 
-    constructor(inventory: IInventoryWriter, uiState: UIState) {
+    constructor(inventory: IInventoryWriter, uiState: UIState, workbench: SlotStorage) {
         this.inventory = inventory;
         this.uiState = uiState;
+        this.workbench = workbench;
     }
 
     getAvailableRecipes(station: CraftStation): readonly RecipeDef[] {
@@ -23,13 +25,13 @@ export class CraftSystem implements ICraftSystem {
     getToolSlot(): ItemStack | null {
         const pos = this.uiState.targetPos;
         if (!pos) return null;
-        return getStorageSlot("workbench", pos, "tool", 0);
+        return this.workbench.getSlot(pos, "tool", 0);
     }
 
     setToolSlot(stack: ItemStack | null): void {
         const pos = this.uiState.targetPos;
         if (!pos) return;
-        setStorageSlot("workbench", pos, "tool", 0, stack);
+        this.workbench.setSlot(pos, "tool", 0, stack);
     }
 
     canCraft(recipe: RecipeDef): boolean {

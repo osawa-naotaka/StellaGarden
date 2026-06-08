@@ -1,8 +1,9 @@
+import { SlotStorage } from "../../engine/SlotStorage";
+import { registerStorageFactory } from "../../engine/StorageVault";
 import { ENTITY_TYPES } from "../../engine/VoxelDefs";
 import { type EntitySpriteInfo, type InteractionContext, registerEntity } from "../EntityRegistry";
 import { placeFacility, removeFacilityByContext } from "../facilityUtil";
 import { registerItem } from "../ItemRegistry";
-import { collectAllStacks, createStorage, registerStorage, removeStorage } from "../StorageRegistry";
 
 registerEntity({
     entityType: ENTITY_TYPES.chest,
@@ -17,9 +18,10 @@ registerEntity({
 
     onInteract(ctx: InteractionContext): boolean {
         if (ctx.tool !== "axe") return false;
-        const extraItems = collectAllStacks("chest", ctx.anchorPos);
+        const chest = ctx.storageVault.get<SlotStorage>("chest");
+        const extraItems = chest.collectAllStacks(ctx.anchorPos);
         const removed = removeFacilityByContext(ctx, extraItems);
-        if (removed) removeStorage("chest", ctx.anchorPos);
+        if (removed) chest.remove(ctx.anchorPos);
         return removed;
     },
 
@@ -39,12 +41,11 @@ registerItem({
         fieldSpriteName: "chest.png",
         onPlace(voxelMap, pos, _variant, storageVault) {
             placeFacility(voxelMap, pos, ENTITY_TYPES.chest, { w: 2, h: 1 });
-            createStorage("chest", pos);
-            storageVault.getStorageBundle("chest").createStorage(pos);
+            storageVault.get<SlotStorage>("chest").create(pos);
         },
     },
 });
 
 const CHEST_SLOT_COUNT = 64;
 
-registerStorage("chest", { main: new Array(CHEST_SLOT_COUNT).fill(null) });
+registerStorageFactory("chest", () => new SlotStorage({ main: CHEST_SLOT_COUNT }));

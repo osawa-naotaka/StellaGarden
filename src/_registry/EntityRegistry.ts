@@ -1,4 +1,5 @@
 import type { IEventBroker, IInventoryWriter, ItemId, IVoxelWriter, Pos2D, Pos3D } from "../_boundary/interfaces";
+import type { StorageVault } from "../engine/StorageVault";
 import type { PlacementVariant } from "./ItemRegistry";
 
 /** エンティティスプライト情報: [spriteName, offset-x, offset-y] */
@@ -13,6 +14,7 @@ export interface InteractionContext {
     readonly anchorPos: Pos2D;
     readonly voxel: bigint;
     readonly tool: ItemId | null;
+    readonly storageVault: StorageVault;
 }
 
 /** onDailyTick に渡されるコンテキスト */

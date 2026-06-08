@@ -97,7 +97,6 @@ registerEntity({
         if (ctx.tool !== "axe") return false;
 
         return removeFacilityAndReturnItemsToInventory("saltpan", ctx);
-
     },
 
     onOpenFacilityUI(ctx: InteractionContext): boolean {

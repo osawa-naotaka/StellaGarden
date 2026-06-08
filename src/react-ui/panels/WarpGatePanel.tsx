@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import type { IInventoryWriter, IReputationSystemReader, ItemStack, SlotRef } from "../../_boundary/interfaces";
-import { getStorageSet, getStorageSlot, type StorageSet, setStorageSlot } from "../../_registry/StorageRegistry";
 import { SEED_REQUEST_DEFS, SEED_STACK_COUNT, type SeedRequestSystem } from "../../engine/SeedRequestSystem";
+import type { SlotStorage } from "../../engine/SlotStorage";
 import type { UIState } from "../../view/UIState";
 import { CursorStack } from "../components/CursorStack";
 import { InventoryGrid } from "../components/InventoryGrid";
@@ -23,35 +23,35 @@ type WarpGateSlotRef = { area: WarpGateSlotArea; index: number };
 export interface WarpGatePanelProps {
     open: boolean;
     inventory: IInventoryWriter;
-    warpGateStorage: StorageSet | null;
+    warpGate: SlotStorage;
     reputationSystem: IReputationSystemReader;
     seedRequestSystem: SeedRequestSystem;
     uiState: UIState;
 }
 
-export function WarpGatePanel({ open, inventory, warpGateStorage, reputationSystem, seedRequestSystem, uiState }: WarpGatePanelProps) {
+export function WarpGatePanel({ open, inventory, warpGate, reputationSystem, seedRequestSystem, uiState }: WarpGatePanelProps) {
     useFrameTick(open);
     const targetPos = uiState.targetPos;
 
     const getSlot = useCallback(
         (ref: WarpGateSlotRef): ItemStack | null => {
-            if (ref.area === "warp_gate") return targetPos ? getStorageSlot("warp_gate", targetPos, "main", ref.index) : null;
+            if (ref.area === "warp_gate") return targetPos ? warpGate.getSlot(targetPos, "main", ref.index) : null;
             return inventory.getSlot(ref as SlotRef);
         },
-        [inventory, warpGateStorage],
+        [inventory, warpGate, targetPos],
     );
 
     const setSlot = useCallback(
         (ref: WarpGateSlotRef, stack: ItemStack | null) => {
             if (ref.area === "warp_gate") {
                 if (targetPos) {
-                    setStorageSlot("warp_gate", targetPos, "main", ref.index, stack);
+                    warpGate.setSlot(targetPos, "main", ref.index, stack);
                     return;
                 }
             }
             inventory.setSlot(ref as SlotRef, stack);
         },
-        [inventory, warpGateStorage],
+        [inventory, warpGate, targetPos],
     );
 
     const getQuickTransferTargets = useCallback((ref: WarpGateSlotRef): WarpGateSlotRef[] | undefined => {
@@ -111,7 +111,8 @@ export function WarpGatePanel({ open, inventory, warpGateStorage, reputationSyst
     const tiers = reputationSystem.getAllTierProgress();
     const points = reputationSystem.getPoints();
     let preview = 0;
-    for (const stack of getStorageSet("warp_gate", uiState.targetPos)?.main ?? []) {
+    const mainSlots = targetPos ? (warpGate.getSlots(targetPos)?.main ?? []) : [];
+    for (const stack of mainSlots) {
         if (stack) preview += reputationSystem.calculateStackPoints(stack.itemId, stack.count);
     }
 
@@ -133,7 +134,7 @@ export function WarpGatePanel({ open, inventory, warpGateStorage, reputationSyst
                     <InventoryGrid
                         rows={EARTH_INV_ROWS}
                         cols={COLS}
-                        getStack={(i) => (uiState.targetPos ? getStorageSlot("warp_gate", uiState.targetPos, "main", i) : null)}
+                        getStack={(i) => (targetPos ? warpGate.getSlot(targetPos, "main", i) : null)}
                         onLeftClick={(i, e) => handleLeftClick({ area: "warp_gate", index: i }, e.nativeEvent)}
                         onRightClick={(i) => handleRightClick({ area: "warp_gate", index: i })}
                     />
@@ -212,7 +213,7 @@ registerPanel({
         <WarpGatePanel
             open={open}
             inventory={engine.inventory}
-            warpGateStorage={getStorageSet("warp_gate", engine.uiState.targetPos) ?? null}
+            warpGate={engine.storageVault.get<SlotStorage>("warp_gate")}
             reputationSystem={engine.reputationSystem}
             seedRequestSystem={engine.seedRequestSystem}
             uiState={engine.uiState}

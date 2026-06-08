@@ -2,8 +2,9 @@ import { Application, ColorMatrixFilter, Container, TextureSource } from "pixi.j
 import { useEffect, useRef, useState } from "react";
 import { PIXEL_PER_TILE, TILE_PER_CHUNK } from "../../_boundary/constants";
 import type { GameEventMap } from "../../_boundary/events";
+import type { ItemId } from "../../_boundary/interfaces";
 import { WARP_GATE_SLOT_COUNT } from "../../_registry/entities/WarpGate";
-import { createStorageVault, getStorage, getStorageSlot, onDailyTickStorage, posFromStorageKey, setStorageSlot } from "../../_registry/StorageRegistry";
+import { onDailyTickStorage } from "../../_registry/StorageRegistry";
 import { ChatHistory } from "../../engine/ChatHistory";
 import { regenerateClay } from "../../engine/ClaySystem";
 import { CraftSystem } from "../../engine/CraftSystem";
@@ -15,6 +16,7 @@ import { createPlayerRescueHandler } from "../../engine/PlayerRescueSystem";
 import { PlayerState } from "../../engine/PlayerState";
 import { ReputationSystem } from "../../engine/ReputationSystem";
 import { SeedRequestSystem } from "../../engine/SeedRequestSystem";
+import type { SlotStorage } from "../../engine/SlotStorage";
 import { InputHandler } from "../../input/InputHandler";
 import { createInteractionHandler } from "../../input/InteractionSystem";
 import { DEBUG } from "../../lib/debugFlag";
@@ -143,7 +145,7 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
             const chatHistory = new ChatHistory(saveData?.chatHistory);
             disposers.push(chatHistory.subscribeEvents(eventBroker));
 
-            const craftSystem = new CraftSystem(playerState.inventory, uiState);
+            const craftSystem = new CraftSystem(playerState.inventory, uiState, storageVault.get<SlotStorage>("workbench"));
 
             await loadSprite();
             if (!pixiApp) return;
@@ -164,7 +166,7 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
             worldContainer.addChild(stationForkView.top);
             disposers.push(() => stationForkView.dispose());
 
-            disposers.push(createInteractionHandler(voxelMap, playerState.inventory, eventBroker, uiState, playerState, cartStorage));
+            disposers.push(createInteractionHandler(voxelMap, playerState.inventory, eventBroker, uiState, playerState, cartStorage, storageVault));
             disposers.push(createPlayerRescueHandler(voxelMap, playerState, eventBroker));
 
             const gameTime = new GameTime(saveData?.gameTime.elapsedMs);
@@ -179,14 +181,15 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
                     for (const s of dailyTickStorages) s.onDailyTick(voxelMap);
                     onDailyTickStorage(voxelMap);
 
-                    // WarpGate は座標管理しない別系統。出荷集計→reputation→clear をここで明示的に行う。
-                    const shippedItems = new Map();
-                    for (const key of Object.keys(getStorage("warp_gate").value || [])) {
+                    // WarpGate: 全ゲートの中身を出荷集計→reputation→clear する。
+                    const warpGate = storageVault.get<SlotStorage>("warp_gate");
+                    const shippedItems = new Map<ItemId, number>();
+                    for (const pos of warpGate.getPositions()) {
                         for (let i = 0; i < WARP_GATE_SLOT_COUNT; i++) {
-                            const stack = getStorageSlot("warp_gate", posFromStorageKey(key), "main", i);
+                            const stack = warpGate.getSlot(pos, "main", i);
                             if (stack) {
                                 shippedItems.set(stack.itemId, (shippedItems.get(stack.itemId) ?? 0) + stack.count);
-                                setStorageSlot("warp_gate", posFromStorageKey(key), "main", i, null);
+                                warpGate.setSlot(pos, "main", i, null);
                             }
                         }
                     }

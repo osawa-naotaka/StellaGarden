@@ -59,6 +59,11 @@ export abstract class KeyedSlotStorage<TSlots> {
         return this.storage.get(this.key(pos));
     }
 
+    /** 生成済みストレージの全座標を返す（全施設を走査する処理用。例: warp_gate の日次出荷）。 */
+    getPositions(): Pos2D[] {
+        return Array.from(this.storage.keys(), (key) => this.posFromKey(key));
+    }
+
     /**
      * 指定座標のスロット中身を ItemStack の配列として返す（施設撤去時の中身回収用）。
      * 該当ストレージが無い・スロットが空の場合は空配列を返す。

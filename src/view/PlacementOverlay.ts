@@ -3,9 +3,9 @@ import { PIXEL_PER_TILE } from "../_boundary/constants";
 import type { IEventBroker, IInventoryWriter, IPlayerStateReader, IVoxelWriter, Pos2D } from "../_boundary/interfaces";
 import { getEntityDef } from "../_registry/EntityRegistry";
 import { getPlacementInfo, type PlacementInfo, type PlacementVariant } from "../_registry/ItemRegistry";
+import type { StorageVault } from "../engine/StorageVault";
 import { ENTITY_TYPES, getEntityTypeFromVoxel, getTerrainTypeFromVoxel, TERRAIN_TYPES } from "../engine/VoxelDefs";
 import type { UIState } from "./UIState";
-import type { StorageVault } from "../engine/StorageVault";
 
 /** 配置可能な地形タイプの集合。 */
 const PLACEABLE_TERRAINS: ReadonlySet<number> = new Set([TERRAIN_TYPES.grass, TERRAIN_TYPES.dirt, TERRAIN_TYPES.soil, TERRAIN_TYPES.wetSoil]);
@@ -33,7 +33,14 @@ export class PlacementOverlay {
     private onPointerDownBound: (e: MouseEvent) => void;
     private onKeyDownBound: (e: KeyboardEvent) => void;
 
-    constructor(voxelMap: IVoxelWriter, inventory: IInventoryWriter, uiState: UIState, eventBroker: IEventBroker, playerState: IPlayerStateReader, storageVault: StorageVault) {
+    constructor(
+        voxelMap: IVoxelWriter,
+        inventory: IInventoryWriter,
+        uiState: UIState,
+        eventBroker: IEventBroker,
+        playerState: IPlayerStateReader,
+        storageVault: StorageVault,
+    ) {
         this.voxelMap = voxelMap;
         this.inventory = inventory;
         this.uiState = uiState;

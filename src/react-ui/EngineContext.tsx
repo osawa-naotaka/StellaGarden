@@ -14,8 +14,8 @@ import type { ChatHistory } from "../engine/ChatHistory";
 import type { FermentationStorage } from "../engine/FermentationStorage";
 import type { MissionSystem } from "../engine/MissionSystem";
 import type { SeedRequestSystem } from "../engine/SeedRequestSystem";
-import type { UIState } from "../view/UIState";
 import type { StorageVault } from "../engine/StorageVault";
+import type { UIState } from "../view/UIState";
 
 /**
  * React UI 層が engine 状態にアクセスするためのコンテナ。

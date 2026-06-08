@@ -1,118 +1,81 @@
-import { getStorageInitialValue, type StorageId, type StorageKey } from "../_registry/StorageRegistry";
-import type { Pos2D } from "../lib/VoxelMap";
 import * as v from "valibot";
+import type { IVoxelWriter } from "../_boundary/interfaces";
+import type { StorageId } from "../_registry/StorageRegistry";
 import { ItemIdSchema } from "./ItemDefs";
+import type { KeyedSlotStorage } from "./KeyedSlotStorage";
 
-// export type StorageBundle = Record<StorageKey, StorageItself>;
-// export type StorageItself = Record<StorageKind, StorageSlot[]>;
-// export type StorageSlot = null | { itemId: ItemId, count: number };
+// ---------------------------------------------------------------------------
+// セーブスキーマ
+//
+// 現状 StorageVault に載るのは SlotStorage（NamedSlots = Record<kind, slot[]>）のみ。
+// KeyedSlotStorage.toSaveData() の Array<{ key, slots }> 形に対応する。
+// 将来 NamedSlots 以外の slots 形を載せる場合はここを拡張する。
+// ---------------------------------------------------------------------------
 
-export const StorageIdSchema = ItemIdSchema;
-export const StorageKindSchema = v.string();
-export const StorageKeySchema = v.string();
+export const StorageSlotSchema = v.nullable(
+    v.object({
+        itemId: ItemIdSchema,
+        count: v.number(),
+    }),
+);
 
-export const StorageSlotSchema = v.nullable(v.object({
-    itemId: ItemIdSchema,
-    count: v.number(),
-}));
-
-export type StorageSlot = v.InferOutput<typeof StorageSlotSchema>;
-export type StorageItself = v.InferOutput<typeof StorageItselfSchema>;
-
-export const StorageItselfSchema = v.record(StorageKindSchema, v.array(StorageSlotSchema));
-
-export const StorageBundleSchema = v.record(StorageKeySchema, StorageItselfSchema);
-
-export const StorageVaultSaveDataSchema = v.record(StorageIdSchema, StorageBundleSchema);
-
+const NamedSlotsSaveSchema = v.record(v.string(), v.array(StorageSlotSchema));
+const KeyedEntrySaveSchema = v.object({ key: v.string(), slots: NamedSlotsSaveSchema });
+export const StorageVaultSaveDataSchema = v.record(v.string(), v.array(KeyedEntrySaveSchema));
 export type StorageVaultSaveData = v.InferOutput<typeof StorageVaultSaveDataSchema>;
 
+// ---------------------------------------------------------------------------
+// 定義レジストリ（静的・モジュールグローバル）
+//
+// 各エンティティ定義ファイル（_registry/entities/Chest.ts 等）が読み込み時に
+// registerStorageFactory() でファクトリを登録する。実行時状態は持たない。
+// ---------------------------------------------------------------------------
+
+export type StorageFactory = () => KeyedSlotStorage<unknown>;
+
+const storageFactories = new Map<StorageId, StorageFactory>();
+
+export function registerStorageFactory(id: StorageId, factory: StorageFactory): void {
+    storageFactories.set(id, factory);
+}
+
+export function getStorageFactories(): ReadonlyMap<StorageId, StorageFactory> {
+    return storageFactories;
+}
+
+// ---------------------------------------------------------------------------
+// 実行時インスタンスの集約コンテナ（エンジンが持つ唯一の収納フィールド）
+// ---------------------------------------------------------------------------
 
 export class StorageVault {
-    private _storages: Map<StorageId, StorageBundle> = new Map();
-    
-    public getStorageBundle(id: StorageId): StorageBundle {
-        const r = this._storages.get(id);
-        if (r === undefined) throw new Error(`Storage ${id} not found`);
-        return r;
+    private storages = new Map<StorageId, KeyedSlotStorage<unknown>>();
+
+    /** 登録済みファクトリを全て生成して保持する（boot 時に1回呼ぶ）。 */
+    init(factories: ReadonlyMap<StorageId, StorageFactory> = storageFactories): void {
+        for (const [id, factory] of factories) this.storages.set(id, factory());
     }
 
-    public createStorageBundle(id: StorageId): void {
-        const initialValue = getStorageInitialValue(id);
-        this._storages.set(id, new StorageBundle(initialValue));
+    /** 指定 id のストレージを具体型として取り出す。境界での明示ダウンキャスト1箇所。 */
+    get<T extends KeyedSlotStorage<unknown>>(id: StorageId): T {
+        const s = this.storages.get(id);
+        if (s === undefined) throw new Error(`Storage ${id} not found`);
+        return s as T;
     }
 
-    public toSaveData(): StorageVaultSaveData {
+    onDailyTick(voxelMap: IVoxelWriter): void {
+        for (const s of this.storages.values()) s.onDailyTick(voxelMap);
+    }
+
+    toSaveData(): StorageVaultSaveData {
         const result: StorageVaultSaveData = {};
-        for (const [id, bundle] of this._storages) {
-            result[id] = bundle.toSaveData();
-        }
+        for (const [id, s] of this.storages) result[id] = s.toSaveData() as StorageVaultSaveData[string];
         return result;
     }
 
-    public loadFromSaveData(data: StorageVaultSaveData): void {
-        this._storages.clear();
-        for (const [id, bundleData] of Object.entries(data)) {
-            this.createStorageBundle(id);
-            this._storages.get(id)!.loadFromSaveData(bundleData);
+    loadSaveData(data: StorageVaultSaveData): void {
+        for (const [id, s] of this.storages) {
+            const entries = data[id];
+            if (entries) s.loadSaveData(entries);
         }
     }
-}
-
-export class StorageBundle {
-    private _storage: Record<StorageKey, StorageItself> = {};
-    private initialValue: StorageItself;
-
-    constructor(initialValue: StorageItself) {
-        this.initialValue = initialValue;
-    }
-
-    public createStorage(pos: Pos2D): StorageItself {
-        const _key = key(pos);
-        const r = this._storage[_key];
-        if (r !== undefined) throw new Error(`Storage at ${_key} exists`);
-        this._storage[_key] = JSON.parse(JSON.stringify(this.initialValue));
-        return this._storage[_key];
-    }
-
-    public getStorage(pos: Pos2D): StorageItself {
-        const _key = key(pos);
-        const r = this._storage[_key];
-        if (r === undefined) throw new Error(`Storage at ${_key} not found`);
-        return r;
-    }
-
-    public setStorage(pos: Pos2D, storage: StorageItself): void {
-        const _key = key(pos);
-        this._storage[_key] = storage;
-    }
-
-    public getStorageSlot(pos: Pos2D, kind: string, index: number): StorageSlot {
-        const storage = this.getStorage(pos);
-        return storage[kind][index];
-    }
-
-    public setStorageSlot(pos: Pos2D, kind: string, index: number, slot: StorageSlot): void {
-        const storage = {
-            ...this.getStorage(pos),
-            [kind]: [
-                ...this.getStorage(pos)[kind],
-            ],
-        };
-        storage[kind][index] = slot;
-        this.setStorage(pos, storage);
-    }
-
-    public toSaveData(): Record<StorageKey, StorageItself> {
-        return this._storage;
-    }
-
-    public loadFromSaveData(data: Record<StorageKey, StorageItself>): void {
-        this._storage = data;
-    }
-}
-
-
-function key(pos: Pos2D): string {
-    return `${pos.x},${pos.z}`;
 }

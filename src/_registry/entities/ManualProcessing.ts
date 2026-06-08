@@ -13,7 +13,16 @@ import { type EntitySpriteInfo, type InteractionContext, registerEntity } from "
 import { placeFacility } from "../facilityUtil";
 import { getItemDef, registerItem } from "../ItemRegistry";
 import { findRecipeForInput, getManualProcessingDef, isAcceptableInputItem, type ManualProcessingDef, type ProcessingRecipe } from "../ProcessingRecipes";
-import { createStorage, getStorageNumberValue, getStorageSlot, registerStorage, removeFacilityAndReturnItemsToInventory, setStorageSlot, storageNumberValueOf, type StorageId } from "../StorageRegistry";
+import {
+    createStorage,
+    getStorageNumberValue,
+    getStorageSlot,
+    registerStorage,
+    removeFacilityAndReturnItemsToInventory,
+    type StorageId,
+    setStorageSlot,
+    storageNumberValueOf,
+} from "../StorageRegistry";
 
 interface ManualProcessingEntityOptions {
     entityType: number;
@@ -62,20 +71,25 @@ export function registerManualProcessingEntity(opts: ManualProcessingEntityOptio
             fieldSpriteName,
             onPlace(voxelMap, pos) {
                 placeFacility(voxelMap, pos, entityType, entitySize);
-                createStorage(itemId, pos)
+                createStorage(itemId, pos);
             },
         },
     });
 
-    registerStorage(itemId, {
-        input: [null],
-        output: [null, null],
-        recipe: [storageNumberValueOf(0)],
-    }, undefined, (_kind, _index, stack) => {
-        const def = getManualProcessingDef(entityType);
-        if (!def) return false;
-        return isAcceptableInputItem(def, stack?.itemId ?? "none");
-    });
+    registerStorage(
+        itemId,
+        {
+            input: [null],
+            output: [null, null],
+            recipe: [storageNumberValueOf(0)],
+        },
+        undefined,
+        (_kind, _index, stack) => {
+            const def = getManualProcessingDef(entityType);
+            if (!def) return false;
+            return isAcceptableInputItem(def, stack?.itemId ?? "none");
+        },
+    );
 }
 
 // ── 移行済みエンティティの登録 ──
@@ -136,7 +150,6 @@ registerManualProcessingEntity({
     entitySize: { w: 1, h: 1 },
 });
 
-
 export function manualProcessingCanProcess(entityType: number, storageId: StorageId, pos: Pos2D): boolean {
     if (entityType === ENTITY_TYPES.none) return false;
     const def = getManualProcessingDef(entityType);
@@ -163,7 +176,6 @@ function findApplicableRecipe(def: ManualProcessingDef, storageId: StorageId, po
     return recipe;
 }
 
-
 export function manualProcessingTryProcessOnce(def: ManualProcessingDef, storageId: StorageId, pos: Pos2D): boolean {
     const recipe = findApplicableRecipe(def, storageId, pos);
     if (!recipe) return false;
@@ -179,9 +191,9 @@ export function manualProcessingTryProcessOnce(def: ManualProcessingDef, storage
         const out = recipe.outputs[i];
         const slot = getStorageSlot(storageId, pos, "output", i);
         if (slot === null) {
-            setStorageSlot(storageId, pos, "output", i, { itemId: out.itemId, count: out.count })
+            setStorageSlot(storageId, pos, "output", i, { itemId: out.itemId, count: out.count });
         } else {
-            setStorageSlot(storageId, pos, "output", i, { itemId: out.itemId, count: out.count + slot.count })
+            setStorageSlot(storageId, pos, "output", i, { itemId: out.itemId, count: out.count + slot.count });
         }
     }
 

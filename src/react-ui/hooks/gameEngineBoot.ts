@@ -2,12 +2,13 @@ import type { IEventBroker } from "../../_boundary/interfaces";
 import { setBonfireStorage } from "../../_registry/entities/Bonfire";
 import { setCartStorage } from "../../_registry/entities/Cart";
 import { setFermentationStorage } from "../../_registry/entities/FermentationVat";
-import { createStorageVault, loadStorages } from "../../_registry/StorageRegistry";
+import { loadStorages } from "../../_registry/StorageRegistry";
 import { BonfireStorage } from "../../engine/BonfireStorage";
 import { CartStorage } from "../../engine/CartStorage";
 import { FermentationStorage } from "../../engine/FermentationStorage";
+import type { SlotStorage } from "../../engine/SlotStorage";
 import { setStationStorages } from "../../engine/StationSystem";
-import { StorageVault } from "../../engine/StorageVault";
+import { getStorageFactories, StorageVault } from "../../engine/StorageVault";
 import { generateTerrain } from "../../engine/TerrainGenerator";
 import type { SaveData } from "../../lib/SaveSystem";
 import type { Size2D } from "../../lib/VoxelMap";
@@ -47,9 +48,10 @@ export function bootstrapStorages(saveData: SaveData | null): Storages {
         loadStorages(saveData.storage);
     }
 
-    const storageVault = createStorageVault();
+    const storageVault = new StorageVault();
+    storageVault.init(getStorageFactories());
     if (saveData) {
-        storageVault.loadFromSaveData(saveData.storageVault);
+        storageVault.loadSaveData(saveData.storageVault);
     }
 
     const bonfireStorage = new BonfireStorage();
@@ -60,8 +62,8 @@ export function bootstrapStorages(saveData: SaveData | null): Storages {
     if (saveData) fermentationStorage.loadSaveData(saveData.fermentationStorage.vats);
     setFermentationStorage(fermentationStorage);
 
-    // ステーション（フォーク搬送）は chest / daily / auto の3ストレージにアクセスする
-    setStationStorages(bonfireStorage);
+    // ステーション（フォーク搬送）は chest / daily / auto のストレージにアクセスする
+    setStationStorages(bonfireStorage, storageVault.get<SlotStorage>("chest"));
 
     const cartStorage = new CartStorage();
     if (saveData) cartStorage.loadSaveData(saveData.cartStorage);

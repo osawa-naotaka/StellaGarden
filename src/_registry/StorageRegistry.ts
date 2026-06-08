@@ -5,7 +5,6 @@ import { getEntityTypeFromVoxel, getVariantFromVoxel } from "../engine/VoxelDefs
 import type { InteractionContext } from "./EntityRegistry";
 import { removeFacility } from "./facilityUtil";
 import { getItemDef } from "./ItemRegistry";
-import { StorageVault } from "../engine/StorageVault";
 
 export const StorageIdSchema = ItemIdSchema;
 export const StorageKindSchema = v.string();
@@ -62,14 +61,6 @@ export function getStorageInitialValue(storageId: StorageId): StorageSet {
     return storages[storageId]?.initialValue ?? {};
 }
 
-export function createStorageVault(): StorageVault {
-    const storageVault = new StorageVault();
-    for (const storageId of Object.keys(storages)) {
-        storageVault.createStorageBundle(storageId);
-    }
-    return storageVault;
-}
-
 export function onDailyTickStorage(voxelMap: IVoxelWriter): void {
     for (const v of onDailyTicks) {
         v(voxelMap);
@@ -89,7 +80,11 @@ export function getStorage(storageId: StorageId): Storage {
 
 export function getStorageSet(storageId: StorageId, pos: Pos2D | null): StorageSet | undefined {
     if (pos === null) return undefined;
-    const storage = get(storageId);
+    // 移行期間中は id 空間が旧レジストリ（StorageRegistry）と新 StorageVault に分裂している。
+    // パネルは targetPos の itemId から storage を投機的に引くため、StorageVault 側へ移行済みの
+    // id（例: chest）がここに渡りうる。その場合は throw せず undefined を返す。
+    const storage = storages[storageId];
+    if (storage === undefined) return undefined;
     return storage.value[key(pos)];
 }
 

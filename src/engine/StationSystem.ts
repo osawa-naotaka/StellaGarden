@@ -5,6 +5,7 @@ import { getItemDef, getItemDefByEntityType } from "../_registry/ItemRegistry";
 import { AUTO_PROCESSING_DEFS, DAILY_PROCESSING_DEFS } from "../_registry/ProcessingRecipes";
 import { addToStorage, getStorageSet, getStorageSlot, setStorageSlot } from "../_registry/StorageRegistry";
 import type { BonfireStorage } from "./BonfireStorage";
+import type { SlotStorage } from "./SlotStorage";
 import { ENTITY_TYPES, getEntityTypeFromVoxel, getVariantFromVoxel } from "./VoxelDefs";
 
 // ---------------------------------------------------------------------------
@@ -56,13 +57,15 @@ function isParallel(a: Vec2, b: Vec2): boolean {
 // ---------------------------------------------------------------------------
 
 let bonfireStorageRef: BonfireStorage | null = null;
+let chestStorageRef: SlotStorage | null = null;
 
 /**
  * App.tsx から各ストレージを注入する。
- * Chest.ts の setChestStorage と同じパターン。
+ * chest は StorageVault 上の SlotStorage インスタンスを受け取る。
  */
-export function setStationStorages(bonfire: BonfireStorage): void {
+export function setStationStorages(bonfire: BonfireStorage, chest: SlotStorage): void {
     bonfireStorageRef = bonfire;
+    chestStorageRef = chest;
 }
 
 // ---------------------------------------------------------------------------
@@ -105,6 +108,8 @@ function addItemToCart(cart: ICartWriter, itemId: string, count: number): number
 // ---------------------------------------------------------------------------
 
 function unloadCartToChest(cart: ICartWriter, anchorPos: Pos2D): boolean {
+    const chest = chestStorageRef;
+    if (!chest) return false;
     let moved = false;
     for (let i = 0; i < cart.inventorySlots.length; i++) {
         const slot = cart.inventorySlots[i];
@@ -115,21 +120,21 @@ function unloadCartToChest(cart: ICartWriter, anchorPos: Pos2D): boolean {
 
         // 既存スタックに積む
         for (let j = 0; j < 64 && remaining > 0; j++) {
-            const chestSlot = getStorageSlot("chest", anchorPos, "main", j);
+            const chestSlot = chest.getSlot(anchorPos, "main", j);
             if (chestSlot === null || chestSlot.itemId !== itemId) continue;
             if (chestSlot.count >= maxStack) continue;
             const space = maxStack - chestSlot.count;
             const add = Math.min(space, remaining);
-            setStorageSlot("chest", anchorPos, "main", j, { itemId: chestSlot.itemId, count: chestSlot.count + add });
+            chest.setSlot(anchorPos, "main", j, { itemId: chestSlot.itemId, count: chestSlot.count + add });
             remaining -= add;
             moved = true;
         }
         // 空きスロットに新規
         for (let j = 0; j < 64 && remaining > 0; j++) {
-            const chestSlot = getStorageSlot("chest", anchorPos, "main", j);
+            const chestSlot = chest.getSlot(anchorPos, "main", j);
             if (chestSlot !== null) continue;
             const add = Math.min(maxStack, remaining);
-            setStorageSlot("chest", anchorPos, "main", j, { itemId: itemId as never, count: add });
+            chest.setSlot(anchorPos, "main", j, { itemId: itemId as never, count: add });
             remaining -= add;
             moved = true;
         }
@@ -236,14 +241,16 @@ function unloadCartToBonfire(cart: ICartWriter, anchorPos: Pos2D, bonfireStorage
 // ---------------------------------------------------------------------------
 
 function loadChestToCart(cart: ICartWriter, anchorPos: Pos2D): boolean {
+    const chest = chestStorageRef;
+    if (!chest) return false;
     let moved = false;
     for (let j = 0; j < 64; j++) {
-        const slot = getStorageSlot("chest", anchorPos, "main", j);
+        const slot = chest.getSlot(anchorPos, "main", j);
         if (slot === null) continue;
         const added = addItemToCart(cart, slot.itemId, slot.count);
         if (added > 0) {
             const remaining = slot.count - added;
-            setStorageSlot("chest", anchorPos, "main", j, remaining > 0 ? { itemId: slot.itemId, count: remaining } : null);
+            chest.setSlot(anchorPos, "main", j, remaining > 0 ? { itemId: slot.itemId, count: remaining } : null);
             moved = true;
         }
     }
@@ -382,7 +389,7 @@ export function executeStationTransfersOnCartEnter(voxelMap: IVoxelWriter, cart:
                     // アンロードした代表アイテムはカートのスロットから探す（移動後は減っている）
                     // チェストから代表を取る
                     for (let j = 0; j < 64; j++) {
-                        const slot = getStorageSlot("chest", anchorPos, "main", j);
+                        const slot = chestStorageRef?.getSlot(anchorPos, "main", j) ?? null;
                         if (slot !== null) {
                             representativeItemId = slot.itemId;
                             break;

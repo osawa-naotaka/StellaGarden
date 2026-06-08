@@ -1,7 +1,17 @@
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import type { IInventoryWriter, ItemStack, IVoxelWriter, SlotRef } from "../../_boundary/interfaces";
+import { manualProcessingCanProcess, manualProcessingTryProcessOnce } from "../../_registry/entities/ManualProcessing";
 import { getItemDefByEntityType, getItemDisplayName } from "../../_registry/ItemRegistry";
 import { findAllRecipesForInput, getManualProcessingDef } from "../../_registry/ProcessingRecipes";
+import {
+    canAcceptItem,
+    getStorageNumberValue,
+    getStorageSet,
+    getStorageSlot,
+    type StorageSet,
+    setStorageNumberValue,
+    setStorageSlot,
+} from "../../_registry/StorageRegistry";
 import { getEntityTypeFromVoxel } from "../../engine/VoxelDefs";
 import type { UIState } from "../../view/UIState";
 import { CursorStack } from "../components/CursorStack";
@@ -11,9 +21,7 @@ import { Slot } from "../components/Slot";
 import { useFrameTick } from "../hooks/useFrameTick";
 import { usePickup } from "../hooks/usePickup";
 import { registerPanel } from "../PanelRegistry";
-import { canAcceptItem, getStorageNumberValue, getStorageSet, getStorageSlot, setStorageNumberValue, setStorageSlot, type StorageSet } from "../../_registry/StorageRegistry";
 import { getItemIdFromPos } from "./DailyProcessingPanel";
-import { manualProcessingCanProcess, manualProcessingTryProcessOnce } from "../../_registry/entities/ManualProcessing";
 
 const COLS = 8;
 const INV_ROWS = 8;
@@ -203,7 +211,7 @@ export function ManualProcessingPanel({ open, inventory, manualProcessingStorage
     // input が空のときや、入力 itemId にマッチするレシピが1件以下のときはドロップダウンを出さない。
     const matchingRecipes = input ? findAllRecipesForInput(def, input.itemId) : [];
     const showRecipeSelector = matchingRecipes.length > 1;
-    const selectedRecipeIndex = pos ? getStorageNumberValue(itemId, pos, "recipe") ?? 0 : 0;
+    const selectedRecipeIndex = pos ? (getStorageNumberValue(itemId, pos, "recipe") ?? 0) : 0;
     const onSelectRecipe = (index: number) => {
         if (!pos) return;
         setStorageNumberValue(itemId, pos, "recipe", index);

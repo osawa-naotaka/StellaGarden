@@ -4,6 +4,7 @@ import { getEntityDef, type InteractionContext } from "../_registry/EntityRegist
 import { findFacilityAnchor } from "../_registry/facilityUtil";
 import { getItemDef } from "../_registry/ItemRegistry";
 import { getTerrainDef } from "../_registry/TerrainRegistry";
+import type { StorageVault } from "../engine/StorageVault";
 import { ENTITY_TYPES, getEntityTypeFromVoxel, getTerrainTypeFromVoxel, TERRAIN_TYPES } from "../engine/VoxelDefs";
 import type { EventBroker } from "../lib/Event";
 import type { UIState } from "../view/UIState";
@@ -16,6 +17,7 @@ export function createInteractionHandler(
     uiState: UIState,
     playerState: IPlayerStateReader,
     cartStorage: ICartStorageWriter,
+    storageVault: StorageVault,
 ): () => void {
     const INTERACT_RANGE = 5; // タイル
 
@@ -59,7 +61,7 @@ export function createInteractionHandler(
                 entityType = anchor.entityType;
                 anchorPos = { x: anchor.anchorX, z: anchor.anchorZ };
             }
-            const ctx: InteractionContext = { voxelMap, inventory, eventBroker, interactPos, anchorPos, voxel: anchorVoxel, tool };
+            const ctx: InteractionContext = { voxelMap, inventory, eventBroker, interactPos, anchorPos, voxel: anchorVoxel, tool, storageVault };
 
             const entityDef = getEntityDef(entityType);
             if (entityDef.onInteract?.(ctx)) return;
@@ -67,7 +69,7 @@ export function createInteractionHandler(
 
         // パス2: ItemRegistry — アイテムベース
         if (tool) {
-            const ctx: InteractionContext = { voxelMap, inventory, eventBroker, interactPos, anchorPos, voxel, tool };
+            const ctx: InteractionContext = { voxelMap, inventory, eventBroker, interactPos, anchorPos, voxel, tool, storageVault };
 
             const itemDef = getItemDef(tool);
             if (itemDef?.onItemUse?.(ctx)) return;
@@ -75,7 +77,7 @@ export function createInteractionHandler(
 
         // パス3: TerrainRegistry — 地形ベース
         const terrainDef = getTerrainDef(terrainType);
-        const ctx: InteractionContext = { voxelMap, inventory, eventBroker, interactPos, anchorPos, voxel, tool };
+        const ctx: InteractionContext = { voxelMap, inventory, eventBroker, interactPos, anchorPos, voxel, tool, storageVault };
         if (terrainDef?.onInteract?.(ctx)) return;
     });
 
@@ -111,6 +113,7 @@ export function createInteractionHandler(
             voxel,
             tool: inventory.selectedTool,
             anchorPos: { x: anchorX, z: anchorZ },
+            storageVault,
         };
 
         const entityDef = getEntityDef(entityType);
