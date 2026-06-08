@@ -15,6 +15,7 @@ import type { FermentationStorage } from "../engine/FermentationStorage";
 import type { MissionSystem } from "../engine/MissionSystem";
 import type { SeedRequestSystem } from "../engine/SeedRequestSystem";
 import type { UIState } from "../view/UIState";
+import type { StorageVault } from "../engine/StorageVault";
 
 /**
  * React UI 層が engine 状態にアクセスするためのコンテナ。
@@ -26,6 +27,7 @@ export interface EngineRefs {
     gameTime: IGameTimeReader;
     reputationSystem: IReputationSystemReader;
     seedRequestSystem: SeedRequestSystem;
+    storageVault: StorageVault;
     bonfireStorage: BonfireStorage;
     fermentationStorage: FermentationStorage;
     cartStorage: CartStorage;

@@ -1,4 +1,5 @@
 import type { ItemId, IVoxelReader, IVoxelWriter, Pos2D } from "../_boundary/interfaces";
+import type { StorageVault } from "../engine/StorageVault";
 import type { InteractionContext } from "./EntityRegistry";
 
 /** 配置可能アイテムのバリアント番号。0..7 を想定する。 */
@@ -23,7 +24,7 @@ export interface PlacementInfo {
      */
     canPlace?(voxelMap: IVoxelReader, pos: Pos2D, variant: PlacementVariant): boolean;
     /** 配置確定時に呼ばれる。voxelMap への書き込みを行う。 */
-    onPlace(voxelMap: IVoxelWriter, pos: Pos2D, variant: PlacementVariant): void;
+    onPlace(voxelMap: IVoxelWriter, pos: Pos2D, variant: PlacementVariant, storageValut: StorageVault): void;
 }
 
 /**

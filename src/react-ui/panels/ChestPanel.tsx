@@ -1,6 +1,5 @@
 import { useCallback } from "react";
 import type { IInventoryWriter, ItemStack, SlotRef } from "../../_boundary/interfaces";
-import { getStorageSet, getStorageSlot, type StorageSet, setStorageSlot } from "../../_registry/StorageRegistry";
 import type { UIState } from "../../view/UIState";
 import { CursorStack } from "../components/CursorStack";
 import { InventoryGrid } from "../components/InventoryGrid";
@@ -8,6 +7,7 @@ import { SidePanel } from "../components/SidePanel";
 import { useFrameTick } from "../hooks/useFrameTick";
 import { usePickup } from "../hooks/usePickup";
 import { registerPanel } from "../PanelRegistry";
+import type { StorageBundle } from "../../engine/StorageVault";
 
 const CHEST_ROWS = 8;
 const COLS = 8;
@@ -20,7 +20,7 @@ type ChestSlotRef = { area: ChestSlotArea; index: number };
 export interface ChestPanelProps {
     open: boolean;
     inventory: IInventoryWriter;
-    chestStorage: StorageSet | null;
+    chestStorage: StorageBundle;
     uiState: UIState;
 }
 
@@ -31,7 +31,7 @@ export function ChestPanel({ open, inventory, chestStorage, uiState }: ChestPane
     const getSlot = useCallback(
         (ref: ChestSlotRef): ItemStack | null => {
             if (ref.area === "chest") {
-                return targetPos ? getStorageSlot("chest", targetPos, "main", ref.index) : null;
+                return targetPos ? chestStorage.getStorageSlot(targetPos, "main", ref.index) : null;
             }
             return inventory.getSlot(ref as SlotRef);
         },
@@ -41,7 +41,7 @@ export function ChestPanel({ open, inventory, chestStorage, uiState }: ChestPane
     const setSlot = useCallback(
         (ref: ChestSlotRef, stack: ItemStack | null) => {
             if (ref.area === "chest") {
-                if (targetPos) setStorageSlot("chest", targetPos, "main", ref.index, stack);
+                if (targetPos) chestStorage.setStorageSlot(targetPos, "main", ref.index, stack);
                 return;
             }
             inventory.setSlot(ref as SlotRef, stack);
@@ -104,7 +104,7 @@ export function ChestPanel({ open, inventory, chestStorage, uiState }: ChestPane
                     <InventoryGrid
                         rows={CHEST_ROWS}
                         cols={COLS}
-                        getStack={(i) => (targetPos ? getStorageSlot("chest", targetPos, "main", i) : null)}
+                        getStack={(i) => (targetPos ? chestStorage.getStorageSlot(targetPos, "main", i) : null)}
                         onLeftClick={(i, e) => handleLeftClick({ area: "chest", index: i }, e.nativeEvent)}
                         onRightClick={(i) => handleRightClick({ area: "chest", index: i })}
                     />
@@ -143,6 +143,6 @@ export function ChestPanel({ open, inventory, chestStorage, uiState }: ChestPane
 registerPanel({
     mode: "chest",
     component: ({ open, engine }) => (
-        <ChestPanel open={open} inventory={engine.inventory} chestStorage={getStorageSet("chest", engine.uiState.targetPos) ?? null} uiState={engine.uiState} />
+        <ChestPanel open={open} inventory={engine.inventory} chestStorage={engine.storageVault.getStorageBundle("chest")} uiState={engine.uiState} />
     ),
 });

@@ -5,6 +5,7 @@ import { getEntityTypeFromVoxel, getVariantFromVoxel } from "../engine/VoxelDefs
 import type { InteractionContext } from "./EntityRegistry";
 import { removeFacility } from "./facilityUtil";
 import { getItemDef } from "./ItemRegistry";
+import { StorageVault } from "../engine/StorageVault";
 
 export const StorageIdSchema = ItemIdSchema;
 export const StorageKindSchema = v.string();
@@ -55,6 +56,18 @@ export function registerStorage(storageId: StorageId, initialValue: StorageSet, 
     storages[storageId] = { value: {}, initialValue };
     if (onDailyTick) onDailyTicks.push(onDailyTick);
     if (canAccept) canAccepts.set(storageId, canAccept);
+}
+
+export function getStorageInitialValue(storageId: StorageId): StorageSet {
+    return storages[storageId]?.initialValue ?? {};
+}
+
+export function createStorageVault(): StorageVault {
+    const storageVault = new StorageVault();
+    for (const storageId of Object.keys(storages)) {
+        storageVault.createStorageBundle(storageId);
+    }
+    return storageVault;
 }
 
 export function onDailyTickStorage(voxelMap: IVoxelWriter): void {

@@ -37,9 +37,10 @@ registerItem({
     placement: {
         entityType: ENTITY_TYPES.chest,
         fieldSpriteName: "chest.png",
-        onPlace(voxelMap, pos) {
+        onPlace(voxelMap, pos, _variant, storageVault) {
             placeFacility(voxelMap, pos, ENTITY_TYPES.chest, { w: 2, h: 1 });
             createStorage("chest", pos);
+            storageVault.getStorageBundle("chest").createStorage(pos);
         },
     },
 });

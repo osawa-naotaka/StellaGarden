@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { PIXEL_PER_TILE, TILE_PER_CHUNK } from "../../_boundary/constants";
 import type { GameEventMap } from "../../_boundary/events";
 import { WARP_GATE_SLOT_COUNT } from "../../_registry/entities/WarpGate";
-import { getStorage, getStorageSlot, onDailyTickStorage, posFromStorageKey, setStorageSlot } from "../../_registry/StorageRegistry";
+import { createStorageVault, getStorage, getStorageSlot, onDailyTickStorage, posFromStorageKey, setStorageSlot } from "../../_registry/StorageRegistry";
 import { ChatHistory } from "../../engine/ChatHistory";
 import { regenerateClay } from "../../engine/ClaySystem";
 import { CraftSystem } from "../../engine/CraftSystem";
@@ -124,10 +124,10 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
             const uiState = new UIState();
             disposers.push(uiState.subscribeEvents(eventBroker));
 
-            const placementOverlay = new PlacementOverlay(voxelMap, playerState.inventory, uiState, eventBroker, playerState);
-            worldContainer.addChild(placementOverlay.top);
+            const { bonfireStorage, fermentationStorage, cartStorage, storageVault } = bootstrapStorages(saveData);
 
-            const { bonfireStorage, fermentationStorage, cartStorage } = bootstrapStorages(saveData);
+            const placementOverlay = new PlacementOverlay(voxelMap, playerState.inventory, uiState, eventBroker, playerState, storageVault);
+            worldContainer.addChild(placementOverlay.top);
 
             const reputationSystem = new ReputationSystem({
                 points: saveData?.reputation.points ?? 0,
@@ -208,6 +208,7 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
                 gameTime,
                 reputationSystem,
                 seedRequestSystem,
+                storageVault,
                 bonfireStorage,
                 fermentationStorage,
                 cartStorage,
@@ -241,6 +242,7 @@ export function useGameEngine(worldSize: Size2D, saveSlot: SaveSlot, shouldLoad:
                         voxelMap,
                         playerState,
                         gameTime,
+                        storageVault,
                         bonfireStorage,
                         fermentationStorage,
                         cartStorage,

@@ -5,6 +5,7 @@ import { getEntityDef } from "../_registry/EntityRegistry";
 import { getPlacementInfo, type PlacementInfo, type PlacementVariant } from "../_registry/ItemRegistry";
 import { ENTITY_TYPES, getEntityTypeFromVoxel, getTerrainTypeFromVoxel, TERRAIN_TYPES } from "../engine/VoxelDefs";
 import type { UIState } from "./UIState";
+import type { StorageVault } from "../engine/StorageVault";
 
 /** 配置可能な地形タイプの集合。 */
 const PLACEABLE_TERRAINS: ReadonlySet<number> = new Set([TERRAIN_TYPES.grass, TERRAIN_TYPES.dirt, TERRAIN_TYPES.soil, TERRAIN_TYPES.wetSoil]);
@@ -27,16 +28,18 @@ export class PlacementOverlay {
     private entitySizeFn: (variant: PlacementVariant) => { w: number; h: number } = () => ({ w: 1, h: 1 });
     private active = false;
     private placementInfo: PlacementInfo | null = null;
+    private storageVault: StorageVault;
 
     private onPointerDownBound: (e: MouseEvent) => void;
     private onKeyDownBound: (e: KeyboardEvent) => void;
 
-    constructor(voxelMap: IVoxelWriter, inventory: IInventoryWriter, uiState: UIState, eventBroker: IEventBroker, playerState: IPlayerStateReader) {
+    constructor(voxelMap: IVoxelWriter, inventory: IInventoryWriter, uiState: UIState, eventBroker: IEventBroker, playerState: IPlayerStateReader, storageVault: StorageVault) {
         this.voxelMap = voxelMap;
         this.inventory = inventory;
         this.uiState = uiState;
         this.eventBroker = eventBroker;
         this.playerState = playerState;
+        this.storageVault = storageVault;
         this.container = new Container();
         this.container.visible = false;
 
@@ -176,7 +179,7 @@ export class PlacementOverlay {
             }
 
             // 副作用: voxelMap に配置
-            this.placementInfo.onPlace(this.voxelMap, this.snappedPos, variant);
+            this.placementInfo.onPlace(this.voxelMap, this.snappedPos, variant, this.storageVault);
 
             // ミッションシステムなどに通知。entityType は itemId（例: "warp_gate"）。
             this.eventBroker.publish("entity_placed", { pos: placedPos, entityType: placedItemId });

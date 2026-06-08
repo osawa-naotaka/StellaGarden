@@ -8,6 +8,7 @@ import type { MissionSystem } from "../../engine/MissionSystem";
 import type { PlayerState } from "../../engine/PlayerState";
 import type { ReputationSystem } from "../../engine/ReputationSystem";
 import type { SeedRequestSystem } from "../../engine/SeedRequestSystem";
+import type { StorageVault } from "../../engine/StorageVault";
 import type { SaveData } from "../../lib/SaveSystem";
 import type { VoxelMap } from "../../lib/VoxelMap";
 
@@ -17,6 +18,7 @@ export interface SaveSnapshotDeps {
     voxelMap: VoxelMap;
     playerState: PlayerState;
     gameTime: GameTime;
+    storageVault: StorageVault;
     bonfireStorage: BonfireStorage;
     fermentationStorage: FermentationStorage;
     cartStorage: CartStorage;
@@ -34,6 +36,7 @@ export function buildSaveData(deps: SaveSnapshotDeps): Omit<SaveData, "version" 
         voxelMap,
         playerState,
         gameTime,
+        storageVault,
         bonfireStorage,
         fermentationStorage,
         cartStorage,
@@ -67,6 +70,7 @@ export function buildSaveData(deps: SaveSnapshotDeps): Omit<SaveData, "version" 
         gameTime: {
             elapsedMs: gameTime.getElapsedMs(),
         },
+        storageVault: storageVault.toSaveData(),
         storage: getStorages(),
         bonfireStorage: {
             bonfires: bonfireStorage.toSaveData(),
