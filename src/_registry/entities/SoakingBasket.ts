@@ -18,6 +18,7 @@ import {
     getDaysElapsedFromVoxel,
     getEnabledFromVoxel,
     getEntityTypeFromVoxel,
+    getRotatedFromVoxel,
     getTerrainTypeFromVoxel,
     setVariantInVoxel,
     TERRAIN_TYPES,
@@ -91,14 +92,11 @@ registerEntity({
     },
 
     getSprites(voxel: bigint): EntitySpriteInfo[] {
-        const days = getDaysElapsedFromVoxel(voxel);
-        // 縦横別スプライト未用意のため、現状はどちらも横置きスプライトを流用する。
-        // 完了状態（output[0] が残っている）は enabled ビットで判定する。
-        if (getEnabledFromVoxel(voxel)) {
+        if (getRotatedFromVoxel(voxel)) {
             return [["ss_sprite_073.png", 0, 0]];
         }
-        if (days >= 1 && days <= 3) {
-            return [["ss_sprite_056.png", 0, 0]];
+        if (getEnabledFromVoxel(voxel)) {
+            return [["ss_sprite_056.png", 0, 0]];            
         }
         return [["ss_sprite_072.png", 0, 0]];
     },

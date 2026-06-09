@@ -71,15 +71,17 @@ export function DailyProcessingPanel({ open, inventory, storageVault, voxelMap, 
             if (!pos) return;
             if (ref.area === "processing_input") {
                 daily?.setSlot(pos, "input", 0, stack);
+                daily?.updateVoxelSpriteState(pos, voxelMap);
                 return;
             }
             if (ref.area === "processing_output") {
                 daily?.setSlot(pos, "output", ref.index, stack);
+                daily?.updateVoxelSpriteState(pos, voxelMap);
                 return;
             }
             inventory.setSlot(toInventorySlotRef(ref), stack);
         },
-        [inventory, daily, pos],
+        [inventory, daily, pos, voxelMap],
     );
 
     const canPlaceTo = useCallback(
@@ -157,8 +159,8 @@ export function DailyProcessingPanel({ open, inventory, storageVault, voxelMap, 
     // 受理不可アイテム（誤って入った出力物など）では findRecipeForInput が throw するため事前に弾く。
     const recipe = input && dailyProcessingCanAcceptInput(pos, input.itemId, voxelMap) ? findRecipeForInput(def, input.itemId) : null;
     const isProgressing = recipe !== null && input !== null && input.count >= recipe.inputCountPerCycle;
-    const progressPct = isProgressing ? Math.min(100, Math.round(((daysElapsed - 1) / def.daysRequired) * 100)) : 0;
-    const progressLabel = isProgressing ? `${daysElapsed - 1} / ${def.daysRequired} 日` : `必要量を投入してください`;
+    const progressPct = isProgressing ? Math.min(100, Math.round((daysElapsed / def.daysRequired) * 100)) : 0;
+    const progressLabel = isProgressing ? `${daysElapsed} / ${def.daysRequired} 日` : `必要量を投入してください`;
 
     return (
         <>

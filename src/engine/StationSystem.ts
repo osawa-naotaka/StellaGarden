@@ -1,6 +1,6 @@
 import type { ICartWriter, IEventBroker, IVoxelWriter, Pos2D } from "../_boundary/interfaces";
 import { autoProcessingCanAcceptInput } from "../_registry/entities/AutoProcessing";
-import { dailyProcessingCanAcceptInput } from "../_registry/entities/DailyProcessing";
+import { type DailyProcessingStorage, dailyProcessingCanAcceptInput } from "../_registry/entities/DailyProcessing";
 import { findFacilityAnchor } from "../_registry/facilityUtil";
 import { getItemDef, getItemDefByEntityType } from "../_registry/ItemRegistry";
 import { AUTO_PROCESSING_DEFS, DAILY_PROCESSING_DEFS } from "../_registry/ProcessingRecipes";
@@ -201,7 +201,7 @@ function unloadCartToDaily(cart: ICartWriter, anchorPos: Pos2D, voxelMap: IVoxel
     const entityType = getEntityTypeFromVoxel(voxelMap.getSurface(anchorPos));
     const itemDef = getItemDefByEntityType(entityType);
     if (itemDef === undefined) throw new Error(`No itemId for entity type ${entityType}`);
-    const daily = storageVaultRef.get<SlotStorage>(itemDef.itemId);
+    const daily = storageVaultRef.get<DailyProcessingStorage>(itemDef.itemId);
 
     // 日次処理は入力1スロット。同 itemId にマージしつつ最大スタックまで積む。
     let moved = false;
@@ -222,6 +222,8 @@ function unloadCartToDaily(cart: ICartWriter, anchorPos: Pos2D, voxelMap: IVoxel
         cart.setInventorySlot(i, remaining > 0 ? { itemId: slot.itemId, count: remaining } : null);
         moved = true;
     }
+    // 入力スロットの充足状況が変わった可能性があるため enabled/tracted を再同期する。
+    if (moved) daily.updateVoxelSpriteState(anchorPos, voxelMap);
     return moved;
 }
 
@@ -313,7 +315,7 @@ function loadDailyToCart(cart: ICartWriter, anchorPos: Pos2D, voxelMap: IVoxelWr
     const entityType = getEntityTypeFromVoxel(voxelMap.getSurface(anchorPos));
     const itemId = getItemDefByEntityType(entityType)?.itemId ?? "none";
     if (itemId === "none") return false;
-    const daily = storageVaultRef.get<SlotStorage>(itemId);
+    const daily = storageVaultRef.get<DailyProcessingStorage>(itemId);
 
     let moved = false;
     for (const idx of [0, 1] as const) {
@@ -326,6 +328,8 @@ function loadDailyToCart(cart: ICartWriter, anchorPos: Pos2D, voxelMap: IVoxelWr
             moved = true;
         }
     }
+    // 出力スロットの有無が変わった可能性があるため enabled/tracted を再同期する。
+    if (moved) daily.updateVoxelSpriteState(anchorPos, voxelMap);
     return moved;
 }
 

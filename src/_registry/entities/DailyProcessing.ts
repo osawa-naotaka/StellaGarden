@@ -18,8 +18,10 @@ import {
     getDaysElapsedFromVoxel,
     getEnabledFromVoxel,
     getEntityTypeFromVoxel,
+    getRotatedFromVoxel,
     setDaysElapsedInVoxel,
     setEnabledInVoxel,
+    setRotatedInVoxel,
 } from "../../engine/VoxelDefs";
 import { type EntitySpriteInfo, type InteractionContext, registerEntity } from "../EntityRegistry";
 import { placeFacility, removeFacilityByContext } from "../facilityUtil";
@@ -33,8 +35,38 @@ import { DAILY_PROCESSING_DEFS, findRecipeForInput, getDailyProcessingDef, isAcc
  * 進行度は voxel の daysElapsed、完了フラグは enabled ビットに保持する。
  */
 export class DailyProcessingStorage extends SlotStorage {
+    private readonly outputSlotCount: number;
+
     constructor(outputSlotCount: number) {
         super({ input: 1, output: outputSlotCount });
+        this.outputSlotCount = outputSlotCount;
+    }
+
+    /**
+     * 入力・出力スロットの状況を voxel のスプライト切替ビットへ反映する。
+     *  - enabled ビット   = 入力スロットが受理可能アイテムで指定数(inputCountPerCycle)以上
+     *  - rotated/tracted ビット = いずれかの出力スロットに1個以上
+     * スロットを変更する全経路（UI・自動搬送・日次処理）から呼ぶこと。
+     */
+    updateVoxelSpriteState(pos: Pos2D, voxelMap: IVoxelWriter): void {
+        const surface = voxelMap.getSurfacePosition(pos);
+        const voxel = voxelMap.get(surface);
+        const def = DAILY_PROCESSING_DEFS[getEntityTypeFromVoxel(voxel)];
+        if (!def) return;
+
+        const input = this.getSlot(pos, "input", 0);
+        const enabled =
+            input !== null && isAcceptableInputItem(def, input.itemId as never) && input.count >= findRecipeForInput(def, input.itemId).inputCountPerCycle;
+
+        let hasOutput = false;
+        for (let i = 0; i < this.outputSlotCount; i++) {
+            if (this.getSlot(pos, "output", i) !== null) {
+                hasOutput = true;
+                break;
+            }
+        }
+
+        voxelMap.set(setRotatedInVoxel(setEnabledInVoxel(voxel, enabled), hasOutput), surface);
     }
 
     override onDailyTick(voxelMap: IVoxelWriter): void {
@@ -55,8 +87,8 @@ export class DailyProcessingStorage extends SlotStorage {
 
             const daysElapsed = getDaysElapsedFromVoxel(voxel);
             const nextDays = daysElapsed + 1;
-            if (nextDays < def.daysRequired + 1) {
-                // 進行中
+            if (nextDays < def.daysRequired) {
+                // 進行中（ちょうど daysRequired 日目で完了処理に入る）
                 voxelMap.set(setDaysElapsedInVoxel(voxel, nextDays), surface);
                 continue;
             }
@@ -83,10 +115,10 @@ export class DailyProcessingStorage extends SlotStorage {
                 continue;
             }
 
-            // 入力消費 + 出力加算。完了フラグは enabled ビットに記録する。
+            // 入力消費 + 出力加算。
+            // 入力が残っていても進行度は 0 始まりにリセットし、新規配置時と挙動を揃える。
             const newInputCount = input.count - recipe.inputCountPerCycle;
-            const newEnabledVoxel = setEnabledInVoxel(voxel, true);
-            voxelMap.set(setDaysElapsedInVoxel(newEnabledVoxel, newInputCount < recipe.inputCountPerCycle ? 0 : 1), surface);
+            voxelMap.set(setDaysElapsedInVoxel(voxel, 0), surface);
             this.setSlot(pos, "input", 0, newInputCount > 0 ? { itemId: input.itemId, count: newInputCount } : null);
             for (let i = 0; i < recipe.outputs.length; i++) {
                 const out = recipe.outputs[i];
@@ -98,6 +130,8 @@ export class DailyProcessingStorage extends SlotStorage {
                     slot === null ? { itemId: out.itemId, count: out.count } : { itemId: slot.itemId, count: slot.count + out.count },
                 );
             }
+            // 入力消費・出力生成でスロット状況が変わったため enabled/tracted を再同期する。
+            this.updateVoxelSpriteState(pos, voxelMap);
         }
     }
 }
@@ -202,24 +236,14 @@ function kilnBurningFrame(): string {
 registerDailyProcessingEntity({
     baseEntityType: ENTITY_TYPES.compost_bin,
     sprites: (voxel) => {
-        const days = getDaysElapsedFromVoxel(voxel);
+        // 出力あり（完成品）を最優先で表示する。
+        if (getRotatedFromVoxel(voxel)) return "ss_sprite_053_3.png";
+        // 処理中（入力充足）は経過日数で2段階表示する（daysRequired=4）。
         if (getEnabledFromVoxel(voxel)) {
-            return "ss_sprite_053_3.png";
+            return getDaysElapsedFromVoxel(voxel) < 2 ? "ss_sprite_053_1.png" : "ss_sprite_053_2.png";
         }
-        switch (days) {
-            case 0:
-                return "ss_sprite_071.png";
-            case 1:
-                return "ss_sprite_053_1.png";
-            case 2:
-                return "ss_sprite_053_2.png";
-            case 3:
-                return "ss_sprite_053_2.png";
-            case 4:
-                return "ss_sprite_053_2.png";
-            default:
-                return "ss_sprite_053_3.png";
-        }
+        // 空。
+        return "ss_sprite_071.png";
     },
     itemId: "compost_bin",
     displayName: "堆肥場",
@@ -238,20 +262,10 @@ registerDailyProcessingEntity({
 registerDailyProcessingEntity({
     baseEntityType: ENTITY_TYPES.kiln,
     sprites: (voxel) => {
-        const days = getDaysElapsedFromVoxel(voxel);
-        switch (days) {
-            case 0:
-                return "ss_sprite_077.png";
-            case 1:
-            case 2:
-            case 3:
-            case 4:
-                return kilnBurningFrame();
-            case 5:
-                return "ss_sprite_077.png";
-            default:
-                return "ss_sprite_077.png";
-        }
+        // 窯は稼働中（入力充足）の炎アニメを最優先で表示する。
+        if (getEnabledFromVoxel(voxel)) return kilnBurningFrame();
+        // 出力あり・空はいずれも同じ窯スプライト。
+        return "ss_sprite_077.png";
     },
     itemId: "kiln",
     displayName: "炭焼き窯",
@@ -263,18 +277,12 @@ registerDailyProcessingEntity({
 registerDailyProcessingEntity({
     baseEntityType: ENTITY_TYPES.koji_muro,
     sprites: (voxel) => {
-        const days = getDaysElapsedFromVoxel(voxel);
-        if (getEnabledFromVoxel(voxel)) {
-            return "ss_sprite_053_3.png"; // 完了（麹あり）
-        }
-        switch (days) {
-            case 0:
-                return "ss_sprite_071.png"; // 空
-            case 1:
-                return "ss_sprite_053_1.png";
-            default:
-                return "ss_sprite_053_2.png"; // 発酵中
-        }
+        // 出力あり（麹完成）を最優先で表示する。
+        if (getRotatedFromVoxel(voxel)) return "ss_sprite_053_3.png";
+        // 発酵中（入力充足）。
+        if (getEnabledFromVoxel(voxel)) return "ss_sprite_053_1.png";
+        // 空。
+        return "ss_sprite_071.png";
     },
     itemId: "koji_muro",
     displayName: "麹室",
