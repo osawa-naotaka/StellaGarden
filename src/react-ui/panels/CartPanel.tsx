@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import type { IInventoryWriter, ItemStack, SlotRef } from "../../_boundary/interfaces";
+import type { IInventoryWriter, ItemStack } from "../../_boundary/interfaces";
 import { Cart } from "../../engine/Cart";
 import { CART_ATTACHMENT_ALLOWED } from "../../engine/CartItems";
 import type { CartStorage } from "../../engine/CartStorage";
@@ -10,6 +10,7 @@ import { SidePanel } from "../components/SidePanel";
 import { useFrameTick } from "../hooks/useFrameTick";
 import { usePickup } from "../hooks/usePickup";
 import { registerPanel } from "../PanelRegistry";
+import { toInventorySlotRef } from "./slotRef";
 
 const CART_ROWS = 8;
 const CART_COLS = 8;
@@ -44,7 +45,7 @@ export function CartPanel({ open, inventory, cartStorage, uiState }: CartPanelPr
                 const cart = cartStorage.getByIdWritable(targetCartId);
                 return cart?.attachmentSlot ?? null;
             }
-            return inventory.getSlot(ref as SlotRef);
+            return inventory.getSlot(toInventorySlotRef(ref));
         },
         [inventory, cartStorage, targetCartId],
     );
@@ -64,7 +65,7 @@ export function CartPanel({ open, inventory, cartStorage, uiState }: CartPanelPr
                 cart.attachmentSlot = stack;
                 return;
             }
-            inventory.setSlot(ref as SlotRef, stack);
+            inventory.setSlot(toInventorySlotRef(ref), stack);
         },
         [inventory, cartStorage, targetCartId],
     );

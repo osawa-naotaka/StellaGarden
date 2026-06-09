@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import type { ICraftSystem, IInventoryWriter, ItemStack, SlotRef } from "../../_boundary/interfaces";
+import type { ICraftSystem, IInventoryWriter, ItemStack } from "../../_boundary/interfaces";
 import { getPlacementInfo, isPlaceable } from "../../_registry/ItemRegistry";
 import type { UIState } from "../../view/UIState";
 import { CraftPane } from "../components/CraftPane";
@@ -9,6 +9,7 @@ import { SidePanel } from "../components/SidePanel";
 import { useFrameTick } from "../hooks/useFrameTick";
 import { usePickup } from "../hooks/usePickup";
 import { registerPanel } from "../PanelRegistry";
+import { toInventorySlotRef } from "./slotRef";
 
 const COLS = 8;
 const INV_ROWS = 8;
@@ -31,7 +32,7 @@ export function InventoryPanel({ open, inventory, craftSystem, uiState }: Invent
     const getSlot = useCallback(
         (ref: InvSlotRef): ItemStack | null => {
             if (ref.area === "craft_tool") return craftSystem.getToolSlot();
-            return inventory.getSlot(ref as SlotRef);
+            return inventory.getSlot(toInventorySlotRef(ref));
         },
         [inventory, craftSystem],
     );
@@ -42,7 +43,7 @@ export function InventoryPanel({ open, inventory, craftSystem, uiState }: Invent
                 craftSystem.setToolSlot(stack);
                 return;
             }
-            inventory.setSlot(ref as SlotRef, stack);
+            inventory.setSlot(toInventorySlotRef(ref), stack);
         },
         [inventory, craftSystem],
     );
@@ -52,7 +53,7 @@ export function InventoryPanel({ open, inventory, craftSystem, uiState }: Invent
             if (ref.area === "craft_tool") return false;
             if (!isPlaceable(stack.itemId)) return false;
             const info = getPlacementInfo(stack.itemId);
-            uiState.enterPlacementMode(stack.itemId, ref as SlotRef, info?.defaultVariant ?? 0);
+            uiState.enterPlacementMode(stack.itemId, toInventorySlotRef(ref), info?.defaultVariant ?? 0);
             return true;
         },
         [uiState],

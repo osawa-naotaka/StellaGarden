@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import type { IInventoryWriter, IReputationSystemReader, ItemStack, SlotRef } from "../../_boundary/interfaces";
+import type { IInventoryWriter, IReputationSystemReader, ItemStack } from "../../_boundary/interfaces";
 import { SEED_REQUEST_DEFS, SEED_STACK_COUNT, type SeedRequestSystem } from "../../engine/SeedRequestSystem";
 import type { SlotStorage } from "../../engine/SlotStorage";
 import type { UIState } from "../../view/UIState";
@@ -11,6 +11,7 @@ import { TierList } from "../components/TierList";
 import { useFrameTick } from "../hooks/useFrameTick";
 import { usePickup } from "../hooks/usePickup";
 import { registerPanel } from "../PanelRegistry";
+import { toInventorySlotRef } from "./slotRef";
 
 const EARTH_INV_ROWS = 4;
 const COLS = 8;
@@ -36,7 +37,7 @@ export function WarpGatePanel({ open, inventory, warpGate, reputationSystem, see
     const getSlot = useCallback(
         (ref: WarpGateSlotRef): ItemStack | null => {
             if (ref.area === "warp_gate") return targetPos ? warpGate.getSlot(targetPos, "main", ref.index) : null;
-            return inventory.getSlot(ref as SlotRef);
+            return inventory.getSlot(toInventorySlotRef(ref));
         },
         [inventory, warpGate, targetPos],
     );
@@ -49,7 +50,7 @@ export function WarpGatePanel({ open, inventory, warpGate, reputationSystem, see
                     return;
                 }
             }
-            inventory.setSlot(ref as SlotRef, stack);
+            inventory.setSlot(toInventorySlotRef(ref), stack);
         },
         [inventory, warpGate, targetPos],
     );

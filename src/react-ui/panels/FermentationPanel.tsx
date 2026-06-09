@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import type { IInventoryWriter, ItemStack, IVoxelWriter, SlotRef } from "../../_boundary/interfaces";
+import type { IInventoryWriter, ItemStack, IVoxelWriter } from "../../_boundary/interfaces";
 import { getItemDisplayName } from "../../_registry/ItemRegistry";
 import { FERMENTATION_RECIPES } from "../../_registry/ProcessingRecipes";
 import type { FermentationStorage } from "../../engine/FermentationStorage";
@@ -11,6 +11,7 @@ import { Slot } from "../components/Slot";
 import { useFrameTick } from "../hooks/useFrameTick";
 import { usePickup } from "../hooks/usePickup";
 import { registerPanel } from "../PanelRegistry";
+import { toInventorySlotRef } from "./slotRef";
 
 const COLS = 8;
 const INV_ROWS = 8;
@@ -49,7 +50,7 @@ export function FermentationPanel({ open, inventory, fermentationStorage, voxelM
                 const itemId = inputItemIdAt(ref.index);
                 return itemId ? fermentationStorage.getInput(pos, itemId) : null;
             }
-            return inventory.getSlot(ref as SlotRef);
+            return inventory.getSlot(toInventorySlotRef(ref));
         },
         [inventory, fermentationStorage, pos, inputItemIdAt],
     );
@@ -66,7 +67,7 @@ export function FermentationPanel({ open, inventory, fermentationStorage, voxelM
                 if (itemId) fermentationStorage.setInput(pos, itemId, stack, voxelMap);
                 return;
             }
-            inventory.setSlot(ref as SlotRef, stack);
+            inventory.setSlot(toInventorySlotRef(ref), stack);
         },
         [inventory, fermentationStorage, voxelMap, pos, inputItemIdAt],
     );

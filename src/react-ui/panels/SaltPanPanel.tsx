@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import type { IInventoryWriter, ItemStack, IVoxelWriter, SlotRef } from "../../_boundary/interfaces";
+import type { IInventoryWriter, ItemStack, IVoxelWriter } from "../../_boundary/interfaces";
 import { SALT_DAYS_PER_CYCLE } from "../../_registry/entities/Saltpan";
 import type { SlotStorage } from "../../engine/SlotStorage";
 import { getDaysElapsedFromVoxel } from "../../engine/VoxelDefs";
@@ -11,6 +11,7 @@ import { Slot } from "../components/Slot";
 import { useFrameTick } from "../hooks/useFrameTick";
 import { usePickup } from "../hooks/usePickup";
 import { registerPanel } from "../PanelRegistry";
+import { toInventorySlotRef } from "./slotRef";
 
 const COLS = 8;
 const INV_ROWS = 8;
@@ -35,7 +36,7 @@ export function SaltPanPanel({ open, inventory, saltPan, voxelMap, uiState }: Sa
         (ref: SaltPanSlotRef): ItemStack | null => {
             if (!pos) return null;
             if (ref.area === "saltpan_output") return saltPan.getSlot(pos, "output", 0);
-            return inventory.getSlot(ref as SlotRef);
+            return inventory.getSlot(toInventorySlotRef(ref));
         },
         [inventory, saltPan, pos],
     );
@@ -47,7 +48,7 @@ export function SaltPanPanel({ open, inventory, saltPan, voxelMap, uiState }: Sa
                 saltPan.setSlot(pos, "output", 0, stack);
                 return;
             }
-            inventory.setSlot(ref as SlotRef, stack);
+            inventory.setSlot(toInventorySlotRef(ref), stack);
         },
         [inventory, saltPan, pos],
     );

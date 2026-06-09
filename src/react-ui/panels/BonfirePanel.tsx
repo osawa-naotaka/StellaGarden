@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import type { IInventoryWriter, ItemStack, IVoxelWriter, SlotRef } from "../../_boundary/interfaces";
+import type { IInventoryWriter, ItemStack, IVoxelWriter } from "../../_boundary/interfaces";
 import { getItemDisplayName } from "../../_registry/ItemRegistry";
 import { BONFIRE_MATERIAL_DEF, findAllRecipesForInput } from "../../_registry/ProcessingRecipes";
 import type { BonfireSlotKind, BonfireStorage } from "../../engine/BonfireStorage";
@@ -11,6 +11,7 @@ import { Slot } from "../components/Slot";
 import { useFrameTick } from "../hooks/useFrameTick";
 import { usePickup } from "../hooks/usePickup";
 import { registerPanel } from "../PanelRegistry";
+import { toInventorySlotRef } from "./slotRef";
 
 const COLS = 8;
 const INV_ROWS = 8;
@@ -50,7 +51,7 @@ export function BonfirePanel({ open, inventory, bonfireStorage, voxelMap, uiStat
         (ref: BonfireSlotRef): ItemStack | null => {
             const kind = areaToKind(ref.area);
             if (kind) return targetPos ? bonfireStorage.getSlot(targetPos, kind) : null;
-            return inventory.getSlot(ref as SlotRef);
+            return inventory.getSlot(toInventorySlotRef(ref));
         },
         [inventory, bonfireStorage, targetPos],
     );
@@ -62,7 +63,7 @@ export function BonfirePanel({ open, inventory, bonfireStorage, voxelMap, uiStat
                 if (targetPos) bonfireStorage.setSlot(targetPos, kind, stack, voxelMap);
                 return;
             }
-            inventory.setSlot(ref as SlotRef, stack);
+            inventory.setSlot(toInventorySlotRef(ref), stack);
         },
         [inventory, bonfireStorage, voxelMap, targetPos],
     );

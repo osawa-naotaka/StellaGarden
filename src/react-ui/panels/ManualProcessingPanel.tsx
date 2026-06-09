@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef } from "react";
-import type { IInventoryWriter, ItemStack, IVoxelWriter, SlotRef } from "../../_boundary/interfaces";
+import type { IInventoryWriter, ItemStack, IVoxelWriter } from "../../_boundary/interfaces";
 import type { ManualProcessingStorage } from "../../_registry/entities/ManualProcessing";
 import { getItemDefByEntityType, getItemDisplayName } from "../../_registry/ItemRegistry";
 import { findAllRecipesForInput, getManualProcessingDef } from "../../_registry/ProcessingRecipes";
@@ -13,6 +13,7 @@ import { Slot } from "../components/Slot";
 import { useFrameTick } from "../hooks/useFrameTick";
 import { usePickup } from "../hooks/usePickup";
 import { registerPanel } from "../PanelRegistry";
+import { toInventorySlotRef } from "./slotRef";
 
 const COLS = 8;
 const INV_ROWS = 8;
@@ -52,7 +53,7 @@ export function ManualProcessingPanel({ open, inventory, storageVault, voxelMap,
             if (!pos) return null;
             if (ref.area === "processing_input") return manual?.getSlot(pos, "input", 0) ?? null;
             if (ref.area === "processing_output") return manual?.getSlot(pos, "output", ref.index) ?? null;
-            return inventory.getSlot(ref as SlotRef);
+            return inventory.getSlot(toInventorySlotRef(ref));
         },
         [inventory, manual, pos],
     );
@@ -68,7 +69,7 @@ export function ManualProcessingPanel({ open, inventory, storageVault, voxelMap,
                 manual?.setSlot(pos, "output", ref.index, stack);
                 return;
             }
-            inventory.setSlot(ref as SlotRef, stack);
+            inventory.setSlot(toInventorySlotRef(ref), stack);
         },
         [inventory, manual, pos],
     );

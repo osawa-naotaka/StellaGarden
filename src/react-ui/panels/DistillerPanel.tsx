@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import type { IInventoryWriter, ItemStack, SlotRef } from "../../_boundary/interfaces";
+import type { IInventoryWriter, ItemStack } from "../../_boundary/interfaces";
 import type { DistillerSlotKind, DistillerStorage } from "../../_registry/entities/Distiller";
 import { distillerCanAcceptFuel, distillerCanAcceptMaterial } from "../../_registry/entities/Distiller";
 import { getItemDisplayName } from "../../_registry/ItemRegistry";
@@ -12,6 +12,7 @@ import { Slot } from "../components/Slot";
 import { useFrameTick } from "../hooks/useFrameTick";
 import { usePickup } from "../hooks/usePickup";
 import { registerPanel } from "../PanelRegistry";
+import { toInventorySlotRef } from "./slotRef";
 
 const COLS = 8;
 const INV_ROWS = 8;
@@ -48,7 +49,7 @@ export function DistillerPanel({ open, inventory, distiller, uiState }: Distille
         (ref: DistillerSlotRef): ItemStack | null => {
             const kind = areaToKind(ref.area);
             if (kind) return targetPos ? distiller.getSlot(targetPos, kind, 0) : null;
-            return inventory.getSlot(ref as SlotRef);
+            return inventory.getSlot(toInventorySlotRef(ref));
         },
         [inventory, distiller, targetPos],
     );
@@ -60,7 +61,7 @@ export function DistillerPanel({ open, inventory, distiller, uiState }: Distille
                 if (targetPos) distiller.setSlot(targetPos, kind, 0, stack);
                 return;
             }
-            inventory.setSlot(ref as SlotRef, stack);
+            inventory.setSlot(toInventorySlotRef(ref), stack);
         },
         [inventory, distiller, targetPos],
     );

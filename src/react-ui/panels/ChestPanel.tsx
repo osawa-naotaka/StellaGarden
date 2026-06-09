@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import type { IInventoryWriter, ItemStack, SlotRef } from "../../_boundary/interfaces";
+import type { IInventoryWriter, ItemStack } from "../../_boundary/interfaces";
 import type { SlotStorage } from "../../engine/SlotStorage";
 import type { UIState } from "../../view/UIState";
 import { CursorStack } from "../components/CursorStack";
@@ -8,6 +8,7 @@ import { SidePanel } from "../components/SidePanel";
 import { useFrameTick } from "../hooks/useFrameTick";
 import { usePickup } from "../hooks/usePickup";
 import { registerPanel } from "../PanelRegistry";
+import { toInventorySlotRef } from "./slotRef";
 
 const CHEST_ROWS = 8;
 const COLS = 8;
@@ -33,7 +34,7 @@ export function ChestPanel({ open, inventory, chest, uiState }: ChestPanelProps)
             if (ref.area === "chest") {
                 return targetPos ? chest.getSlot(targetPos, "main", ref.index) : null;
             }
-            return inventory.getSlot(ref as SlotRef);
+            return inventory.getSlot(toInventorySlotRef(ref));
         },
         [inventory, chest, targetPos],
     );
@@ -44,7 +45,7 @@ export function ChestPanel({ open, inventory, chest, uiState }: ChestPanelProps)
                 if (targetPos) chest.setSlot(targetPos, "main", ref.index, stack);
                 return;
             }
-            inventory.setSlot(ref as SlotRef, stack);
+            inventory.setSlot(toInventorySlotRef(ref), stack);
         },
         [inventory, chest, targetPos],
     );

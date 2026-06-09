@@ -1,5 +1,5 @@
 import { useCallback, useMemo } from "react";
-import type { IInventoryWriter, ItemStack, IVoxelWriter, SlotRef } from "../../_boundary/interfaces";
+import type { IInventoryWriter, ItemStack, IVoxelWriter } from "../../_boundary/interfaces";
 import { type AutoProcessingStorage, autoProcessingCanAcceptInput, autoProcessingIsPowered } from "../../_registry/entities/AutoProcessing";
 import { getItemDefByEntityType } from "../../_registry/ItemRegistry";
 import { getAutoProcessingDef } from "../../_registry/ProcessingRecipes";
@@ -12,6 +12,7 @@ import { SidePanel } from "../components/SidePanel";
 import { useFrameTick } from "../hooks/useFrameTick";
 import { usePickup } from "../hooks/usePickup";
 import { registerPanel } from "../PanelRegistry";
+import { toInventorySlotRef } from "./slotRef";
 
 const COLS = 8;
 const INV_ROWS = 8;
@@ -59,7 +60,7 @@ export function AutoProcessingPanel({ open, inventory, storageVault, voxelMap, u
             if (!pos) return null;
             if (ref.area === "processing_input") return auto?.getSlot(pos, "input", ref.index) ?? null;
             if (ref.area === "processing_output") return auto?.getSlot(pos, "output", ref.index) ?? null;
-            return inventory.getSlot(ref as SlotRef);
+            return inventory.getSlot(toInventorySlotRef(ref));
         },
         [inventory, auto, pos],
     );
@@ -75,7 +76,7 @@ export function AutoProcessingPanel({ open, inventory, storageVault, voxelMap, u
                 auto?.setSlot(pos, "output", ref.index, stack);
                 return;
             }
-            inventory.setSlot(ref as SlotRef, stack);
+            inventory.setSlot(toInventorySlotRef(ref), stack);
         },
         [inventory, auto, pos],
     );

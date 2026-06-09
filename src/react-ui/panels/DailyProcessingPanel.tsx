@@ -1,5 +1,5 @@
 import { useCallback, useMemo } from "react";
-import type { IInventoryWriter, ItemId, ItemStack, IVoxelWriter, Pos2D, SlotRef } from "../../_boundary/interfaces";
+import type { IInventoryWriter, ItemId, ItemStack, IVoxelWriter, Pos2D } from "../../_boundary/interfaces";
 import { type DailyProcessingStorage, dailyProcessingCanAcceptInput, getDaysElapsed } from "../../_registry/entities/DailyProcessing";
 import { getItemDefByEntityType } from "../../_registry/ItemRegistry";
 import { findRecipeForInput, getDailyProcessingDef } from "../../_registry/ProcessingRecipes";
@@ -13,6 +13,7 @@ import { Slot } from "../components/Slot";
 import { useFrameTick } from "../hooks/useFrameTick";
 import { usePickup } from "../hooks/usePickup";
 import { registerPanel } from "../PanelRegistry";
+import { toInventorySlotRef } from "./slotRef";
 
 const COLS = 8;
 const INV_ROWS = 8;
@@ -60,7 +61,7 @@ export function DailyProcessingPanel({ open, inventory, storageVault, voxelMap, 
             if (!pos) return null;
             if (ref.area === "processing_input") return daily?.getSlot(pos, "input", 0) ?? null;
             if (ref.area === "processing_output") return daily?.getSlot(pos, "output", ref.index) ?? null;
-            return inventory.getSlot(ref as SlotRef);
+            return inventory.getSlot(toInventorySlotRef(ref));
         },
         [inventory, daily, pos],
     );
@@ -76,7 +77,7 @@ export function DailyProcessingPanel({ open, inventory, storageVault, voxelMap, 
                 daily?.setSlot(pos, "output", ref.index, stack);
                 return;
             }
-            inventory.setSlot(ref as SlotRef, stack);
+            inventory.setSlot(toInventorySlotRef(ref), stack);
         },
         [inventory, daily, pos],
     );
