@@ -70,7 +70,55 @@ export const TIER_DEFS: readonly TierDef[] = [
         itemId: "bagged_soybeans",
         baseScore: 5000 * 64,
         displayRow: 5,
+        // 袋詰め大豆は「第一の集大成」。最終ゴール演出は発酵軸の醤油（tier_soy_sauce）に移設した
         unlock: { sourceItemId: "cloth", threshold: 8 },
+    },
+    // ── 発酵軸（doc/26 §6.1）。大豆（tier2）から分岐し、繊維・包装軸と並行に進む ──
+    // 麹は中間素材のため Tier 化しない（出荷対象外）。味噌・酒酢のアンロック元は「塩」に統一。
+    // baseScore は doc/26 §6.2 の相対順序（醤油 > 麦焼酎 > 味噌 > 酢 > 塩）を保った仮値。
+    // 醤油は現スコープの価格ピナクルとして袋詰め大豆（320000）を上回るよう置く。プレイテストで調整。
+    {
+        id: "tier_salt",
+        label: "B-塩",
+        itemId: "salt",
+        baseScore: 600,
+        displayRow: 6,
+        unlock: { sourceItemId: "soybeans", threshold: 64 },
+    },
+    {
+        id: "tier_miso",
+        label: "B-味噌",
+        itemId: "miso",
+        baseScore: 50000,
+        displayRow: 7,
+        unlock: { sourceItemId: "salt", threshold: 64 },
+    },
+    {
+        id: "tier_shochu",
+        label: "B-麦焼酎",
+        itemId: "shochu",
+        baseScore: 200000,
+        displayRow: 7,
+        // 味噌と並行アンロック（doc/26 §6.1 B-酒酢）。ともに塩の累積出荷が条件
+        unlock: { sourceItemId: "salt", threshold: 64 },
+    },
+    {
+        id: "tier_vinegar",
+        label: "B-酢",
+        itemId: "vinegar",
+        baseScore: 30000,
+        displayRow: 7,
+        // 味噌・麦焼酎と並行アンロック。日常調味料ゆえ発酵軸の中では安価
+        unlock: { sourceItemId: "salt", threshold: 64 },
+    },
+    {
+        id: "tier_soy_sauce",
+        label: "B-醤油",
+        itemId: "soy_sauce",
+        baseScore: 400000,
+        displayRow: 8,
+        // 四軸合流・最長チェーン。味噌の累積出荷で開放される現スコープの最終ゴール
+        unlock: { sourceItemId: "miso", threshold: 8 },
         isGoal: true,
     },
 ];

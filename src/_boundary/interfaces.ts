@@ -193,7 +193,21 @@ export interface ICraftSystem extends ICraftSystemReader {
  * Tier の識別子。アンロック進行の段階を表す。
  * 22_REPUTATION_SYSTEM.md の §3 アンロックチェーンと対応する。
  */
-export type TierId = "tier1" | "tier2" | "tier3a" | "tier3b" | "tier4" | "tier5" | "tier6a" | "tier6b";
+export type TierId =
+    | "tier1"
+    | "tier2"
+    | "tier3a"
+    | "tier3b"
+    | "tier4"
+    | "tier5"
+    | "tier6a"
+    | "tier6b"
+    // 発酵軸（doc/26 §6.1）。大豆（tier2）から分岐する。麹は中間素材のため Tier 化しない
+    | "tier_salt"
+    | "tier_miso"
+    | "tier_soy_sauce"
+    | "tier_shochu"
+    | "tier_vinegar";
 
 /** Tier の表示状態。 */
 export type TierStatus = "unlocked" | "in_progress" | "locked";
@@ -216,7 +230,7 @@ export interface TierDef {
      * sourceItemId の累積出荷数が threshold 以上で解放される。
      */
     readonly unlock: { readonly sourceItemId: ItemId; readonly threshold: number } | null;
-    /** フィージビリティ範囲のゴール（袋詰め大豆）を示すフラグ。 */
+    /** 現スコープの最終ゴール（醤油＝発酵軸の価格ピナクル）を示すフラグ。袋詰め大豆は第一の集大成だが最終ゴール演出は醤油に移設（doc/25・doc/26）。 */
     readonly isGoal?: boolean;
 }
 
