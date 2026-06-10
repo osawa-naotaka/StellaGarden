@@ -10,7 +10,7 @@
  * 動力: day_changed 時に AutoProcessingStorage.onDailyTick が、隣接する
  *       動力伝達済みシャフトの有無を判定してから一括処理する。
  */
-import type { ItemId, ItemStack, IVoxelWriter, Pos2D } from "../../_boundary/interfaces";
+import type { IEventBroker, ItemId, ItemStack, IVoxelWriter, Pos2D } from "../../_boundary/interfaces";
 import { defaultPowerConnectionPositions, registerPowerSink } from "../../engine/PowerSinkRegistry";
 import { recomputeAllShaftPowerFlow } from "../../engine/ShaftPowerFlow";
 import { SlotStorage } from "../../engine/SlotStorage";
@@ -30,11 +30,15 @@ const DEFAULT_OUTPUT_SLOTS = 16;
  * 処理内容は voxel entityType から AUTO_PROCESSING_DEFS を引くため全施設で共用する。
  */
 export class AutoProcessingStorage extends SlotStorage {
-    constructor() {
+    /** この施設の itemId（例: "auto_thresher"）。auto_processed イベント発行に使う。 */
+    private readonly machineItemId: ItemId;
+
+    constructor(machineItemId: ItemId) {
         super({ input: DEFAULT_INPUT_SLOTS, output: DEFAULT_OUTPUT_SLOTS });
+        this.machineItemId = machineItemId;
     }
 
-    override onDailyTick(voxelMap: IVoxelWriter): void {
+    override onDailyTick(voxelMap: IVoxelWriter, eventBroker?: IEventBroker): void {
         for (const pos of this.getPositions()) {
             const voxel = voxelMap.getSurface(pos);
             const entityType = getEntityTypeFromVoxel(voxel);
@@ -45,6 +49,8 @@ export class AutoProcessingStorage extends SlotStorage {
 
             const slots = this.getSlots(pos);
             if (!slots) continue;
+
+            let processedAny = false;
 
             // 入力スロットを順に走査して処理
             for (let inputIdx = 0; inputIdx < slots.input.length; inputIdx++) {
@@ -68,6 +74,12 @@ export class AutoProcessingStorage extends SlotStorage {
                 for (const out of recipe.outputs) {
                     this.addToOutputPool(pos, out.itemId, cycles * out.count);
                 }
+                processedAny = true;
+            }
+
+            // 実際に加工が行われたらミッションシステムへ通知（M-19）
+            if (processedAny && eventBroker) {
+                eventBroker.publish("auto_processed", { pos, itemId: this.machineItemId });
             }
         }
     }
@@ -170,7 +182,7 @@ export function registerAutoProcessingEntity(opts: AutoProcessingEntityOptions):
         },
     });
 
-    registerStorageFactory(itemId, () => new AutoProcessingStorage());
+    registerStorageFactory(itemId, () => new AutoProcessingStorage(itemId));
 }
 
 export function autoProcessingCanAcceptInput(itemId: string, entityType: number): boolean {

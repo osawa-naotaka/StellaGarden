@@ -1,5 +1,5 @@
 import * as v from "valibot";
-import type { ItemId, IVoxelWriter } from "../_boundary/interfaces";
+import type { IEventBroker, ItemId, IVoxelWriter } from "../_boundary/interfaces";
 import { ItemIdSchema } from "./ItemDefs";
 import type { KeyedSlotStorage } from "./KeyedSlotStorage";
 
@@ -64,8 +64,8 @@ export class StorageVault {
         return s as T;
     }
 
-    onDailyTick(voxelMap: IVoxelWriter): void {
-        for (const s of this.storages.values()) s.onDailyTick(voxelMap);
+    onDailyTick(voxelMap: IVoxelWriter, eventBroker?: IEventBroker): void {
+        for (const s of this.storages.values()) s.onDailyTick(voxelMap, eventBroker);
     }
 
     toSaveData(): StorageVaultSaveData {

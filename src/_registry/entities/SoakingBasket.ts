@@ -15,7 +15,6 @@ import type { SlotStorage } from "../../engine/SlotStorage";
 import { registerStorageFactory } from "../../engine/StorageVault";
 import {
     ENTITY_TYPES,
-    getDaysElapsedFromVoxel,
     getEnabledFromVoxel,
     getEntityTypeFromVoxel,
     getRotatedFromVoxel,
@@ -96,7 +95,7 @@ registerEntity({
             return [["ss_sprite_073.png", 0, 0]];
         }
         if (getEnabledFromVoxel(voxel)) {
-            return [["ss_sprite_056.png", 0, 0]];            
+            return [["ss_sprite_056.png", 0, 0]];
         }
         return [["ss_sprite_072.png", 0, 0]];
     },

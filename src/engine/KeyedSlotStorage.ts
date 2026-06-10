@@ -1,4 +1,4 @@
-import type { ItemStack, IVoxelWriter, Pos2D } from "../_boundary/interfaces";
+import type { IEventBroker, ItemStack, IVoxelWriter, Pos2D } from "../_boundary/interfaces";
 
 /**
  * 座標ベースの施設ストレージ群（Chest/Forge/Workbench 等）に共通する骨格を提供する抽象基底クラス。
@@ -92,8 +92,9 @@ export abstract class KeyedSlotStorage<TSlots> {
         }
     }
 
-    /** day_changed イベントで呼ばれる日次処理。デフォルトは no-op。 */
-    onDailyTick(_voxelMap: IVoxelWriter): void {}
+    /** day_changed イベントで呼ばれる日次処理。デフォルトは no-op。
+     *  eventBroker は処理結果をミッションシステム等へ通知したい施設（例: AutoProcessingStorage）向けの任意引数。 */
+    onDailyTick(_voxelMap: IVoxelWriter, _eventBroker?: IEventBroker): void {}
 
     /** 派生クラスから内部 Map のエントリを走査するための protected ヘルパー。 */
     protected entries(): IterableIterator<[string, TSlots]> {

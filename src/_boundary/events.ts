@@ -116,6 +116,18 @@ export type GameEventMap = {
      *  購読: MissionSystem。itemId はアンロックされた Tier の itemId（例: "soybeans" = Tier 2 解放）。
      *  Tier 3a/3b、Tier 6a/6b のような並行アンロックでは複数の tier_unlocked が連続して発行される。 */
     tier_unlocked: { itemId: string };
+    /** 水動力の自動加工機械（auto_thresher 等）が day_changed 時に実際に1サイクル以上加工した。
+     *  発行: engine/AutoProcessingStorage.onDailyTick（cycles > 0 のときのみ）。
+     *  購読: MissionSystem（M-19「朝5時の自動加工」）。itemId は機械の itemId（例: "auto_thresher"）。 */
+    auto_processed: { pos: Pos2D; itemId: string };
+    /** 台車のアタッチメントスロットにアイテムが装着された。
+     *  発行: react-ui/CartPanel（attachment スロットに非 null をセットした瞬間）。
+     *  購読: MissionSystem（M-21「鎌を装着」）。itemId は装着したアイテム（現状 "sickle" のみ）。 */
+    cart_attachment_set: { cartId: number; itemId: string };
+    /** 台車が通過タイルで農作業（収穫/植え付け/施肥）を実行した。
+     *  発行: engine/CartActionSystem（左右タイルで実際に作業が成立したときのみ）。
+     *  購読: MissionSystem（M-21）。action は作業種別、itemId は対象アイテム（収穫物/種/肥料）。 */
+    cart_worked: { pos: Pos2D; action: "harvest" | "plant" | "fertilize"; itemId: string };
 
     // ─── ADV 会話システム関連 ────────────────────────────────────────────────
     // doc/25_MISSION_SYSTEM.md §3.2 の ADV 型会話ウィンドウを駆動するイベント。

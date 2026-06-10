@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import type { IInventoryWriter, ItemStack } from "../../_boundary/interfaces";
+import type { IEventBroker, IInventoryWriter, ItemStack } from "../../_boundary/interfaces";
 import { Cart } from "../../engine/Cart";
 import { CART_ATTACHMENT_ALLOWED } from "../../engine/CartItems";
 import type { CartStorage } from "../../engine/CartStorage";
@@ -27,9 +27,10 @@ export interface CartPanelProps {
     inventory: IInventoryWriter;
     cartStorage: CartStorage;
     uiState: UIState;
+    eventBroker: IEventBroker;
 }
 
-export function CartPanel({ open, inventory, cartStorage, uiState }: CartPanelProps) {
+export function CartPanel({ open, inventory, cartStorage, uiState, eventBroker }: CartPanelProps) {
     useFrameTick(open);
     const targetCartId = uiState.targetCartId;
 
@@ -63,11 +64,15 @@ export function CartPanel({ open, inventory, cartStorage, uiState }: CartPanelPr
                 const cart = cartStorage.getByIdWritable(targetCartId);
                 if (!(cart instanceof Cart)) return;
                 cart.attachmentSlot = stack;
+                // アタッチメント装着をミッションシステムへ通知（M-21）。取り外し（null）は通知しない。
+                if (stack !== null) {
+                    eventBroker.publish("cart_attachment_set", { cartId: targetCartId, itemId: stack.itemId });
+                }
                 return;
             }
             inventory.setSlot(toInventorySlotRef(ref), stack);
         },
-        [inventory, cartStorage, targetCartId],
+        [inventory, cartStorage, targetCartId, eventBroker],
     );
 
     const canPlaceTo = useCallback((ref: CartSlotRef, stack: ItemStack): boolean => {
@@ -199,5 +204,7 @@ export function CartPanel({ open, inventory, cartStorage, uiState }: CartPanelPr
 
 registerPanel({
     mode: "cart",
-    component: ({ open, engine }) => <CartPanel open={open} inventory={engine.inventory} cartStorage={engine.cartStorage} uiState={engine.uiState} />,
+    component: ({ open, engine }) => (
+        <CartPanel open={open} inventory={engine.inventory} cartStorage={engine.cartStorage} uiState={engine.uiState} eventBroker={engine.eventBroker} />
+    ),
 });

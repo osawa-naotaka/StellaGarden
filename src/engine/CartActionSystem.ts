@@ -232,6 +232,12 @@ function scatterOnTile(voxelMap: IVoxelWriter, cart: ICartWriter, tilePos: Pos2D
                 pos: { x: surfacePos.x, z: surfacePos.z },
                 cropType: itemId,
             });
+            // 台車による植え付け（M-21）。手動植え付けと区別するための専用イベント。
+            eventBroker.publish("cart_worked", {
+                pos: { x: surfacePos.x, z: surfacePos.z },
+                action: "plant",
+                itemId,
+            });
             return;
         }
 
@@ -243,6 +249,12 @@ function scatterOnTile(voxelMap: IVoxelWriter, cart: ICartWriter, tilePos: Pos2D
 
             voxelMap.set(setFertilizerTypeInVoxel(voxel, fertType), surfacePos);
             consumeOneFromSlot(cart, i);
+            // 台車による施肥（M-21）。
+            eventBroker.publish("cart_worked", {
+                pos: { x: surfacePos.x, z: surfacePos.z },
+                action: "fertilize",
+                itemId,
+            });
             return;
         }
 
@@ -293,6 +305,12 @@ function harvestOnTile(voxelMap: IVoxelWriter, cart: ICartWriter, tilePos: Pos2D
         pos: { x: surfacePos.x, z: surfacePos.z },
         itemId: mainProduct.itemId,
         count: harvestCount,
+    });
+    // 台車による収穫（M-21）。手動収穫と区別するための専用イベント。
+    eventBroker.publish("cart_worked", {
+        pos: { x: surfacePos.x, z: surfacePos.z },
+        action: "harvest",
+        itemId: mainProduct.itemId,
     });
 }
 
