@@ -238,6 +238,8 @@ function calcFeasibleCycles(
 // doc/09 で計画されている専用スプライト（141〜155）は未作成のため、
 // 暫定的に手動版のスプライトを流用する。専用スプライトが追加され次第差し替える想定。
 
+const ANIM_FRAME_MS = 300;
+
 // 脱穀機 (sprite 153/154/155 予定 → 手動版 054/063 を暫定流用)
 registerAutoProcessingEntity({
     entityType: ENTITY_TYPES.auto_thresher,
@@ -253,8 +255,16 @@ registerAutoProcessingEntity({
     entityType: ENTITY_TYPES.auto_screw_press,
     itemId: "auto_screw_press",
     displayName: "スクリュー式搾油機",
-    getFieldSpriteName: () => "ss_sprite_055.png",
-    inventorySpriteName: "ss_sprite_064.png",
+    getFieldSpriteName: (enabled, _variant) => {      
+        const FRAMES_HORIZONTAL = ["ss_sprite_142_3.png", "ss_sprite_142_2.png", "ss_sprite_142_1.png"];
+        
+        if (enabled) {            
+            return FRAMES_HORIZONTAL[Math.floor(Date.now() / ANIM_FRAME_MS) % FRAMES_HORIZONTAL.length];
+        } else {
+            return FRAMES_HORIZONTAL[0];
+        }
+    },
+    inventorySpriteName: "ss_sprite_142_1.png",
     entitySize: { w: 3, h: 3 },
 });
 
