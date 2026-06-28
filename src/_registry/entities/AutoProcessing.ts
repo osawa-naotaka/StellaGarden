@@ -15,7 +15,7 @@ import { defaultPowerConnectionPositions, registerPowerSink } from "../../engine
 import { recomputeAllShaftPowerFlow } from "../../engine/ShaftPowerFlow";
 import { SlotStorage } from "../../engine/SlotStorage";
 import { registerStorageFactory } from "../../engine/StorageVault";
-import { ENTITY_TYPES, getEnabledFromVoxel, getEntityTypeFromVoxel, getVariantFromVoxel } from "../../engine/VoxelDefs";
+import { ENTITY_TYPES, getEnabledFromVoxel, getEntityTypeFromVoxel, getVariantFromVoxel, setVariantInVoxel } from "../../engine/VoxelDefs";
 import { type EntitySpriteInfo, type InteractionContext, registerEntity } from "../EntityRegistry";
 import { placeFacility, removeFacilityByContext } from "../facilityUtil";
 import { getItemDef, registerItem } from "../ItemRegistry";
@@ -174,8 +174,12 @@ export function registerAutoProcessingEntity(opts: AutoProcessingEntityOptions):
         placement: {
             entityType,
             getFieldSpriteName: (variant: number) => getFieldSpriteName(false, variant),
-            onPlace(voxelMap, pos, _variant, storageVault) {
+            maxVariant: 1,
+            onPlace(voxelMap, pos, variant, storageVault) {
                 placeFacility(voxelMap, pos, entityType, entitySize);
+                const surfacePos = voxelMap.getSurfacePosition(pos);
+                const voxel = voxelMap.get(surfacePos);
+                voxelMap.set(setVariantInVoxel(voxel, variant), surfacePos);
                 storageVault.get<SlotStorage>(itemId).create(pos);
                 recomputeAllShaftPowerFlow(voxelMap);
             },
@@ -255,16 +259,17 @@ registerAutoProcessingEntity({
     entityType: ENTITY_TYPES.auto_screw_press,
     itemId: "auto_screw_press",
     displayName: "スクリュー式搾油機",
-    getFieldSpriteName: (enabled, _variant) => {      
+    getFieldSpriteName: (enabled, variant) => {      
         const FRAMES_HORIZONTAL = ["ss_sprite_142_3.png", "ss_sprite_142_2.png", "ss_sprite_142_1.png"];
+        const FRAMES_VERTICAL = ["ss_sprite_143_1.png", "ss_sprite_143_2.png", "ss_sprite_143_3.png"];
         
         if (enabled) {            
-            return FRAMES_HORIZONTAL[Math.floor(Date.now() / ANIM_FRAME_MS) % FRAMES_HORIZONTAL.length];
+            return variant === 0 ? FRAMES_HORIZONTAL[Math.floor(Date.now() / ANIM_FRAME_MS) % FRAMES_HORIZONTAL.length] : FRAMES_VERTICAL[Math.floor(Date.now() / ANIM_FRAME_MS) % FRAMES_VERTICAL.length];
         } else {
-            return FRAMES_HORIZONTAL[0];
+            return variant === 0 ? FRAMES_HORIZONTAL[0] : FRAMES_VERTICAL[0];
         }
     },
-    inventorySpriteName: "ss_sprite_142_1.png",
+    inventorySpriteName: "ss_sprite_141.png",
     entitySize: { w: 3, h: 3 },
 });
 
@@ -273,8 +278,17 @@ registerAutoProcessingEntity({
     entityType: ENTITY_TYPES.scutching_mill,
     itemId: "scutching_mill",
     displayName: "スカッチングミル",
-    getFieldSpriteName: () => "ss_sprite_057.png",
-    inventorySpriteName: "ss_sprite_057.png",
+    getFieldSpriteName: (enabled, variant) => {      
+        const FRAMES_HORIZONTAL = ["ss_sprite_145_3.png", "ss_sprite_145_2.png", "ss_sprite_145_1.png"];
+        const FRAMES_VERTICAL = ["ss_sprite_146_1.png", "ss_sprite_146_2.png", "ss_sprite_146_3.png"];
+        
+        if (enabled) {            
+            return variant === 0 ? FRAMES_HORIZONTAL[Math.floor(Date.now() / ANIM_FRAME_MS) % FRAMES_HORIZONTAL.length] : FRAMES_VERTICAL[Math.floor(Date.now() / ANIM_FRAME_MS) % FRAMES_VERTICAL.length];
+        } else {
+            return variant === 0 ? FRAMES_HORIZONTAL[0] : FRAMES_VERTICAL[0];
+        }
+    },
+    inventorySpriteName: "ss_sprite_144.png",
     entitySize: { w: 3, h: 3 },
 });
 
@@ -283,8 +297,17 @@ registerAutoProcessingEntity({
     entityType: ENTITY_TYPES.spinning_machine,
     itemId: "spinning_machine",
     displayName: "紡績機",
-    getFieldSpriteName: () => "ss_sprite_058.png",
-    inventorySpriteName: "ss_sprite_066.png",
+    getFieldSpriteName: (enabled, variant) => {      
+        const FRAMES_HORIZONTAL = ["ss_sprite_148_3.png", "ss_sprite_148_2.png", "ss_sprite_148_1.png"];
+        const FRAMES_VERTICAL = ["ss_sprite_149_1.png", "ss_sprite_149_2.png", "ss_sprite_149_3.png"];
+        
+        if (enabled) {            
+            return variant === 0 ? FRAMES_HORIZONTAL[Math.floor(Date.now() / ANIM_FRAME_MS) % FRAMES_HORIZONTAL.length] : FRAMES_VERTICAL[Math.floor(Date.now() / ANIM_FRAME_MS) % FRAMES_VERTICAL.length];
+        } else {
+            return variant === 0 ? FRAMES_HORIZONTAL[0] : FRAMES_VERTICAL[0];
+        }
+    },
+    inventorySpriteName: "ss_sprite_147.png",
     entitySize: { w: 3, h: 3 },
 });
 
