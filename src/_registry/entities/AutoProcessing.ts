@@ -249,12 +249,21 @@ registerAutoProcessingEntity({
     entityType: ENTITY_TYPES.auto_thresher,
     itemId: "auto_thresher",
     displayName: "自動脱穀機",
-    getFieldSpriteName: () => "ss_sprite_054.png",
-    inventorySpriteName: "ss_sprite_063.png",
+    getFieldSpriteName: (enabled, variant) => {      
+        const FRAMES_HORIZONTAL = ["ss_sprite_154_3.png", "ss_sprite_154_2.png", "ss_sprite_154_1.png"];
+        const FRAMES_VERTICAL = ["ss_sprite_155_1.png", "ss_sprite_155_2.png", "ss_sprite_155_3.png"];
+        
+        if (enabled) {            
+            return variant === 0 ? FRAMES_HORIZONTAL[Math.floor(Date.now() / ANIM_FRAME_MS) % FRAMES_HORIZONTAL.length] : FRAMES_VERTICAL[Math.floor(Date.now() / ANIM_FRAME_MS) % FRAMES_VERTICAL.length];
+        } else {
+            return variant === 0 ? FRAMES_HORIZONTAL[0] : FRAMES_VERTICAL[0];
+        }
+    },
+    inventorySpriteName: "ss_sprite_153.png",
     entitySize: { w: 3, h: 3 },
 });
 
-// スクリュー式搾油機 (sprite 141/142/143 予定 → 手動版 055/064 を暫定流用)
+// スクリュー式搾油機 (sprite 141/142/143)
 registerAutoProcessingEntity({
     entityType: ENTITY_TYPES.auto_screw_press,
     itemId: "auto_screw_press",
@@ -273,7 +282,7 @@ registerAutoProcessingEntity({
     entitySize: { w: 3, h: 3 },
 });
 
-// スカッチングミル (sprite 144/145/146 予定 → 手動叩き台 057 を暫定流用)
+// スカッチングミル (sprite 144/145/146)
 registerAutoProcessingEntity({
     entityType: ENTITY_TYPES.scutching_mill,
     itemId: "scutching_mill",
@@ -292,7 +301,7 @@ registerAutoProcessingEntity({
     entitySize: { w: 3, h: 3 },
 });
 
-// 紡績機 (sprite 147/148/149 予定 → 手動 紡ぎ車 058/066 を暫定流用)
+// 紡績機 (sprite 147/148/149)
 registerAutoProcessingEntity({
     entityType: ENTITY_TYPES.spinning_machine,
     itemId: "spinning_machine",
@@ -311,12 +320,22 @@ registerAutoProcessingEntity({
     entitySize: { w: 3, h: 3 },
 });
 
-// 自動織機 (sprite 150/151/152 予定 → 手動 織機 059/067 を暫定流用)
+// 自動織機 (sprite 150/151/152)
 registerAutoProcessingEntity({
     entityType: ENTITY_TYPES.auto_loom,
     itemId: "auto_loom",
     displayName: "自動織機",
-    getFieldSpriteName: () => "ss_sprite_059.png",
-    inventorySpriteName: "ss_sprite_067.png",
+    getFieldSpriteName: (enabled, variant) => {      
+        const FRAMES_HORIZONTAL = ["ss_sprite_151_3.png", "ss_sprite_151_2.png", "ss_sprite_151_1.png"];
+        const FRAMES_VERTICAL = ["ss_sprite_152_1.png", "ss_sprite_152_2.png", "ss_sprite_152_3.png"];
+        
+        if (enabled) {            
+            return variant === 0 ? FRAMES_HORIZONTAL[Math.floor(Date.now() / ANIM_FRAME_MS) % FRAMES_HORIZONTAL.length] : FRAMES_VERTICAL[Math.floor(Date.now() / ANIM_FRAME_MS) % FRAMES_VERTICAL.length];
+        } else {
+            return variant === 0 ? FRAMES_HORIZONTAL[0] : FRAMES_VERTICAL[0];
+        }
+    },
+    // getFieldSpriteName: () => "ss_sprite_059.png",
+    inventorySpriteName: "ss_sprite_150.png",
     entitySize: { w: 3, h: 3 },
 });
