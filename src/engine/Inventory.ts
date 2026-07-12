@@ -39,7 +39,7 @@ const DEFAULT_INVENTORY_ITEMS: readonly (DefaultItem | null)[] = [
     { itemId: "rail", count: 64 },
     { itemId: "winch", count: 4 },
     { itemId: "cart", count: 4 },
-    { itemId: "auto_thresher", count: 4 },
+    { itemId: "auto_thresher", count: 1 },
     { itemId: "scutching_mill", count: 1 },
     { itemId: "spinning_machine", count: 1 },
     { itemId: "auto_loom", count: 1 },
@@ -52,7 +52,6 @@ const DEFAULT_INVENTORY_ITEMS: readonly (DefaultItem | null)[] = [
     { itemId: "stem", count: 64 },
     { itemId: "bonfire", count: 8 },
     { itemId: "threshing_machine", count: 1 },
-    { itemId: "auto_thresher", count: 1 },
     { itemId: "pods", count: 64 },
 
     // { itemId: "compost_bin", count: 64 },
