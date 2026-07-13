@@ -12,7 +12,7 @@
   in {
     devShells.${system}.default = pkgs.mkShell {
       buildInputs = with pkgs; [
-        bun
+        pnpm
         nodejs_26
       ];
     };
